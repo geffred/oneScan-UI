@@ -1,48 +1,121 @@
+/* Commandes Card */
+.commandes-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  border: 1px solid #f1f5f9;
+}
+
+.commandes-card-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+}
+
+/* Grid System */
+.commandes-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.commandes-grid-1 { grid-template-columns: 1fr; }
+.commandes-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.commandes-grid-3 { grid-template-columns: repeat(3, 1fr); }
+
 /* Stat Cards */
-.stat-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border-radius: 12px;
+.commandes-stat-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border-left: 4px solid;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.commandes-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.commandes-stat-card-blue {
+  border-left-color: #007AFF;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.commandes-stat-card-green {
+  border-left-color: #00C896;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.commandes-stat-card-yellow {
+  border-left-color: #FFB800;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.commandes-stat-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.commandes-stat-title-blue { color: #0369a1; }
+.commandes-stat-title-green { color: #065f46; }
+.commandes-stat-title-yellow { color: #92400e; }
+
+.commandes-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.commandes-stat-value-blue { color: #0284c7; }
+.commandes-stat-value-green { color: #059669; }
+.commandes-stat-value-yellow { color: #d97706; }
+
+/* Buttons */
+.commandes-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.commandes-btn-primary {
+  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.commandes-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+}
+
+/* Spacing */
+.commandes-mt-6 {
+  margin-top: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .commandes-grid-2,
+  .commandes-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .commandes-card {
     padding: 1.5rem;
-    border-left: 4px solid;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
   }
-  
-  .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+
+  .commandes-card-title {
+    font-size: 1.5rem;
   }
-  
-  .stat-card.blue {
-    border-left-color: #007AFF;
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+
+  .commandes-stat-value {
+    font-size: 1.8rem;
   }
-  
-  .stat-card.green {
-    border-left-color: #00C896;
-    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  }
-  
-  .stat-card.yellow {
-    border-left-color: #FFB800;
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-  }
-  
-  .stat-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-  }
-  
-  .stat-title.blue { color: #0369a1; }
-  .stat-title.green { color: #065f46; }
-  .stat-title.yellow { color: #92400e; }
-  
-  .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-  }
-  
-  .stat-value.blue { color: #0284c7; }
-  .stat-value.green { color: #059669; }
-  .stat-value.yellow { color: #d97706; }
+}

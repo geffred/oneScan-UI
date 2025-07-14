@@ -26,10 +26,10 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="app-container">
+    <div className="dashboardpage-app-container">
       <Navbar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-      <div className="main-layout">
+      <div className="dashboardpage-main-layout">
         <Sidebar
           sidebarOpen={sidebarOpen}
           toggleSidebar={toggleSidebar}
@@ -38,16 +38,21 @@ const DashboardPage = () => {
         />
 
         <div
-          className={`overlay ${sidebarOpen ? "show" : ""}`}
+          className={`dashboardpage-overlay ${sidebarOpen ? "show" : ""}`}
           onClick={toggleSidebar}
         ></div>
 
-        <div className="main-content">
-          <main className="content-area">{renderActiveComponent()}</main>
+        <div className="dashboardpage-main-content">
+          <main className="dashboardpage-content-area">
+            {renderActiveComponent()}
+          </main>
 
-          <footer className="footer">
-            <div className="footer-content">
-              <p className="footer-text">OneScaN v1.2.3</p>
+          <footer className="dashboardpage-footer">
+            <div className="dashboardpage-footer-content">
+              <p className="dashboardpage-footer-text">
+                &copy; IA Lab
+                <label>Tous les droits sont réservés.</label>
+              </p>
             </div>
           </footer>
         </div>

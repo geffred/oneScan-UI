@@ -1,4 +1,6 @@
-.navbar {
+/* Navbar.css - Styles spécifiques à la Navbar */
+
+.navbar-custom {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   position: sticky;
@@ -7,7 +9,7 @@
   backdrop-filter: blur(10px);
 }
 
-.navbar-content {
+.navbar-custom-content {
   max-width: 1800px;
   margin: 0 auto;
   padding: 0 1rem;
@@ -17,13 +19,13 @@
   height: 4rem;
 }
 
-.navbar-left {
+.navbar-custom-left {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.mobile-menu-btn {
+.navbar-custom-mobile-menu-btn {
   display: none;
   background: none;
   border: none;
@@ -33,18 +35,19 @@
   transition: all 0.3s ease;
 }
 
-.mobile-menu-btn:hover {
+.navbar-custom-mobile-menu-btn:hover {
   background-color: #f1f5f9;
   transform: scale(1.05);
 }
 
-.logo-container {
+.navbar-custom-logo-container {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  cursor: pointer;
 }
 
-.logo-icon {
+.navbar-custom-logo-icon {
   width: 40px;
   height: 40px;
   background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
@@ -55,21 +58,21 @@
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 
-.logo-text {
+.navbar-custom-logo-text {
   color: white;
   font-weight: 700;
   font-size: 0.9rem;
   letter-spacing: 0.5px;
 }
 
-.app-title {
+.navbar-custom-app-title {
   font-size: 1.5rem;
   font-weight: 700;
   color: #1e293b;
   letter-spacing: -0.5px;
 }
 
-.account-section {
+.navbar-custom-account-section {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -81,28 +84,28 @@
   border: 1px solid #e2e8f0;
 }
 
-.account-section:hover {
+.navbar-custom-account-section:hover {
   background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.account-icon {
+.navbar-custom-account-icon {
   color: #64748b;
 }
 
-.account-text {
+.navbar-custom-account-text {
   font-size: 0.9rem;
   font-weight: 500;
   color: #334155;
 }
 
 @media (max-width: 768px) {
-  .mobile-menu-btn {
+  .navbar-custom-mobile-menu-btn {
     display: block;
   }
 
-  .account-text {
+  .navbar-custom-account-text {
     display: none;
   }
 }

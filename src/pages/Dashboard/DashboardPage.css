@@ -1,62 +1,82 @@
-#root {
+/* DashboardPage.css - Styles spécifiques à la page Dashboard */
+
+.dashboardpage-root {
   width: 100%;
-  
-  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.dashboardpage-app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.dashboardpage-main-layout {
+  display: flex;
+  flex: 1;
+  position: relative;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.dashboardpage-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
 }
 
-.card {
-  padding: 2em;
+.dashboardpage-content-area {
+  flex: 1;
+  padding: 1rem;
 }
 
-.read-the-docs {
-  color: #888;
+.dashboardpage-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
+.dashboardpage-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
 
-.footer {
+/* Footer spécifique à DashboardPage */
+.dashboardpage-footer {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border-top: 1px solid #e2e8f0;
   padding: 1.5rem 0;
   margin-top: auto;
 }
 
-.footer-content {
+.dashboardpage-footer-content {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
   text-align: center;
 }
 
-.footer-text {
+.dashboardpage-footer-text {
   color: #64748b;
   font-size: 0.9rem;
   font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboardpage-main-content {
+    margin-left: 0;
+  }
+  
+  .dashboardpage-main-layout.sidebar-open .dashboardpage-main-content {
+    margin-left: 250px;
+  }
 }

@@ -8,7 +8,7 @@ import StatsSection from "../../components/StatsSection/StatsSection";
 import CTASection from "../../components/CTASection/CTASection";
 import Footer from "../../components/Footer/Footer";
 import "./Homepage.css"; // Assuming you have a CSS file for styling
-import AvisSection from "../../components/PartnersSection/AvisSection";
+import AvisSection from "../../components/AvisSection/AvisSection";
 
 const Homepage = () => {
   return (
