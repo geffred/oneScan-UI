@@ -12,9 +12,9 @@ const Navbar = ({ sidebarOpen, toggleSidebar }) => {
           </button>
           <div className="logo-container">
             <div className="logo-icon">
-              <span className="logo-text">OS</span>
+              <span className="logo-text">IA</span>
             </div>
-            <span className="app-title">OneScaN</span>
+            <span className="app-title">IA Lab</span>
           </div>
         </div>
 

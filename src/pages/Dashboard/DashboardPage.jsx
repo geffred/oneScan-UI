@@ -4,9 +4,9 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import Dashboard from "../../components/DashboardCard/DashboardCard";
 import Commandes from "../../components/Commandes/Commandes";
 import Socles from "../../components/Socles/socle";
-import "./app.css"; // Assuming you have a CSS file for styling
+import "./DashboardPage.css"; // Assuming you have a CSS file for styling
 
-const App = () => {
+const DashboardPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeComponent, setActiveComponent] = useState("dashboard");
 
@@ -56,4 +56,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default DashboardPage;

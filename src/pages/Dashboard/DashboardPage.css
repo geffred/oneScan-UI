@@ -39,3 +39,24 @@
 .read-the-docs {
   color: #888;
 }
+
+
+.footer {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-top: 1px solid #e2e8f0;
+  padding: 1.5rem 0;
+  margin-top: auto;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  text-align: center;
+}
+
+.footer-text {
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
