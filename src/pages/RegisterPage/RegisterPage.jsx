@@ -18,6 +18,7 @@ import { Link } from "react-router-dom";
 import "./RegisterPage.css";
 import Footer from "../../components/Footer/Footer";
 import Header from "../../components/Header/Header";
+import { useNavigate } from "react-router-dom";
 
 const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -95,20 +96,38 @@ const RegisterPage = () => {
     newsletter: false,
   };
 
-  // Soumission du formulaire
+  const navigate = useNavigate();
+
   const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
     setIsLoading(true);
     try {
-      // Simulation d'une requête API
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          password: values.password,
+          phone: values.phone,
+          country: values.country,
+          companyType: values.companyType,
+          newsletter: values.newsletter,
+        }),
+      });
 
-      // Ici vous ajouterez votre logique d'inscription
-      console.log("Inscription:", values);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Erreur lors de l'inscription");
+      }
 
-      // Redirection après inscription réussie
-      // navigate('/dashboard');
+      const data = await response.json();
+      localStorage.setItem("token", data.token);
+      navigate("/login");
     } catch (error) {
-      setFieldError("email", "Cette adresse email est déjà utilisée");
+      setFieldError("email", error.message);
     } finally {
       setIsLoading(false);
       setSubmitting(false);

@@ -8,10 +8,43 @@ import { Link } from "react-router-dom";
 import "./LoginPage.css";
 import Footer from "../../components/Footer/Footer";
 import Header from "../../components/Header/Header";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
+
+  const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      });
+
+      if (!response.ok) {
+        console.log(values.email, values.password);
+        throw new Error("Email ou mot de passe incorrect");
+      }
+
+      const data = await response.json();
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
+    } catch (error) {
+      setFieldError("email", error.message);
+    } finally {
+      setIsLoading(false);
+      setSubmitting(false);
+    }
+  };
 
   // Schéma de validation Yup
   const validationSchema = Yup.object({
@@ -27,26 +60,6 @@ const LoginPage = () => {
   const initialValues = {
     email: "",
     password: "",
-  };
-
-  // Soumission du formulaire
-  const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
-    setIsLoading(true);
-    try {
-      // Simulation d'une requête API
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Ici vous ajouterez votre logique d'authentification
-      console.log("Connexion:", values);
-
-      // Redirection après connexion réussie
-      // navigate('/dashboard');
-    } catch (error) {
-      setFieldError("email", "Email ou mot de passe incorrect");
-    } finally {
-      setIsLoading(false);
-      setSubmitting(false);
-    }
   };
 
   return (
