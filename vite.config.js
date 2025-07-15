@@ -6,9 +6,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/api/commandes": "http://localhost:8080",
+      "/api/public/commandes": "http://localhost:8080",
       "/api/auth/register": "http://localhost:8080",
       "/api/auth/login": "http://localhost:8080",
+      "/api/auth/logout": "http://localhost:8080",
     },
   },
 });

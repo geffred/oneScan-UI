@@ -9,6 +9,36 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
+/* Header.css */
+.user-greeting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #1e293b;
+  margin-right: 12px;
+}
+
+.bot-icon {
+  color: #007AFF;
+}
+
+.btn-logout {
+  background: #f1f5f9;
+  color: #64748b;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+  background: #e2e8f0;
+  color: #dc2626;
+}
+
 .header-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -106,6 +136,22 @@
   padding: 0.5rem 1rem;
   border-radius: 8px;
   transition: all 0.3s ease;
+}
+
+.btn-logout{
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+}
+
+.btn-logout:hover {
+  background: #f1f5f9;
+  color: #007AFF;
 }
 
 .btn-login:hover {

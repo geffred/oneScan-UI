@@ -4,6 +4,7 @@ import DashboardPage from "./Dashboard/DashboardPage";
 import LoginPage from "./LoginPage/LoginPage";
 import RegisterPage from "./RegisterPage/RegisterPage";
 import TermsPage from "./TermsPage/TermsPage";
+import PrivateRoute from "../components/Config/PrivateRoute";
 function App() {
   return (
     <div className="app">
@@ -12,10 +13,13 @@ function App() {
           <Route path="/" element={<Homepage />}>
             <Route index element={<Homepage />} />
           </Route>
-          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          {/* Private routes for authenticated users */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </div>

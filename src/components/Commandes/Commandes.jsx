@@ -30,7 +30,7 @@ const Commandes = () => {
     error,
     isLoading,
     mutate,
-  } = useSWR("/api/commandes", fetcher);
+  } = useSWR("/api/public/commandes", fetcher);
 
   // Gestion des états d'erreur et de chargement
   if (error) {

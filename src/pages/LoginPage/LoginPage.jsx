@@ -9,12 +9,15 @@ import "./LoginPage.css";
 import Footer from "../../components/Footer/Footer";
 import Header from "../../components/Header/Header";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../components/Config/AuthContext";
+import { useContext } from "react";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { setIsAuthenticated } = useContext(AuthContext);
 
   const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
     setIsLoading(true);
@@ -31,12 +34,14 @@ const LoginPage = () => {
       });
 
       if (!response.ok) {
-        console.log(values.email, values.password);
         throw new Error("Email ou mot de passe incorrect");
       }
 
       const data = await response.json();
       localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user)); // Stockez les infos utilisateur
+      setIsAuthenticated(true);
+      setUserName(data.user.name); // Mettez à jour le nom dans le contexte
       navigate("/dashboard");
     } catch (error) {
       setFieldError("email", error.message);

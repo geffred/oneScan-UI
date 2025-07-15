@@ -1,13 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Menu, X } from "lucide-react";
 import "./Header.css";
 import { Link, NavLink } from "react-router-dom";
+import { AuthContext } from "../Config/AuthContext";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAuthenticated, setIsAuthenticated } = useContext(AuthContext);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      // Nettoyage côté client
+      localStorage.removeItem("token");
+      setIsAuthenticated(false);
+      // Redirection vers la page de login
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (
@@ -25,8 +46,9 @@ const Header = () => {
             <li>
               <NavLink
                 to="/#features"
-                className="nav-link"
-                activeClassName="active"
+                className={({ isActive }) =>
+                  `nav-link${isActive ? " active" : ""}`
+                }
               >
                 Fonctionnalités
               </NavLink>
@@ -34,8 +56,9 @@ const Header = () => {
             <li>
               <NavLink
                 to="/#platforms"
-                className="nav-link"
-                activeClassName="active"
+                className={({ isActive }) =>
+                  `nav-link${isActive ? " active" : ""}`
+                }
               >
                 Plateformes
               </NavLink>
@@ -43,8 +66,9 @@ const Header = () => {
             <li>
               <NavLink
                 to="/#process"
-                className="nav-link"
-                activeClassName="active"
+                className={({ isActive }) =>
+                  `nav-link${isActive ? " active" : ""}`
+                }
               >
                 Comment ça marche
               </NavLink>
@@ -52,8 +76,9 @@ const Header = () => {
             <li>
               <NavLink
                 to="/pricing"
-                className="nav-link"
-                activeClassName="active"
+                className={({ isActive }) =>
+                  `nav-link${isActive ? " active" : ""}`
+                }
               >
                 Tarifs
               </NavLink>
@@ -61,8 +86,9 @@ const Header = () => {
             <li>
               <NavLink
                 to="/support"
-                className="nav-link"
-                activeClassName="active"
+                className={({ isActive }) =>
+                  `nav-link${isActive ? " active" : ""}`
+                }
               >
                 Support
               </NavLink>
@@ -71,12 +97,25 @@ const Header = () => {
         </nav>
 
         <div className="header-actions">
-          <Link to="/login" className="btn-login">
-            Connexion
-          </Link>
-          <Link to="/register" className="btn-signup">
-            Essai gratuit
-          </Link>
+          {isAuthenticated ? (
+            <button onClick={handleLogout} className="btn-logout">
+              Déconnexion
+            </button>
+          ) : (
+            <Link to="/login" className="btn-login">
+              Connexion
+            </Link>
+          )}
+
+          {isAuthenticated ? (
+            <Link to="/dashboard" className="btn-signup">
+              Dashboard
+            </Link>
+          ) : (
+            <Link to="/register" className="btn-signup">
+              Essai gratuit
+            </Link>
+          )}
         </div>
 
         <button className="mobile-menu-toggle" onClick={toggleMobileMenu}>
@@ -86,21 +125,27 @@ const Header = () => {
         <div className={`mobile-menu ${mobileMenuOpen ? "open" : ""}`}>
           <NavLink
             to="/#features"
-            className="mobile-nav-link"
+            className={({ isActive }) =>
+              `mobile-nav-link${isActive ? " active" : ""}`
+            }
             onClick={toggleMobileMenu}
           >
             Fonctionnalités
           </NavLink>
           <NavLink
             to="/#platforms"
-            className="mobile-nav-link"
+            className={({ isActive }) =>
+              `mobile-nav-link${isActive ? " active" : ""}`
+            }
             onClick={toggleMobileMenu}
           >
             Plateformes
           </NavLink>
           <NavLink
             to="/#process"
-            className="mobile-nav-link"
+            className={({ isActive }) =>
+              `mobile-nav-link${isActive ? " active" : ""}`
+            }
             onClick={toggleMobileMenu}
           >
             Comment ça marche
@@ -121,13 +166,25 @@ const Header = () => {
           </Link>
 
           <div className="mobile-menu-actions">
-            <Link
-              to="/login"
-              className="mobile-btn-login"
-              onClick={toggleMobileMenu}
-            >
-              Connexion
-            </Link>
+            {isAuthenticated ? (
+              <button
+                onClick={() => {
+                  handleLogout();
+                  toggleMobileMenu();
+                }}
+                className="mobile-btn-login"
+              >
+                Déconnexion
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className="mobile-btn-login"
+                onClick={toggleMobileMenu}
+              >
+                Connexion
+              </Link>
+            )}
             <Link
               to="/register"
               className="mobile-btn-signup"
