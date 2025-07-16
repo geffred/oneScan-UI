@@ -39,9 +39,7 @@ const LoginPage = () => {
 
       const data = await response.json();
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user)); // Stockez les infos utilisateur
       setIsAuthenticated(true);
-      setUserName(data.user.name); // Mettez à jour le nom dans le contexte
       navigate("/dashboard");
     } catch (error) {
       setFieldError("email", error.message);
