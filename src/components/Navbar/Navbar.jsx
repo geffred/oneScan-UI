@@ -31,7 +31,10 @@ const Navbar = ({ sidebarOpen, toggleSidebar }) => {
           </div>
         </div>
 
-        <div className="navbar-custom-account-section">
+        <div
+          className="navbar-custom-account-section"
+          onClick={() => navigate("/compte")}
+        >
           <User size={20} className="navbar-custom-account-icon" />
           <span className="navbar-custom-account-text">Compte</span>
         </div>
