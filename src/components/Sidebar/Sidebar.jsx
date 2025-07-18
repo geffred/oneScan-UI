@@ -1,5 +1,11 @@
 /* eslint-disable react/prop-types */
-import { Home, Package, Database, Settings } from "lucide-react";
+import {
+  ChartLine,
+  Package,
+  Database,
+  Settings,
+  TvMinimal,
+} from "lucide-react";
 import "./sidebar.css";
 
 const Sidebar = ({
@@ -17,15 +23,15 @@ const Sidebar = ({
       <nav className="sidebar-nav">
         <button
           onClick={() => {
-            setActiveComponent("dashboard");
+            setActiveComponent("platform");
             toggleSidebar();
           }}
           className={`sidebar-item ${
-            activeComponent === "dashboard" ? "active" : ""
+            activeComponent === "platform" ? "active" : ""
           }`}
         >
-          <Home className="sidebar-icon" />
-          Dashboard
+          <TvMinimal className="sidebar-icon" />
+          Platformes
         </button>
 
         <button
@@ -57,6 +63,19 @@ const Sidebar = ({
         <button className="sidebar-item">
           <Settings className="sidebar-icon" />
           Paramètres
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveComponent("dashboard");
+            toggleSidebar();
+          }}
+          className={`sidebar-item ${
+            activeComponent === "dashboard" ? "active" : ""
+          }`}
+        >
+          <ChartLine className="sidebar-icon" />
+          Analytique
         </button>
       </nav>
     </div>

@@ -5,6 +5,7 @@ import Dashboard from "../../components/DashboardCard/DashboardCard";
 import Commandes from "../../components/Commandes/Commandes";
 import Socles from "../../components/Socles/socle";
 import "./DashboardPage.css"; // Assuming you have a CSS file for styling
+import Platform from "../../components/Platform/Platform";
 
 const DashboardPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,6 +21,8 @@ const DashboardPage = () => {
         return <Commandes />;
       case "socles":
         return <Socles />;
+      case "platform":
+        return <Platform />;
       default:
         return <Dashboard />;
     }
@@ -36,11 +39,6 @@ const DashboardPage = () => {
           activeComponent={activeComponent}
           setActiveComponent={setActiveComponent}
         />
-
-        <div
-          className={`dashboardpage-overlay ${sidebarOpen ? "show" : ""}`}
-          onClick={toggleSidebar}
-        ></div>
 
         <div className="dashboardpage-main-content">
           <main className="dashboardpage-content-area">

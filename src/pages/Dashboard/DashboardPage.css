@@ -31,24 +31,6 @@
   padding: 1rem;
 }
 
-.dashboardpage-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 998;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-.dashboardpage-overlay.show {
-  opacity: 1;
-  visibility: visible;
-}
-
 /* Footer spécifique à DashboardPage */
 .dashboardpage-footer {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);

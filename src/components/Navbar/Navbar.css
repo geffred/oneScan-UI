@@ -1,6 +1,6 @@
-/* Navbar.css - Styles spécifiques à la Navbar */
+/* Navbar.css - Styles spécifiques à la Navbar avec classes uniques */
 
-.navbar-custom {
+.navbar-component-main {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   position: sticky;
@@ -9,7 +9,7 @@
   backdrop-filter: blur(10px);
 }
 
-.navbar-custom-content {
+.navbar-component-content-wrapper {
   max-width: 1800px;
   margin: 0 auto;
   padding: 0 1rem;
@@ -19,13 +19,13 @@
   height: 4rem;
 }
 
-.navbar-custom-left {
+.navbar-component-left-section {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.navbar-custom-mobile-menu-btn {
+.navbar-component-mobile-toggle-btn {
   display: none;
   background: none;
   border: none;
@@ -35,19 +35,40 @@
   transition: all 0.3s ease;
 }
 
-.navbar-custom-mobile-menu-btn:hover {
+.navbar-component-mobile-toggle-btn:hover {
   background-color: #f1f5f9;
   transform: scale(1.05);
 }
 
-.navbar-custom-logo-container {
+/* Back Button Styles */
+.navbar-component-back-navigation-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #64748b;
+}
+
+.navbar-component-back-navigation-btn:hover {
+  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.navbar-component-brand-container {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   cursor: pointer;
 }
 
-.navbar-custom-logo-icon {
+.navbar-component-logo-icon-wrapper {
   width: 40px;
   height: 40px;
   background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
@@ -58,21 +79,21 @@
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 
-.navbar-custom-logo-text {
+.navbar-component-logo-text-content {
   color: white;
   font-weight: 700;
   font-size: 0.9rem;
   letter-spacing: 0.5px;
 }
 
-.navbar-custom-app-title {
+.navbar-component-app-title-text {
   font-size: 1.5rem;
   font-weight: 700;
   color: #1e293b;
   letter-spacing: -0.5px;
 }
 
-.navbar-custom-account-section {
+.navbar-component-account-profile-section {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -84,28 +105,36 @@
   border: 1px solid #e2e8f0;
 }
 
-.navbar-custom-account-section:hover {
+.navbar-component-account-profile-section:hover {
   background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.navbar-custom-account-icon {
+.navbar-component-account-user-icon {
   color: #64748b;
 }
 
-.navbar-custom-account-text {
+.navbar-component-account-label-text {
   font-size: 0.9rem;
   font-weight: 500;
   color: #334155;
 }
 
 @media (max-width: 768px) {
-  .navbar-custom-mobile-menu-btn {
+  .navbar-component-mobile-toggle-btn {
     display: block;
   }
 
-  .navbar-custom-account-text {
+  .navbar-component-account-label-text {
     display: none;
+  }
+
+  .navbar-component-left-section {
+    gap: 0.75rem;
+  }
+
+  .navbar-component-back-navigation-btn {
+    padding: 0.625rem;
   }
 }
