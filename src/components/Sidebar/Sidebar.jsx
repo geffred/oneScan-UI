@@ -3,7 +3,7 @@ import {
   ChartLine,
   Package,
   Database,
-  Settings,
+  LoaderCircle,
   TvMinimal,
 } from "lucide-react";
 import "./sidebar.css";
@@ -60,22 +60,21 @@ const Sidebar = ({
           Socles
         </button>
 
-        <button className="sidebar-item">
-          <Settings className="sidebar-icon" />
-          Paramètres
-        </button>
-
         <button
           onClick={() => {
-            setActiveComponent("dashboard");
+            setActiveComponent("analytique");
             toggleSidebar();
           }}
           className={`sidebar-item ${
-            activeComponent === "dashboard" ? "active" : ""
+            activeComponent === "analytique" ? "active" : ""
           }`}
         >
           <ChartLine className="sidebar-icon" />
           Analytique
+        </button>
+
+        <button className="sidebar-item">
+          <LoaderCircle className="sidebar-icon" /> À propos
         </button>
       </nav>
     </div>

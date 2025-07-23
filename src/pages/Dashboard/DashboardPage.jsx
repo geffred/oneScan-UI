@@ -9,7 +9,7 @@ import Platform from "../../components/Platform/Platform";
 
 const DashboardPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeComponent, setActiveComponent] = useState("dashboard");
+  const [activeComponent, setActiveComponent] = useState("platform");
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -23,8 +23,10 @@ const DashboardPage = () => {
         return <Socles />;
       case "platform":
         return <Platform />;
-      default:
+      case "analytique":
         return <Dashboard />;
+      default:
+        return <Platform />;
     }
   };
 

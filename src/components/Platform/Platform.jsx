@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../../components/Navbar/Navbar";
+import CryptoJS from "crypto-js";
 import "./Platform.css";
 
 const Platform = () => {
@@ -34,12 +34,38 @@ const Platform = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
+  // Configuration de chiffrement
+  const SECRET_KEY = "MaCleSecrete12345"; // À remplacer par une clé sécurisée en production
+
   const platformTypes = [
     { value: "ITERO", label: "Itero" },
     { value: "THREESHAPE", label: "3Shape" },
     { value: "DEXIS", label: "Dexis" },
     { value: "MEDITLINK", label: "Meditlink" },
+    { value: "AUTRE", label: "Autre" },
   ];
+
+  // Fonction de chiffrement
+  const encryptPassword = (password) => {
+    try {
+      return CryptoJS.AES.encrypt(password, SECRET_KEY).toString();
+    } catch (error) {
+      console.error("Erreur lors du chiffrement:", error);
+      return password; // En cas d'erreur, retourne le mot de passe non chiffré
+    }
+  };
+
+  // Fonction pour déchiffrer (si besoin d'afficher le mot de passe en clair dans l'UI)
+  // À utiliser avec précaution et seulement si nécessaire
+  const decryptPassword = (encryptedPassword) => {
+    try {
+      const bytes = CryptoJS.AES.decrypt(encryptedPassword, SECRET_KEY);
+      return bytes.toString(CryptoJS.enc.Utf8);
+    } catch (error) {
+      console.error("Erreur lors du déchiffrement:", error);
+      return encryptedPassword;
+    }
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -119,8 +145,12 @@ const Platform = () => {
         : "/api/platforms";
       const method = editingPlatform ? "PUT" : "POST";
 
+      // Chiffrer le mot de passe avant l'envoi
+      const encryptedPassword = encryptPassword(values.password);
+
       const platformData = {
         ...values,
+        password: encryptedPassword,
         userId: userData.id,
       };
 
@@ -164,7 +194,12 @@ const Platform = () => {
   };
 
   const handleEdit = (platform) => {
-    setEditingPlatform(platform);
+    // Déchiffrer le mot de passe seulement pour l'affichage dans le formulaire
+    const platformToEdit = {
+      ...platform,
+      password: decryptPassword(platform.password),
+    };
+    setEditingPlatform(platformToEdit);
     setIsModalOpen(true);
   };
 
@@ -287,6 +322,11 @@ const Platform = () => {
                         <div className="platform-card-info">
                           <Mail size={16} />
                           <span>{platform.email}</span>
+                        </div>
+                        <div className="platform-card-status">
+                          <span className="platform-connected-status">
+                            Connecté
+                          </span>
                         </div>
                       </div>
                       <div className="platform-card-actions">
@@ -452,14 +492,6 @@ const Platform = () => {
           </div>
         )}
       </div>
-      <footer className="dashboardpage-footer">
-        <div className="dashboardpage-footer-content">
-          <p className="dashboardpage-footer-text">
-            &copy; IA Lab
-            <label>Tous les droits sont réservés.</label>
-          </p>
-        </div>
-      </footer>
     </>
   );
 };

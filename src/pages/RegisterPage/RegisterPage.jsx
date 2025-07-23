@@ -267,7 +267,7 @@ const RegisterPage = () => {
                           type="tel"
                           id="phone"
                           name="phone"
-                          placeholder="+33 1 23 45 67 89"
+                          placeholder="+32 0 23 45 67 89"
                           className={`register-form-input ${
                             touched.phone && errors.phone
                               ? "register-input-error"

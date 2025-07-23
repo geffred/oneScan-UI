@@ -14,6 +14,10 @@ export default defineConfig({
       "/api/auth/update": "http://localhost:8080",
       "/api/auth/delete": "http://localhost:8080",
       "/api/platforms": "http://localhost:8080",
+      "/api/meditlink/commandes": "http://localhost:8080",
+      "/api/itero/commandes": "http://localhost:8080",
+      "/api/threeshape/commandes": "http://localhost:8080",
+      "/api/dexis-isconnect/commandes": "http://localhost:8080",
     },
   },
 });

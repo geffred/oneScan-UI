@@ -1,41 +1,431 @@
-/* Socles Components */
-.socles-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
+/* Socles Components - Interface de génération de socles 3D */
+
+.socles-main-container {
+  padding: 2rem;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.socles-header-section {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.socles-page-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.socles-page-subtitle {
+  font-size: 1.1rem;
+  color: #64748b;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.socles-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Section Upload */
+.socles-upload-section {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.socles-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+}
+
+.socles-drop-zone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  background: #f8fafc;
+}
+
+.socles-drop-zone-active {
+  border-color: #007AFF;
+  background: rgba(0, 122, 255, 0.05);
+  transform: scale(1.02);
+}
+
+.socles-drop-zone:hover {
+  border-color: #007AFF;
+  background: rgba(0, 122, 255, 0.02);
+}
+
+.socles-drop-zone-content h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.socles-drop-zone-content p {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}
+
+.socles-upload-icon {
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.socles-file-input {
+  display: none;
+}
+
+.socles-browse-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.socles-browse-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 122, 255, 0.3);
+}
+
+.socles-supported-formats {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Barre de progression */
+.socles-progress-section {
+  margin-top: 1.5rem;
+}
+
+.socles-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.socles-progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.socles-progress-text {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Liste des fichiers */
+.socles-files-list {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.socles-files-list-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.socles-file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  border: 1px solid #e2e8f0;
+}
+
+.socles-file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.socles-file-icon {
+  color: #10b981;
+}
+
+.socles-file-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.socles-file-name {
+  font-weight: 500;
+  color: #1e293b;
+  font-size: 0.9rem;
+}
+
+.socles-file-size {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.socles-remove-file-btn {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  border-radius: 8px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.socles-remove-file-btn:hover {
+  background: #dc2626;
+  color: white;
+}
+
+/* Section Configuration */
+.socles-config-section {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.socles-type-selection {
+  margin-bottom: 2rem;
+}
+
+.socles-label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.socles-type-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.socles-type-card {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f8fafc;
+}
+
+.socles-type-card:hover {
+  border-color: #007AFF;
+  background: white;
+}
+
+.socles-type-card-selected {
+  border-color: #007AFF;
+  background: rgba(0, 122, 255, 0.05);
+}
+
+.socles-type-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.socles-type-header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.socles-type-radio {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.socles-type-radio-selected {
+  border-color: #007AFF;
+  background: #007AFF;
+  position: relative;
+}
+
+.socles-type-radio-selected::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+}
+
+.socles-type-description {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Section Génération */
+.socles-generation-section {
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.socles-generate-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.socles-generate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 122, 255, 0.4);
+}
+
+.socles-generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.socles-spinner {
+  animation: socles-spin 1s linear infinite;
+}
+
+@keyframes socles-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.socles-generation-hint {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Section Statistiques */
+.socles-stats-section {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  grid-column: span 2;
+}
+
+.socles-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.socles-stat-item {
+  text-align: center;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.socles-stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #007AFF;
+  margin-bottom: 0.5rem;
+}
+
+.socles-stat-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .socles-content-grid {
+    grid-template-columns: 1fr;
   }
   
-  .socles-section {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border-radius: 12px;
-    padding: 1.5rem;
-    border: 1px solid #e2e8f0;
+  .socles-stats-section {
+    grid-column: span 1;
   }
-  
-  .socles-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 1rem;
-  }
-  
-  .socles-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+}
+
+@media (max-width: 768px) {
+  .socles-main-container {
     padding: 1rem;
-    background: white;
-    border-radius: 8px;
-    margin-bottom: 0.75rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e2e8f0;
   }
   
-  .socles-badge {
-    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-    color: #166534;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
+  .socles-page-title {
+    font-size: 2rem;
   }
+  
+  .socles-upload-section,
+  .socles-config-section {
+    padding: 1.5rem;
+  }
+  
+  .socles-drop-zone {
+    padding: 2rem 1rem;
+  }
+  
+  .socles-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
