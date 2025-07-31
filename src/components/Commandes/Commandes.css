@@ -1,19 +1,83 @@
-/* Commandes Card - Simple & Professional */
+/* Commandes - Simple & Clean Blue Style */
 .commandes-card {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 122, 255, 0.1);
+  padding: 2rem;
   border: 1px solid #e5e7eb;
+  position: relative;
 }
 
 .commandes-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #007AFF;
+}
+
+.commandes-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.commandes-card-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #007AFF;
+  margin: 0;
+}
+
+.commandes-stats {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+.commandes-stat {
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  border-radius: 8px;
+  color: white;
+  display: flex;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f3f4f6;
+  gap: 0.5rem;
+  min-width: 200px;
+}
+
+.commandes-stat-number {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+  background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.commandes-stat-unread {
+  background: linear-gradient(135deg, #ffd000 0%, #ff9100 100%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.commandes-stat-overdue {
+  background: linear-gradient(135deg, #FF3B30 0%, #D70015 100%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.commandes-stat-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .commandes-header-actions {
@@ -22,14 +86,73 @@
   align-items: center;
 }
 
-.commandes-card-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
+/* Notifications */
+.commandes-notifications {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 400px;
 }
 
-/* Loading States - Simple */
+.commandes-notification {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease-out;
+}
+
+.commandes-notification-success {
+  background: #d1fae5;
+  border: 1px solid #10b981;
+  color: #065f46;
+}
+
+.commandes-notification-error {
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #dc2626;
+}
+
+.commandes-notification-message {
+  font-weight: 500;
+  flex: 1;
+}
+
+.commandes-notification-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 1rem;
+}
+
+.commandes-notification-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Loading States */
 .commandes-loading-state {
   display: flex;
   flex-direction: column;
@@ -42,10 +165,10 @@
 .commandes-loading-spinner {
   width: 32px;
   height: 32px;
-  border: 2px solid #f3f4f6;
-  border-top: 2px solid #3b82f6;
+  border: 3px solid #f3f4f6;
+  border-top: 3px solid #007AFF;
   border-radius: 50%;
-  animation: commandes-spin 1s linear infinite;
+  animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }
 
@@ -53,16 +176,26 @@
   width: 16px;
   height: 16px;
   margin-right: 0.5rem;
+  border-width: 2px;
 }
 
-@keyframes commandes-spin {
+.commandes-download-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f3f4f6;
+  border-top: 2px solid #007AFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
 .commandes-loading-text {
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 1rem;
   margin: 0;
 }
 
@@ -82,8 +215,8 @@
 }
 
 .commandes-error-title {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #111827;
   margin-bottom: 0.5rem;
 }
@@ -110,8 +243,8 @@
 }
 
 .commandes-empty-title {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #111827;
   margin-bottom: 0.5rem;
 }
@@ -124,20 +257,20 @@
 
 /* Platforms Section */
 .commandes-platforms-section {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8faff;
+  border-radius: 12px;
+  border: 1px solid #d1e7ff;
 }
 
 .commandes-platforms-title {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  color: #374151;
+  color: #007AFF;
   margin-bottom: 1rem;
 }
 
@@ -149,9 +282,10 @@
 
 .commandes-platform-card {
   background: white;
-  border-radius: 6px;
-  padding: 1rem;
+  border-radius: 8px;
+  padding: 1.5rem;
   border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .commandes-platform-info {
@@ -159,14 +293,14 @@
 }
 
 .commandes-platform-name {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #111827;
   margin: 0 0 0.25rem 0;
 }
 
 .commandes-platform-email {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: #6b7280;
   margin: 0;
 }
@@ -184,23 +318,23 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
   font-weight: 500;
 }
 
 .commandes-sync-loading {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: #dbeafe;
+  color: #1e40af;
 }
 
 .commandes-sync-success {
-  background: #f0fdf4;
-  color: #166534;
+  background: #d1fae5;
+  color: #065f46;
 }
 
 .commandes-sync-error {
-  background: #fef2f2;
+  background: #fee2e2;
   color: #dc2626;
 }
 
@@ -208,17 +342,17 @@
   width: 12px;
   height: 12px;
   border: 1px solid #e5e7eb;
-  border-top: 1px solid #1d4ed8;
+  border-top: 1px solid #007AFF;
   border-radius: 50%;
-  animation: commandes-spin 1s linear infinite;
+  animation: spin 1s linear infinite;
 }
 
 /* Filters Section */
 .commandes-filters-section {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
   background: #f9fafb;
-  border-radius: 6px;
+  border-radius: 12px;
   border: 1px solid #e5e7eb;
 }
 
@@ -229,7 +363,7 @@
 
 .commandes-search-icon {
   position: absolute;
-  left: 0.75rem;
+  left: 1rem;
   top: 50%;
   transform: translateY(-50%);
   color: #9ca3af;
@@ -237,17 +371,18 @@
 
 .commandes-search-input {
   width: 100%;
-  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.875rem;
+  border-radius: 8px;
+  font-size: 1rem;
   transition: border-color 0.2s;
   background: white;
 }
 
 .commandes-search-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #007AFF;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
 }
 
 .commandes-filters {
@@ -255,6 +390,13 @@
   gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.commandes-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #007AFF;
 }
 
 .commandes-filter-select {
@@ -268,7 +410,37 @@
 
 .commandes-filter-select:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #007AFF;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.commandes-date-range {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+
+.commandes-date-input {
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background: #f9fafb;
+}
+
+.commandes-date-input:focus {
+  outline: 1px solid #007AFF;
+  background: white;
+}
+
+.commandes-date-separator {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
 }
 
 .commandes-checkbox-filter {
@@ -277,19 +449,19 @@
   gap: 0.5rem;
   cursor: pointer;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #374151;
 }
 
 .commandes-checkbox {
   width: 16px;
   height: 16px;
-  accent-color: #3b82f6;
+  accent-color: #007AFF;
 }
 
-/* Table Styles - Clean & Professional */
+/* Table Styles */
 .commandes-table {
   border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
   background: white;
 }
@@ -302,7 +474,7 @@
 }
 
 .commandes-table-body {
-  min-height: 900px;
+  min-height: 400px;
   overflow-y: auto;
 }
 
@@ -314,15 +486,27 @@
 }
 
 .commandes-table-row:hover {
-  background: #f9fafb;
+  background: #f8faff;
+}
+
+.commandes-row-unread {
+  border-left: 3px solid #007AFF;
 }
 
 .commandes-table-cell {
-  padding: 0.75rem;
+  padding: 1rem;
   display: flex;
   align-items: center;
   font-size: 0.875rem;
   border-right: 1px solid #f3f4f6;
+}
+
+.commandes-table-header .commandes-table-cell {
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem;
 }
 
 .commandes-table-cell:last-child {
@@ -331,10 +515,10 @@
 
 /* Cell Content Styles */
 .commandes-external-id {
-  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-family: monospace;
   font-weight: 600;
-  color: #1f2937;
-  background: #f3f4f6;
+  color: #007AFF;
+  background: #dbeafe;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -343,7 +527,7 @@
 .commandes-patient-info {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .commandes-patient-name {
@@ -352,23 +536,20 @@
 }
 
 .commandes-unread-badge {
-  background: #3b82f6;
-  border-radius: 12px;
-  width: 10px;
-  height: 10px;
-  position: relative;
+  background: #007AFF;
+  border-radius: 50%;
+  width: 8px;
+  height: 8px;
 }
 
-.commandes-unread-badge::after {
-  content: "";
-  position: absolute;
-  border:1px solid #3b82f6;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  top: 50%;
-  left: 50%;
+.commandes-unread-badge-large {
+  background: #007AFF;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 .commandes-cabinet-name {
@@ -439,6 +620,11 @@
   color: #dc2626;
 }
 
+.commandes-status-gray {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
 .commandes-actions {
   display: flex;
   gap: 0.5rem;
@@ -447,7 +633,7 @@
 .commandes-action-btn {
   padding: 0.5rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -455,22 +641,27 @@
   justify-content: center;
 }
 
-.commandes-action-view {
-  background: #eff6ff;
-  color: #1d4ed8;
+.commandes-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.commandes-action-view:hover {
-  background: #dbeafe;
+.commandes-action-view {
+  background: #007AFF;
+  color: white;
+}
+
+.commandes-action-view:hover:not(:disabled) {
+  background: #0056CC;
 }
 
 .commandes-action-download {
-  background: #f0fdf4;
-  color: #16a34a;
+  background: #34c759;
+  color: white;
 }
 
-.commandes-action-download:hover {
-  background: #dcfce7;
+.commandes-action-download:hover:not(:disabled) {
+  background: #28a745;
 }
 
 /* Buttons */
@@ -478,10 +669,10 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
   border: none;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   font-size: 0.875rem;
@@ -493,22 +684,22 @@
 }
 
 .commandes-btn-primary {
-  background: #3b82f6;
+  background: #007AFF;
   color: white;
 }
 
 .commandes-btn-primary:hover:not(:disabled) {
-  background: #2563eb;
+  background: #0056CC;
 }
 
 .commandes-btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background: white;
+  color: #007AFF;
+  border: 1px solid #007AFF;
 }
 
 .commandes-btn-secondary:hover:not(:disabled) {
-  background: #e5e7eb;
+  background: #f8faff;
 }
 
 /* Footer */
@@ -525,6 +716,168 @@
   margin: 0;
 }
 
+/* Page de détails */
+.commandes-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #007AFF;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.commandes-details-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.commandes-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.commandes-details-card {
+  background: #f8faff;
+  border: 1px solid #d1e7ff;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.commandes-details-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: #007AFF;
+}
+
+.commandes-details-card-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.commandes-details-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.commandes-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.commandes-detail-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.commandes-detail-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.commandes-read-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #065f46;
+}
+
+.commandes-read-icon {
+  color: #10b981;
+}
+
+.commandes-unread-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #dc2626;
+}
+
+.commandes-unread-icon {
+  color: #ef4444;
+}
+
+.commandes-details-actions {
+  margin-top: 2rem;
+}
+
+.commandes-details-actions h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #007AFF;
+  margin-bottom: 1rem;
+}
+
+.commandes-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.commandes-action-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.commandes-action-card:hover:not(:disabled) {
+  background: #f8faff;
+  border-color: #007AFF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+}
+
+.commandes-action-card:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.commandes-action-icon {
+  background: #007AFF;
+  color: white;
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  min-height: 56px;
+}
+
+.commandes-action-text h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.commandes-action-text p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .commandes-table-header,
@@ -532,18 +885,65 @@
     grid-template-columns: 80px 1fr 1fr 100px 100px 100px 80px 100px;
   }
 
-  .commandes-table-cell {
-    padding: 0.5rem;
-    font-size: 0.8rem;
-    position: relative;
-  }
-
   .commandes-platforms-grid {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   }
+
+  .commandes-details-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
 }
 
-@media (max-width: 968px) {
+@media (max-width: 768px) {
+  .commandes-card {
+    padding: 1rem;
+  }
+
+  .commandes-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .commandes-header-content {
+    text-align: center;
+  }
+
+  .commandes-card-title {
+    font-size: 1.5rem;
+  }
+
+  .commandes-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .commandes-details-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .commandes-details-title {
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .commandes-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .commandes-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .commandes-notifications {
+    left: 10px;
+    right: 10px;
+    max-width: none;
+  }
+
   .commandes-table-header {
     display: none;
   }
@@ -551,9 +951,8 @@
   .commandes-table-row {
     display: block;
     margin-bottom: 1rem;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   .commandes-table-cell {
@@ -581,61 +980,34 @@
     grid-template-columns: 1fr;
   }
 
-  .commandes-platform-actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-  }
-
-  .commandes-sync-status {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 768px) {
-  .commandes-card {
-    padding: 1rem;
-  }
-
-  .commandes-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-
-  .commandes-header-actions {
-    justify-content: center;
-  }
-
-  .commandes-card-title {
-    font-size: 1.25rem;
-    text-align: center;
-  }
-
   .commandes-filters {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .commandes-platforms-section {
-    padding: 0.75rem;
-  }
-
-  .commandes-platform-card {
-    padding: 0.75rem;
-  }
-
-  .commandes-btn {
-    justify-content: center;
-  }
-
-  .commandes-actions {
+  .commandes-date-range {
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .commandes-stats {
+    grid-template-columns: 1fr;
   }
 
-  .commandes-action-btn {
-    width: 100%;
-    justify-content: center;
+  .commandes-stat-number {
+    font-size: 1.5rem;
+  }
+
+  .commandes-action-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .commandes-action-icon {
+    min-width: 48px;
+    min-height: 48px;
   }
 }

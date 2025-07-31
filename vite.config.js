@@ -18,6 +18,8 @@ export default defineConfig({
       "/api/itero/commandes": "http://localhost:8080",
       "/api/threeshape/commandes": "http://localhost:8080",
       "/api/dexis-isconnect/commandes": "http://localhost:8080",
+      "/api/meditlink/commentaire": "http://localhost:8080",
+      "/api/meditlink/download/": "http://localhost:8080",
     },
   },
 });

@@ -6,6 +6,7 @@ import RegisterPage from "./RegisterPage/RegisterPage";
 import TermsPage from "./TermsPage/TermsPage";
 import PrivateRoute from "../components/Config/PrivateRoute";
 import Compte from "./Compte/Compte";
+import CommandeDetails from "../components/CommandeDetails/CommandeDetails";
 function App() {
   return (
     <div className="app">
@@ -20,7 +21,14 @@ function App() {
           <Route path="/compte" element={<Compte />} />
           {/* Private routes for authenticated users */}
           <Route element={<PrivateRoute />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route
+              path="/dashboard/:activeComponent"
+              element={<DashboardPage />}
+            />
+            <Route
+              path="/dashboard/commande/:externalId"
+              element={<CommandeDetails />}
+            />
           </Route>
         </Routes>
       </BrowserRouter>

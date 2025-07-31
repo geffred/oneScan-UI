@@ -1,18 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Dashboard from "../../components/DashboardCard/DashboardCard";
 import Commandes from "../../components/Commandes/Commandes";
 import Socles from "../../components/Socles/socle";
-import "./DashboardPage.css"; // Assuming you have a CSS file for styling
+import "./DashboardPage.css";
 import Platform from "../../components/Platform/Platform";
 
 const DashboardPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeComponent, setActiveComponent] = useState("platform");
+  const { activeComponent: urlComponent } = useParams();
+  const navigate = useNavigate();
+
+  // Liste des composants valides
+  const validComponents = ["platform", "commandes", "socles", "analytique"];
+
+  // État initial avec vérification du paramètre URL
+  const [activeComponent, setActiveComponent] = useState(
+    validComponents.includes(urlComponent) ? urlComponent : "platform"
+  );
+
+  // Synchronisation quand l'URL change
+  useEffect(() => {
+    if (urlComponent && validComponents.includes(urlComponent)) {
+      setActiveComponent(urlComponent);
+    }
+  }, [urlComponent]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  // Fonction pour changer de composant
+  const handleComponentChange = (newComponent) => {
+    if (!validComponents.includes(newComponent)) return;
+
+    setActiveComponent(newComponent);
+    navigate(`/dashboard/${newComponent}`, { replace: true });
   };
 
   const renderActiveComponent = () => {
@@ -39,7 +64,7 @@ const DashboardPage = () => {
           sidebarOpen={sidebarOpen}
           toggleSidebar={toggleSidebar}
           activeComponent={activeComponent}
-          setActiveComponent={setActiveComponent}
+          setActiveComponent={handleComponentChange} // On utilise maintenant handleComponentChange
         />
 
         <div className="dashboardpage-main-content">

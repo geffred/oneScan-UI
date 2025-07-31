@@ -108,7 +108,7 @@ const Header = () => {
           )}
 
           {isAuthenticated ? (
-            <Link to="/dashboard" className="btn-signup">
+            <Link to="/dashboard/Platform" className="btn-signup">
               Dashboard
             </Link>
           ) : (

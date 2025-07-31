@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import {
   Plus,
@@ -15,6 +16,8 @@ import {
   RefreshCw,
   Server,
   Loader2,
+  CalendarDays,
+  X,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import "./commandes.css";
@@ -30,14 +33,20 @@ const fetcher = (url) => {
 };
 
 const Commandes = () => {
+  const navigate = useNavigate();
   const { isAuthenticated } = useContext(AuthContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPlateforme, setSelectedPlateforme] = useState("");
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
+  const [dateFilter, setDateFilter] = useState("all");
+  const [customDateFrom, setCustomDateFrom] = useState("");
+  const [customDateTo, setCustomDateTo] = useState("");
   const [userData, setUserData] = useState(null);
   const [userPlatforms, setUserPlatforms] = useState([]);
   const [syncStatus, setSyncStatus] = useState({});
   const [isSyncing, setIsSyncing] = useState(false);
+  const [downloadingCommands, setDownloadingCommands] = useState(new Set());
+  const [notifications, setNotifications] = useState([]);
 
   // Mapping des plateformes vers leurs endpoints
   const platformEndpoints = {
@@ -45,6 +54,18 @@ const Commandes = () => {
     ITERO: "/api/itero/commandes",
     THREESHAPE: "/api/threeshape/commandes",
     DEXIS: "/api/dexis-isconnect/commandes",
+  };
+
+  // Fonction pour afficher une notification
+  const showNotification = (message, type = "success") => {
+    const id = Date.now();
+    const notification = { id, message, type };
+    setNotifications((prev) => [...prev, notification]);
+
+    // Supprimer la notification après 4 secondes
+    setTimeout(() => {
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    }, 4000);
   };
 
   // Récupération des données utilisateur
@@ -195,6 +216,104 @@ const Commandes = () => {
     setIsSyncing(false);
   };
 
+  // Fonction pour filtrer par date
+  const filterByDate = (commande) => {
+    const receptionDate = new Date(commande.dateReception);
+    const today = new Date();
+
+    switch (dateFilter) {
+      case "today":
+        return receptionDate.toDateString() === today.toDateString();
+      case "week":
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return receptionDate >= weekAgo;
+      case "month":
+        const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+        return receptionDate >= monthAgo;
+      case "custom":
+        if (!customDateFrom && !customDateTo) return true;
+        const fromDate = customDateFrom
+          ? new Date(customDateFrom)
+          : new Date(0);
+        const toDate = customDateTo ? new Date(customDateTo) : new Date();
+        return receptionDate >= fromDate && receptionDate <= toDate;
+      default:
+        return true;
+    }
+  };
+
+  // Fonction pour télécharger le scan 3D
+  const handleDownload = async (commande) => {
+    const commandId = commande.externalId;
+
+    // Ajouter la commande à la liste des téléchargements en cours
+    setDownloadingCommands((prev) => new Set([...prev, commandId]));
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/meditlink/download/${commandId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        method: "POST",
+        body: JSON.stringify({ commandId }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = `scan-3D-${commandId}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        // Afficher une notification de succès
+        showNotification(
+          `Scan 3D téléchargé avec succès pour la commande #${commandId}`,
+          "success"
+        );
+
+        // Ouvrir l'explorateur Windows dans le dossier Téléchargements (si supporté par le navigateur)
+        try {
+          if ("showDirectoryPicker" in window) {
+            // API moderne (Chrome/Edge)
+            await window.showDirectoryPicker();
+          }
+        } catch (explorerError) {
+          // Fallback silencieux si l'API n'est pas supportée
+          console.log("Ouverture automatique de l'explorateur non supportée");
+        }
+      } else {
+        showNotification(
+          `Erreur lors du téléchargement de la commande #${commandId}`,
+          "error"
+        );
+        console.error("Erreur lors du téléchargement");
+      }
+    } catch (error) {
+      showNotification(`Erreur de connexion lors du téléchargement`, "error");
+      console.error("Erreur lors du téléchargement:", error);
+    } finally {
+      // Retirer la commande de la liste des téléchargements en cours
+      setDownloadingCommands((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(commandId);
+        return newSet;
+      });
+    }
+  };
+
+  // Fonction pour voir les détails d'une commande
+  const handleViewDetails = (commande) => {
+    navigate(`/dashboard/commande/${commande.externalId}`, {
+      state: { commande },
+    });
+  };
+
   // Gestion des états d'erreur et de chargement
   if (error) {
     return (
@@ -238,20 +357,30 @@ const Commandes = () => {
       return echeance < today;
     }).length || 0;
 
-  // Filtrage des commandes
+  // Filtrage et tri des commandes
   const filteredCommandes =
-    commandes?.filter((commande) => {
-      const matchesSearch =
-        commande.refPatient?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        commande.cabinet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        commande.externalId?.toString().includes(searchTerm);
+    commandes
+      ?.filter((commande) => {
+        const matchesSearch =
+          commande.refPatient
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          commande.cabinet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          commande.externalId?.toString().includes(searchTerm);
 
-      const matchesPlateforme =
-        selectedPlateforme === "" || commande.plateforme === selectedPlateforme;
-      const matchesUnread = !showOnlyUnread || !commande.vu;
+        const matchesPlateforme =
+          selectedPlateforme === "" ||
+          commande.plateforme === selectedPlateforme;
+        const matchesUnread = !showOnlyUnread || !commande.vu;
+        const matchesDate = filterByDate(commande);
 
-      return matchesSearch && matchesPlateforme && matchesUnread;
-    }) || [];
+        return (
+          matchesSearch && matchesPlateforme && matchesUnread && matchesDate
+        );
+      })
+      // Trier par date de réception (plus récent en premier)
+      .sort((a, b) => new Date(b.dateReception) - new Date(a.dateReception)) ||
+    [];
 
   // Fonction pour formater les dates
   const formatDate = (dateString) => {
@@ -309,39 +438,55 @@ const Commandes = () => {
     }
   };
 
-  // Fonction pour télécharger une commande
-  const handleDownload = async (commande) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/commandes/${commande.id}/download`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
-        a.href = url;
-        a.download = `commande-${commande.externalId}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } else {
-        console.error("Erreur lors du téléchargement");
-      }
-    } catch (error) {
-      console.error("Erreur lors du téléchargement:", error);
-    }
+  // Fonction pour supprimer une notification
+  const removeNotification = (id) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   return (
     <div className="commandes-card">
+      {/* Notifications */}
+      <div className="commandes-notifications">
+        {notifications.map((notification) => (
+          <div
+            key={notification.id}
+            className={`commandes-notification commandes-notification-${notification.type}`}
+          >
+            <span className="commandes-notification-message">
+              {notification.message}
+            </span>
+            <button
+              className="commandes-notification-close"
+              onClick={() => removeNotification(notification.id)}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
+
       <div className="commandes-header">
-        <h2 className="commandes-card-title">Gestion des Commandes</h2>
+        <div className="commandes-header-content">
+          <h2 className="commandes-card-title">Gestion des Commandes</h2>
+          <div className="commandes-stats">
+            <div className="commandes-stat">
+              <span className="commandes-stat-number">{totalCommandes}</span>
+              <span className="commandes-stat-label">Total</span>
+            </div>
+            <div className="commandes-stat">
+              <span className="commandes-stat-number commandes-stat-unread">
+                {commandesNonVues}
+              </span>
+              <span className="commandes-stat-label">Non vues</span>
+            </div>
+            <div className="commandes-stat">
+              <span className="commandes-stat-number commandes-stat-overdue">
+                {commandesEchues}
+              </span>
+              <span className="commandes-stat-label">Échues</span>
+            </div>
+          </div>
+        </div>
         <div className="commandes-header-actions">
           {userPlatforms.length > 0 && (
             <button
@@ -432,17 +577,54 @@ const Commandes = () => {
         </div>
 
         <div className="commandes-filters">
-          <select
-            value={selectedPlateforme}
-            onChange={(e) => setSelectedPlateforme(e.target.value)}
-            className="commandes-filter-select"
-          >
-            <option value="">Toutes les plateformes</option>
-            <option value="MEDITLINK">MeditLink</option>
-            <option value="ITERO">Itero</option>
-            <option value="THREESHAPE">3Shape</option>
-            <option value="DEXIS">Dexis</option>
-          </select>
+          <div className="commandes-filter-group">
+            <select
+              value={selectedPlateforme}
+              onChange={(e) => setSelectedPlateforme(e.target.value)}
+              className="commandes-filter-select"
+            >
+              <option value="">Toutes les plateformes</option>
+              <option value="MEDITLINK">MeditLink</option>
+              <option value="ITERO">Itero</option>
+              <option value="THREESHAPE">3Shape</option>
+              <option value="DEXIS">Dexis</option>
+            </select>
+          </div>
+
+          <div className="commandes-filter-group">
+            <CalendarDays size={16} />
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="commandes-filter-select"
+            >
+              <option value="all">Toutes les dates</option>
+              <option value="today">Aujourd'hui</option>
+              <option value="week">Cette semaine</option>
+              <option value="month">Ce mois</option>
+              <option value="custom">Période personnalisée</option>
+            </select>
+          </div>
+
+          {dateFilter === "custom" && (
+            <div className="commandes-date-range">
+              <input
+                type="date"
+                value={customDateFrom}
+                onChange={(e) => setCustomDateFrom(e.target.value)}
+                className="commandes-date-input"
+                placeholder="Du"
+              />
+              <span className="commandes-date-separator">au</span>
+              <input
+                type="date"
+                value={customDateTo}
+                onChange={(e) => setCustomDateTo(e.target.value)}
+                className="commandes-date-input"
+                placeholder="Au"
+              />
+            </div>
+          )}
 
           <label className="commandes-checkbox-filter">
             <input
@@ -485,6 +667,9 @@ const Commandes = () => {
               {filteredCommandes.map((commande) => {
                 const echeanceStatus = getEcheanceStatus(commande.dateEcheance);
                 const plateformeColor = getPlateformeColor(commande.plateforme);
+                const isDownloading = downloadingCommands.has(
+                  commande.externalId
+                );
 
                 return (
                   <div
@@ -492,6 +677,8 @@ const Commandes = () => {
                     className={`commandes-table-row ${
                       !commande.vu ? "commandes-row-unread" : ""
                     }`}
+                    onClick={() => handleViewDetails(commande)}
+                    style={{ cursor: "pointer" }}
                   >
                     <div className="commandes-table-cell">
                       <span className="commandes-external-id">
@@ -554,14 +741,26 @@ const Commandes = () => {
                       <div className="commandes-actions">
                         <button
                           className="commandes-action-btn commandes-action-download"
-                          title="Télécharger la commande"
-                          onClick={() => handleDownload(commande)}
+                          title="Télécharger le scan 3D"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(commande);
+                          }}
+                          disabled={isDownloading}
                         >
-                          <Download size={16} />
+                          {isDownloading ? (
+                            <div className="commandes-download-spinner"></div>
+                          ) : (
+                            <Download size={16} />
+                          )}
                         </button>
                         <button
                           className="commandes-action-btn commandes-action-view"
                           title="Voir les détails"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewDetails(commande);
+                          }}
                         >
                           <Eye size={16} />
                         </button>
