@@ -12,6 +12,7 @@ import {
   AlertCircle,
   CheckCircle,
   X,
+  Sparkles,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import Navbar from "../../components/Navbar/Navbar";
@@ -28,9 +29,11 @@ const CommandeDetails = () => {
   const [isLoading, setIsLoading] = useState(!commande);
   const [error, setError] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeComponent, setActiveComponent] = useState("commandes");
+  const [commentaire, setCommentaire] = useState(commande?.commentaire || null);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -58,6 +61,8 @@ const CommandeDetails = () => {
   useEffect(() => {
     if (!commande && isAuthenticated) {
       fetchCommandeDetails();
+    } else if (commande && !commande.commentaire) {
+      fetchCommentaire();
     }
   }, [externalId, isAuthenticated]);
 
@@ -79,6 +84,12 @@ const CommandeDetails = () => {
 
         if (foundCommande) {
           setCommande(foundCommande);
+          if (!foundCommande.commentaire) {
+            fetchCommentaire(
+              foundCommande.plateforme,
+              foundCommande.externalId
+            );
+          }
         } else {
           setError("Commande non trouvée");
         }
@@ -93,6 +104,38 @@ const CommandeDetails = () => {
     }
   };
 
+  const fetchCommentaire = async (
+    plateforme = commande.plateforme,
+    id = commande.externalId
+  ) => {
+    try {
+      const token = localStorage.getItem("token");
+      const endpoint = `/api/${plateforme.toLowerCase()}/commentaire/${id}`;
+
+      const response = await fetch(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const newCommentaire = data.commentaire || data.comments;
+
+        if (newCommentaire) {
+          setCommentaire(newCommentaire);
+          // Mettre à jour la commande dans l'état local
+          setCommande((prev) => ({
+            ...prev,
+            commentaire: newCommentaire,
+          }));
+        }
+      }
+    } catch (err) {
+      console.error("Erreur lors de la récupération du commentaire:", err);
+    }
+  };
+
   const handleDownload = async () => {
     if (!commande) return;
 
@@ -101,7 +144,9 @@ const CommandeDetails = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `/api/meditlink/download/${commande.externalId}`,
+        `/api/${commande.plateforme.toLowerCase()}/download/${
+          commande.externalId
+        }`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -145,6 +190,31 @@ const CommandeDetails = () => {
       console.error("Erreur:", error);
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleGenerateOrder = async () => {
+    if (!commande) return;
+
+    setIsGenerating(true);
+    showNotification("Génération du bon de commande en cours...", "info");
+
+    try {
+      // Simuler une génération de bon de commande
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      showNotification(
+        `Bon de commande généré avec succès pour la commande #${commande.externalId}`,
+        "success"
+      );
+    } catch (error) {
+      showNotification(
+        "Erreur lors de la génération du bon de commande",
+        "error"
+      );
+      console.error("Erreur:", error);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -318,23 +388,25 @@ const CommandeDetails = () => {
                   Retour
                 </button>
 
-                <button
-                  className="details-btn details-btn-primary"
-                  onClick={handleDownload}
-                  disabled={isDownloading}
-                >
-                  {isDownloading ? (
-                    <>
-                      <div className="details-loading-spinner details-btn-spinner"></div>
-                      Téléchargement...
-                    </>
-                  ) : (
-                    <>
-                      <Download size={16} />
-                      Télécharger le scan 3D
-                    </>
-                  )}
-                </button>
+                <div className="details-header-actions">
+                  <button
+                    className="details-btn details-btn-primary"
+                    onClick={handleDownload}
+                    disabled={isDownloading}
+                  >
+                    {isDownloading ? (
+                      <>
+                        <div className="details-loading-spinner details-btn-spinner"></div>
+                        Téléchargement...
+                      </>
+                    ) : (
+                      <>
+                        <Download size={16} />
+                        Télécharger le scan 3D
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
               <div className="details-title-wrapper">
                 <h2 className="details-card-title">
@@ -466,6 +538,36 @@ const CommandeDetails = () => {
                   </div>
                 </div>
 
+                {/* Commentaire */}
+                <div className="details-info-card">
+                  <div className="details-card-header">
+                    <FileText size={20} />
+                    <h3>Commentaire</h3>
+                  </div>
+                  <div className="details-card-content">
+                    <div className="details-comment-item">
+                      <span className="details-comment-value">
+                        {commentaire === null ? (
+                          <div className="comment-loading-state">
+                            <div className="comment-loading-spinner"></div>
+                            <span className="comment-loading-text">
+                              Chargement du commentaire...
+                            </span>
+                          </div>
+                        ) : commentaire ===
+                            "Les commentaires n'ont pas pu être chargés" ||
+                          !commentaire ? (
+                          <span className="comment-empty-state">
+                            Aucun commentaire
+                          </span>
+                        ) : (
+                          <span className="comment-content">{commentaire}</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Informations techniques */}
                 <div className="details-info-card">
                   <div className="details-card-header">
@@ -490,6 +592,27 @@ const CommandeDetails = () => {
               {/* Actions rapides */}
               <div className="details-actions-section">
                 <div className="details-actions-grid">
+                  <button
+                    className="details-action-card"
+                    onClick={handleGenerateOrder}
+                    disabled={isGenerating}
+                  >
+                    <div className="details-action-icon details-action-icon-ai">
+                      {isGenerating ? (
+                        <div className="details-download-spinner"></div>
+                      ) : (
+                        <Sparkles size={24} />
+                      )}
+                    </div>
+                    <div className="details-action-text">
+                      <h4>Générer le bon de commande</h4>
+                      <p>
+                        Créer un bon de commande personnalisé avec l'assistance
+                        IA
+                      </p>
+                    </div>
+                  </button>
+
                   <button
                     className="details-action-card"
                     onClick={handleDownload}

@@ -53,7 +53,7 @@ const Commandes = () => {
     MEDITLINK: "/api/meditlink/commandes",
     ITERO: "/api/itero/commandes",
     THREESHAPE: "/api/threeshape/commandes",
-    DEXIS: "/api/dexis-isconnect/commandes",
+    DEXIS: "/api/dexis/commandes",
   };
 
   // Fonction pour afficher une notification

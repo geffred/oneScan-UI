@@ -40,7 +40,7 @@ const LoginPage = () => {
       const data = await response.json();
       localStorage.setItem("token", data.token);
       setIsAuthenticated(true);
-      navigate("/dashboard");
+      navigate("/dashboard/platform");
     } catch (error) {
       setFieldError("email", error.message);
     } finally {
