@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -17,6 +17,8 @@ import {
 import { AuthContext } from "../../components/Config/AuthContext";
 import Navbar from "../../components/Navbar/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
+import BonCommande from "../BonDeCommande/BonDeCommande";
+import { useReactToPrint } from "react-to-print";
 import "./commandeDetails.css";
 
 const CommandeDetails = () => {
@@ -34,6 +36,9 @@ const CommandeDetails = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeComponent, setActiveComponent] = useState("commandes");
   const [commentaire, setCommentaire] = useState(commande?.commentaire || null);
+  const [showBonDeCommande, setShowBonDeCommande] = useState(false);
+
+  const bonDeCommandeRef = useRef();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -57,6 +62,25 @@ const CommandeDetails = () => {
       setNotifications((prev) => prev.filter((n) => n.id !== id));
     }, 4000);
   };
+
+  const handleDownloadPDF = useReactToPrint({
+    content: () => bonDeCommandeRef.current,
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 10mm;
+      }
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+        }
+      }
+    `,
+    documentTitle: `Bon_de_commande_${commande?.externalId || "unknown"}`,
+    onAfterPrint: () => {
+      showNotification("PDF téléchargé avec succès", "success");
+    },
+  });
 
   useEffect(() => {
     if (!commande && isAuthenticated) {
@@ -124,7 +148,6 @@ const CommandeDetails = () => {
 
         if (newCommentaire) {
           setCommentaire(newCommentaire);
-          // Mettre à jour la commande dans l'état local
           setCommande((prev) => ({
             ...prev,
             commentaire: newCommentaire,
@@ -200,9 +223,8 @@ const CommandeDetails = () => {
     showNotification("Génération du bon de commande en cours...", "info");
 
     try {
-      // Simuler une génération de bon de commande
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setShowBonDeCommande(true);
       showNotification(
         `Bon de commande généré avec succès pour la commande #${commande.externalId}`,
         "success"
@@ -648,6 +670,14 @@ const CommandeDetails = () => {
           </footer>
         </div>
       </div>
+
+      {/* Modal Bon de Commande */}
+      {showBonDeCommande && (
+        <BonCommande
+          commande={commande}
+          onClose={() => setShowBonDeCommande(false)}
+        />
+      )}
     </div>
   );
 };
