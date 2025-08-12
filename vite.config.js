@@ -25,6 +25,8 @@ export default defineConfig({
       "/api/dexis/download/": "http://localhost:8080",
       "/api/itero/commentaire": "http://localhost:8080",
       "/api/itero/update-comments": "http://localhost:8080",
+      "/api/cabinet": "http://localhost:8080",
+      "/api/cabinet/nom": "http://localhost:8080",
     },
   },
 });

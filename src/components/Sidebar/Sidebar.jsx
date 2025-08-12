@@ -5,6 +5,7 @@ import {
   Database,
   LoaderCircle,
   TvMinimal,
+  Building2,
 } from "lucide-react";
 import "./sidebar.css";
 
@@ -32,6 +33,19 @@ const Sidebar = ({
         >
           <TvMinimal className="sidebar-icon" />
           Platformes
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveComponent("cabinets");
+            toggleSidebar();
+          }}
+          className={`sidebar-item ${
+            activeComponent === "cabinets" ? "active" : ""
+          }`}
+        >
+          <Building2 className="sidebar-icon" />
+          Cabinets
         </button>
 
         <button

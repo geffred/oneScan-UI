@@ -7,6 +7,7 @@ import Commandes from "../../components/Commandes/Commandes";
 import Socles from "../../components/Socles/socle";
 import "./DashboardPage.css";
 import Platform from "../../components/Platform/Platform";
+import Cabinets from "../../components/Cabinets/Cabinets";
 
 const DashboardPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -14,7 +15,13 @@ const DashboardPage = () => {
   const navigate = useNavigate();
 
   // Liste des composants valides
-  const validComponents = ["platform", "commandes", "socles", "analytique"];
+  const validComponents = [
+    "platform",
+    "commandes",
+    "cabinets",
+    "socles",
+    "analytique",
+  ];
 
   // État initial avec vérification du paramètre URL
   const [activeComponent, setActiveComponent] = useState(
@@ -50,6 +57,8 @@ const DashboardPage = () => {
         return <Platform />;
       case "analytique":
         return <Dashboard />;
+      case "cabinets":
+        return <Cabinets />;
       default:
         return <Platform />;
     }
