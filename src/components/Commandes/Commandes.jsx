@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import {
   Plus,
   Search,
@@ -22,411 +22,198 @@ import {
 import { AuthContext } from "../../components/Config/AuthContext";
 import "./commandes.css";
 
+// Configuration mise en cache
+const platformEndpoints = {
+  MEDITLINK: "/api/meditlink/commandes",
+  ITERO: "/api/itero/commandes",
+  THREESHAPE: "/api/threeshape/commandes",
+  DEXIS: "/api/dexis/commandes",
+};
+
 // Fonction fetcher pour SWR
-const fetcher = (url) => {
+const fetchWithAuth = async (url) => {
   const token = localStorage.getItem("token");
-  return fetch(url, {
+  if (!token) throw new Error("Token manquant");
+
+  const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-  }).then((res) => res.json());
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json();
 };
 
-const Commandes = () => {
-  const navigate = useNavigate();
-  const { isAuthenticated } = useContext(AuthContext);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPlateforme, setSelectedPlateforme] = useState("");
-  const [showOnlyUnread, setShowOnlyUnread] = useState(false);
-  const [dateFilter, setDateFilter] = useState("all");
-  const [customDateFrom, setCustomDateFrom] = useState("");
-  const [customDateTo, setCustomDateTo] = useState("");
-  const [userData, setUserData] = useState(null);
-  const [userPlatforms, setUserPlatforms] = useState([]);
-  const [syncStatus, setSyncStatus] = useState({});
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [downloadingCommands, setDownloadingCommands] = useState(new Set());
-  const [notifications, setNotifications] = useState([]);
+// Fonction pour récupérer les données utilisateur
+const getUserData = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
 
-  // Mapping des plateformes vers leurs endpoints
-  const platformEndpoints = {
-    MEDITLINK: "/api/meditlink/commandes",
-    ITERO: "/api/itero/commandes",
-    THREESHAPE: "/api/threeshape/commandes",
-    DEXIS: "/api/dexis/commandes",
-  };
+  const userEmail = JSON.parse(atob(token.split(".")[1])).sub;
+  return fetchWithAuth(`/api/auth/user/${userEmail}`);
+};
 
-  // Fonction pour afficher une notification
-  const showNotification = (message, type = "success") => {
-    const id = Date.now();
-    const notification = { id, message, type };
-    setNotifications((prev) => [...prev, notification]);
+// Fonction pour récupérer les plateformes d'un utilisateur
+const getUserPlatforms = async (userId) => {
+  if (!userId) return [];
+  return fetchWithAuth(`/api/platforms/user/${userId}`);
+};
 
-    // Supprimer la notification après 4 secondes
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-    }, 4000);
-  };
+// Fonction pour récupérer les commandes
+const getCommandes = async () => {
+  return fetchWithAuth("/api/public/commandes");
+};
 
-  // Récupération des données utilisateur
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const fetchUserData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const userEmail = JSON.parse(atob(token.split(".")[1])).sub;
-
-        const response = await fetch(`/api/auth/user/${userEmail}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setUserData(data);
-        }
-      } catch (err) {
-        console.error(
-          "Erreur lors de la récupération des données utilisateur:",
-          err
-        );
-      }
+// Composants optimisés avec React.memo
+const CommandeRow = React.memo(
+  ({ commande, onViewDetails, onDownload, isDownloading }) => {
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
     };
 
-    fetchUserData();
-  }, [isAuthenticated]);
-
-  // Récupération des plateformes de l'utilisateur
-  useEffect(() => {
-    if (!userData?.id) return;
-
-    const fetchUserPlatforms = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(`/api/platforms/user/${userData.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          const platforms = await response.json();
-          setUserPlatforms(platforms);
-        }
-      } catch (err) {
-        console.error("Erreur lors de la récupération des plateformes:", err);
-      }
-    };
-
-    fetchUserPlatforms();
-  }, [userData]);
-
-  // Récupération des données avec SWR
-  const {
-    data: commandes,
-    error,
-    isLoading,
-    mutate,
-  } = useSWR("/api/public/commandes", fetcher);
-
-  // Fonction pour synchroniser les commandes d'une plateforme spécifique
-  const syncPlatformCommandes = async (platformName) => {
-    const endpoint = platformEndpoints[platformName];
-    if (!endpoint) {
-      console.error(`Endpoint non trouvé pour la plateforme: ${platformName}`);
-      return;
-    }
-
-    setSyncStatus((prev) => ({
-      ...prev,
-      [platformName]: {
-        status: "loading",
-        message: "Synchronisation en cours...",
-      },
-    }));
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(endpoint, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const newCommandes = await response.json();
-
-        // Actualiser les données après synchronisation
-        mutate();
-
-        setSyncStatus((prev) => ({
-          ...prev,
-          [platformName]: {
-            status: "success",
-            message: `${newCommandes.length || 0} commande(s) récupérée(s)`,
-          },
-        }));
-      } else {
-        const errorText = await response.text();
-        setSyncStatus((prev) => ({
-          ...prev,
-          [platformName]: {
-            status: "error",
-            message:
-              response.status === 204
-                ? "Aucune nouvelle commande"
-                : "Erreur de synchronisation",
-          },
-        }));
-      }
-    } catch (err) {
-      console.error(`Erreur lors de la synchronisation ${platformName}:`, err);
-      setSyncStatus((prev) => ({
-        ...prev,
-        [platformName]: {
-          status: "error",
-          message: "Erreur de connexion",
-        },
-      }));
-    }
-
-    // Effacer le statut après 3 secondes
-    setTimeout(() => {
-      setSyncStatus((prev) => {
-        const newStatus = { ...prev };
-        delete newStatus[platformName];
-        return newStatus;
-      });
-    }, 3000);
-  };
-
-  // Fonction pour synchroniser toutes les plateformes
-  const syncAllPlatforms = async () => {
-    if (userPlatforms.length === 0) return;
-
-    setIsSyncing(true);
-
-    const syncPromises = userPlatforms.map((platform) =>
-      syncPlatformCommandes(platform.name)
-    );
-
-    await Promise.all(syncPromises);
-    setIsSyncing(false);
-  };
-
-  // Fonction pour filtrer par date
-  const filterByDate = (commande) => {
-    const receptionDate = new Date(commande.dateReception);
-    const today = new Date();
-
-    switch (dateFilter) {
-      case "today":
-        return receptionDate.toDateString() === today.toDateString();
-      case "week":
-        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        return receptionDate >= weekAgo;
-      case "month":
-        const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-        return receptionDate >= monthAgo;
-      case "custom":
-        if (!customDateFrom && !customDateTo) return true;
-        const fromDate = customDateFrom
-          ? new Date(customDateFrom)
-          : new Date(0);
-        const toDate = customDateTo ? new Date(customDateTo) : new Date();
-        return receptionDate >= fromDate && receptionDate <= toDate;
-      default:
-        return true;
-    }
-  };
-
-  // Fonction pour télécharger le scan 3D
-  const handleDownload = async (commande) => {
-    const commandId = commande.externalId;
-
-    // Ajouter la commande à la liste des téléchargements en cours
-    setDownloadingCommands((prev) => new Set([...prev, commandId]));
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/meditlink/download/${commandId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        method: "POST",
-        body: JSON.stringify({ commandId }),
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
-        a.href = url;
-        a.download = `scan-3D-${commandId}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-
-        // Afficher une notification de succès
-        showNotification(
-          `Scan 3D téléchargé avec succès pour la commande #${commandId}`,
-          "success"
-        );
-
-        // Ouvrir l'explorateur Windows dans le dossier Téléchargements (si supporté par le navigateur)
-        try {
-          if ("showDirectoryPicker" in window) {
-            // API moderne (Chrome/Edge)
-            await window.showDirectoryPicker();
-          }
-        } catch (explorerError) {
-          // Fallback silencieux si l'API n'est pas supportée
-          console.log("Ouverture automatique de l'explorateur non supportée");
-        }
-      } else {
-        showNotification(
-          `Erreur lors du téléchargement de la commande #${commandId}`,
-          "error"
-        );
-        console.error("Erreur lors du téléchargement");
-      }
-    } catch (error) {
-      showNotification(`Erreur de connexion lors du téléchargement`, "error");
-      console.error("Erreur lors du téléchargement:", error);
-    } finally {
-      // Retirer la commande de la liste des téléchargements en cours
-      setDownloadingCommands((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(commandId);
-        return newSet;
-      });
-    }
-  };
-
-  // Fonction pour voir les détails d'une commande
-  const handleViewDetails = (commande) => {
-    navigate(`/dashboard/commande/${commande.externalId}`, {
-      state: { commande },
-    });
-  };
-
-  // Gestion des états d'erreur et de chargement
-  if (error) {
-    return (
-      <div className="commandes-card">
-        <div className="commandes-error-state">
-          <AlertCircle className="commandes-error-icon" size={48} />
-          <h3 className="commandes-error-title">Erreur de chargement</h3>
-          <p className="commandes-error-message">
-            Impossible de récupérer les commandes. Veuillez réessayer.
-          </p>
-          <button
-            className="commandes-btn commandes-btn-primary"
-            onClick={() => mutate()}
-          >
-            <RefreshCw size={16} />
-            Réessayer
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="commandes-card">
-        <div className="commandes-loading-state">
-          <div className="commandes-loading-spinner"></div>
-          <p className="commandes-loading-text">Chargement des commandes...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Calcul des statistiques
-  const totalCommandes = commandes?.length || 0;
-  const commandesNonVues = commandes?.filter((cmd) => !cmd.vu).length || 0;
-  const commandesEchues =
-    commandes?.filter((cmd) => {
+    const getEcheanceStatus = (dateEcheance) => {
       const today = new Date();
-      const echeance = new Date(cmd.dateEcheance);
-      return echeance < today;
-    }).length || 0;
+      const echeance = new Date(dateEcheance);
+      const diffTime = echeance - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  // Filtrage et tri des commandes
-  const filteredCommandes =
-    commandes
-      ?.filter((commande) => {
-        const matchesSearch =
-          commande.refPatient
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          commande.cabinet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          commande.externalId?.toString().includes(searchTerm);
-
-        const matchesPlateforme =
-          selectedPlateforme === "" ||
-          commande.plateforme === selectedPlateforme;
-        const matchesUnread = !showOnlyUnread || !commande.vu;
-        const matchesDate = filterByDate(commande);
-
-        return (
-          matchesSearch && matchesPlateforme && matchesUnread && matchesDate
-        );
-      })
-      // Trier par date de réception (plus récent en premier)
-      .sort((a, b) => new Date(b.dateReception) - new Date(a.dateReception)) ||
-    [];
-
-  // Fonction pour formater les dates
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
-
-  // Fonction pour obtenir le statut d'échéance
-  const getEcheanceStatus = (dateEcheance) => {
-    const today = new Date();
-    const echeance = new Date(dateEcheance);
-    const diffTime = echeance - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0)
-      return { status: "expired", label: "Échue", class: "red" };
-    if (diffDays <= 3)
+      if (diffDays < 0)
+        return { status: "expired", label: "Échue", class: "red" };
+      if (diffDays <= 3)
+        return {
+          status: "urgent",
+          label: `${diffDays}j restant`,
+          class: "yellow",
+        };
       return {
-        status: "urgent",
+        status: "normal",
         label: `${diffDays}j restant`,
-        class: "yellow",
+        class: "green",
       };
-    return { status: "normal", label: `${diffDays}j restant`, class: "green" };
-  };
-
-  // Fonction pour obtenir la couleur de la plateforme
-  const getPlateformeColor = (plateforme) => {
-    const colors = {
-      MEDITLINK: "blue",
-      ITERO: "green",
-      THREESHAPE: "purple",
-      DEXIS: "orange",
     };
-    return colors[plateforme] || "gray";
-  };
 
-  // Fonction pour obtenir le statut de synchronisation
-  const getSyncStatusIcon = (platformName) => {
-    const status = syncStatus[platformName];
-    if (!status) return null;
+    const getPlateformeColor = (plateforme) => {
+      const colors = {
+        MEDITLINK: "blue",
+        ITERO: "green",
+        THREESHAPE: "purple",
+        DEXIS: "orange",
+      };
+      return colors[plateforme] || "gray";
+    };
 
-    switch (status.status) {
+    const echeanceStatus = getEcheanceStatus(commande.dateEcheance);
+    const plateformeColor = getPlateformeColor(commande.plateforme);
+
+    return (
+      <div
+        className={`commandes-table-row ${
+          !commande.vu ? "commandes-row-unread" : ""
+        }`}
+        onClick={() => onViewDetails(commande)}
+        style={{ cursor: "pointer" }}
+      >
+        <div className="commandes-table-cell" data-label="ID">
+          <span className="commandes-external-id">#{commande.externalId}</span>
+        </div>
+
+        <div className="commandes-table-cell" data-label="Patient">
+          <div className="commandes-patient-info">
+            {!commande.vu && <span className="commandes-unread-badge"></span>}
+            <span className="commandes-patient-name">
+              {commande.refPatient || "Non spécifié"}
+            </span>
+          </div>
+        </div>
+
+        <div className="commandes-table-cell" data-label="Cabinet">
+          <span className="commandes-cabinet-name">{commande.cabinet}</span>
+        </div>
+
+        <div className="commandes-table-cell" data-label="Plateforme">
+          <span
+            className={`commandes-plateforme-badge commandes-plateforme-${plateformeColor}`}
+          >
+            {commande.plateforme}
+          </span>
+        </div>
+
+        <div className="commandes-table-cell" data-label="Réception">
+          <div className="commandes-date-info">
+            <Calendar size={14} />
+            <span>{formatDate(commande.dateReception)}</span>
+          </div>
+        </div>
+
+        <div className="commandes-table-cell" data-label="Échéance">
+          <div className="commandes-date-info">
+            <Clock size={14} />
+            <span>
+              {commande.dateEcheance != null
+                ? formatDate(commande.dateEcheance)
+                : "Non spécifiée"}
+            </span>
+          </div>
+        </div>
+
+        <div className="commandes-table-cell" data-label="Statut">
+          <span
+            className={`commandes-status-badge commandes-status-${echeanceStatus.class}`}
+          >
+            {echeanceStatus.label}
+          </span>
+        </div>
+
+        <div className="commandes-table-cell" data-label="Actions">
+          <div className="commandes-actions">
+            <button
+              className="commandes-action-btn commandes-action-download"
+              title="Télécharger le scan 3D"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDownload(commande);
+              }}
+              disabled={isDownloading}
+            >
+              {isDownloading ? (
+                <div className="commandes-download-spinner"></div>
+              ) : (
+                <Download size={16} />
+              )}
+            </button>
+            <button
+              className="commandes-action-btn commandes-action-view"
+              title="Voir les détails"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetails(commande);
+              }}
+            >
+              <Eye size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+CommandeRow.displayName = "CommandeRow";
+
+const PlatformCard = React.memo(({ platform, syncStatus, onSync }) => {
+  const getSyncStatusIcon = () => {
+    if (!syncStatus) return null;
+
+    switch (syncStatus.status) {
       case "loading":
         return <div className="commandes-sync-spinner"></div>;
       case "success":
@@ -438,30 +225,442 @@ const Commandes = () => {
     }
   };
 
+  return (
+    <div className="commandes-platform-card">
+      <div className="commandes-platform-info">
+        <h4 className="commandes-platform-name">{platform.name}</h4>
+        <p className="commandes-platform-email">{platform.email}</p>
+      </div>
+      <div className="commandes-platform-actions">
+        {syncStatus && (
+          <div
+            className={`commandes-sync-status commandes-sync-${syncStatus.status}`}
+          >
+            {getSyncStatusIcon()}
+            <span>{syncStatus.message}</span>
+          </div>
+        )}
+        <button
+          className="commandes-btn commandes-btn-secondary"
+          onClick={() => onSync(platform.name)}
+          disabled={syncStatus?.status === "loading"}
+        >
+          {syncStatus?.status === "loading" ? (
+            <>
+              <Loader2 size={14} className="commandes-sync-loading" />
+              Sync...
+            </>
+          ) : (
+            <>
+              <Plus size={14} />
+              Récupérer
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+});
+
+PlatformCard.displayName = "PlatformCard";
+
+const Notification = React.memo(({ notification, onRemove }) => (
+  <div
+    className={`commandes-notification commandes-notification-${notification.type}`}
+  >
+    <span className="commandes-notification-message">
+      {notification.message}
+    </span>
+    <button
+      className="commandes-notification-close"
+      onClick={() => onRemove(notification.id)}
+    >
+      <X size={16} />
+    </button>
+  </div>
+));
+
+Notification.displayName = "Notification";
+
+const LoadingState = React.memo(() => (
+  <div className="commandes-loading-state">
+    <div className="commandes-loading-spinner"></div>
+    <p className="commandes-loading-text">Chargement des commandes...</p>
+  </div>
+));
+
+LoadingState.displayName = "LoadingState";
+
+const ErrorState = React.memo(({ onRetry }) => (
+  <div className="commandes-error-state">
+    <AlertCircle className="commandes-error-icon" size={48} />
+    <h3 className="commandes-error-title">Erreur de chargement</h3>
+    <p className="commandes-error-message">
+      Impossible de récupérer les commandes. Veuillez réessayer.
+    </p>
+    <button className="commandes-btn commandes-btn-primary" onClick={onRetry}>
+      <RefreshCw size={16} />
+      Réessayer
+    </button>
+  </div>
+));
+
+ErrorState.displayName = "ErrorState";
+
+const Commandes = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useContext(AuthContext);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedPlateforme, setSelectedPlateforme] = useState("");
+  const [showOnlyUnread, setShowOnlyUnread] = useState(false);
+  const [dateFilter, setDateFilter] = useState("all");
+  const [customDateFrom, setCustomDateFrom] = useState("");
+  const [customDateTo, setCustomDateTo] = useState("");
+  const [syncStatus, setSyncStatus] = useState({});
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [downloadingCommands, setDownloadingCommands] = useState(new Set());
+  const [notifications, setNotifications] = useState([]);
+
+  // SWR hooks pour les données
+  const {
+    data: userData,
+    error: userError,
+    isLoading: userLoading,
+  } = useSWR(isAuthenticated ? "user-data" : null, getUserData, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    errorRetryCount: 3,
+  });
+
+  const {
+    data: userPlatforms = [],
+    error: platformsError,
+    isLoading: platformsLoading,
+  } = useSWR(
+    userData?.id ? `platforms-${userData.id}` : null,
+    () => getUserPlatforms(userData.id),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      errorRetryCount: 3,
+    }
+  );
+
+  const {
+    data: commandes = [],
+    error: commandesError,
+    isLoading: commandesLoading,
+    mutate: mutateCommandes,
+  } = useSWR(isAuthenticated ? "/api/public/commandes" : null, getCommandes, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    refreshInterval: 60000, // Rafraîchir toutes les minutes
+    errorRetryCount: 3,
+  });
+
+  // Fonction pour afficher une notification
+  const showNotification = useCallback((message, type = "success") => {
+    const id = Date.now();
+    const notification = { id, message, type };
+    setNotifications((prev) => [...prev, notification]);
+
+    setTimeout(() => {
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    }, 4000);
+  }, []);
+
+  // Fonction pour synchroniser les commandes d'une plateforme spécifique
+  const syncPlatformCommandes = useCallback(
+    async (platformName) => {
+      const endpoint = platformEndpoints[platformName];
+      if (!endpoint) {
+        console.error(
+          `Endpoint non trouvé pour la plateforme: ${platformName}`
+        );
+        return;
+      }
+
+      setSyncStatus((prev) => ({
+        ...prev,
+        [platformName]: {
+          status: "loading",
+          message: "Synchronisation en cours...",
+        },
+      }));
+
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(endpoint, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const newCommandes = await response.json();
+
+          // Actualiser les données après synchronisation
+          mutateCommandes();
+
+          setSyncStatus((prev) => ({
+            ...prev,
+            [platformName]: {
+              status: "success",
+              message: `${newCommandes.length || 0} commande(s) récupérée(s)`,
+            },
+          }));
+        } else {
+          setSyncStatus((prev) => ({
+            ...prev,
+            [platformName]: {
+              status: "error",
+              message:
+                response.status === 204
+                  ? "Aucune nouvelle commande"
+                  : "Erreur de synchronisation",
+            },
+          }));
+        }
+      } catch (err) {
+        console.error(
+          `Erreur lors de la synchronisation ${platformName}:`,
+          err
+        );
+        setSyncStatus((prev) => ({
+          ...prev,
+          [platformName]: {
+            status: "error",
+            message: "Erreur de connexion",
+          },
+        }));
+      }
+
+      // Effacer le statut après 3 secondes
+      setTimeout(() => {
+        setSyncStatus((prev) => {
+          const newStatus = { ...prev };
+          delete newStatus[platformName];
+          return newStatus;
+        });
+      }, 3000);
+    },
+    [mutateCommandes]
+  );
+
+  // Fonction pour synchroniser toutes les plateformes
+  const syncAllPlatforms = useCallback(async () => {
+    if (userPlatforms.length === 0) return;
+
+    setIsSyncing(true);
+
+    const syncPromises = userPlatforms.map((platform) =>
+      syncPlatformCommandes(platform.name)
+    );
+
+    await Promise.all(syncPromises);
+    setIsSyncing(false);
+  }, [userPlatforms, syncPlatformCommandes]);
+
+  // Fonction pour filtrer par date
+  const filterByDate = useCallback(
+    (commande) => {
+      const receptionDate = new Date(commande.dateReception);
+      const today = new Date();
+
+      switch (dateFilter) {
+        case "today":
+          return receptionDate.toDateString() === today.toDateString();
+        case "week":
+          const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return receptionDate >= weekAgo;
+        case "month":
+          const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+          return receptionDate >= monthAgo;
+        case "custom":
+          if (!customDateFrom && !customDateTo) return true;
+          const fromDate = customDateFrom
+            ? new Date(customDateFrom)
+            : new Date(0);
+          const toDate = customDateTo ? new Date(customDateTo) : new Date();
+          return receptionDate >= fromDate && receptionDate <= toDate;
+        default:
+          return true;
+      }
+    },
+    [dateFilter, customDateFrom, customDateTo]
+  );
+
+  // Fonction pour télécharger le scan 3D
+  const handleDownload = useCallback(
+    async (commande) => {
+      const commandId = commande.externalId;
+
+      setDownloadingCommands((prev) => new Set([...prev, commandId]));
+
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`/api/meditlink/download/${commandId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          method: "POST",
+          body: JSON.stringify({ commandId }),
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.style.display = "none";
+          a.href = url;
+          a.download = `scan-3D-${commandId}.zip`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+
+          showNotification(
+            `Scan 3D téléchargé avec succès pour la commande #${commandId}`,
+            "success"
+          );
+
+          // Ouvrir l'explorateur Windows dans le dossier Téléchargements (si supporté par le navigateur)
+          try {
+            if ("showDirectoryPicker" in window) {
+              await window.showDirectoryPicker();
+            }
+          } catch (explorerError) {
+            console.log("Ouverture automatique de l'explorateur non supportée");
+          }
+        } else {
+          showNotification(
+            `Erreur lors du téléchargement de la commande #${commandId}`,
+            "error"
+          );
+        }
+      } catch (error) {
+        showNotification(`Erreur de connexion lors du téléchargement`, "error");
+      } finally {
+        setDownloadingCommands((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(commandId);
+          return newSet;
+        });
+      }
+    },
+    [showNotification]
+  );
+
+  // Fonction pour voir les détails d'une commande
+  const handleViewDetails = useCallback(
+    (commande) => {
+      navigate(`/dashboard/commande/${commande.externalId}`, {
+        state: { commande },
+      });
+    },
+    [navigate]
+  );
+
   // Fonction pour supprimer une notification
-  const removeNotification = (id) => {
+  const removeNotification = useCallback((id) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
+  }, []);
+
+  // Handlers pour les filtres
+  const handleSearchChange = useCallback((e) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  const handlePlateformeChange = useCallback((e) => {
+    setSelectedPlateforme(e.target.value);
+  }, []);
+
+  const handleDateFilterChange = useCallback((e) => {
+    setDateFilter(e.target.value);
+  }, []);
+
+  const handleUnreadToggle = useCallback((e) => {
+    setShowOnlyUnread(e.target.checked);
+  }, []);
+
+  // Calcul des statistiques mémorisées
+  const stats = useMemo(() => {
+    const totalCommandes = commandes?.length || 0;
+    const commandesNonVues = commandes?.filter((cmd) => !cmd.vu).length || 0;
+    const commandesEchues =
+      commandes?.filter((cmd) => {
+        const today = new Date();
+        const echeance = new Date(cmd.dateEcheance);
+        return echeance < today;
+      }).length || 0;
+
+    return { totalCommandes, commandesNonVues, commandesEchues };
+  }, [commandes]);
+
+  // Filtrage et tri des commandes mémorisés
+  const filteredCommandes = useMemo(() => {
+    return (
+      commandes
+        ?.filter((commande) => {
+          const matchesSearch =
+            commande.refPatient
+              ?.toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            commande.cabinet
+              ?.toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            commande.externalId?.toString().includes(searchTerm);
+
+          const matchesPlateforme =
+            selectedPlateforme === "" ||
+            commande.plateforme === selectedPlateforme;
+          const matchesUnread = !showOnlyUnread || !commande.vu;
+          const matchesDate = filterByDate(commande);
+
+          return (
+            matchesSearch && matchesPlateforme && matchesUnread && matchesDate
+          );
+        })
+        .sort(
+          (a, b) => new Date(b.dateReception) - new Date(a.dateReception)
+        ) || []
+    );
+  }, [commandes, searchTerm, selectedPlateforme, showOnlyUnread, filterByDate]);
+
+  // Redirection si non authentifié
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Gestion des erreurs
+  if (commandesError) {
+    return (
+      <div className="commandes-card">
+        <ErrorState onRetry={() => mutateCommandes()} />
+      </div>
+    );
+  }
+
+  if (commandesLoading) {
+    return (
+      <div className="commandes-card">
+        <LoadingState />
+      </div>
+    );
+  }
 
   return (
     <div className="commandes-card">
       {/* Notifications */}
       <div className="commandes-notifications">
         {notifications.map((notification) => (
-          <div
+          <Notification
             key={notification.id}
-            className={`commandes-notification commandes-notification-${notification.type}`}
-          >
-            <span className="commandes-notification-message">
-              {notification.message}
-            </span>
-            <button
-              className="commandes-notification-close"
-              onClick={() => removeNotification(notification.id)}
-            >
-              <X size={16} />
-            </button>
-          </div>
+            notification={notification}
+            onRemove={removeNotification}
+          />
         ))}
       </div>
 
@@ -470,18 +669,20 @@ const Commandes = () => {
           <h2 className="commandes-card-title">Gestion des Commandes</h2>
           <div className="commandes-stats">
             <div className="commandes-stat">
-              <span className="commandes-stat-number">{totalCommandes}</span>
+              <span className="commandes-stat-number">
+                {stats.totalCommandes}
+              </span>
               <span className="commandes-stat-label">Total</span>
             </div>
             <div className="commandes-stat">
               <span className="commandes-stat-number commandes-stat-unread">
-                {commandesNonVues}
+                {stats.commandesNonVues}
               </span>
               <span className="commandes-stat-label">Non vues</span>
             </div>
             <div className="commandes-stat">
               <span className="commandes-stat-number commandes-stat-overdue">
-                {commandesEchues}
+                {stats.commandesEchues}
               </span>
               <span className="commandes-stat-label">Échues</span>
             </div>
@@ -518,47 +719,14 @@ const Commandes = () => {
             Vos Plateformes
           </h3>
           <div className="commandes-platforms-grid">
-            {userPlatforms.map((platform) => {
-              const statusInfo = syncStatus[platform.name];
-              return (
-                <div key={platform.id} className="commandes-platform-card">
-                  <div className="commandes-platform-info">
-                    <h4 className="commandes-platform-name">{platform.name}</h4>
-                    <p className="commandes-platform-email">{platform.email}</p>
-                  </div>
-                  <div className="commandes-platform-actions">
-                    {statusInfo && (
-                      <div
-                        className={`commandes-sync-status commandes-sync-${statusInfo.status}`}
-                      >
-                        {getSyncStatusIcon(platform.name)}
-                        <span>{statusInfo.message}</span>
-                      </div>
-                    )}
-                    <button
-                      className="commandes-btn commandes-btn-secondary"
-                      onClick={() => syncPlatformCommandes(platform.name)}
-                      disabled={syncStatus[platform.name]?.status === "loading"}
-                    >
-                      {syncStatus[platform.name]?.status === "loading" ? (
-                        <>
-                          <Loader2
-                            size={14}
-                            className="commandes-sync-loading"
-                          />
-                          Sync...
-                        </>
-                      ) : (
-                        <>
-                          <Plus size={14} />
-                          Récupérer
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+            {userPlatforms.map((platform) => (
+              <PlatformCard
+                key={platform.id}
+                platform={platform}
+                syncStatus={syncStatus[platform.name]}
+                onSync={syncPlatformCommandes}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -571,7 +739,7 @@ const Commandes = () => {
             type="text"
             placeholder="Rechercher par patient, cabinet ou ID..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
             className="commandes-search-input"
           />
         </div>
@@ -580,7 +748,7 @@ const Commandes = () => {
           <div className="commandes-filter-group">
             <select
               value={selectedPlateforme}
-              onChange={(e) => setSelectedPlateforme(e.target.value)}
+              onChange={handlePlateformeChange}
               className="commandes-filter-select"
             >
               <option value="">Toutes les plateformes</option>
@@ -595,7 +763,7 @@ const Commandes = () => {
             <CalendarDays size={16} />
             <select
               value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
+              onChange={handleDateFilterChange}
               className="commandes-filter-select"
             >
               <option value="all">Toutes les dates</option>
@@ -630,7 +798,7 @@ const Commandes = () => {
             <input
               type="checkbox"
               checked={showOnlyUnread}
-              onChange={(e) => setShowOnlyUnread(e.target.checked)}
+              onChange={handleUnreadToggle}
               className="commandes-checkbox"
             />
             <span>Non vues seulement</span>
@@ -664,111 +832,15 @@ const Commandes = () => {
             </div>
 
             <div className="commandes-table-body">
-              {filteredCommandes.map((commande) => {
-                const echeanceStatus = getEcheanceStatus(commande.dateEcheance);
-                const plateformeColor = getPlateformeColor(commande.plateforme);
-                const isDownloading = downloadingCommands.has(
-                  commande.externalId
-                );
-
-                return (
-                  <div
-                    key={commande.id}
-                    className={`commandes-table-row ${
-                      !commande.vu ? "commandes-row-unread" : ""
-                    }`}
-                    onClick={() => handleViewDetails(commande)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <div className="commandes-table-cell">
-                      <span className="commandes-external-id">
-                        #{commande.externalId}
-                      </span>
-                    </div>
-
-                    <div className="commandes-table-cell">
-                      <div className="commandes-patient-info">
-                        {!commande.vu && (
-                          <span className="commandes-unread-badge"></span>
-                        )}
-                        <span className="commandes-patient-name">
-                          {commande.refPatient || "Non spécifié"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="commandes-table-cell">
-                      <span className="commandes-cabinet-name">
-                        {commande.cabinet}
-                      </span>
-                    </div>
-
-                    <div className="commandes-table-cell">
-                      <span
-                        className={`commandes-plateforme-badge commandes-plateforme-${plateformeColor}`}
-                      >
-                        {commande.plateforme}
-                      </span>
-                    </div>
-
-                    <div className="commandes-table-cell">
-                      <div className="commandes-date-info">
-                        <Calendar size={14} />
-                        <span>{formatDate(commande.dateReception)}</span>
-                      </div>
-                    </div>
-
-                    <div className="commandes-table-cell">
-                      <div className="commandes-date-info">
-                        <Clock size={14} />
-                        <span>
-                          {commande.dateEcheance != null
-                            ? formatDate(commande.dateEcheance)
-                            : "Non spécifiée"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="commandes-table-cell">
-                      <span
-                        className={`commandes-status-badge commandes-status-${echeanceStatus.class}`}
-                      >
-                        {echeanceStatus.label}
-                      </span>
-                    </div>
-
-                    <div className="commandes-table-cell">
-                      <div className="commandes-actions">
-                        <button
-                          className="commandes-action-btn commandes-action-download"
-                          title="Télécharger le scan 3D"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDownload(commande);
-                          }}
-                          disabled={isDownloading}
-                        >
-                          {isDownloading ? (
-                            <div className="commandes-download-spinner"></div>
-                          ) : (
-                            <Download size={16} />
-                          )}
-                        </button>
-                        <button
-                          className="commandes-action-btn commandes-action-view"
-                          title="Voir les détails"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewDetails(commande);
-                          }}
-                        >
-                          <Eye size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {filteredCommandes.map((commande) => (
+                <CommandeRow
+                  key={commande.id}
+                  commande={commande}
+                  onViewDetails={handleViewDetails}
+                  onDownload={handleDownload}
+                  isDownloading={downloadingCommands.has(commande.externalId)}
+                />
+              ))}
             </div>
           </div>
         )}
@@ -781,8 +853,8 @@ const Commandes = () => {
             {filteredCommandes.length} commande
             {filteredCommandes.length > 1 ? "s" : ""} affichée
             {filteredCommandes.length > 1 ? "s" : ""}
-            {filteredCommandes.length !== totalCommandes &&
-              ` sur ${totalCommandes} au total`}
+            {filteredCommandes.length !== stats.totalCommandes &&
+              ` sur ${stats.totalCommandes} au total`}
           </p>
         </div>
       )}
