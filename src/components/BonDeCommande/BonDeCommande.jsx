@@ -127,14 +127,12 @@ const BonDeCommande = ({ commande, onClose }) => {
                   <tr>
                     <th>Type</th>
                     <th>Description</th>
-                    <th>Quantité</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Modèle dentaire</td>
-                    <td>Scan 3D complet</td>
-                    <td>1</td>
+                    <td>{commande.typeAppareil || "N/A"}</td>
+                    <td>{commande.details || "N/A"}</td>
                   </tr>
                 </tbody>
               </table>
@@ -181,13 +179,13 @@ const BonDeCommande = ({ commande, onClose }) => {
 
           <footer className="bon-de-commande-footer">
             <p>
-              <strong>Conditions de paiement:</strong> 30 jours fin de mois
+              <strong>Téléphone:</strong> +32(0) 493 35 73 28
             </p>
             <p>
-              <strong>IBAN:</strong> FR76 3000 4000 5000 6000 7000
+              <strong>Adresse</strong> Boulevard Roosevelt 23 7060 Soignies
             </p>
-            <p className="bon-de-commande-signature">
-              <span>Signature</span>
+            <p>
+              <strong>IBAN:</strong> BE0794998835
             </p>
           </footer>
         </div>

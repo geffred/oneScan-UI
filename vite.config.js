@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api/public/commandes": "http://localhost:8080",
+      "/api/public/commandes/commentaire/": "http://localhost:8080",
       "/api/auth/register": "http://localhost:8080",
       "/api/auth/login": "http://localhost:8080",
       "/api/auth/logout": "http://localhost:8080",
@@ -27,6 +28,7 @@ export default defineConfig({
       "/api/itero/update-comments": "http://localhost:8080",
       "/api/cabinet": "http://localhost:8080",
       "/api/cabinet/nom": "http://localhost:8080",
+      "/deepseek": "http://localhost:8080",
     },
   },
 });
