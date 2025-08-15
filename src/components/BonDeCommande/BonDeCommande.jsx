@@ -12,7 +12,7 @@ const BonDeCommande = ({ commande, onClose }) => {
     pageStyle: `
       @page {
         size: A4;
-        margin: 10mm;
+        margin: 0;
       }
       @media print {
         body {
@@ -144,7 +144,8 @@ const BonDeCommande = ({ commande, onClose }) => {
             <div className="bon-de-commande-grid">
               <div>
                 <p>
-                  <strong>Date de commande:</strong> {formattedCurrentDate}
+                  <strong>Date de commande:</strong>{" "}
+                  {formatDate(commande.dateReception) || "N/A"}
                 </p>
                 <p>
                   <strong>Date souhaitée:</strong>{" "}
@@ -164,15 +165,11 @@ const BonDeCommande = ({ commande, onClose }) => {
             <div className="bon-de-commande-grid">
               <div>
                 <h4>Adresse de Livraison</h4>
-                <p>123 Rue des Dentistes</p>
-                <p>75000 Paris, France</p>
-                <p>Tél: 01 23 45 67 89</p>
+                <p>{commande.adresseDeLivraison || "N/A"}</p>
               </div>
               <div>
                 <h4>Adresse de Facturation</h4>
-                <p>123 Rue des Dentistes</p>
-                <p>75000 Paris, France</p>
-                <p>SIRET: 123 456 789 00010</p>
+                <p>{commande.adresseDeFacturation || "N/A"}</p>
               </div>
             </div>
           </section>
