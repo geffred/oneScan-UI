@@ -32,6 +32,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/compte" element={<Compte />} />
+          {/* <Route path="/suivi-commandes" element={<SuiviCommandes />} /> */}
           {/* Private routes for authenticated users */}
           <Route element={<PrivateRoute />}>
             <Route

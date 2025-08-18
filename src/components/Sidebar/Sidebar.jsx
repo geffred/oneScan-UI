@@ -6,6 +6,7 @@ import {
   LoaderCircle,
   TvMinimal,
   Building2,
+  PackageSearch,
 } from "lucide-react";
 import "./sidebar.css";
 
@@ -59,6 +60,19 @@ const Sidebar = ({
         >
           <Package className="sidebar-icon" />
           Commandes
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveComponent("suivi-commandes"); // nom du composant à afficher
+            toggleSidebar(); // fermeture/affichage sidebar
+          }}
+          className={`sidebar-item ${
+            activeComponent === "suivi-commandes" ? "active" : ""
+          }`}
+        >
+          <PackageSearch className="sidebar-icon" />
+          Suivi de commande
         </button>
 
         <button

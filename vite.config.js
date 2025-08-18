@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api/public/commandes": "http://localhost:8080",
+      "/api/public/suivi/": "http://localhost:8080",
       "/api/public/commandes/commentaire/": "http://localhost:8080",
       "/api/public/commandes/statut/": "http://localhost:8080",
       "/api/public/commandes/cabinet/": "http://localhost:8080",

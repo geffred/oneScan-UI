@@ -358,43 +358,7 @@
   font-style: italic;
 }
 
-/* Section Statistiques */
-.socles-stats-section {
-  background: white;
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
-  grid-column: span 2;
-}
 
-.socles-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-}
-
-.socles-stat-item {
-  text-align: center;
-  padding: 1.5rem;
-  background: #f8fafc;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-}
-
-.socles-stat-number {
-  display: block;
-  font-size: 2rem;
-  font-weight: 800;
-  color: #007AFF;
-  margin-bottom: 0.5rem;
-}
-
-.socles-stat-label {
-  font-size: 0.875rem;
-  color: #64748b;
-  font-weight: 500;
-}
 
 /* Responsive Design */
 @media (max-width: 1024px) {
@@ -402,9 +366,6 @@
     grid-template-columns: 1fr;
   }
   
-  .socles-stats-section {
-    grid-column: span 1;
-  }
 }
 
 @media (max-width: 768px) {

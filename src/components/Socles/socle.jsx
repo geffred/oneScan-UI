@@ -16,21 +16,6 @@ const Socles = () => {
       label: "Socle Standard",
       description: "Socle basique pour modèles simples",
     },
-    {
-      value: "premium",
-      label: "Socle Premium",
-      description: "Socle renforcé avec gravure personnalisée",
-    },
-    {
-      value: "anatomique",
-      label: "Socle Anatomique",
-      description: "Socle adapté aux modèles anatomiques",
-    },
-    {
-      value: "orthodontique",
-      label: "Socle Orthodontique",
-      description: "Socle spécialisé pour orthodontie",
-    },
   ];
 
   const handleFileUpload = (files) => {
@@ -273,25 +258,6 @@ const Socles = () => {
                 Veuillez sélectionner un type de socle
               </p>
             )}
-          </div>
-        </div>
-
-        {/* Section Statistiques */}
-        <div className="socles-stats-section">
-          <h3 className="socles-section-title">Statistiques</h3>
-          <div className="socles-stats-grid">
-            <div className="socles-stat-item">
-              <span className="socles-stat-number">12</span>
-              <span className="socles-stat-label">Socles générés</span>
-            </div>
-            <div className="socles-stat-item">
-              <span className="socles-stat-number">{uploadedFiles.length}</span>
-              <span className="socles-stat-label">Fichiers en attente</span>
-            </div>
-            <div className="socles-stat-item">
-              <span className="socles-stat-number">8</span>
-              <span className="socles-stat-label">En cours</span>
-            </div>
           </div>
         </div>
       </div>
