@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       "/api/public/commandes": "http://localhost:8080",
       "/api/public/commandes/commentaire/": "http://localhost:8080",
+      "/api/public/commandes/cabinet/": "http://localhost:8080",
       "/api/auth/register": "http://localhost:8080",
       "/api/auth/login": "http://localhost:8080",
       "/api/auth/logout": "http://localhost:8080",

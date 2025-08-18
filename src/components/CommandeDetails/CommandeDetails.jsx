@@ -21,8 +21,6 @@ import {
   CheckCircle,
   X,
   Sparkles,
-  Edit3,
-  Save,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import Navbar from "../../components/Navbar/Navbar";
@@ -30,8 +28,9 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import BonCommande from "../BonDeCommande/BonDeCommande";
 import { useReactToPrint } from "react-to-print";
 import "./commandeDetails.css";
+import CabinetSearch from "./CabinetSearch";
+import CommentSection from "./CommentSection";
 
-// Fonctions de fetch pour SWR
 const fetchWithAuth = async (url) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
@@ -53,10 +52,13 @@ const getCommandes = async () => {
   return fetchWithAuth("/api/public/commandes");
 };
 
-// Nouvelle fonction pour récupérer une commande spécifique par externalId
 const getCommandeByExternalId = async (externalId) => {
   if (!externalId) throw new Error("ExternalId manquant");
   return fetchWithAuth(`/api/public/commandes/${externalId}`);
+};
+
+const getCabinets = async () => {
+  return fetchWithAuth("/api/cabinet");
 };
 
 const getCommentaire = async (plateforme, externalId) => {
@@ -72,18 +74,17 @@ const getCommentaire = async (plateforme, externalId) => {
   }
 };
 
-// Fonction pour mettre à jour le commentaire
-const updateCommentaire = async (id, commentaire) => {
+const updateCabinetId = async (commandeId, cabinetId) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
 
-  const response = await fetch(`/api/public/commandes/commentaire/${id}`, {
+  const response = await fetch(`/api/public/commandes/cabinet/${commandeId}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ commentaire: commentaire }),
+    body: JSON.stringify(cabinetId),
   });
 
   if (!response.ok) {
@@ -93,7 +94,6 @@ const updateCommentaire = async (id, commentaire) => {
   return response.json();
 };
 
-// Fonction pour analyser le commentaire avec DeepSeek
 const analyseCommentaireDeepSeek = async (commentaire, commandeId) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
@@ -117,15 +117,12 @@ const analyseCommentaireDeepSeek = async (commentaire, commandeId) => {
   return response.json();
 };
 
-// Composants optimisés avec React.memo
 const LoadingState = React.memo(() => (
   <div className="commandes-loading-state">
     <div className="commandes-loading-spinner"></div>
     <p className="commandes-loading-text">Chargement des détails...</p>
   </div>
 ));
-
-LoadingState.displayName = "LoadingState";
 
 const ErrorState = React.memo(({ error, onBack }) => (
   <div className="commandes-error-state">
@@ -138,8 +135,6 @@ const ErrorState = React.memo(({ error, onBack }) => (
     </button>
   </div>
 ));
-
-ErrorState.displayName = "ErrorState";
 
 const Notification = React.memo(({ notification, onRemove }) => (
   <div
@@ -156,124 +151,6 @@ const Notification = React.memo(({ notification, onRemove }) => (
     </button>
   </div>
 ));
-
-Notification.displayName = "Notification";
-
-const CommentSection = React.memo(
-  ({
-    commentaire,
-    isLoading,
-    onEdit,
-    isEditing,
-    editValue,
-    onEditChange,
-    onSave,
-    onCancel,
-    isSaving,
-  }) => {
-    const textareaRef = useRef(null);
-
-    // Gestion du focus et de la sélection
-    useEffect(() => {
-      if (isEditing && textareaRef.current) {
-        textareaRef.current.focus();
-        // Placer le curseur à la fin du texte
-        const length = textareaRef.current.value.length;
-        textareaRef.current.setSelectionRange(length, length);
-      }
-    }, [isEditing]);
-
-    // Empêcher la perte de focus lors de la saisie
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        onCancel();
-      }
-    };
-
-    return (
-      <div className="details-info-card">
-        <div className="details-card-header">
-          <FileText size={20} />
-          <h3>Commentaire</h3>
-          {!isLoading && !isEditing && (
-            <button
-              className="details-comment-edit-btn"
-              onClick={onEdit}
-              title="Modifier le commentaire"
-            >
-              <Edit3 size={16} />
-            </button>
-          )}
-        </div>
-        <div className="details-card-content">
-          <div className="details-comment-item">
-            {isLoading ? (
-              <div className="comment-loading-state">
-                <div className="comment-loading-spinner"></div>
-                <span className="comment-loading-text">
-                  Chargement du commentaire...
-                </span>
-              </div>
-            ) : isEditing ? (
-              <div className="comment-edit-container">
-                <textarea
-                  ref={textareaRef}
-                  className="comment-edit-textarea"
-                  value={editValue}
-                  onChange={(e) => onEditChange(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Saisissez votre commentaire..."
-                  rows={4}
-                  maxLength={1000}
-                />
-                <div className="comment-edit-actions">
-                  <button
-                    className="details-btn details-btn-primary details-btn-sm"
-                    onClick={onSave}
-                    disabled={isSaving}
-                  >
-                    {isSaving ? (
-                      <>
-                        <div className="details-btn-spinner"></div>
-                        Sauvegarde...
-                      </>
-                    ) : (
-                      <>
-                        <Save size={14} />
-                        Sauvegarder
-                      </>
-                    )}
-                  </button>
-                  <button
-                    className="details-btn details-btn-secondary details-btn-sm"
-                    onClick={onCancel}
-                    disabled={isSaving}
-                  >
-                    <X size={14} />
-                    Annuler
-                  </button>
-                </div>
-                <div className="comment-char-count">
-                  {editValue.length}/1000 caractères
-                </div>
-              </div>
-            ) : (
-              <span className="details-comment-value">
-                {!commentaire ? (
-                  <span className="comment-empty-state">Aucun commentaire</span>
-                ) : (
-                  <span className="comment-content">{commentaire}</span>
-                )}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-);
-
-CommentSection.displayName = "CommentSection";
 
 const ActionCard = React.memo(
   ({ onClick, disabled, icon, title, description, isLoading }) => (
@@ -299,8 +176,6 @@ const ActionCard = React.memo(
   )
 );
 
-ActionCard.displayName = "ActionCard";
-
 const CommandeDetails = () => {
   const { externalId } = useParams();
   const location = useLocation();
@@ -313,15 +188,10 @@ const CommandeDetails = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeComponent, setActiveComponent] = useState("commandes");
   const [showBonDeCommande, setShowBonDeCommande] = useState(false);
-
-  // États pour l'édition du commentaire
-  const [isEditingComment, setIsEditingComment] = useState(false);
-  const [editCommentValue, setEditCommentValue] = useState("");
-  const [isSavingComment, setIsSavingComment] = useState(false);
+  const [showCabinetSearch, setShowCabinetSearch] = useState(false);
 
   const bonDeCommandeRef = useRef();
 
-  // Hook SWR principal pour récupérer la commande spécifique
   const {
     data: commande,
     error: commandeError,
@@ -334,7 +204,6 @@ const CommandeDetails = () => {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
       errorRetryCount: 3,
-      // Utiliser les données du location.state comme données initiales si disponibles
       fallbackData:
         location.state?.commande?.externalId.toString() === externalId
           ? location.state.commande
@@ -342,7 +211,6 @@ const CommandeDetails = () => {
     }
   );
 
-  // Hook SWR pour les commandes (pour les mutations globales)
   const { mutate: mutateCommandes } = useSWR(
     isAuthenticated ? "commandes" : null,
     getCommandes,
@@ -352,7 +220,6 @@ const CommandeDetails = () => {
     }
   );
 
-  // SWR hook pour le commentaire (conditionnel)
   const {
     data: commentaire,
     error: commentaireError,
@@ -370,7 +237,14 @@ const CommandeDetails = () => {
     }
   );
 
-  // Fonction pour afficher une notification
+  const {
+    data: cabinets = [],
+    error: cabinetsError,
+    isLoading: cabinetsLoading,
+  } = useSWR(isAuthenticated ? "cabinets" : null, getCabinets, {
+    revalidateOnFocus: false,
+  });
+
   const showNotification = useCallback((message, type = "success") => {
     const id = Date.now();
     const notification = { id, message, type };
@@ -381,7 +255,6 @@ const CommandeDetails = () => {
     }, 4000);
   }, []);
 
-  // Handlers optimisés
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => !prev);
   }, []);
@@ -401,50 +274,6 @@ const CommandeDetails = () => {
   const removeNotification = useCallback((id) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
-
-  // Handlers pour l'édition du commentaire
-  const handleEditComment = useCallback(() => {
-    const currentComment = commentaire || commande?.commentaire || "";
-    setEditCommentValue(currentComment);
-    setIsEditingComment(true);
-  }, [commentaire, commande]);
-
-  const handleCancelEdit = useCallback(() => {
-    setIsEditingComment(false);
-    setEditCommentValue("");
-  }, []);
-
-  const handleSaveComment = useCallback(async () => {
-    if (!commande) return;
-
-    setIsSavingComment(true);
-    try {
-      const updatedCommande = await updateCommentaire(
-        commande.id,
-        editCommentValue.trim()
-      );
-
-      // Mettre à jour les caches SWR
-      mutateCommentaire(editCommentValue.trim() || null, false);
-      mutateCommande(updatedCommande, false);
-      mutateCommandes(); // Revalider la liste des commandes
-
-      setIsEditingComment(false);
-      showNotification("Commentaire mis à jour avec succès", "success");
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du commentaire:", error);
-      showNotification("Erreur lors de la mise à jour du commentaire", "error");
-    } finally {
-      setIsSavingComment(false);
-    }
-  }, [
-    commande,
-    editCommentValue,
-    mutateCommentaire,
-    mutateCommande,
-    mutateCommandes,
-    showNotification,
-  ]);
 
   const handleDownloadPDF = useReactToPrint({
     content: () => bonDeCommandeRef.current,
@@ -500,14 +329,6 @@ const CommandeDetails = () => {
           `Scan 3D téléchargé avec succès pour la commande #${commande.externalId}`,
           "success"
         );
-
-        try {
-          if ("showDirectoryPicker" in window) {
-            await window.showDirectoryPicker();
-          }
-        } catch (explorerError) {
-          console.log("Ouverture automatique de l'explorateur non supportée");
-        }
       } else {
         showNotification(
           `Erreur lors du téléchargement de la commande #${commande.externalId}`,
@@ -529,7 +350,6 @@ const CommandeDetails = () => {
     showNotification("Analyse du commentaire en cours...", "info");
 
     try {
-      // Récupérer le commentaire final
       const finalCommentaire = commentaire || commande.commentaire || "";
 
       if (!finalCommentaire.trim()) {
@@ -540,7 +360,6 @@ const CommandeDetails = () => {
         return;
       }
 
-      // Analyser le commentaire avec DeepSeek
       const analysisResult = await analyseCommentaireDeepSeek(
         finalCommentaire,
         commande.id
@@ -551,16 +370,9 @@ const CommandeDetails = () => {
         "success"
       );
 
-      // Petite attente pour l'UX
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Recharger les données de la commande pour récupérer les mises à jour
       await mutateCommande();
-
-      // Également recharger la liste des commandes
       await mutateCommandes();
-
-      // Ouvrir le bon de commande
       setShowBonDeCommande(true);
 
       showNotification(
@@ -584,7 +396,26 @@ const CommandeDetails = () => {
     showNotification,
   ]);
 
-  // Fonctions utilitaires mémorisées
+  const handleAssociateCabinet = useCallback(
+    async (cabinetId) => {
+      if (!commande) return;
+
+      try {
+        const updatedCommande = await updateCabinetId(commande.id, cabinetId);
+
+        mutateCommande(updatedCommande, false);
+        mutateCommandes();
+        setShowCabinetSearch(false);
+
+        showNotification("Cabinet associé avec succès", "success");
+      } catch (error) {
+        console.error("Erreur lors de l'association du cabinet:", error);
+        showNotification("Erreur lors de l'association du cabinet", "error");
+      }
+    },
+    [commande, mutateCommande, mutateCommandes, showNotification]
+  );
+
   const formatDate = useCallback((dateString) => {
     if (!dateString) return "Non spécifiée";
     const date = new Date(dateString);
@@ -627,7 +458,6 @@ const CommandeDetails = () => {
     return colors[plateforme] || "gray";
   }, []);
 
-  // Calculs mémorisés
   const echeanceStatus = useMemo(
     () => (commande ? getEcheanceStatus(commande.dateEcheance) : null),
     [commande, getEcheanceStatus]
@@ -638,19 +468,16 @@ const CommandeDetails = () => {
     [commande, getPlateformeColor]
   );
 
-  // Vérifier si le commentaire est encore en cours de chargement
   const isCommentLoading =
     commentaireLoading ||
     (commande && !commande.commentaire && commentaire === undefined);
 
-  // Redirection si non authentifié
   React.useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login");
     }
   }, [isAuthenticated, navigate]);
 
-  // Layout wrapper pour éviter la duplication
   const LayoutWrapper = ({ children }) => (
     <div className="dashboardpage-app-container">
       <Navbar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
@@ -676,7 +503,6 @@ const CommandeDetails = () => {
     </div>
   );
 
-  // États de chargement et d'erreur
   if (commandeLoading) {
     return (
       <LayoutWrapper>
@@ -696,7 +522,6 @@ const CommandeDetails = () => {
     );
   }
 
-  // Commentaire final (priorité aux données SWR, puis aux données de la commande)
   const finalCommentaire = commentaire || commande.commentaire;
 
   return (
@@ -715,34 +540,50 @@ const CommandeDetails = () => {
 
         {/* En-tête */}
         <div className="details-header-section">
-          <button
-            className="details-btn details-btn-secondary"
-            onClick={handleBack}
-          >
-            <ArrowLeft size={16} />
-            Retour
-          </button>
+          <div className="details-back-and-associate">
+            <button
+              className="details-btn details-btn-secondary"
+              onClick={handleBack}
+            >
+              <ArrowLeft size={16} />
+              Retour
+            </button>
+          </div>
 
           <div className="details-header-actions">
             <button
               className="details-btn details-btn-primary"
-              onClick={handleDownload}
-              disabled={isDownloading}
+              onClick={() => setShowCabinetSearch(!showCabinetSearch)}
             >
-              {isDownloading ? (
-                <>
-                  <div className="details-loading-spinner details-btn-spinner"></div>
-                  Téléchargement...
-                </>
-              ) : (
-                <>
-                  <Download size={16} />
-                  Télécharger le scan 3D
-                </>
-              )}
+              <Building size={16} />
+              {commande.cabinetId
+                ? "Changer de cabinet"
+                : "Associer un cabinet"}
             </button>
           </div>
         </div>
+
+        {/* Cabinet associé */}
+        {commande.cabinetId && (
+          <div className="associated-cabinet-display">
+            <Building size={16} />
+            <span>
+              Cabinet associé:{" "}
+              {cabinets.find((c) => c.id === commande.cabinetId)?.nom ||
+                `ID: ${commande.cabinetId}`}
+            </span>
+          </div>
+        )}
+
+        {/* Barre de recherche des cabinets */}
+        {showCabinetSearch && (
+          <CabinetSearch
+            cabinets={cabinets}
+            isLoading={cabinetsLoading}
+            onAssociate={handleAssociateCabinet}
+            onClose={() => setShowCabinetSearch(false)}
+          />
+        )}
 
         <div className="details-title-wrapper">
           <h2 className="details-card-title">
@@ -862,13 +703,11 @@ const CommandeDetails = () => {
           <CommentSection
             commentaire={finalCommentaire}
             isLoading={isCommentLoading}
-            onEdit={handleEditComment}
-            isEditing={isEditingComment}
-            editValue={editCommentValue}
-            onEditChange={setEditCommentValue}
-            onSave={handleSaveComment}
-            onCancel={handleCancelEdit}
-            isSaving={isSavingComment}
+            commande={commande}
+            mutateCommande={mutateCommande}
+            mutateCommandes={mutateCommandes}
+            mutateCommentaire={mutateCommentaire}
+            showNotification={showNotification}
           />
 
           {/* Informations techniques */}
