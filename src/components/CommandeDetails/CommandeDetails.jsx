@@ -121,17 +121,20 @@ const analyseCommentaireDeepSeek = async (commentaire, commandeId) => {
   return response.json();
 };
 
+// Fonction mise à jour pour utiliser la route correcte du contrôleur Java
 const updateCommandeStatus = async (commandeId, status) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
 
-  const response = await fetch(`/api/public/commandes/status/${commandeId}`, {
-    method: "PUT",
+  // Utilisation de la route POST /api/public/commandes/statut/{id} comme définie dans le contrôleur
+  const response = await fetch(`/api/public/commandes/statut/${commandeId}`, {
+    method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ status }),
+    // Le contrôleur attend un objet StatutCommande, pas juste une chaîne
+    body: JSON.stringify(status),
   });
 
   if (!response.ok) {
@@ -211,6 +214,7 @@ const StatusDropdown = React.memo(
   ({ currentStatus, onStatusChange, isLoading }) => {
     const [isOpen, setIsOpen] = useState(false);
 
+    // Mapping des statuts pour correspondre à l'enum StatutCommande du backend
     const statusOptions = [
       { value: "EN_ATTENTE", label: "En attente" },
       { value: "EN_COURS", label: "En cours" },
@@ -508,6 +512,7 @@ const CommandeDetails = () => {
     }
   }, [commande, cabinets]);
 
+  // Fonction mise à jour pour gérer le changement de statut
   const handleStatusChange = useCallback(
     async (newStatus) => {
       if (!commande) return;
@@ -516,7 +521,10 @@ const CommandeDetails = () => {
       toast.info("Mise à jour du statut en cours...");
 
       try {
+        // Appel de la fonction updateCommandeStatus mise à jour
         await updateCommandeStatus(commande.id, newStatus);
+
+        // Rafraîchissement des données
         await mutateCommande();
         await mutateCommandes();
 
@@ -827,7 +835,9 @@ const CommandeDetails = () => {
                   Statut de traitement :
                 </span>
                 <StatusDropdown
-                  currentStatus={commande.status || "EN_ATTENTE"}
+                  currentStatus={
+                    commande.status || commande.statut || "EN_ATTENTE"
+                  }
                   onStatusChange={handleStatusChange}
                   isLoading={actionStates.updateStatus}
                 />
