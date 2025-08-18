@@ -298,3 +298,11 @@
     padding: 1rem;
   }
 }
+
+
+.bon-de-commande-note {
+  font-size: 0.8em;
+  color: #666;
+  font-style: italic;
+  margin-top: 0.5em;
+}

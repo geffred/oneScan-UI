@@ -772,6 +772,11 @@ const CommandeDetails = () => {
         <BonCommande
           commande={commande}
           onClose={() => setShowBonDeCommande(false)}
+          cabinet={
+            commande.cabinetId
+              ? cabinets.find((c) => c.id === commande.cabinetId)
+              : null
+          }
           ref={bonDeCommandeRef}
           onPrint={handleDownloadPDF}
         />

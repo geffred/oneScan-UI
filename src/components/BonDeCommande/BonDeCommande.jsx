@@ -3,12 +3,11 @@ import { Download } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import "./BonDeCommande.css";
 
-const BonDeCommande = ({ commande, onClose }) => {
+const BonDeCommande = ({ commande, cabinet, onClose }) => {
   const bonDeCommandeRef = useRef();
 
-  // Version moderne de useReactToPrint avec contentRef
   const handleDownloadPDF = useReactToPrint({
-    contentRef: bonDeCommandeRef, // Utiliser contentRef au lieu de content
+    content: () => bonDeCommandeRef.current,
     pageStyle: `
       @page {
         size: A4;
@@ -24,12 +23,6 @@ const BonDeCommande = ({ commande, onClose }) => {
       }
     `,
     documentTitle: `Bon_de_commande_${commande.externalId}`,
-    onAfterPrint: () => {
-      console.log("PDF généré avec succès");
-    },
-    onPrintError: (errorLocation, error) => {
-      console.error("Erreur lors de la génération du PDF:", error);
-    },
   });
 
   const formatDate = (dateString) => {
@@ -48,6 +41,15 @@ const BonDeCommande = ({ commande, onClose }) => {
     month: "long",
     year: "numeric",
   });
+
+  // Gestion des adresses avec fallback sur le cabinet si nécessaire
+  const adresseLivraison =
+    commande.adresseDeLivraison ||
+    (cabinet ? cabinet.adresseDeLivraison : "Non spécifiée");
+
+  const adresseFacturation =
+    commande.adresseDeFacturation ||
+    (cabinet ? cabinet.adresseDeFacturation : "Non spécifiée");
 
   return (
     <div className="bon-de-commande-modal">
@@ -68,7 +70,6 @@ const BonDeCommande = ({ commande, onClose }) => {
           </button>
         </div>
 
-        {/* Contenu du bon de commande - sera converti en PDF */}
         <div className="bon-de-commande-content" ref={bonDeCommandeRef}>
           <header className="bon-de-commande-header">
             <div className="bon-de-commande-logo">
@@ -96,7 +97,8 @@ const BonDeCommande = ({ commande, onClose }) => {
                   <strong>Réf. Patient:</strong> {commande.refPatient || "N/A"}
                 </p>
                 <p>
-                  <strong>Cabinet:</strong> {commande.cabinet || "N/A"}
+                  <strong>Cabinet:</strong>{" "}
+                  {cabinet ? cabinet.nom : commande.cabinet || "N/A"}
                 </p>
               </div>
               <div>
@@ -165,11 +167,17 @@ const BonDeCommande = ({ commande, onClose }) => {
             <div className="bon-de-commande-grid">
               <div>
                 <h4>Adresse de Livraison</h4>
-                <p>{commande.adresseDeLivraison || "N/A"}</p>
+                <p>{adresseLivraison}</p>
+                {!commande.adresseDeLivraison && cabinet && (
+                  <p className="bon-de-commande-note">(Adresse du cabinet)</p>
+                )}
               </div>
               <div>
                 <h4>Adresse de Facturation</h4>
-                <p>{commande.adresseDeFacturation || "N/A"}</p>
+                <p>{adresseFacturation}</p>
+                {!commande.adresseDeFacturation && cabinet && (
+                  <p className="bon-de-commande-note">(Adresse du cabinet)</p>
+                )}
               </div>
             </div>
           </section>
