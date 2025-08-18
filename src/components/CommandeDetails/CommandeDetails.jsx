@@ -21,7 +21,11 @@ import {
   CheckCircle,
   X,
   Sparkles,
+  Mail,
+  Edit,
+  ChevronDown,
 } from "lucide-react";
+import { toast } from "react-toastify";
 import { AuthContext } from "../../components/Config/AuthContext";
 import Navbar from "../../components/Navbar/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
@@ -117,6 +121,49 @@ const analyseCommentaireDeepSeek = async (commentaire, commandeId) => {
   return response.json();
 };
 
+const updateCommandeStatus = async (commandeId, status) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
+
+  const response = await fetch(`/api/public/commandes/status/${commandeId}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
+const sendEmailNotification = async (commandeId, cabinetEmail) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
+
+  const response = await fetch(
+    `/api/public/commandes/notification/${commandeId}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ cabinetEmail }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
 const LoadingState = React.memo(() => (
   <div className="commandes-loading-state">
     <div className="commandes-loading-spinner"></div>
@@ -132,22 +179,6 @@ const ErrorState = React.memo(({ error, onBack }) => (
     <button className="commandes-btn commandes-btn-primary" onClick={onBack}>
       <ArrowLeft size={16} />
       Retour
-    </button>
-  </div>
-));
-
-const Notification = React.memo(({ notification, onRemove }) => (
-  <div
-    className={`commandes-notification commandes-notification-${notification.type}`}
-  >
-    <span className="commandes-notification-message">
-      {notification.message}
-    </span>
-    <button
-      className="commandes-notification-close"
-      onClick={() => onRemove(notification.id)}
-    >
-      <X size={16} />
     </button>
   </div>
 ));
@@ -176,15 +207,91 @@ const ActionCard = React.memo(
   )
 );
 
+const StatusDropdown = React.memo(
+  ({ currentStatus, onStatusChange, isLoading }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const statusOptions = [
+      { value: "EN_ATTENTE", label: "En attente" },
+      { value: "EN_COURS", label: "En cours" },
+      { value: "TERMINEE", label: "Terminée" },
+      { value: "EXPEDIEE", label: "Expédiée" },
+      { value: "ANNULEE", label: "Annulée" },
+    ];
+
+    const handleStatusSelect = (status) => {
+      onStatusChange(status);
+      setIsOpen(false);
+    };
+
+    const getCurrentStatusLabel = () => {
+      const status = statusOptions.find((s) => s.value === currentStatus);
+      return status ? status.label : "Statut inconnu";
+    };
+
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (!event.target.closest(".status-dropdown")) {
+          setIsOpen(false);
+        }
+      };
+
+      if (isOpen) {
+        document.addEventListener("click", handleClickOutside);
+      }
+
+      return () => {
+        document.removeEventListener("click", handleClickOutside);
+      };
+    }, [isOpen]);
+
+    return (
+      <div className="status-dropdown">
+        <button
+          className="status-dropdown-trigger"
+          onClick={() => setIsOpen(!isOpen)}
+          disabled={isLoading}
+        >
+          <Edit size={16} />
+          {getCurrentStatusLabel()}
+          <ChevronDown
+            size={16}
+            className={`status-dropdown-chevron ${isOpen ? "open" : ""}`}
+          />
+        </button>
+
+        {isOpen && (
+          <div className="status-dropdown-menu">
+            {statusOptions.map((status) => (
+              <button
+                key={status.value}
+                className={`status-dropdown-item ${
+                  currentStatus === status.value ? "active" : ""
+                }`}
+                onClick={() => handleStatusSelect(status.value)}
+              >
+                {status.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+
 const CommandeDetails = () => {
   const { externalId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated } = useContext(AuthContext);
 
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [notifications, setNotifications] = useState([]);
+  const [actionStates, setActionStates] = useState({
+    download: false,
+    generate: false,
+    sendEmail: false,
+    updateStatus: false,
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeComponent, setActiveComponent] = useState("commandes");
   const [showBonDeCommande, setShowBonDeCommande] = useState(false);
@@ -245,16 +352,6 @@ const CommandeDetails = () => {
     revalidateOnFocus: false,
   });
 
-  const showNotification = useCallback((message, type = "success") => {
-    const id = Date.now();
-    const notification = { id, message, type };
-    setNotifications((prev) => [...prev, notification]);
-
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-    }, 4000);
-  }, []);
-
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => !prev);
   }, []);
@@ -271,10 +368,6 @@ const CommandeDetails = () => {
     navigate("/dashboard/commandes");
   }, [navigate]);
 
-  const removeNotification = useCallback((id) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  }, []);
-
   const handleDownloadPDF = useReactToPrint({
     content: () => bonDeCommandeRef.current,
     pageStyle: `
@@ -290,14 +383,14 @@ const CommandeDetails = () => {
     `,
     documentTitle: `Bon_de_commande_${commande?.externalId || "unknown"}`,
     onAfterPrint: () => {
-      showNotification("PDF téléchargé avec succès", "success");
+      toast.success("PDF téléchargé avec succès");
     },
   });
 
   const handleDownload = useCallback(async () => {
     if (!commande) return;
 
-    setIsDownloading(true);
+    setActionStates((prev) => ({ ...prev, download: true }));
 
     try {
       const token = localStorage.getItem("token");
@@ -325,38 +418,39 @@ const CommandeDetails = () => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
 
-        showNotification(
-          `Scan 3D téléchargé avec succès pour la commande #${commande.externalId}`,
-          "success"
+        toast.success(
+          `Scan 3D téléchargé avec succès pour la commande #${commande.externalId}`
         );
       } else {
-        showNotification(
-          `Erreur lors du téléchargement de la commande #${commande.externalId}`,
-          "error"
+        toast.error(
+          `Erreur lors du téléchargement de la commande #${commande.externalId}`
         );
       }
     } catch (error) {
-      showNotification("Erreur de connexion lors du téléchargement", "error");
+      toast.error("Erreur de connexion lors du téléchargement");
       console.error("Erreur:", error);
     } finally {
-      setIsDownloading(false);
+      setActionStates((prev) => ({ ...prev, download: false }));
     }
-  }, [commande, showNotification]);
+  }, [commande]);
 
   const handleGenerateOrder = useCallback(async () => {
     if (!commande) return;
 
-    setIsGenerating(true);
-    showNotification("Analyse du commentaire en cours...", "info");
+    setActionStates((prev) => ({ ...prev, generate: true }));
+    toast.info("Analyse du commentaire en cours...", {
+      style: {
+        backgroundColor: "#007AFF", // bleu custom
+        color: "#fff", // texte blanc
+        progressStyle: { background: "#2196F3" },
+      },
+    });
 
     try {
       const finalCommentaire = commentaire || commande.commentaire || "";
 
       if (!finalCommentaire.trim()) {
-        showNotification(
-          "Aucun commentaire disponible pour l'analyse",
-          "warning"
-        );
+        toast.warning("Aucun commentaire disponible pour l'analyse");
         return;
       }
 
@@ -365,36 +459,87 @@ const CommandeDetails = () => {
         commande.id
       );
 
-      showNotification(
-        "Analyse terminée ! Génération du bon de commande...",
-        "success"
-      );
+      toast.success("Analyse terminée ! Bon de commande généré avec succès.");
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await mutateCommande();
       await mutateCommandes();
-      setShowBonDeCommande(true);
 
-      showNotification(
-        `Bon de commande généré avec succès pour la commande #${commande.externalId}`,
-        "success"
+      toast.success(
+        `Bon de commande généré avec succès pour la commande #${commande.externalId}`
       );
     } catch (error) {
       console.error("Erreur lors de la génération:", error);
-      showNotification(
-        "Erreur lors de l'analyse du commentaire ou de la génération du bon de commande",
-        "error"
+      toast.error(
+        "Erreur lors de l'analyse du commentaire ou de la génération du bon de commande"
       );
     } finally {
-      setIsGenerating(false);
+      setActionStates((prev) => ({ ...prev, generate: false }));
     }
-  }, [
-    commande,
-    commentaire,
-    mutateCommande,
-    mutateCommandes,
-    showNotification,
-  ]);
+  }, [commande, commentaire, mutateCommande, mutateCommandes]);
+
+  const handleOpenBonCommande = useCallback(() => {
+    setShowBonDeCommande(true);
+  }, []);
+
+  const handleSendEmailNotification = useCallback(async () => {
+    if (!commande || !commande.cabinetId) {
+      toast.warning("Aucun cabinet associé à cette commande");
+      return;
+    }
+
+    const cabinet = cabinets.find((c) => c.id === commande.cabinetId);
+    if (!cabinet || !cabinet.email) {
+      toast.warning("Email du cabinet introuvable");
+      return;
+    }
+
+    setActionStates((prev) => ({ ...prev, sendEmail: true }));
+    toast.info("Envoi de la notification en cours...");
+
+    try {
+      await sendEmailNotification(commande.id, cabinet.email);
+      toast.success(`Notification envoyée avec succès à ${cabinet.nom}`);
+    } catch (error) {
+      console.error("Erreur lors de l'envoi de l'email:", error);
+      toast.error("Erreur lors de l'envoi de la notification");
+    } finally {
+      setActionStates((prev) => ({ ...prev, sendEmail: false }));
+    }
+  }, [commande, cabinets]);
+
+  const handleStatusChange = useCallback(
+    async (newStatus) => {
+      if (!commande) return;
+
+      setActionStates((prev) => ({ ...prev, updateStatus: true }));
+      toast.info("Mise à jour du statut en cours...");
+
+      try {
+        await updateCommandeStatus(commande.id, newStatus);
+        await mutateCommande();
+        await mutateCommandes();
+
+        const statusLabels = {
+          EN_ATTENTE: "En attente",
+          EN_COURS: "En cours",
+          TERMINEE: "Terminée",
+          EXPEDIEE: "Expédiée",
+          ANNULEE: "Annulée",
+        };
+
+        toast.success(
+          `Statut mis à jour vers "${statusLabels[newStatus]}" avec succès`
+        );
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour du statut:", error);
+        toast.error("Erreur lors de la mise à jour du statut");
+      } finally {
+        setActionStates((prev) => ({ ...prev, updateStatus: false }));
+      }
+    },
+    [commande, mutateCommande, mutateCommandes]
+  );
 
   const handleAssociateCabinet = useCallback(
     async (cabinetId) => {
@@ -407,13 +552,13 @@ const CommandeDetails = () => {
         mutateCommandes();
         setShowCabinetSearch(false);
 
-        showNotification("Cabinet associé avec succès", "success");
+        toast.success("Cabinet associé avec succès");
       } catch (error) {
         console.error("Erreur lors de l'association du cabinet:", error);
-        showNotification("Erreur lors de l'association du cabinet", "error");
+        toast.error("Erreur lors de l'association du cabinet");
       }
     },
-    [commande, mutateCommande, mutateCommandes, showNotification]
+    [commande, mutateCommande, mutateCommandes]
   );
 
   const formatDate = useCallback((dateString) => {
@@ -472,6 +617,14 @@ const CommandeDetails = () => {
     commentaireLoading ||
     (commande && !commande.commentaire && commentaire === undefined);
 
+  const canDownloadBonCommande = useMemo(() => {
+    return commande && commande.typeAppareil && commande.typeAppareil !== null;
+  }, [commande]);
+
+  const canSendEmail = useMemo(() => {
+    return commande && commande.cabinetId && commande.cabinetId !== null;
+  }, [commande]);
+
   React.useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login");
@@ -527,17 +680,6 @@ const CommandeDetails = () => {
   return (
     <LayoutWrapper>
       <div className="details-main-container">
-        {/* Notifications */}
-        <div className="commandes-notifications">
-          {notifications.map((notification) => (
-            <Notification
-              key={notification.id}
-              notification={notification}
-              onRemove={removeNotification}
-            />
-          ))}
-        </div>
-
         {/* En-tête */}
         <div className="details-header-section">
           <div className="details-back-and-associate">
@@ -663,7 +805,7 @@ const CommandeDetails = () => {
             </div>
           </div>
 
-          {/* Statut */}
+          {/* Statut avec dropdown */}
           <div className="details-info-card">
             <div className="details-card-header">
               <Clock size={20} />
@@ -679,6 +821,16 @@ const CommandeDetails = () => {
                 >
                   {echeanceStatus.label}
                 </span>
+              </div>
+              <div className="details-item">
+                <span className="details-item-label">
+                  Statut de traitement :
+                </span>
+                <StatusDropdown
+                  currentStatus={commande.status || "EN_ATTENTE"}
+                  onStatusChange={handleStatusChange}
+                  isLoading={actionStates.updateStatus}
+                />
               </div>
               <div className="details-item">
                 <span className="details-item-label">Lecture :</span>
@@ -707,7 +859,12 @@ const CommandeDetails = () => {
             mutateCommande={mutateCommande}
             mutateCommandes={mutateCommandes}
             mutateCommentaire={mutateCommentaire}
-            showNotification={showNotification}
+            showNotification={(message, type) => {
+              if (type === "success") toast.success(message);
+              else if (type === "error") toast.error(message);
+              else if (type === "warning") toast.warning(message);
+              else toast.info(message);
+            }}
           />
 
           {/* Informations techniques */}
@@ -744,7 +901,7 @@ const CommandeDetails = () => {
           <div className="details-actions-grid">
             <ActionCard
               onClick={handleGenerateOrder}
-              disabled={isGenerating || isCommentLoading}
+              disabled={actionStates.generate || isCommentLoading}
               icon={<Sparkles size={24} />}
               title="Générer le bon de commande"
               description={
@@ -752,16 +909,42 @@ const CommandeDetails = () => {
                   ? "Attente du chargement du commentaire..."
                   : "Analyser le commentaire et créer un bon de commande personnalisé avec l'assistance IA"
               }
-              isLoading={isGenerating}
+              isLoading={actionStates.generate}
+            />
+
+            <ActionCard
+              onClick={handleOpenBonCommande}
+              disabled={!canDownloadBonCommande}
+              icon={<FileText size={24} />}
+              title="Télécharger le bon de commande"
+              description={
+                canDownloadBonCommande
+                  ? "Ouvrir et télécharger le bon de commande généré"
+                  : "Le type d'appareil doit être défini pour télécharger le bon de commande"
+              }
+              isLoading={false}
+            />
+
+            <ActionCard
+              onClick={handleSendEmailNotification}
+              disabled={actionStates.sendEmail || !canSendEmail}
+              icon={<Mail size={24} />}
+              title="Envoyer notification par email"
+              description={
+                !canSendEmail
+                  ? "Associez d'abord un cabinet pour envoyer une notification"
+                  : "Envoyer une notification par email au cabinet associé"
+              }
+              isLoading={actionStates.sendEmail}
             />
 
             <ActionCard
               onClick={handleDownload}
-              disabled={isDownloading}
+              disabled={actionStates.download}
               icon={<Download size={24} />}
               title="Télécharger le scan 3D"
               description="Récupérer le fichier ZIP contenant le scan 3D de cette commande"
-              isLoading={isDownloading}
+              isLoading={actionStates.download}
             />
           </div>
         </div>

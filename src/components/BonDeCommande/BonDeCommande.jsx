@@ -6,8 +6,9 @@ import "./BonDeCommande.css";
 const BonDeCommande = ({ commande, cabinet, onClose }) => {
   const bonDeCommandeRef = useRef();
 
+  // Version moderne de useReactToPrint avec contentRef
   const handleDownloadPDF = useReactToPrint({
-    content: () => bonDeCommandeRef.current,
+    contentRef: bonDeCommandeRef, // Utiliser contentRef au lieu de content
     pageStyle: `
       @page {
         size: A4;
@@ -23,6 +24,12 @@ const BonDeCommande = ({ commande, cabinet, onClose }) => {
       }
     `,
     documentTitle: `Bon_de_commande_${commande.externalId}`,
+    onAfterPrint: () => {
+      console.log("PDF généré avec succès");
+    },
+    onPrintError: (errorLocation, error) => {
+      console.error("Erreur lors de la génération du PDF:", error);
+    },
   });
 
   const formatDate = (dateString) => {
