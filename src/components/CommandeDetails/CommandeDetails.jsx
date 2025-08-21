@@ -24,6 +24,7 @@ import {
   Mail,
   Edit,
   ChevronDown,
+  Scan,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../components/Config/AuthContext";
@@ -121,19 +122,16 @@ const analyseCommentaireDeepSeek = async (commentaire, commandeId) => {
   return response.json();
 };
 
-// Fonction mise à jour pour utiliser la route correcte du contrôleur Java
 const updateCommandeStatus = async (commandeId, status) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
 
-  // Utilisation de la route POST /api/public/commandes/statut/{id} comme définie dans le contrôleur
   const response = await fetch(`/api/public/commandes/statut/${commandeId}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    // Le contrôleur attend un objet StatutCommande, pas juste une chaîne
     body: JSON.stringify(status),
   });
 
@@ -165,6 +163,71 @@ const sendEmailNotification = async (commandeId, cabinetEmail) => {
   }
 
   return response.json();
+};
+
+// Fonction corrigée pour télécharger un scan spécifique par hash
+const downloadScanByHash = async (externalId, hash, filename) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
+
+  const response = await fetch(`/api/cases/${externalId}/attachments/${hash}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+
+  // Récupérer le nom du fichier depuis les headers
+  const contentDisposition = response.headers.get("content-disposition");
+  const customFilename = response.headers.get("x-filename");
+
+  let downloadFilename = filename;
+
+  // Essayer d'extraire le nom du fichier depuis Content-Disposition
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(
+      /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+    );
+    if (filenameMatch && filenameMatch[1]) {
+      downloadFilename = filenameMatch[1].replace(/['"]/g, "");
+    }
+  } else if (customFilename) {
+    downloadFilename = customFilename;
+  }
+
+  // S'assurer que le fichier a l'extension .stl
+  if (!downloadFilename.toLowerCase().endsWith(".stl")) {
+    downloadFilename = downloadFilename.replace(/\.[^/.]+$/, "") + ".stl";
+  }
+
+  const blob = await response.blob();
+
+  // Vérifier que le blob n'est pas vide
+  if (blob.size === 0) {
+    throw new Error("Le fichier téléchargé est vide");
+  }
+
+  // Créer l'URL de téléchargement
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.style.display = "none";
+  a.href = url;
+  a.download = downloadFilename;
+
+  // Ajouter au DOM, cliquer et nettoyer
+  document.body.appendChild(a);
+  a.click();
+
+  // Nettoyer
+  setTimeout(() => {
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }, 100);
+
+  return blob;
 };
 
 const LoadingState = React.memo(() => (
@@ -210,11 +273,59 @@ const ActionCard = React.memo(
   )
 );
 
+const ScanDownloadButton = React.memo(
+  ({ hash, label, externalId, disabled, isLoading }) => {
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    const handleDownload = async () => {
+      if (!hash || disabled) return;
+
+      setIsDownloading(true);
+      try {
+        // Générer un nom de fichier plus descriptif
+        const filename = `scan-${label.toLowerCase()}-${externalId}-${hash.substring(
+          0,
+          8
+        )}.stl`;
+
+        await downloadScanByHash(externalId, hash, filename);
+
+        toast.success(`Scan ${label} téléchargé avec succès`);
+      } catch (error) {
+        console.error(`Erreur lors du téléchargement du scan ${label}:`, error);
+        toast.error(
+          `Erreur lors du téléchargement du scan ${label}: ${error.message}`
+        );
+      } finally {
+        setIsDownloading(false);
+      }
+    };
+
+    return (
+      <button
+        className="details-scan-download-btn"
+        onClick={handleDownload}
+        disabled={disabled || isLoading || isDownloading}
+        title={
+          hash
+            ? `Télécharger le scan ${label} (${hash.substring(0, 8)}...)`
+            : `Scan ${label} non disponible`
+        }
+      >
+        <Download size={16} />
+        {isDownloading ? "Téléchargement..." : `Scan ${label}`}
+        {isDownloading && (
+          <div className="details-download-spinner-small"></div>
+        )}
+      </button>
+    );
+  }
+);
+
 const StatusDropdown = React.memo(
   ({ currentStatus, onStatusChange, isLoading }) => {
     const [isOpen, setIsOpen] = useState(false);
 
-    // Mapping des statuts pour correspondre à l'enum StatutCommande du backend
     const statusOptions = [
       { value: "EN_ATTENTE", label: "En attente" },
       { value: "EN_COURS", label: "En cours" },
@@ -295,6 +406,8 @@ const CommandeDetails = () => {
     generate: false,
     sendEmail: false,
     updateStatus: false,
+    downloadUpper: false,
+    downloadLower: false,
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeComponent, setActiveComponent] = useState("commandes");
@@ -444,8 +557,8 @@ const CommandeDetails = () => {
     setActionStates((prev) => ({ ...prev, generate: true }));
     toast.info("Analyse du commentaire en cours...", {
       style: {
-        backgroundColor: "#007AFF", // bleu custom
-        color: "#fff", // texte blanc
+        backgroundColor: "#007AFF",
+        color: "#fff",
         progressStyle: { background: "#2196F3" },
       },
     });
@@ -512,7 +625,6 @@ const CommandeDetails = () => {
     }
   }, [commande, cabinets]);
 
-  // Fonction mise à jour pour gérer le changement de statut
   const handleStatusChange = useCallback(
     async (newStatus) => {
       if (!commande) return;
@@ -521,10 +633,8 @@ const CommandeDetails = () => {
       toast.info("Mise à jour du statut en cours...");
 
       try {
-        // Appel de la fonction updateCommandeStatus mise à jour
         await updateCommandeStatus(commande.id, newStatus);
 
-        // Rafraîchissement des données
         await mutateCommande();
         await mutateCommandes();
 
@@ -631,6 +741,10 @@ const CommandeDetails = () => {
 
   const canSendEmail = useMemo(() => {
     return commande && commande.cabinetId && commande.cabinetId !== null;
+  }, [commande]);
+
+  const isThreeShape = useMemo(() => {
+    return commande && commande.plateforme === "THREESHAPE";
   }, [commande]);
 
   React.useEffect(() => {
@@ -900,6 +1014,34 @@ const CommandeDetails = () => {
                   <span className="details-item-value">
                     {commande.typeAppareil}
                   </span>
+                </div>
+              )}
+              {/* Affichage des hash des scans si disponible */}
+              {isThreeShape && (commande.hash_upper || commande.hash_lower) && (
+                <div className="details-item">
+                  <span className="details-item-label">
+                    Scans disponibles :
+                  </span>
+                  <div className="details-scans-container">
+                    {commande.hash_upper && (
+                      <ScanDownloadButton
+                        hash={commande.hash_upper}
+                        label="Upper"
+                        externalId={commande.externalId}
+                        disabled={actionStates.downloadUpper}
+                        isLoading={actionStates.downloadUpper}
+                      />
+                    )}
+                    {commande.hash_lower && (
+                      <ScanDownloadButton
+                        hash={commande.hash_lower}
+                        label="Lower"
+                        externalId={commande.externalId}
+                        disabled={actionStates.downloadLower}
+                        isLoading={actionStates.downloadLower}
+                      />
+                    )}
+                  </div>
                 </div>
               )}
             </div>

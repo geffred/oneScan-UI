@@ -1133,3 +1133,57 @@
 }
 
 
+
+
+
+/* Styles pour les boutons de téléchargement des scans */
+.details-scans-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.details-scan-download-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.details-scan-download-btn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.details-scan-download-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.details-download-spinner-small {
+  width: 12px;
+  height: 12px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: details-spin 1s linear infinite;
+}
+
+@keyframes details-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Amélioration de l'affichage des informations techniques */
+.details-item .details-scans-container {
+  margin-top: 4px;
+}
+
