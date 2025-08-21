@@ -9,7 +9,7 @@ const CTASection = () => (
         <h2 className="cta-title">Prêt à transformer votre laboratoire ?</h2>
         <p className="cta-description">
           Rejoignez les centaines de laboratoires dentaires qui ont déjà adopté
-          IA Lab pour optimiser leur production.
+          Mysmilelab pour optimiser leur production.
         </p>
         <div className="cta-buttons">
           <button className="btn-primary btn-large">

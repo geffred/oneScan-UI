@@ -136,3 +136,16 @@
     padding: 0.625rem;
   }
 }
+
+.navbar-component-logo-icon-wrapper{
+   font-family: 'Armarialbold', sans-serif;
+}
+
+.navbar-component-app-title-text .lab{
+
+  color: #007AFF;
+}
+
+.navbar-component-logo-text-content {
+ font-size: 1.5rem;
+}

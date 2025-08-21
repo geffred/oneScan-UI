@@ -9,12 +9,14 @@ import CTASection from "../../components/CTASection/CTASection";
 import Footer from "../../components/Footer/Footer";
 import "./Homepage.css"; // Assuming you have a CSS file for styling
 import AvisSection from "../../components/AvisSection/AvisSection";
+import TrackingSection from "../../components/TrackingSection/TrackingSection";
 
 const Homepage = () => {
   return (
     <div className="homepage">
       <Header />
       <HeroSection />
+      <TrackingSection />
       <FeaturesSection />
       <PlatformsSection />
       <ProcessSection />

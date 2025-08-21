@@ -36,9 +36,11 @@ const Header = () => {
       <div className="header-content">
         <Link to="/" className="header-logo">
           <div className="header-logo-icon">
-            <span className="header-logo-text">IA</span>
+            <span className="header-logo-text">s</span>
           </div>
-          <span className="header-brand">IA Lab</span>
+          <span className="header-brand">
+            <span className="lab">My</span>smilelab
+          </span>
         </Link>
 
         <nav className="header-nav">

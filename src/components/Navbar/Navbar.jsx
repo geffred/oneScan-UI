@@ -38,9 +38,11 @@ const Navbar = ({ sidebarOpen, toggleSidebar, showBackButton = false }) => {
             onClick={handleLogoClick}
           >
             <div className="navbar-component-logo-icon-wrapper">
-              <span className="navbar-component-logo-text-content">IA</span>
+              <span className="navbar-component-logo-text-content">S</span>
             </div>
-            <span className="navbar-component-app-title-text">IA Lab</span>
+            <span className="navbar-component-app-title-text">
+              <span className="lab">My</span>smilelab
+            </span>
           </div>
         </div>
 

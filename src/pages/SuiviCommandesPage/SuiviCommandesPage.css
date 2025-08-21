@@ -1,0 +1,297 @@
+/* SuiviCommandesPage - Page complète de suivi de commande */
+
+.suivi-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+}
+
+/* Header */
+.suivi-page-header {
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.suivi-page-nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+.suivi-back-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
+.suivi-back-link:hover {
+  color: #007AFF;
+  background: #f1f8ff;
+}
+
+.suivi-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.suivi-logo:hover {
+  transform: scale(1.05);
+}
+
+.suivi-logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.suivi-logo-star {
+  color: white;
+  width: 24px;
+  height: 24px;
+}
+
+.suivi-logo-text {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.suivi-login-link {
+  color: #007AFF;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #007AFF;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.suivi-login-link:hover {
+  background: #007AFF;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+/* Main Content */
+.suivi-page-main {
+  flex: 1;
+  background: #f8fafc;
+  align-items: center; 
+}
+
+/* Footer */
+.suivi-page-footer {
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 4rem;
+}
+
+.suivi-footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.suivi-footer-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.suivi-footer-links a {
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.suivi-footer-links a:hover {
+  color: #007AFF;
+}
+
+.suivi-footer-copy {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.suivi-footer-copy p {
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .suivi-page-nav {
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .suivi-back-link {
+    order: 1;
+    flex: 1;
+  }
+
+  .suivi-logo {
+    order: 2;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .suivi-login-link {
+    order: 3;
+    flex: 1;
+    text-align: right;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .suivi-footer-content {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+    padding: 1.5rem 1rem;
+  }
+
+  .suivi-footer-links {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .suivi-page-nav {
+    padding: 0.75rem;
+  }
+
+  .suivi-back-link span {
+    display: none;
+  }
+
+  .suivi-logo-text {
+    font-size: 1.25rem;
+  }
+
+  .suivi-login-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .suivi-footer-links {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+/* Animations */
+.suivi-page-header {
+  animation: slideDown 0.5s ease-out;
+}
+
+.suivi-page-footer {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Focus states pour l'accessibilité */
+.suivi-back-link:focus,
+.suivi-logo:focus,
+.suivi-login-link:focus,
+.suivi-footer-links a:focus {
+  outline: 2px solid #007AFF;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Amélioration de la barre de navigation sticky */
+.suivi-page-header {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* État actif pour les liens */
+.suivi-back-link:active,
+.suivi-login-link:active {
+  transform: translateY(1px);
+}
+
+/* Effet de survol sur le logo */
+.suivi-logo-icon {
+  transition: all 0.3s ease;
+}
+
+.suivi-logo:hover .suivi-logo-icon {
+  box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+  transform: scale(1.1);
+}
+
+/* Indicateur de page actuelle */
+.suivi-page-nav::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #007AFF 0%, #0056CC 100%);
+  opacity: 0.8;
+}
+
+/* Amélioration du contraste pour l'accessibilité */
+@media (prefers-contrast: high) {
+  .suivi-back-link,
+  .suivi-footer-links a {
+    color: #1e293b;
+  }
+  
+  .suivi-footer-copy {
+    color: #475569;
+  }
+}

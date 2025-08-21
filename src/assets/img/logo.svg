@@ -1,22 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <defs>
-    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#007AFF;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#0056CC;stop-opacity:1" />
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="1" dy="2" stdDeviation="1" flood-color="#000" flood-opacity="0.3"/>
-    </filter>
-  </defs>
-  
-  <!-- Background Circle -->
-  <circle cx="16" cy="16" r="14" fill="url(#gradient)" filter="url(#shadow)"/>
-  
-  <!-- IA Text -->
-  <text x="16" y="20" font-family="system-ui, -apple-system, sans-serif" 
-        font-size="12" font-weight="700" text-anchor="middle" 
-        fill="white" letter-spacing="0.5px">IA</text>
-  
-  <!-- Subtle highlight -->
-  <circle cx="16" cy="16" r="14" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 47" width="50" height="47">
+	<title>Capture d’écran 2025-08-20 215840</title>
+	<defs>
+		<image  width="40" height="40" id="img1" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAMAAAC7IEhfAAAAAXNSR0IB2cksfwAAAbZQTFRF/f3+/f7//v7/6/X+oc3+brP/Opj/AHr/Cn//os7+6/T+/f7+rdT+E4T+FIT/5PD+T6P/UKP/5PH/Rp7+SaD/lsj+nsz+7/f+Cn/+EoP/4/D+ptD+hr//brT/Vqb/N5b/L5L/CH7/DID/LpL/fbv/pdD/ttn/ptD/f7z/QJv/S6H/wN7/+fz/////+vz/4/D/stf/R5//5fH//f7/1ur/Y63/Vqf/4O//0Ob/PZn/DYD/n83/+/3/0uf/qtL/yOL/9/v/8fj/d7j/Iov/utv//v7/x+L/frv/6vT/8Pf/drf/vdz/8/n/Vab/5vL/tNj/Ko//9Pn/zeX/m8v/Xar/aLD/TaL/3e3/+Pv/Wqn/YKz/2uz/9vr/o8//3+7//P3/lcf/cbX/O5j/jMP/wt//6/X/lsj/rdT/ern/7PX/abD/7vb/gb3/pM//Za7/NZX/y+T/eLj/nMv/5PH/2Ov/FoX/xOD/MpT/vNz/RZ7/Yq3/3O3/8vj/2+z/J47/drj/1un+EYP/GYf/+fz+jsP+4vD+EYP+6/P+l8j+EIL/8/n+uNr+fLr/CX7/C3//RJ3/f7z+u9r+kVIiGAAAAJJ0Uk5TAAAAMP///////zAA////oP//oP////8A//+w//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8A/8D/MP//AP////////9vLowfAAAB5klEQVR4nI3VTWsTQRgH8OefpiZ1SDeYlhhijKlCoLENuAc9hFx7KJ78Ch56LBQU1DZW1OpBD95q6VcolEKFQG4RtaBSDz1Eo1DaEEKSaujaN9jtbJqUbbqTneewzOz+dl6emZ0FwXDpPeBBNgHdcGNfZ5oLTGMEHNqpVnh0wzTk8mGvCzPjIuoMjLy7Do7It6eBBhuOjkipIogdCXgJCFclHNEgIhUpGES0LAVDiJWkYBiejjtX0IzfnbIDXm8tpWk3ukB95KhdvAD8EMIk/ltqDN8EUAX+8UUwu63x6gA+CmAK4LkKFbdUH7bNaeVE0LvJr9FCPEuR4T9KAB+6ds3jRjNDy+JZJ2OnKUkcepbEkO5ZUpJEKS+ENKTfPk1K4FrhqwCq8WIlHOXD+9ysDhvL9lC9WagpiV95UkfXzBVKYdEe3nL/JUpjgb+iNvgA7vTN28OJZoajhfFyCFleGstt2EM19NOwjFiJXX4nmMzQ3e+W/e7ftW60s+mZ/HR1vd1eCm9JCImmVsfxpd6fWknPn31w7lMQhTyceS3lHsLvdJSdRB8yr6Sggqd4KeEeA8wvc0pNPwGxXudRJtd4i9oLzDq4DJ7zMxwGm36/3YU9e1PhxvwraCwDLN5/ZIPm+HY/eGCaY98PearTytJUAAAAAElFTkSuQmCC"/>
+	</defs>
+	<style>
+	</style>
+	<use id="Background" href="#img1" x="5" y="4"/>
 </svg>

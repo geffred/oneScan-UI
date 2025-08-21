@@ -57,28 +57,42 @@
 }
 
 .header-logo-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  width: 50px;
+  height: 50px;
+  background: #007AFF ;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 
 .header-logo-text {
   color: white;
   font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
+  font-size: 2.5rem;
+  font-family: 'Armarialbold', sans-serif;
+  margin-bottom: 12px;
 }
 
 .header-brand {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #1e293b;
   letter-spacing: -0.5px;
+  font-family: 'Armarialbold', sans-serif;
+                                                
+}
+
+.header-brand  .lab{
+
+  color: #007AFF;
+
+}
+
+.header-logo-text img{
+  width: 30px;
+  height: 30px;
+  filter: brightness(0) saturate(100%) invert(99%) sepia(1%) saturate(4%) hue-rotate(349deg) brightness(101%) contrast(105%) !important;
 }
 
 .header-nav {

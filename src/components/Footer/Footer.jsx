@@ -17,9 +17,11 @@ const Footer = () => (
         <div className="footer-brand">
           <div className="footer-logo">
             <div className="footer-logo-icon">
-              <span className="footer-logo-text">IA</span>
+              <span className="footer-logo-text">S</span>
             </div>
-            <span className="footer-brand-name">IA Lab</span>
+            <span className="footer-brand-name">
+              <span className="lab">My</span>smilelab
+            </span>
           </div>
           <p className="footer-description">
             La plateforme IA révolutionnaire pour laboratoires dentaires.
@@ -29,7 +31,7 @@ const Footer = () => (
           <div className="footer-contact">
             <div className="contact-item">
               <Mail size={18} />
-              <span>contact@ia-lab.be</span>
+              <span>contact@mysmilelab.be</span>
             </div>
             <div className="contact-item">
               <Phone size={18} />
@@ -152,7 +154,7 @@ const Footer = () => (
 
       <div className="footer-bottom">
         <div className="footer-copyright">
-          © {new Date().getFullYear()} IA Lab. Tous droits réservés.
+          © {new Date().getFullYear()} Mysmilelab. Tous droits réservés.
         </div>
         <div className="footer-legal">
           <a href="#" className="legal-link">

@@ -1,6 +1,8 @@
 import React, { useState, useContext, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import useSWR, { mutate } from "swr";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   Plus,
   Search,
@@ -26,7 +28,7 @@ import "./commandes.css";
 const platformEndpoints = {
   MEDITLINK: "/api/meditlink/commandes",
   ITERO: "/api/itero/commandes",
-  THREESHAPE: "/api/threeshape/commandes",
+  THREESHAPE: "/api/cases/save",
   DEXIS: "/api/dexis/commandes",
 };
 
@@ -72,6 +74,7 @@ const getCommandes = async () => {
 const CommandeRow = React.memo(
   ({ commande, onViewDetails, onDownload, isDownloading }) => {
     const formatDate = (dateString) => {
+      if (!dateString) return "Non spécifiée";
       const date = new Date(dateString);
       return date.toLocaleDateString("fr-FR", {
         day: "2-digit",
@@ -81,6 +84,9 @@ const CommandeRow = React.memo(
     };
 
     const getEcheanceStatus = (dateEcheance) => {
+      if (!dateEcheance)
+        return { status: "unknown", label: "Non spécifiée", class: "gray" };
+
       const today = new Date();
       const echeance = new Date(dateEcheance);
       const diffTime = echeance - today;
@@ -123,7 +129,9 @@ const CommandeRow = React.memo(
         style={{ cursor: "pointer" }}
       >
         <div className="commandes-table-cell" data-label="ID">
-          <span className="commandes-external-id">#{commande.externalId}</span>
+          <span className="commandes-external-id">
+            #{commande.externalId ? commande.externalId.substring(0, 4) : "N/A"}
+          </span>
         </div>
 
         <div className="commandes-table-cell" data-label="Patient">
@@ -136,7 +144,9 @@ const CommandeRow = React.memo(
         </div>
 
         <div className="commandes-table-cell" data-label="Cabinet">
-          <span className="commandes-cabinet-name">{commande.cabinet}</span>
+          <span className="commandes-cabinet-name">
+            {commande.cabinet || "Non spécifié"}
+          </span>
         </div>
 
         <div className="commandes-table-cell" data-label="Plateforme">
@@ -264,24 +274,6 @@ const PlatformCard = React.memo(({ platform, syncStatus, onSync }) => {
 
 PlatformCard.displayName = "PlatformCard";
 
-const Notification = React.memo(({ notification, onRemove }) => (
-  <div
-    className={`commandes-notification commandes-notification-${notification.type}`}
-  >
-    <span className="commandes-notification-message">
-      {notification.message}
-    </span>
-    <button
-      className="commandes-notification-close"
-      onClick={() => onRemove(notification.id)}
-    >
-      <X size={16} />
-    </button>
-  </div>
-));
-
-Notification.displayName = "Notification";
-
 const LoadingState = React.memo(() => (
   <div className="commandes-loading-state">
     <div className="commandes-loading-spinner"></div>
@@ -319,7 +311,6 @@ const Commandes = () => {
   const [syncStatus, setSyncStatus] = useState({});
   const [isSyncing, setIsSyncing] = useState(false);
   const [downloadingCommands, setDownloadingCommands] = useState(new Set());
-  const [notifications, setNotifications] = useState([]);
 
   // SWR hooks pour les données
   const {
@@ -358,17 +349,6 @@ const Commandes = () => {
     errorRetryCount: 3,
   });
 
-  // Fonction pour afficher une notification
-  const showNotification = useCallback((message, type = "success") => {
-    const id = Date.now();
-    const notification = { id, message, type };
-    setNotifications((prev) => [...prev, notification]);
-
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-    }, 4000);
-  }, []);
-
   // Fonction pour synchroniser les commandes d'une plateforme spécifique
   const syncPlatformCommandes = useCallback(
     async (platformName) => {
@@ -397,7 +377,7 @@ const Commandes = () => {
         });
 
         if (response.ok) {
-          const newCommandes = await response.json();
+          const result = await response.json();
 
           // Actualiser les données après synchronisation
           mutateCommandes();
@@ -406,20 +386,38 @@ const Commandes = () => {
             ...prev,
             [platformName]: {
               status: "success",
-              message: `${newCommandes.length || 0} commande(s) récupérée(s)`,
+              message: "Synchronisation réussie",
             },
           }));
+
+          // Notification Toastify pour succès
+          toast.success(`${platformName} synchronisée avec succès`, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
         } else {
+          const errorText = await response.text();
           setSyncStatus((prev) => ({
             ...prev,
             [platformName]: {
               status: "error",
-              message:
-                response.status === 204
-                  ? "Aucune nouvelle commande"
-                  : "Erreur de synchronisation",
+              message: "Erreur de synchronisation",
             },
           }));
+
+          // Notification Toastify pour erreur
+          toast.error(`❌ Erreur lors de la synchronisation ${platformName}`, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
         }
       } catch (err) {
         console.error(
@@ -433,6 +431,16 @@ const Commandes = () => {
             message: "Erreur de connexion",
           },
         }));
+
+        // Notification Toastify pour erreur de connexion
+        toast.error(` Erreur de connexion avec ${platformName}`, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       }
 
       // Effacer le statut après 3 secondes
@@ -459,11 +467,23 @@ const Commandes = () => {
 
     await Promise.all(syncPromises);
     setIsSyncing(false);
+
+    // Notification pour synchronisation globale
+    toast.success("outes les plateformes synchronisées", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
   }, [userPlatforms, syncPlatformCommandes]);
 
   // Fonction pour filtrer par date
   const filterByDate = useCallback(
     (commande) => {
+      if (!commande.dateReception) return false;
+
       const receptionDate = new Date(commande.dateReception);
       const today = new Date();
 
@@ -491,65 +511,80 @@ const Commandes = () => {
   );
 
   // Fonction pour télécharger le scan 3D
-  const handleDownload = useCallback(
-    async (commande) => {
-      const commandId = commande.externalId;
+  const handleDownload = useCallback(async (commande) => {
+    const commandId = commande.externalId;
 
-      setDownloadingCommands((prev) => new Set([...prev, commandId]));
+    setDownloadingCommands((prev) => new Set([...prev, commandId]));
 
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(`/api/meditlink/download/${commandId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          method: "POST",
-          body: JSON.stringify({ commandId }),
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/meditlink/download/${commandId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        method: "POST",
+        body: JSON.stringify({ commandId }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = `scan-3D-${commandId}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        // Notification Toastify pour succès du téléchargement
+        toast.success(`Scan 3D téléchargé avec succès`, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
         });
 
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.style.display = "none";
-          a.href = url;
-          a.download = `scan-3D-${commandId}.zip`;
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-
-          showNotification(
-            `Scan 3D téléchargé avec succès pour la commande #${commandId}`,
-            "success"
-          );
-
-          // Ouvrir l'explorateur Windows dans le dossier Téléchargements (si supporté par le navigateur)
-          try {
-            if ("showDirectoryPicker" in window) {
-              await window.showDirectoryPicker();
-            }
-          } catch (explorerError) {
-            console.log("Ouverture automatique de l'explorateur non supportée");
+        // Ouvrir l'explorateur Windows dans le dossier Téléchargements (si supporté par le navigateur)
+        try {
+          if ("showDirectoryPicker" in window) {
+            await window.showDirectoryPicker();
           }
-        } else {
-          showNotification(
-            `Erreur lors du téléchargement de la commande #${commandId}`,
-            "error"
-          );
+        } catch (explorerError) {
+          console.log("Ouverture automatique de l'explorateur non supportée");
         }
-      } catch (error) {
-        showNotification(`Erreur de connexion lors du téléchargement`, "error");
-      } finally {
-        setDownloadingCommands((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(commandId);
-          return newSet;
+      } else {
+        // Notification Toastify pour erreur de téléchargement
+        toast.error(` Erreur lors du téléchargement`, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
         });
       }
-    },
-    [showNotification]
-  );
+    } catch (error) {
+      // Notification Toastify pour erreur de connexion
+      toast.error(` Erreur de connexion lors du téléchargement`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setDownloadingCommands((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(commandId);
+        return newSet;
+      });
+    }
+  }, []);
 
   // Fonction pour voir les détails d'une commande
   const handleViewDetails = useCallback(
@@ -560,11 +595,6 @@ const Commandes = () => {
     },
     [navigate]
   );
-
-  // Fonction pour supprimer une notification
-  const removeNotification = useCallback((id) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  }, []);
 
   // Handlers pour les filtres
   const handleSearchChange = useCallback((e) => {
@@ -589,6 +619,7 @@ const Commandes = () => {
     const commandesNonVues = commandes?.filter((cmd) => !cmd.vu).length || 0;
     const commandesEchues =
       commandes?.filter((cmd) => {
+        if (!cmd.dateEcheance) return false;
         const today = new Date();
         const echeance = new Date(cmd.dateEcheance);
         return echeance < today;
@@ -622,7 +653,8 @@ const Commandes = () => {
           );
         })
         .sort(
-          (a, b) => new Date(b.dateReception) - new Date(a.dateReception)
+          (a, b) =>
+            new Date(b.dateReception || 0) - new Date(a.dateReception || 0)
         ) || []
     );
   }, [commandes, searchTerm, selectedPlateforme, showOnlyUnread, filterByDate]);
@@ -653,16 +685,19 @@ const Commandes = () => {
 
   return (
     <div className="commandes-card">
-      {/* Notifications */}
-      <div className="commandes-notifications">
-        {notifications.map((notification) => (
-          <Notification
-            key={notification.id}
-            notification={notification}
-            onRemove={removeNotification}
-          />
-        ))}
-      </div>
+      {/* Container Toastify pour les notifications */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
 
       <div className="commandes-header">
         <div className="commandes-header-content">

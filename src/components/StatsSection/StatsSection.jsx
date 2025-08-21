@@ -10,7 +10,7 @@ const StatsSection = () => (
           <div className="stat-text">Laboratoires partenaires</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">1M+</div>
+          <div className="stat-value">1k+</div>
           <div className="stat-text">Commandes traitées</div>
         </div>
         <div className="stat-card">

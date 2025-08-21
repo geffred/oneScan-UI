@@ -41,11 +41,16 @@
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 
+footer .lab{
+  color: #007AFF;
+}
+
 .footer-logo-text {
   color: white;
   font-weight: 700;
   font-size: 0.9rem;
   letter-spacing: 0.5px;
+  font-family: 'Armarialbold', sans-serif;
 }
 
 .footer-brand-name {
@@ -53,6 +58,7 @@
   font-weight: 700;
   color: white;
   letter-spacing: -0.5px;
+  font-family: 'Armarialbold', sans-serif;
 }
 
 .footer-description {

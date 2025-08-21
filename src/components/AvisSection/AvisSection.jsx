@@ -11,9 +11,9 @@ const AvisSection = () => {
       name: "Dr. Marie Dubois",
       position: "Directrice Technique",
       company: "Laboratoire DentoParis",
-      location: "Paris, France",
+      location: "Mons, Belgique",
       rating: 5,
-      text: "IA Lab a révolutionné notre flux de travail. Nous avons réduit de 70% le temps de traitement des commandes et nos erreurs ont pratiquement disparu. L'intégration avec Itero et 3Shape est parfaite.",
+      text: "Mysmilelab a révolutionné notre flux de travail. Nous avons réduit de 70% le temps de traitement des commandes et nos erreurs ont pratiquement disparu. L'intégration avec Itero et 3Shape est parfaite.",
       avatar: "MD",
     },
     {
@@ -21,7 +21,7 @@ const AvisSection = () => {
       name: "Marc Fontaine",
       position: "Prothésiste Dentaire",
       company: "Lab Sourire Plus",
-      location: "Lyon, France",
+      location: "Liège, Belgique",
       rating: 5,
       text: "L'IA générative pour les bons de commande est impressionnante. Elle comprend parfaitement les spécifications techniques et génère des socles précis. Un gain de temps énorme !",
       avatar: "MF",
@@ -31,9 +31,9 @@ const AvisSection = () => {
       name: "Dr. Sophie Martin",
       position: "Chef de Production",
       company: "Centre Dentaire Innovant",
-      location: "Marseille, France",
+      location: "Bruxelles, Belgique",
       rating: 5,
-      text: "Depuis l'adoption d'IA Lab, notre productivité a explosé. La centralisation de toutes nos plateformes en une seule interface nous fait gagner plusieurs heures par jour.",
+      text: "Depuis l'adoption de Mysmilelab, notre productivité a explosé. La centralisation de toutes nos plateformes en une seule interface nous fait gagner plusieurs heures par jour.",
       avatar: "SM",
     },
     {
@@ -41,7 +41,7 @@ const AvisSection = () => {
       name: "Jean-Pierre Moreau",
       position: "Gérant",
       company: "Laboratoire Precision",
-      location: "Toulouse, France",
+      location: "Mons, Belgique",
       rating: 5,
       text: "L'automatisation des socles dentaires est un game-changer. La précision millimétrique et la rapidité d'exécution ont considérablement amélioré notre qualité de service.",
       avatar: "JPM",
@@ -61,7 +61,7 @@ const AvisSection = () => {
       name: "Antoine Bergeron",
       position: "Directeur Technique",
       company: "Lab Excellence",
-      location: "Lille, France",
+      location: "Bruxelles, Belgique",
       rating: 5,
       text: "Les analytics en temps réel nous permettent de suivre nos performances et d'optimiser continuellement nos processus. Un outil indispensable pour un laboratoire moderne.",
       avatar: "AB",
@@ -103,8 +103,8 @@ const AvisSection = () => {
         <div className="testimonials-header">
           <h2 className="testimonials-main-title">Ce que disent nos clients</h2>
           <p className="testimonials-main-subtitle">
-            Découvrez comment IA Lab transforme le quotidien des laboratoires
-            dentaires partout en France
+            Découvrez comment Mysmilelab transforme le quotidien des
+            laboratoires dentaires partout en France
           </p>
         </div>
 
@@ -190,13 +190,13 @@ const AvisSection = () => {
             <span className="testimonials-metric-label">Note moyenne</span>
           </div>
           <div className="testimonials-metric-item">
-            <span className="testimonials-metric-number">500+</span>
+            <span className="testimonials-metric-number">50+</span>
             <span className="testimonials-metric-label">Avis clients</span>
           </div>
           <div className="testimonials-metric-item">
             <span className="testimonials-metric-number">98%</span>
             <span className="testimonials-metric-label">
-              Recommandent IA Lab
+              Recommandent Mysmilelab
             </span>
           </div>
         </div>
