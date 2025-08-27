@@ -88,6 +88,69 @@ const getCommentaire = async (plateforme, externalId) => {
   }
 };
 
+// Ajoutez ces fonctions après les autres fonctions fetch
+
+const markAsRead = async (commandeId) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
+
+  const response = await fetch(`/api/public/commandes/${commandeId}/vu`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+
+  return response;
+};
+
+const markNotificationAsSent = async (commandeId) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
+
+  const response = await fetch(
+    `/api/public/commandes/${commandeId}/notification/sent`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+
+  return response;
+};
+
+const getNotificationStatus = async (commandeId) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
+
+  const response = await fetch(
+    `/api/public/commandes/${commandeId}/notification`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
 const updateCabinetId = async (commandeId, cabinetId) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
@@ -674,6 +737,13 @@ const CommandeDetails = () => {
       // Envoyer l'email via EmailJS
       await sendEmailNotification(commande, cabinet, finalCommentaire);
 
+      // Marquer la notification comme envoyée
+      await markNotificationAsSent(commande.id);
+
+      // Mettre à jour les données locales
+      mutateCommande({ ...commande, notification: true }, false);
+      mutateCommandes();
+
       toast.success(
         `Notification envoyée avec succès à ${cabinet.nom} (${cabinet.email})`
       );
@@ -685,7 +755,25 @@ const CommandeDetails = () => {
     } finally {
       setActionStates((prev) => ({ ...prev, sendEmail: false }));
     }
-  }, [commande, cabinets, commentaire]);
+  }, [commande, cabinets, commentaire, mutateCommande, mutateCommandes]);
+
+  useEffect(() => {
+    if (commande && !commande.vu) {
+      // Marquer la commande comme lue
+      const markCommandAsRead = async () => {
+        try {
+          await markAsRead(commande.id);
+          // Mettre à jour les données locales
+          mutateCommande({ ...commande, vu: true }, false);
+          mutateCommandes();
+        } catch (error) {
+          console.error("Erreur lors du marquage comme lu:", error);
+        }
+      };
+
+      markCommandAsRead();
+    }
+  }, [commande, mutateCommande, mutateCommandes]);
 
   const handleStatusChange = useCallback(
     async (newStatus) => {
@@ -802,7 +890,12 @@ const CommandeDetails = () => {
   }, [commande]);
 
   const canSendEmail = useMemo(() => {
-    return commande && commande.cabinetId && commande.cabinetId !== null;
+    return (
+      commande &&
+      commande.cabinetId &&
+      commande.cabinetId !== null &&
+      !commande.notification
+    );
   }, [commande]);
 
   const isThreeShape = useMemo(() => {
@@ -1159,6 +1252,13 @@ const CommandeDetails = () => {
               }
               isLoading={actionStates.sendEmail}
             />
+
+            {commande.notification && (
+              <div className="notification-status">
+                <CheckCircle size={40} className="notification-sent-icon" />
+                <span>Notification envoyée</span>
+              </div>
+            )}
 
             <ActionCard
               onClick={handleDownload}

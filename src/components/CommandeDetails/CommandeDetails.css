@@ -1187,3 +1187,34 @@
   margin-top: 4px;
 }
 
+.notification-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0px 20px;
+  background-color: #d4edda;
+  color: #155724;
+  border-radius: 20px;
+  font-size: 20px;
+}
+
+.notification-sent-icon {
+  color: #28a745;
+}
+
+.details-action-card-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.associated-cabinet-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: #e8f4fd;
+  border-radius: 8px;
+  margin: 15px 0;
+  font-weight: 500;
+}
+

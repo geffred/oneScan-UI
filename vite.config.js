@@ -76,6 +76,11 @@ export default defineConfig({
 
       // Routes 3Shape pour les téléchargements
       "/api/cases/*/attachments/*": "http://localhost:8080", // Téléchargement fichiers STL/DCM
+
+      // Routes pour les vues
+      "/api/public/commandes/*/notification": "http://localhost:8080",
+      "/api/public/commandes/*/notification/sent": "http://localhost:8080",
+      "/api/public/commandes/*/vu": "http://localhost:8080",
     },
   },
 });
