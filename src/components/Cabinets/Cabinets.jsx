@@ -66,6 +66,16 @@ const getCabinets = async () => {
   return fetchWithAuth("/api/cabinet");
 };
 
+// Fonction pour récupérer les informations de l'utilisateur connecté
+const getCurrentUser = async () => {
+  try {
+    return await fetchWithAuth("/api/auth/me"); // Endpoint pour récupérer l'utilisateur connecté
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'utilisateur:", error);
+    throw error;
+  }
+};
+
 // Composant de ligne de tableau optimisé avec React.memo
 const CabinetRow = React.memo(({ cabinet, onEdit, onDelete }) => (
   <div className="cabinet-table-row">
@@ -163,6 +173,20 @@ const Cabinet = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
+  // SWR hook pour récupérer l'utilisateur connecté
+  const {
+    data: currentUser,
+    error: userError,
+    isLoading: userLoading,
+  } = useSWR(isAuthenticated ? "currentUser" : null, getCurrentUser, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    errorRetryCount: 3,
+    onError: (error) => {
+      console.error("Erreur SWR utilisateur:", error);
+    },
+  });
+
   // SWR hook pour les cabinets
   const {
     data: cabinets = [],
@@ -208,7 +232,11 @@ const Cabinet = () => {
       setError("Erreur lors de la récupération des cabinets");
       setTimeout(() => setError(null), 3000);
     }
-  }, [cabinetsError]);
+    if (userError) {
+      setError("Erreur lors de la récupération des informations utilisateur");
+      setTimeout(() => setError(null), 3000);
+    }
+  }, [cabinetsError, userError]);
 
   // Redirection si non authentifié
   React.useEffect(() => {
@@ -221,11 +249,22 @@ const Cabinet = () => {
   const handleSubmit = useCallback(
     async (values, { setSubmitting, resetForm }) => {
       try {
+        // Vérifier que l'utilisateur est bien chargé
+        if (!currentUser?.id) {
+          throw new Error("Informations utilisateur non disponibles");
+        }
+
         const token = localStorage.getItem("token");
         const url = editingCabinet
           ? `/api/cabinet/${editingCabinet.id}`
           : "/api/cabinet";
         const method = editingCabinet ? "PUT" : "POST";
+
+        // Ajouter l'userId aux données envoyées
+        const payload = {
+          ...values,
+          userId: currentUser.id, // Ajouter l'ID de l'utilisateur connecté
+        };
 
         const response = await fetch(url, {
           method,
@@ -233,7 +272,7 @@ const Cabinet = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(values),
+          body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -274,7 +313,7 @@ const Cabinet = () => {
         setSubmitting(false);
       }
     },
-    [editingCabinet, cabinets, mutateCabinets]
+    [editingCabinet, cabinets, mutateCabinets, currentUser]
   );
 
   const handleEdit = useCallback((cabinet) => {
@@ -322,9 +361,26 @@ const Cabinet = () => {
   );
 
   const openCreateModal = useCallback(() => {
+    console.log("openCreateModal appelé", { currentUser, userLoading });
+
+    // Vérifier que l'utilisateur est chargé avant d'ouvrir le modal
+    if (userLoading) {
+      setError("Chargement des informations utilisateur en cours...");
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    if (!currentUser?.id) {
+      setError(
+        "Impossible de récupérer les informations utilisateur. Veuillez vous reconnecter."
+      );
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
     setEditingCabinet(null);
     setIsModalOpen(true);
-  }, []);
+  }, [currentUser, userLoading]);
 
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
@@ -335,10 +391,32 @@ const Cabinet = () => {
     setSearchTerm(e.target.value);
   }, []);
 
+  // Affichage de debug pour vérifier l'état
+  React.useEffect(() => {
+    console.log("État du composant:", {
+      isAuthenticated,
+      currentUser,
+      userLoading,
+      userError,
+      cabinetsLoading,
+      cabinetsError,
+    });
+  }, [
+    isAuthenticated,
+    currentUser,
+    userLoading,
+    userError,
+    cabinetsLoading,
+    cabinetsError,
+  ]);
+
   // Affichage immédiat de l'interface
   if (!isAuthenticated) {
     return null; // ou un composant de redirection
   }
+
+  // Afficher un spinner si les données utilisateur ne sont pas encore chargées
+  const isLoading = userLoading || cabinetsLoading;
 
   return (
     <div className="cabinet-main-wrapper">
@@ -351,14 +429,23 @@ const Cabinet = () => {
                 <Building2 size={24} />
               </div>
               Gestion des Cabinets
+              {currentUser && (
+                <span className="cabinet-user-info">
+                  - {currentUser.firstName} {currentUser.lastName}
+                </span>
+              )}
             </h1>
             <button
               onClick={openCreateModal}
               className="cabinet-create-btn"
-              disabled={cabinetsLoading}
+              disabled={userLoading}
             >
               <Plus size={18} />
-              {cabinetsLoading ? "Chargement..." : "Ajouter un cabinet"}
+              {userLoading
+                ? "Chargement utilisateur..."
+                : cabinetsLoading
+                ? "Chargement cabinets..."
+                : "Ajouter un cabinet"}
             </button>
           </div>
 
@@ -378,13 +465,14 @@ const Cabinet = () => {
                 className="cabinet-search-input"
                 value={searchTerm}
                 onChange={handleSearchChange}
+                disabled={isLoading}
               />
             </div>
           </div>
 
           {/* Cabinets List */}
           <div className="cabinet-list-container">
-            {cabinetsLoading ? (
+            {isLoading ? (
               <ListLoadingSpinner />
             ) : filteredCabinets.length === 0 ? (
               <EmptyState searchTerm={searchTerm} />
@@ -553,7 +641,7 @@ const Cabinet = () => {
                     </button>
                     <button
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !currentUser?.id}
                       className="cabinet-save-btn"
                     >
                       {isSubmitting ? (

@@ -12,12 +12,31 @@ export default defineConfig({
       "/api/public/commandes/commentaire/": "http://localhost:8080",
       "/api/public/commandes/statut/": "http://localhost:8080",
       "/api/public/commandes/cabinet/": "http://localhost:8080",
+
+      // Routes d'authentification laboratoire
       "/api/auth/register": "http://localhost:8080",
       "/api/auth/login": "http://localhost:8080",
       "/api/auth/logout": "http://localhost:8080",
       "/api/auth/user": "http://localhost:8080",
       "/api/auth/update": "http://localhost:8080",
       "/api/auth/delete": "http://localhost:8080",
+      "/api/auth/me": "http://localhost:8080",
+
+      // Routes Cabinet - CRUD
+      "/api/cabinet": "http://localhost:8080",
+      "/api/cabinet/": "http://localhost:8080", // Pour les routes avec ID
+      "/api/cabinet/nom": "http://localhost:8080",
+
+      // Routes Cabinet - Authentification
+      "/api/cabinet/auth/login": "http://localhost:8080",
+      "/api/cabinet/auth/logout": "http://localhost:8080",
+      "/api/cabinet/auth/profile": "http://localhost:8080",
+      "/api/cabinet/auth/change-password": "http://localhost:8080",
+
+      // Routes Cabinet - Gestion mot de passe
+      "/api/cabinet/*/regenerate-password": "http://localhost:8080",
+
+      // Routes plateforme
       "/api/platforms": "http://localhost:8080",
       "/api/meditlink/commandes": "http://localhost:8080",
       "/api/itero/commandes": "http://localhost:8080",
@@ -30,10 +49,11 @@ export default defineConfig({
       "/api/dexis/download/": "http://localhost:8080",
       "/api/itero/commentaire": "http://localhost:8080",
       "/api/itero/update-comments": "http://localhost:8080",
-      "/api/cabinet": "http://localhost:8080",
-      "/api/cabinet/nom": "http://localhost:8080",
+
+      // Intelligence artificielle
       "/deepseek": "http://localhost:8080",
 
+      // Cases
       "/api/cases/save": "http://localhost:8080",
 
       // Routes 3Shape existantes (mises à jour)

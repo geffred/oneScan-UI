@@ -1,5 +1,4 @@
-// Compte.jsx
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import {
@@ -15,13 +14,18 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { AuthContext } from "../../components/Config/AuthContext";
+import { useAuth } from "../../components/Config/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import "./Compte.css";
 
 const Compte = () => {
-  const { isAuthenticated, setIsAuthenticated } = useContext(AuthContext);
+  const {
+    isAuthenticated,
+    userType,
+    userData: contextUserData,
+    logout,
+  } = useAuth();
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -36,10 +40,22 @@ const Compte = () => {
       return;
     }
 
+    // Si l'utilisateur est un cabinet, rediriger vers la page spécifique
+    if (userType === "cabinet") {
+      navigate("/compte/cabinet");
+      return;
+    }
+
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const userEmail = JSON.parse(atob(token.split(".")[1])).sub;
+        if (!token) {
+          throw new Error("Token non trouvé");
+        }
+
+        // Décoder le token pour obtenir l'email
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const userEmail = payload.sub;
 
         const response = await fetch(`/api/auth/user/${userEmail}`, {
           headers: {
@@ -57,11 +73,12 @@ const Compte = () => {
         setUserData(data);
       } catch (err) {
         setError(err.message);
+        console.error("Erreur fetchUserData:", err);
       }
     };
 
     fetchUserData();
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, userType]);
 
   const validationSchema = Yup.object({
     firstName: Yup.string().required("Le prénom est requis"),
@@ -94,6 +111,10 @@ const Compte = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token non trouvé");
+      }
+
       const response = await fetch("/api/auth/update", {
         method: "PUT",
         headers: {
@@ -104,7 +125,10 @@ const Compte = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Erreur lors de la mise à jour des données");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || "Erreur lors de la mise à jour des données"
+        );
       }
 
       const data = await response.json();
@@ -114,6 +138,7 @@ const Compte = () => {
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       setError(err.message);
+      console.error("Erreur handleSubmit:", err);
     } finally {
       setSubmitting(false);
     }
@@ -131,6 +156,10 @@ const Compte = () => {
     setIsDeleting(true);
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token non trouvé");
+      }
+
       const response = await fetch("/api/auth/delete", {
         method: "DELETE",
         headers: {
@@ -139,14 +168,17 @@ const Compte = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Erreur lors de la suppression du compte");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || "Erreur lors de la suppression du compte"
+        );
       }
 
-      localStorage.removeItem("token");
-      setIsAuthenticated(false);
+      logout();
       navigate("/");
     } catch (err) {
       setError(err.message);
+      console.error("Erreur handleDeleteAccount:", err);
     } finally {
       setIsDeleting(false);
     }
@@ -185,9 +217,27 @@ const Compte = () => {
               )}
             </div>
 
-            {error && <div className="compte-error-notification">{error}</div>}
+            {error && (
+              <div className="compte-error-notification">
+                {error}
+                <button
+                  onClick={() => setError(null)}
+                  className="compte-notification-close"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             {success && (
-              <div className="compte-success-notification">{success}</div>
+              <div className="compte-success-notification">
+                {success}
+                <button
+                  onClick={() => setSuccess(null)}
+                  className="compte-notification-close"
+                >
+                  ×
+                </button>
+              </div>
             )}
 
             <Formik
@@ -470,7 +520,7 @@ const Compte = () => {
       <footer className="dashboardpage-footer">
         <div className="dashboardpage-footer-content">
           <p className="dashboardpage-footer-text">
-            &copy; IA Lab
+            &copy; Mysmilelab
             <label>Tous les droits sont réservés.</label>
           </p>
         </div>

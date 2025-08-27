@@ -18,18 +18,15 @@ import "./suiviCommandes.css";
 
 // Fonction pour récupérer les détails d'une commande par numéro de suivi
 const fetchCommandeByNumeroSuivi = async (numeroSuivi) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Token manquant");
-
-  const response = await fetch(`/api/public/commandes/suivi/${numeroSuivi}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  // Cette route est publique, pas besoin de token
+  const response = await fetch(`/api/public/commandes/suivi/${numeroSuivi}`);
 
   if (!response.ok) {
     if (response.status === 404) {
       throw new Error("Aucune commande trouvée avec ce numéro de suivi");
+    }
+    if (response.status === 401) {
+      throw new Error("Accès non autorisé à cette commande");
     }
     throw new Error(`Erreur ${response.status}: ${response.statusText}`);
   }
@@ -166,16 +163,6 @@ const CommandeInfo = ({ commande }) => {
           <div className="suivi-info-value">#{commande.externalId}</div>
         </div>
 
-        {/* <div className="suivi-info-item">
-          <div className="suivi-info-label">
-            <User size={16} />
-            Référence patient
-          </div>
-          <div className="suivi-info-value">
-            {commande.refPatient || "Non spécifiée"}
-          </div>
-        </div> */}
-
         <div className="suivi-info-item">
           <div className="suivi-info-label">
             <Building size={16} />
@@ -211,6 +198,16 @@ const CommandeInfo = ({ commande }) => {
               Type d'appareil
             </div>
             <div className="suivi-info-value">{commande.typeAppareil}</div>
+          </div>
+        )}
+
+        {commande.numeroSuivi && (
+          <div className="suivi-info-item">
+            <div className="suivi-info-label">
+              <Truck size={16} />
+              Numéro de suivi
+            </div>
+            <div className="suivi-info-value">{commande.numeroSuivi}</div>
           </div>
         )}
       </div>

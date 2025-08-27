@@ -27,6 +27,7 @@ import {
   Scan,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import emailjs from "@emailjs/browser";
 import { AuthContext } from "../../components/Config/AuthContext";
 import Navbar from "../../components/Navbar/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
@@ -35,6 +36,14 @@ import { useReactToPrint } from "react-to-print";
 import "./commandeDetails.css";
 import CabinetSearch from "./CabinetSearch";
 import CommentSection from "./CommentSection";
+
+// Configuration EmailJS
+const EMAILJS_SERVICE_ID = "service_w8gb6cp";
+const EMAILJS_TEMPLATE_ID = "template_0eduqda";
+const EMAILJS_PUBLIC_KEY = "lAe4pEEgnlrd0Uu9C";
+
+// Initialiser EmailJS
+emailjs.init(EMAILJS_PUBLIC_KEY);
 
 const fetchWithAuth = async (url) => {
   const token = localStorage.getItem("token");
@@ -142,27 +151,71 @@ const updateCommandeStatus = async (commandeId, status) => {
   return response.json();
 };
 
-const sendEmailNotification = async (commandeId, cabinetEmail) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Token manquant");
+// Fonction pour envoyer l'email via EmailJS
+const sendEmailNotification = async (commande, cabinet, commentaire) => {
+  try {
+    // Formater les dates
+    const formatDate = (dateString) => {
+      if (!dateString) return "Non spécifiée";
+      const date = new Date(dateString);
+      return date.toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    };
 
-  const response = await fetch(
-    `/api/public/commandes/notification/${commandeId}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ cabinetEmail }),
+    // Formater le statut
+    const formatStatus = (status) => {
+      const statusLabels = {
+        EN_ATTENTE: "En attente",
+        EN_COURS: "En cours",
+        TERMINEE: "Terminée",
+        EXPEDIEE: "Expédiée",
+        ANNULEE: "Annulée",
+      };
+      return statusLabels[status] || status;
+    };
+
+    // Préparer les données du template
+    const templateParams = {
+      to_email: cabinet.email,
+      cabinet_name: cabinet.nom,
+      commande_id: commande.externalId,
+      patient_ref: commande.refPatient || "Non spécifiée",
+      plateforme: commande.plateforme,
+      date_reception: formatDate(commande.dateReception),
+      date_echeance: formatDate(commande.dateEcheance),
+      statut: formatStatus(commande.status || commande.statut || "EN_ATTENTE"),
+      type_appareil: commande.typeAppareil || "Non spécifié",
+      numero_suivi: commande.numeroSuivi || "Non attribué",
+      commentaire:
+        commentaire && commentaire.trim() !== ""
+          ? commentaire
+          : "Aucun commentaire",
+    };
+
+    // Envoyer l'email
+    const result = await emailjs.send(
+      EMAILJS_SERVICE_ID,
+      EMAILJS_TEMPLATE_ID,
+      templateParams
+    );
+
+    if (result.status === 200) {
+      toast.success(`Email envoyé à ${cabinet.email}`);
+      return { success: true, message: "Email envoyé avec succès" };
+    } else {
+      toast.error(`Erreur lors de l'envoi de l'email: ${result.text}`);
+      throw new Error("Erreur lors de l'envoi de l'email");
     }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  } catch (error) {
+    toast.error(`Erreur lors de l'envoi de l'email: ${error.message}`);
+    console.error("Erreur EmailJS:", error);
+    throw new Error(`Erreur lors de l'envoi de l'email: ${error.message}`);
   }
-
-  return response.json();
 };
 
 // Fonction corrigée pour télécharger un scan spécifique par hash
@@ -615,15 +668,24 @@ const CommandeDetails = () => {
     toast.info("Envoi de la notification en cours...");
 
     try {
-      await sendEmailNotification(commande.id, cabinet.email);
-      toast.success(`Notification envoyée avec succès à ${cabinet.nom}`);
+      // Récupérer le commentaire final
+      const finalCommentaire = commentaire || commande.commentaire;
+
+      // Envoyer l'email via EmailJS
+      await sendEmailNotification(commande, cabinet, finalCommentaire);
+
+      toast.success(
+        `Notification envoyée avec succès à ${cabinet.nom} (${cabinet.email})`
+      );
     } catch (error) {
       console.error("Erreur lors de l'envoi de l'email:", error);
-      toast.error("Erreur lors de l'envoi de la notification");
+      toast.error(
+        `Erreur lors de l'envoi de la notification: ${error.message}`
+      );
     } finally {
       setActionStates((prev) => ({ ...prev, sendEmail: false }));
     }
-  }, [commande, cabinets]);
+  }, [commande, cabinets, commentaire]);
 
   const handleStatusChange = useCallback(
     async (newStatus) => {
@@ -1004,6 +1066,14 @@ const CommandeDetails = () => {
                   #{commande.externalId}
                 </span>
               </div>
+
+              <div className="details-item">
+                <span className="details-item-label">Numéro de suivi :</span>
+                <span className="details-external-id">
+                  #{commande.numeroSuivi}
+                </span>
+              </div>
+
               <div className="details-item">
                 <span className="details-item-label">ID interne :</span>
                 <span className="details-item-value">{commande.id}</span>

@@ -1,7 +1,18 @@
 import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  ArrowRight,
+  ArrowLeft,
+  Users,
+  Building2,
+  Info,
+  AlertCircle,
+} from "lucide-react";
 import { Bot, Link2, BarChart2, Shield, Zap } from "lucide-react";
 
 import { Link } from "react-router-dom";
@@ -9,38 +20,59 @@ import "./LoginPage.css";
 import Footer from "../../components/Footer/Footer";
 import Header from "../../components/Header/Header";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../components/Config/AuthContext";
-import { useContext } from "react";
+import { useAuth } from "../../components/Config/AuthContext";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loginType, setLoginType] = useState("laboratoire");
+  const [showCabinetInfo, setShowCabinetInfo] = useState(false);
 
   const navigate = useNavigate();
-  const { setIsAuthenticated } = useContext(AuthContext);
+  const { login } = useAuth();
 
   const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/auth/login", {
+      let endpoint = "";
+      let requestBody = {};
+
+      if (loginType === "laboratoire") {
+        endpoint = "/api/auth/login";
+        requestBody = {
+          email: values.email,
+          password: values.password,
+        };
+      } else {
+        endpoint = "/api/cabinet/auth/login";
+        requestBody = {
+          email: values.email,
+          motDePasse: values.password,
+        };
+      }
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
-        throw new Error("Email ou mot de passe incorrect");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Email ou mot de passe incorrect");
       }
 
       const data = await response.json();
-      localStorage.setItem("token", data.token);
-      setIsAuthenticated(true);
-      navigate("/dashboard/platform");
+
+      if (loginType === "laboratoire") {
+        login("laboratoire", null, data.token);
+        navigate("/dashboard/platform");
+      } else {
+        login("cabinet", data.cabinet);
+        navigate("/compte/cabinet");
+      }
     } catch (error) {
       setFieldError("email", error.message);
     } finally {
@@ -49,7 +81,6 @@ const LoginPage = () => {
     }
   };
 
-  // Schéma de validation Yup
   const validationSchema = Yup.object({
     email: Yup.string()
       .email("Format d'email invalide")
@@ -59,7 +90,6 @@ const LoginPage = () => {
       .required("Le mot de passe est requis"),
   });
 
-  // Valeurs initiales
   const initialValues = {
     email: "",
     password: "",
@@ -70,7 +100,6 @@ const LoginPage = () => {
       <Header />
       <div className="login-auth-wrapper">
         <div className="login-auth-container">
-          {/* Header avec logo */}
           <div className="login-auth-header">
             <Link to="/" className="login-back-link">
               <ArrowLeft size={20} />
@@ -78,22 +107,98 @@ const LoginPage = () => {
             </Link>
             <div className="login-logo-section">
               <div className="login-logo-icon">
-                <span className="login-logo-text">IA</span>
+                <span className="login-logo-text">S</span>
               </div>
-              <h1 className="login-brand-title">IA Lab</h1>
+              <h1 className="login-brand-title">
+                <span className="lab">My</span>smilelab
+              </h1>
             </div>
           </div>
 
-          {/* Contenu principal */}
           <div className="login-main-content">
             <div className="login-form-container">
               <div className="login-form-header">
                 <h2 className="login-main-title">Connexion</h2>
                 <p className="login-subtitle">
-                  Accédez à votre plateforme IA Lab pour gérer vos laboratoires
-                  dentaires
+                  Accédez à votre plateforme Mysmilelab pour gérer vos{" "}
+                  {loginType === "laboratoire"
+                    ? "laboratoires dentaires"
+                    : "dossiers patients"}
                 </p>
               </div>
+
+              <div className="login-type-selector">
+                <button
+                  type="button"
+                  className={`login-type-btn ${
+                    loginType === "laboratoire" ? "active" : ""
+                  }`}
+                  onClick={() => setLoginType("laboratoire")}
+                >
+                  <Building2 size={20} />
+                  Laboratoire Dentaire
+                </button>
+                <button
+                  type="button"
+                  className={`login-type-btn ${
+                    loginType === "cabinet" ? "active" : ""
+                  }`}
+                  onClick={() => setLoginType("cabinet")}
+                >
+                  <Users size={20} />
+                  Cabinet Dentaire
+                </button>
+              </div>
+
+              {loginType === "cabinet" && (
+                <div className="login-cabinet-notice">
+                  <div className="login-notice-header">
+                    <Info size={20} className="login-notice-icon" />
+                    <span className="login-notice-title">
+                      Information importante
+                    </span>
+                    <button
+                      type="button"
+                      className="login-notice-toggle"
+                      onClick={() => setShowCabinetInfo(!showCabinetInfo)}
+                    >
+                      {showCabinetInfo ? "Masquer" : "En savoir plus"}
+                    </button>
+                  </div>
+
+                  {showCabinetInfo && (
+                    <div className="login-notice-content">
+                      <div className="login-notice-item">
+                        <AlertCircle size={16} className="text-blue-500" />
+                        <span>
+                          Les cabinets dentaires doivent être ajoutés par un
+                          laboratoire partenaire
+                        </span>
+                      </div>
+                      <div className="login-notice-item">
+                        <Mail size={16} className="text-green-500" />
+                        <span>
+                          Vos identifiants vous seront envoyés par email par
+                          votre laboratoire
+                        </span>
+                      </div>
+                      <div className="login-notice-item">
+                        <Shield size={16} className="text-orange-500" />
+                        <span>
+                          Seuls les laboratoires peuvent créer des comptes sur
+                          cette plateforme
+                        </span>
+                      </div>
+                      <div className="login-notice-contact">
+                        <strong>Vous n'avez pas vos identifiants ?</strong>
+                        <br />
+                        Contactez votre laboratoire dentaire partenaire qui vous
+                        donnera accès à la plateforme.
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <Formik
                 initialValues={initialValues}
@@ -102,10 +207,11 @@ const LoginPage = () => {
               >
                 {({ isSubmitting, touched, errors }) => (
                   <Form className="login-form">
-                    {/* Champ Email */}
                     <div className="login-form-group">
                       <label htmlFor="email" className="login-form-label">
-                        Email professionnel
+                        {loginType === "laboratoire"
+                          ? "Email professionnel"
+                          : "Email du cabinet"}
                       </label>
                       <div className="login-input-wrapper">
                         <Mail className="login-input-icon" size={20} />
@@ -113,7 +219,11 @@ const LoginPage = () => {
                           type="email"
                           id="email"
                           name="email"
-                          placeholder="votre.email@exemple.com"
+                          placeholder={
+                            loginType === "laboratoire"
+                              ? "votre.email@labo.com"
+                              : "cabinet@exemple.com"
+                          }
                           className={`login-form-input ${
                             touched.email && errors.email
                               ? "login-input-error"
@@ -128,7 +238,6 @@ const LoginPage = () => {
                       />
                     </div>
 
-                    {/* Champ Mot de passe */}
                     <div className="login-form-group">
                       <label htmlFor="password" className="login-form-label">
                         Mot de passe
@@ -165,7 +274,6 @@ const LoginPage = () => {
                       />
                     </div>
 
-                    {/* Options */}
                     <div className="login-form-options">
                       <label className="login-checkbox-wrapper">
                         <Field
@@ -182,13 +290,12 @@ const LoginPage = () => {
                       </Link>
                     </div>
 
-                    {/* Bouton de soumission */}
                     <button
                       type="submit"
                       disabled={isSubmitting || isLoading}
                       className={`login-submit-btn ${
                         isLoading ? "login-btn-loading" : ""
-                      }`}
+                      } ${loginType === "cabinet" ? "login-btn-cabinet" : ""}`}
                     >
                       {isLoading ? (
                         <div className="login-loading-spinner">
@@ -197,7 +304,10 @@ const LoginPage = () => {
                         </div>
                       ) : (
                         <>
-                          Se connecter
+                          Se connecter{" "}
+                          {loginType === "cabinet"
+                            ? "au cabinet"
+                            : "au laboratoire"}
                           <ArrowRight size={20} />
                         </>
                       )}
@@ -206,39 +316,62 @@ const LoginPage = () => {
                 )}
               </Formik>
 
-              {/* Lien vers inscription */}
-              <div className="login-signup-section">
-                <p className="login-signup-text">
-                  Vous n'avez pas encore de compte ?{" "}
-                  <Link to="/register" className="login-signup-link">
-                    Créer un compte
-                  </Link>
-                </p>
-              </div>
+              {loginType === "laboratoire" && (
+                <div className="login-signup-section">
+                  <p className="login-signup-text">
+                    Vous n'avez pas encore de compte ?{" "}
+                    <Link to="/register" className="login-signup-link">
+                      Créer un compte laboratoire
+                    </Link>
+                  </p>
+                </div>
+              )}
+
+              {loginType === "cabinet" && (
+                <div className="login-signup-section">
+                  <p className="login-signup-text">
+                    <strong>
+                      Seuls les laboratoires peuvent créer des comptes.
+                    </strong>
+                    <br />
+                    Contactez votre laboratoire partenaire pour obtenir vos
+                    accès.
+                  </p>
+                </div>
+              )}
             </div>
 
-            {/* Section informative */}
             <div className="login-info-section">
               <div className="login-info-card">
-                <h3 className="login-info-title">Pourquoi choisir IA Lab ?</h3>
+                <h3 className="login-info-title">
+                  {loginType === "laboratoire"
+                    ? "Pourquoi choisir Mysmilelab ?"
+                    : "Avantages pour votre cabinet"}
+                </h3>
                 <ul className="login-info-list">
                   <li className="login-info-item">
                     <span className="login-info-icon">
                       <Bot size={20} className="text-blue-500" />
                     </span>
-                    IA générative pour automatiser vos processus
+                    {loginType === "laboratoire"
+                      ? "IA générative pour automatiser vos processus"
+                      : "Suivi en temps réel de vos commandes"}
                   </li>
                   <li className="login-info-item">
                     <span className="login-info-icon">
                       <Link2 size={20} className="text-green-500" />
                     </span>
-                    Intégration avec Itero, 3Shape, MedditLink
+                    {loginType === "laboratoire"
+                      ? "Intégration avec Itero, 3Shape, MedditLink"
+                      : "Communication directe avec votre laboratoire"}
                   </li>
                   <li className="login-info-item">
                     <span className="login-info-icon">
                       <BarChart2 size={20} className="text-purple-500" />
                     </span>
-                    Analytics avancés et reporting en temps réel
+                    {loginType === "laboratoire"
+                      ? "Analytics avancés et reporting en temps réel"
+                      : "Historique détaillé de vos patients"}
                   </li>
                   <li className="login-info-item">
                     <span className="login-info-icon">
@@ -250,7 +383,9 @@ const LoginPage = () => {
                     <span className="login-info-icon">
                       <Zap size={20} className="text-yellow-500" />
                     </span>
-                    Gain de temps significatif (-75% de temps perdu)
+                    {loginType === "laboratoire"
+                      ? "Gain de temps significatif (-75% de temps perdu)"
+                      : "Interface simplifiée et intuitive"}
                   </li>
                 </ul>
               </div>

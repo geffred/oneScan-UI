@@ -1,34 +1,20 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 import "./Header.css";
 import { Link, NavLink } from "react-router-dom";
-import { AuthContext } from "../Config/AuthContext";
+import { useAuth } from "../Config/AuthContext";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isAuthenticated, setIsAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, userType, logout } = useAuth();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      // Nettoyage côté client
-      localStorage.removeItem("token");
-      setIsAuthenticated(false);
-      // Redirection vers la page de login
-      window.location.href = "/login";
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/";
   };
 
   return (
@@ -110,8 +96,15 @@ const Header = () => {
           )}
 
           {isAuthenticated ? (
-            <Link to="/dashboard/Platform" className="btn-signup">
-              Dashboard
+            <Link
+              to={
+                userType === "cabinet"
+                  ? "/compte/cabinet"
+                  : "/dashboard/Platform"
+              }
+              className="btn-signup"
+            >
+              {userType === "cabinet" ? "Mon Compte" : "Dashboard"}
             </Link>
           ) : (
             <Link to="/register" className="btn-signup">

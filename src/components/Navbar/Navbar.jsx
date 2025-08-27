@@ -3,7 +3,12 @@ import { Menu, X, User, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./navbar.css";
 
-const Navbar = ({ sidebarOpen, toggleSidebar, showBackButton = false }) => {
+const Navbar = ({
+  sidebarOpen,
+  toggleSidebar,
+  showBackButton = false,
+  path = "/compte",
+}) => {
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
@@ -48,7 +53,7 @@ const Navbar = ({ sidebarOpen, toggleSidebar, showBackButton = false }) => {
 
         <div
           className="navbar-component-account-profile-section"
-          onClick={() => navigate("/compte")}
+          onClick={() => navigate(path)}
         >
           <User size={20} className="navbar-component-account-user-icon" />
           <span className="navbar-component-account-label-text">Compte</span>
