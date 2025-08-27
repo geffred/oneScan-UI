@@ -7,44 +7,24 @@ import React, {
   useEffect,
 } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import useSWR, { mutate } from "swr";
-import {
-  ArrowLeft,
-  Download,
-  Calendar,
-  Clock,
-  User,
-  Building,
-  Server,
-  FileText,
-  AlertCircle,
-  CheckCircle,
-  X,
-  Sparkles,
-  Mail,
-  Edit,
-  ChevronDown,
-  Scan,
-} from "lucide-react";
+import useSWR from "swr";
 import { toast } from "react-toastify";
-import emailjs from "@emailjs/browser";
 import { AuthContext } from "../../components/Config/AuthContext";
 import Navbar from "../../components/Navbar/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import BonCommande from "../BonDeCommande/BonDeCommande";
 import { useReactToPrint } from "react-to-print";
+import { AlertCircle, ArrowLeft } from "lucide-react";
+
+// Imports des nouveaux composants
+import CommandeHeader from "./CommandeHeader";
+import CommandeInfoGrid from "./CommandeInfoGrid";
+import CommandeActions from "./CommandeActions";
+import { EmailService } from "./EmailService";
+
 import "./commandeDetails.css";
-import CabinetSearch from "./CabinetSearch";
-import CommentSection from "./CommentSection";
 
-// Configuration EmailJS
-const EMAILJS_SERVICE_ID = "service_w8gb6cp";
-const EMAILJS_TEMPLATE_ID = "template_0eduqda";
-const EMAILJS_PUBLIC_KEY = "lAe4pEEgnlrd0Uu9C";
-
-// Initialiser EmailJS
-emailjs.init(EMAILJS_PUBLIC_KEY);
-
+// API Services
 const fetchWithAuth = async (url) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
@@ -88,8 +68,6 @@ const getCommentaire = async (plateforme, externalId) => {
   }
 };
 
-// Ajoutez ces fonctions après les autres fonctions fetch
-
 const markAsRead = async (commandeId) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
@@ -107,48 +85,6 @@ const markAsRead = async (commandeId) => {
   }
 
   return response;
-};
-
-const markNotificationAsSent = async (commandeId) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Token manquant");
-
-  const response = await fetch(
-    `/api/public/commandes/${commandeId}/notification/sent`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
-  }
-
-  return response;
-};
-
-const getNotificationStatus = async (commandeId) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Token manquant");
-
-  const response = await fetch(
-    `/api/public/commandes/${commandeId}/notification`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
-  }
-
-  return response.json();
 };
 
 const updateCabinetId = async (commandeId, cabinetId) => {
@@ -214,138 +150,7 @@ const updateCommandeStatus = async (commandeId, status) => {
   return response.json();
 };
 
-// Fonction pour envoyer l'email via EmailJS
-const sendEmailNotification = async (commande, cabinet, commentaire) => {
-  try {
-    // Formater les dates
-    const formatDate = (dateString) => {
-      if (!dateString) return "Non spécifiée";
-      const date = new Date(dateString);
-      return date.toLocaleDateString("fr-FR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    };
-
-    // Formater le statut
-    const formatStatus = (status) => {
-      const statusLabels = {
-        EN_ATTENTE: "En attente",
-        EN_COURS: "En cours",
-        TERMINEE: "Terminée",
-        EXPEDIEE: "Expédiée",
-        ANNULEE: "Annulée",
-      };
-      return statusLabels[status] || status;
-    };
-
-    // Préparer les données du template
-    const templateParams = {
-      to_email: cabinet.email,
-      cabinet_name: cabinet.nom,
-      commande_id: commande.externalId,
-      patient_ref: commande.refPatient || "Non spécifiée",
-      plateforme: commande.plateforme,
-      date_reception: formatDate(commande.dateReception),
-      date_echeance: formatDate(commande.dateEcheance),
-      statut: formatStatus(commande.status || commande.statut || "EN_ATTENTE"),
-      type_appareil: commande.typeAppareil || "Non spécifié",
-      numero_suivi: commande.numeroSuivi || "Non attribué",
-      commentaire:
-        commentaire && commentaire.trim() !== ""
-          ? commentaire
-          : "Aucun commentaire",
-    };
-
-    // Envoyer l'email
-    const result = await emailjs.send(
-      EMAILJS_SERVICE_ID,
-      EMAILJS_TEMPLATE_ID,
-      templateParams
-    );
-
-    if (result.status === 200) {
-      toast.success(`Email envoyé à ${cabinet.email}`);
-      return { success: true, message: "Email envoyé avec succès" };
-    } else {
-      toast.error(`Erreur lors de l'envoi de l'email: ${result.text}`);
-      throw new Error("Erreur lors de l'envoi de l'email");
-    }
-  } catch (error) {
-    toast.error(`Erreur lors de l'envoi de l'email: ${error.message}`);
-    console.error("Erreur EmailJS:", error);
-    throw new Error(`Erreur lors de l'envoi de l'email: ${error.message}`);
-  }
-};
-
-// Fonction corrigée pour télécharger un scan spécifique par hash
-const downloadScanByHash = async (externalId, hash, filename) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Token manquant");
-
-  const response = await fetch(`/api/cases/${externalId}/attachments/${hash}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
-  }
-
-  // Récupérer le nom du fichier depuis les headers
-  const contentDisposition = response.headers.get("content-disposition");
-  const customFilename = response.headers.get("x-filename");
-
-  let downloadFilename = filename;
-
-  // Essayer d'extraire le nom du fichier depuis Content-Disposition
-  if (contentDisposition) {
-    const filenameMatch = contentDisposition.match(
-      /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
-    );
-    if (filenameMatch && filenameMatch[1]) {
-      downloadFilename = filenameMatch[1].replace(/['"]/g, "");
-    }
-  } else if (customFilename) {
-    downloadFilename = customFilename;
-  }
-
-  // S'assurer que le fichier a l'extension .stl
-  if (!downloadFilename.toLowerCase().endsWith(".stl")) {
-    downloadFilename = downloadFilename.replace(/\.[^/.]+$/, "") + ".stl";
-  }
-
-  const blob = await response.blob();
-
-  // Vérifier que le blob n'est pas vide
-  if (blob.size === 0) {
-    throw new Error("Le fichier téléchargé est vide");
-  }
-
-  // Créer l'URL de téléchargement
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.style.display = "none";
-  a.href = url;
-  a.download = downloadFilename;
-
-  // Ajouter au DOM, cliquer et nettoyer
-  document.body.appendChild(a);
-  a.click();
-
-  // Nettoyer
-  setTimeout(() => {
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-  }, 100);
-
-  return blob;
-};
-
+// Composants d'état
 const LoadingState = React.memo(() => (
   <div className="commandes-loading-state">
     <div className="commandes-loading-spinner"></div>
@@ -364,152 +169,6 @@ const ErrorState = React.memo(({ error, onBack }) => (
     </button>
   </div>
 ));
-
-const ActionCard = React.memo(
-  ({ onClick, disabled, icon, title, description, isLoading }) => (
-    <button
-      className={`details-action-card ${
-        disabled ? "details-action-card-disabled" : ""
-      }`}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      <div
-        className={`details-action-icon ${
-          title.includes("commande") ? "details-action-icon-ai" : ""
-        }`}
-      >
-        {isLoading ? <div className="details-download-spinner"></div> : icon}
-      </div>
-      <div className="details-action-text">
-        <h4>{title}</h4>
-        <p>{description}</p>
-      </div>
-    </button>
-  )
-);
-
-const ScanDownloadButton = React.memo(
-  ({ hash, label, externalId, disabled, isLoading }) => {
-    const [isDownloading, setIsDownloading] = useState(false);
-
-    const handleDownload = async () => {
-      if (!hash || disabled) return;
-
-      setIsDownloading(true);
-      try {
-        // Générer un nom de fichier plus descriptif
-        const filename = `scan-${label.toLowerCase()}-${externalId}-${hash.substring(
-          0,
-          8
-        )}.stl`;
-
-        await downloadScanByHash(externalId, hash, filename);
-
-        toast.success(`Scan ${label} téléchargé avec succès`);
-      } catch (error) {
-        console.error(`Erreur lors du téléchargement du scan ${label}:`, error);
-        toast.error(
-          `Erreur lors du téléchargement du scan ${label}: ${error.message}`
-        );
-      } finally {
-        setIsDownloading(false);
-      }
-    };
-
-    return (
-      <button
-        className="details-scan-download-btn"
-        onClick={handleDownload}
-        disabled={disabled || isLoading || isDownloading}
-        title={
-          hash
-            ? `Télécharger le scan ${label} (${hash.substring(0, 8)}...)`
-            : `Scan ${label} non disponible`
-        }
-      >
-        <Download size={16} />
-        {isDownloading ? "Téléchargement..." : `Scan ${label}`}
-        {isDownloading && (
-          <div className="details-download-spinner-small"></div>
-        )}
-      </button>
-    );
-  }
-);
-
-const StatusDropdown = React.memo(
-  ({ currentStatus, onStatusChange, isLoading }) => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const statusOptions = [
-      { value: "EN_ATTENTE", label: "En attente" },
-      { value: "EN_COURS", label: "En cours" },
-      { value: "TERMINEE", label: "Terminée" },
-      { value: "EXPEDIEE", label: "Expédiée" },
-      { value: "ANNULEE", label: "Annulée" },
-    ];
-
-    const handleStatusSelect = (status) => {
-      onStatusChange(status);
-      setIsOpen(false);
-    };
-
-    const getCurrentStatusLabel = () => {
-      const status = statusOptions.find((s) => s.value === currentStatus);
-      return status ? status.label : "Statut inconnu";
-    };
-
-    useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (!event.target.closest(".status-dropdown")) {
-          setIsOpen(false);
-        }
-      };
-
-      if (isOpen) {
-        document.addEventListener("click", handleClickOutside);
-      }
-
-      return () => {
-        document.removeEventListener("click", handleClickOutside);
-      };
-    }, [isOpen]);
-
-    return (
-      <div className="status-dropdown">
-        <button
-          className="status-dropdown-trigger"
-          onClick={() => setIsOpen(!isOpen)}
-          disabled={isLoading}
-        >
-          <Edit size={16} />
-          {getCurrentStatusLabel()}
-          <ChevronDown
-            size={16}
-            className={`status-dropdown-chevron ${isOpen ? "open" : ""}`}
-          />
-        </button>
-
-        {isOpen && (
-          <div className="status-dropdown-menu">
-            {statusOptions.map((status) => (
-              <button
-                key={status.value}
-                className={`status-dropdown-item ${
-                  currentStatus === status.value ? "active" : ""
-                }`}
-                onClick={() => handleStatusSelect(status.value)}
-              >
-                {status.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-);
 
 const CommandeDetails = () => {
   const { externalId } = useParams();
@@ -532,6 +191,7 @@ const CommandeDetails = () => {
 
   const bonDeCommandeRef = useRef();
 
+  // SWR Hooks
   const {
     data: commande,
     error: commandeError,
@@ -585,6 +245,7 @@ const CommandeDetails = () => {
     revalidateOnFocus: false,
   });
 
+  // Callbacks et handlers
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => !prev);
   }, []);
@@ -731,16 +392,15 @@ const CommandeDetails = () => {
     toast.info("Envoi de la notification en cours...");
 
     try {
-      // Récupérer le commentaire final
       const finalCommentaire = commentaire || commande.commentaire;
 
-      // Envoyer l'email via EmailJS
-      await sendEmailNotification(commande, cabinet, finalCommentaire);
+      await EmailService.sendEmailNotification(
+        commande,
+        cabinet,
+        finalCommentaire
+      );
+      await EmailService.markNotificationAsSent(commande.id);
 
-      // Marquer la notification comme envoyée
-      await markNotificationAsSent(commande.id);
-
-      // Mettre à jour les données locales
       mutateCommande({ ...commande, notification: true }, false);
       mutateCommandes();
 
@@ -756,24 +416,6 @@ const CommandeDetails = () => {
       setActionStates((prev) => ({ ...prev, sendEmail: false }));
     }
   }, [commande, cabinets, commentaire, mutateCommande, mutateCommandes]);
-
-  useEffect(() => {
-    if (commande && !commande.vu) {
-      // Marquer la commande comme lue
-      const markCommandAsRead = async () => {
-        try {
-          await markAsRead(commande.id);
-          // Mettre à jour les données locales
-          mutateCommande({ ...commande, vu: true }, false);
-          mutateCommandes();
-        } catch (error) {
-          console.error("Erreur lors du marquage comme lu:", error);
-        }
-      };
-
-      markCommandAsRead();
-    }
-  }, [commande, mutateCommande, mutateCommandes]);
 
   const handleStatusChange = useCallback(
     async (newStatus) => {
@@ -829,6 +471,7 @@ const CommandeDetails = () => {
     [commande, mutateCommande, mutateCommandes]
   );
 
+  // Utility functions
   const formatDate = useCallback((dateString) => {
     if (!dateString) return "Non spécifiée";
     const date = new Date(dateString);
@@ -871,6 +514,7 @@ const CommandeDetails = () => {
     return colors[plateforme] || "gray";
   }, []);
 
+  // Computed values
   const echeanceStatus = useMemo(
     () => (commande ? getEcheanceStatus(commande.dateEcheance) : null),
     [commande, getEcheanceStatus]
@@ -898,16 +542,32 @@ const CommandeDetails = () => {
     );
   }, [commande]);
 
-  const isThreeShape = useMemo(() => {
-    return commande && commande.plateforme === "THREESHAPE";
-  }, [commande]);
+  const finalCommentaire = commentaire || commande.commentaire;
 
-  React.useEffect(() => {
+  // Effects
+  useEffect(() => {
+    if (commande && !commande.vu) {
+      const markCommandAsRead = async () => {
+        try {
+          await markAsRead(commande.id);
+          mutateCommande({ ...commande, vu: true }, false);
+          mutateCommandes();
+        } catch (error) {
+          console.error("Erreur lors du marquage comme lu:", error);
+        }
+      };
+
+      markCommandAsRead();
+    }
+  }, [commande, mutateCommande, mutateCommandes]);
+
+  useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login");
     }
   }, [isAuthenticated, navigate]);
 
+  // Layout wrapper
   const LayoutWrapper = ({ children }) => (
     <div className="dashboardpage-app-container">
       <Navbar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
@@ -933,6 +593,7 @@ const CommandeDetails = () => {
     </div>
   );
 
+  // Render conditions
   if (commandeLoading) {
     return (
       <LayoutWrapper>
@@ -952,324 +613,50 @@ const CommandeDetails = () => {
     );
   }
 
-  const finalCommentaire = commentaire || commande.commentaire;
-
   return (
     <LayoutWrapper>
       <div className="details-main-container">
-        {/* En-tête */}
-        <div className="details-header-section">
-          <div className="details-back-and-associate">
-            <button
-              className="details-btn details-btn-secondary"
-              onClick={handleBack}
-            >
-              <ArrowLeft size={16} />
-              Retour
-            </button>
-          </div>
+        <CommandeHeader
+          commande={commande}
+          cabinets={cabinets}
+          cabinetsLoading={cabinetsLoading}
+          showCabinetSearch={showCabinetSearch}
+          setShowCabinetSearch={setShowCabinetSearch}
+          handleBack={handleBack}
+          handleAssociateCabinet={handleAssociateCabinet}
+        />
 
-          <div className="details-header-actions">
-            <button
-              className="details-btn details-btn-primary"
-              onClick={() => setShowCabinetSearch(!showCabinetSearch)}
-            >
-              <Building size={16} />
-              {commande.cabinetId
-                ? "Changer de cabinet"
-                : "Associer un cabinet"}
-            </button>
-          </div>
-        </div>
+        <CommandeInfoGrid
+          commande={commande}
+          echeanceStatus={echeanceStatus}
+          plateformeColor={plateformeColor}
+          formatDate={formatDate}
+          handleStatusChange={handleStatusChange}
+          actionStates={actionStates}
+          isCommentLoading={isCommentLoading}
+          finalCommentaire={finalCommentaire}
+          mutateCommande={mutateCommande}
+          mutateCommandes={mutateCommandes}
+          mutateCommentaire={mutateCommentaire}
+          showNotification={(message, type) => {
+            if (type === "success") toast.success(message);
+            else if (type === "error") toast.error(message);
+            else if (type === "warning") toast.warning(message);
+            else toast.info(message);
+          }}
+        />
 
-        {/* Cabinet associé */}
-        {commande.cabinetId && (
-          <div className="associated-cabinet-display">
-            <Building size={16} />
-            <span>
-              Cabinet associé:{" "}
-              {cabinets.find((c) => c.id === commande.cabinetId)?.nom ||
-                `ID: ${commande.cabinetId}`}
-            </span>
-          </div>
-        )}
-
-        {/* Barre de recherche des cabinets */}
-        {showCabinetSearch && (
-          <CabinetSearch
-            cabinets={cabinets}
-            isLoading={cabinetsLoading}
-            onAssociate={handleAssociateCabinet}
-            onClose={() => setShowCabinetSearch(false)}
-          />
-        )}
-
-        <div className="details-title-wrapper">
-          <h2 className="details-card-title">
-            Commande [ {commande.externalId} ]
-          </h2>
-        </div>
-
-        {/* Informations principales */}
-        <div className="details-info-grid">
-          {/* Informations patient */}
-          <div className="details-info-card">
-            <div className="details-card-header">
-              <User size={20} />
-              <h3>Informations Patient</h3>
-            </div>
-            <div className="details-card-content">
-              <div className="details-item">
-                <span className="details-item-label">Référence Patient :</span>
-                <span className="details-item-value">
-                  {commande.refPatient || "Non spécifiée"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Informations cabinet */}
-          <div className="details-info-card">
-            <div className="details-card-header">
-              <Building size={20} />
-              <h3>Cabinet</h3>
-            </div>
-            <div className="details-card-content">
-              <div className="details-item">
-                <span className="details-item-label">Nom du cabinet :</span>
-                <span className="details-item-value">{commande.cabinet}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Plateforme */}
-          <div className="details-info-card">
-            <div className="details-card-header">
-              <Server size={20} />
-              <h3>Plateforme</h3>
-            </div>
-            <div className="details-card-content">
-              <div className="details-item">
-                <span className="details-item-label">Source :</span>
-                <span
-                  className={`details-platform-badge commandes-plateforme-${plateformeColor}`}
-                >
-                  {commande.plateforme}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Dates importantes */}
-          <div className="details-info-card">
-            <div className="details-card-header">
-              <Calendar size={20} />
-              <h3>Dates</h3>
-            </div>
-            <div className="details-card-content">
-              <div className="details-item">
-                <span className="details-item-label">Date de réception :</span>
-                <span className="details-item-value">
-                  {formatDate(commande.dateReception)}
-                </span>
-              </div>
-              <div className="details-item">
-                <span className="details-item-label">Date d'échéance :</span>
-                <span className="details-item-value">
-                  {formatDate(commande.dateEcheance)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Statut avec dropdown */}
-          <div className="details-info-card">
-            <div className="details-card-header">
-              <Clock size={20} />
-              <h3>Statut</h3>
-            </div>
-            <div className="details-card-content">
-              <div className="details-item">
-                <span className="details-item-label">
-                  État de la commande :
-                </span>
-                <span
-                  className={`details-status-badge commandes-status-${echeanceStatus.class}`}
-                >
-                  {echeanceStatus.label}
-                </span>
-              </div>
-              <div className="details-item">
-                <span className="details-item-label">
-                  Statut de traitement :
-                </span>
-                <StatusDropdown
-                  currentStatus={
-                    commande.status || commande.statut || "EN_ATTENTE"
-                  }
-                  onStatusChange={handleStatusChange}
-                  isLoading={actionStates.updateStatus}
-                />
-              </div>
-              <div className="details-item">
-                <span className="details-item-label">Lecture :</span>
-                <span className="details-item-value">
-                  {commande.vu ? (
-                    <span className="details-read-status">
-                      <CheckCircle size={16} className="details-read-icon" />
-                      Lue
-                    </span>
-                  ) : (
-                    <span className="details-unread-status">
-                      <AlertCircle size={16} className="details-unread-icon" />
-                      Non lue
-                    </span>
-                  )}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Commentaire avec édition */}
-          <CommentSection
-            commentaire={finalCommentaire}
-            isLoading={isCommentLoading}
-            commande={commande}
-            mutateCommande={mutateCommande}
-            mutateCommandes={mutateCommandes}
-            mutateCommentaire={mutateCommentaire}
-            showNotification={(message, type) => {
-              if (type === "success") toast.success(message);
-              else if (type === "error") toast.error(message);
-              else if (type === "warning") toast.warning(message);
-              else toast.info(message);
-            }}
-          />
-
-          {/* Informations techniques */}
-          <div className="details-info-card">
-            <div className="details-card-header">
-              <FileText size={20} />
-              <h3>Informations Techniques</h3>
-            </div>
-            <div className="details-card-content">
-              <div className="details-item">
-                <span className="details-item-label">ID externe :</span>
-                <span className="details-external-id">
-                  #{commande.externalId}
-                </span>
-              </div>
-
-              <div className="details-item">
-                <span className="details-item-label">Numéro de suivi :</span>
-                <span className="details-external-id">
-                  #{commande.numeroSuivi}
-                </span>
-              </div>
-
-              <div className="details-item">
-                <span className="details-item-label">ID interne :</span>
-                <span className="details-item-value">{commande.id}</span>
-              </div>
-              {commande.typeAppareil && (
-                <div className="details-item">
-                  <span className="details-item-label">Type d'appareil :</span>
-                  <span className="details-item-value">
-                    {commande.typeAppareil}
-                  </span>
-                </div>
-              )}
-              {/* Affichage des hash des scans si disponible */}
-              {isThreeShape && (commande.hash_upper || commande.hash_lower) && (
-                <div className="details-item">
-                  <span className="details-item-label">
-                    Scans disponibles :
-                  </span>
-                  <div className="details-scans-container">
-                    {commande.hash_upper && (
-                      <ScanDownloadButton
-                        hash={commande.hash_upper}
-                        label="Upper"
-                        externalId={commande.externalId}
-                        disabled={actionStates.downloadUpper}
-                        isLoading={actionStates.downloadUpper}
-                      />
-                    )}
-                    {commande.hash_lower && (
-                      <ScanDownloadButton
-                        hash={commande.hash_lower}
-                        label="Lower"
-                        externalId={commande.externalId}
-                        disabled={actionStates.downloadLower}
-                        isLoading={actionStates.downloadLower}
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Actions rapides */}
-        <div className="details-actions-section">
-          <div className="details-actions-grid">
-            <ActionCard
-              onClick={handleGenerateOrder}
-              disabled={actionStates.generate || isCommentLoading}
-              icon={<Sparkles size={24} />}
-              title="Générer le bon de commande"
-              description={
-                isCommentLoading
-                  ? "Attente du chargement du commentaire..."
-                  : "Analyser le commentaire et créer un bon de commande personnalisé avec l'assistance IA"
-              }
-              isLoading={actionStates.generate}
-            />
-
-            <ActionCard
-              onClick={handleOpenBonCommande}
-              disabled={!canDownloadBonCommande}
-              icon={<FileText size={24} />}
-              title="Télécharger le bon de commande"
-              description={
-                canDownloadBonCommande
-                  ? "Ouvrir et télécharger le bon de commande généré"
-                  : "Le type d'appareil doit être défini pour télécharger le bon de commande"
-              }
-              isLoading={false}
-            />
-
-            <ActionCard
-              onClick={handleSendEmailNotification}
-              disabled={actionStates.sendEmail || !canSendEmail}
-              icon={<Mail size={24} />}
-              title="Envoyer notification par email"
-              description={
-                !canSendEmail
-                  ? "Associez d'abord un cabinet pour envoyer une notification"
-                  : "Envoyer une notification par email au cabinet associé"
-              }
-              isLoading={actionStates.sendEmail}
-            />
-
-            {commande.notification && (
-              <div className="notification-status">
-                <CheckCircle size={40} className="notification-sent-icon" />
-                <span>Notification envoyée</span>
-              </div>
-            )}
-
-            <ActionCard
-              onClick={handleDownload}
-              disabled={actionStates.download}
-              icon={<Download size={24} />}
-              title="Télécharger le scan 3D"
-              description="Récupérer le fichier ZIP contenant le scan 3D de cette commande"
-              isLoading={actionStates.download}
-            />
-          </div>
-        </div>
+        <CommandeActions
+          commande={commande}
+          actionStates={actionStates}
+          isCommentLoading={isCommentLoading}
+          canDownloadBonCommande={canDownloadBonCommande}
+          canSendEmail={canSendEmail}
+          handleGenerateOrder={handleGenerateOrder}
+          handleOpenBonCommande={handleOpenBonCommande}
+          handleSendEmailNotification={handleSendEmailNotification}
+          handleDownload={handleDownload}
+        />
       </div>
 
       {/* Modal Bon de Commande */}
