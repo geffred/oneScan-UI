@@ -9,6 +9,7 @@ import "./DashboardPage.css";
 import Platform from "../../components/Platform/Platform";
 import Cabinets from "../../components/Cabinets/Cabinets";
 import SuiviCommandes from "../../components/SuiviCommandes/SuiviCommandes";
+import Appareils from "../../components/Appareils/Appareils";
 
 const DashboardPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -23,6 +24,7 @@ const DashboardPage = () => {
     "socles",
     "analytique",
     "suivi-commandes",
+    "Appareils",
   ];
 
   // État initial avec vérification du paramètre URL
@@ -63,6 +65,8 @@ const DashboardPage = () => {
         return <Cabinets />;
       case "suivi-commandes":
         return <SuiviCommandes />;
+      case "Appareils":
+        return <Appareils />;
       default:
         return <Platform />;
     }

@@ -7,6 +7,7 @@ import {
   TvMinimal,
   Building2,
   PackageSearch,
+  GitCompare,
 } from "lucide-react";
 import "./sidebar.css";
 
@@ -47,6 +48,19 @@ const Sidebar = ({
         >
           <Building2 className="sidebar-icon" />
           Cabinets
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveComponent("Appareils");
+            toggleSidebar();
+          }}
+          className={`sidebar-item ${
+            activeComponent === "Appareils" ? "active" : ""
+          }`}
+        >
+          <GitCompare className="sidebar-icon" />
+          Appareils
         </button>
 
         <button

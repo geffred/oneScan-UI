@@ -10,6 +10,7 @@ import CommandeDetails from "../components/CommandeDetails/CommandeDetails";
 import SuiviCommandesPage from "./SuiviCommandesPage/SuiviCommandesPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AppareilGalleryPage from "./AppareilGalleryPage/AppareilGalleryPage";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/compte" element={<Compte />} />
           <Route path="/suivi-commandes" element={<SuiviCommandesPage />} />
+          <Route path="/appareils" element={<AppareilGalleryPage />} />
           <Route element={<PrivateRoute />}>
             <Route
               path="/dashboard/:activeComponent"

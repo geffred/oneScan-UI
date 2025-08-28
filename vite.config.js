@@ -81,6 +81,23 @@ export default defineConfig({
       "/api/public/commandes/*/notification": "http://localhost:8080",
       "/api/public/commandes/*/notification/sent": "http://localhost:8080",
       "/api/public/commandes/*/vu": "http://localhost:8080",
+
+      // ==================== NOUVELLES ROUTES APPAREILS ====================
+
+      // Routes Appareil - CRUD
+      "/api/appareils": "http://localhost:8080",
+      "/api/appareils/": "http://localhost:8080", // Pour les routes avec ID
+      "/api/appareils/user/": "http://localhost:8080", // Appareils par utilisateur
+      "/api/appareils/count": "http://localhost:8080", // Comptage total
+      "/api/appareils/count/user/": "http://localhost:8080", // Comptage par utilisateur
+      "/api/appareils/*/exists": "http://localhost:8080", // Vérifier existence
+
+      // Routes Images - Upload et gestion
+      "/api/images": "http://localhost:8080",
+      "/api/images/": "http://localhost:8080", // Pour récupérer une image spécifique
+      "/api/images/upload/": "http://localhost:8080", // Upload simple
+      "/api/images/upload-multiple/": "http://localhost:8080", // Upload multiple
+      "/api/images/appareil/": "http://localhost:8080", // Images par appareil
     },
   },
 });

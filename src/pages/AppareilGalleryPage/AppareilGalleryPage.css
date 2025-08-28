@@ -1,0 +1,18 @@
+/* AppareilGalleryPage.css - Page styles */
+
+.appareil-gallery-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.appareil-gallery-page-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Ajustements pour que le contenu principal prenne l'espace disponible */
+.appareil-gallery-page-main > *:nth-child(2) {
+  flex: 1;
+}
