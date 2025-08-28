@@ -139,11 +139,13 @@ const CompteCabinet = () => {
       255,
       "L'adresse de facturation ne peut pas dépasser 255 caractères"
     ),
-    currentPassword: Yup.string().when("newPassword", {
-      is: (val) => val && val.length > 0,
-      then: Yup.string().required(
-        "Le mot de passe actuel est requis pour changer le mot de passe"
-      ),
+    currentPassword: Yup.string().when(["newPassword"], {
+      is: (newPassword) => newPassword && newPassword.length > 0,
+      then: (schema) =>
+        schema.required(
+          "Le mot de passe actuel est requis pour changer le mot de passe"
+        ),
+      otherwise: (schema) => schema,
     }),
     newPassword: Yup.string()
       .min(8, "Le mot de passe doit contenir au moins 8 caractères")
@@ -159,28 +161,55 @@ const CompteCabinet = () => {
   // Gestion de la soumission du formulaire
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      const response = await fetch(`/api/cabinet/${cabinetData.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nom: values.nom,
-          email: cabinetData.email,
-          numeroDeTelephone: values.numeroDeTelephone,
-          adresseDeLivraison: values.adresseDeLivraison,
-          adresseDeFacturation: values.adresseDeFacturation,
-          motDePasse: values.newPassword || undefined,
-        }),
-      });
+      // Si changement de mot de passe demandé, utiliser l'API dédiée
+      if (values.newPassword && values.currentPassword) {
+        const passwordResponse = await fetch(
+          `/api/cabinet/auth/change-password?email=${
+            cabinetData.email
+          }&currentPassword=${encodeURIComponent(
+            values.currentPassword
+          )}&newPassword=${encodeURIComponent(values.newPassword)}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-      if (!response.ok) {
-        throw new Error("Erreur lors de la mise à jour des données");
+        if (!passwordResponse.ok) {
+          const errorData = await passwordResponse.json();
+          throw new Error(
+            errorData.message || "Erreur lors du changement de mot de passe"
+          );
+        }
       }
 
-      const data = await response.json();
-      setCabinetData(data);
-      localStorage.setItem("cabinetData", JSON.stringify(data));
+      // Mettre à jour les autres informations du cabinet via l'API de profil
+      // Pour les cabinets, il faut utiliser une approche différente car ils n'ont pas de JWT
+      // On va d'abord récupérer les données actuelles puis les mettre à jour
+      const profileResponse = await fetch(
+        `/api/cabinet/auth/profile?email=${cabinetData.email}`
+      );
+
+      if (!profileResponse.ok) {
+        throw new Error("Erreur lors de la récupération du profil");
+      }
+
+      const currentProfile = await profileResponse.json();
+
+      // Créer un objet avec les nouvelles données
+      const updatedCabinetData = {
+        ...currentProfile,
+        nom: values.nom,
+        numeroDeTelephone: values.numeroDeTelephone,
+        adresseDeLivraison: values.adresseDeLivraison,
+        adresseDeFacturation: values.adresseDeFacturation,
+      };
+
+      // Sauvegarder les données mises à jour
+      setCabinetData(updatedCabinetData);
+      localStorage.setItem("cabinetData", JSON.stringify(updatedCabinetData));
 
       setIsEditing(false);
       setSuccess("Vos informations ont été mises à jour avec succès");
@@ -202,6 +231,9 @@ const CompteCabinet = () => {
     } catch (err) {
       console.error("Erreur lors de la déconnexion:", err);
     } finally {
+      // Nettoyer le localStorage
+      localStorage.removeItem("cabinetData");
+      localStorage.removeItem("userType");
       logout();
       navigate("/login");
     }

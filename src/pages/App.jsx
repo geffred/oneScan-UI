@@ -11,6 +11,7 @@ import SuiviCommandesPage from "./SuiviCommandesPage/SuiviCommandesPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AppareilGalleryPage from "./AppareilGalleryPage/AppareilGalleryPage";
+import CompteCabinet from "./CompteCabinet/CompteCabinet";
 
 function App() {
   return (
@@ -46,6 +47,8 @@ function App() {
               path="/dashboard/commande/:externalId"
               element={<CommandeDetails />}
             />
+
+            <Route path="/compte/cabinet" element={<CompteCabinet />} />
           </Route>
         </Routes>
       </BrowserRouter>

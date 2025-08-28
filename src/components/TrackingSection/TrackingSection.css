@@ -68,7 +68,7 @@
 
 .tracking-feature {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
   padding: 1.5rem;
   background: white;
@@ -95,6 +95,7 @@
   color: white;
   flex-shrink: 0;
   position: relative;
+  margin: 0px;
 }
 
 .pulse-dot {
@@ -119,7 +120,8 @@
 .tracking-feature h3 {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1e293b;
+  color:#2e2e2e ;
+  line-height: 20px;
 }
 
 .tracking-feature p {

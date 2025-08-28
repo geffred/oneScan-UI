@@ -33,12 +33,12 @@ const Header = () => {
           <ul className="nav-links">
             <li>
               <NavLink
-                to="/#features"
+                to="/Appareils"
                 className={({ isActive }) =>
                   `nav-link${isActive ? " active" : ""}`
                 }
               >
-                Fonctionnalités
+                Nos appareils
               </NavLink>
             </li>
             <li>
@@ -61,16 +61,7 @@ const Header = () => {
                 Comment ça marche
               </NavLink>
             </li>
-            <li>
-              <NavLink
-                to="/pricing"
-                className={({ isActive }) =>
-                  `nav-link${isActive ? " active" : ""}`
-                }
-              >
-                Tarifs
-              </NavLink>
-            </li>
+            <li></li>
             <li>
               <NavLink
                 to="/support"

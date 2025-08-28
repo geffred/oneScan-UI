@@ -2,6 +2,7 @@ import React, { useState, useContext, useMemo, useCallback } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import useSWR, { mutate } from "swr";
+import emailjs from "@emailjs/browser";
 import {
   Building2,
   Plus,
@@ -14,6 +15,7 @@ import {
   Search,
   FileText,
   Phone,
+  KeyRound,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -43,6 +45,10 @@ const validationSchema = Yup.object({
   ),
 });
 
+// Configuration EmailJS
+const EMAILJS_SERVICE_ID = "service_4vb03zc";
+const EMAILJS_TEMPLATE_ID = "template_mrp5omy";
+
 // Fonction de fetch pour SWR
 const fetchWithAuth = async (url) => {
   const token = localStorage.getItem("token");
@@ -69,73 +75,112 @@ const getCabinets = async () => {
 // Fonction pour récupérer les informations de l'utilisateur connecté
 const getCurrentUser = async () => {
   try {
-    return await fetchWithAuth("/api/auth/me"); // Endpoint pour récupérer l'utilisateur connecté
+    return await fetchWithAuth("/api/auth/me");
   } catch (error) {
     console.error("Erreur lors de la récupération de l'utilisateur:", error);
     throw error;
   }
 };
 
+// Fonction pour générer le mot de passe
+const generatePassword = (email) => {
+  const emailPrefix = email.substring(0, email.indexOf("@"));
+  return `${emailPrefix}mysmilelab2025`;
+};
+
 // Composant de ligne de tableau optimisé avec React.memo
-const CabinetRow = React.memo(({ cabinet, onEdit, onDelete }) => (
-  <div className="cabinet-table-row">
-    <div className="cabinet-table-cell" data-label="Nom du Cabinet">
-      <div className="cabinet-name-info">
-        <Building2 size={18} className="cabinet-icon" />
-        <span className="cabinet-name">{cabinet.nom}</span>
+const CabinetRow = React.memo(
+  ({ cabinet, onEdit, onDelete, onSendPassword, sendingPasswords }) => (
+    <div className="cabinet-table-row">
+      <div className="cabinet-table-cell" data-label="Nom du Cabinet">
+        <div className="cabinet-name-info">
+          <Building2 size={18} className="cabinet-icon" />
+          <span className="cabinet-name">{cabinet.nom}</span>
+        </div>
       </div>
-    </div>
 
-    <div className="cabinet-table-cell" data-label="Email">
-      <div className="cabinet-email-info">
-        <Mail size={16} className="cabinet-info-icon" />
-        <span>{cabinet.email}</span>
+      <div className="cabinet-table-cell" data-label="Email">
+        <div className="cabinet-email-info">
+          <Mail size={16} className="cabinet-info-icon" />
+          <span>{cabinet.email}</span>
+        </div>
       </div>
-    </div>
 
-    <div className="cabinet-table-cell" data-label="Téléphone">
-      <div className="cabinet-email-info">
-        <Phone size={16} className="cabinet-info-icon" />
-        <span>{cabinet.numeroDeTelephone || "Non renseigné"}</span>
+      <div className="cabinet-table-cell" data-label="Téléphone">
+        <div className="cabinet-email-info">
+          <Phone size={16} className="cabinet-info-icon" />
+          <span>{cabinet.numeroDeTelephone || "Non renseigné"}</span>
+        </div>
       </div>
-    </div>
 
-    <div className="cabinet-table-cell" data-label="Adresse de Livraison">
-      <div className="cabinet-address-info">
-        <MapPin size={16} className="cabinet-info-icon" />
-        <span>{cabinet.adresseDeLivraison || "Non renseignée"}</span>
+      <div className="cabinet-table-cell" data-label="Adresse de Livraison">
+        <div className="cabinet-address-info">
+          <MapPin size={16} className="cabinet-info-icon" />
+          <span>{cabinet.adresseDeLivraison || "Non renseignée"}</span>
+        </div>
       </div>
-    </div>
 
-    <div className="cabinet-table-cell" data-label="Adresse de Facturation">
-      <div className="cabinet-address-info">
-        <FileText size={16} className="cabinet-info-icon" />
-        <span>{cabinet.adresseDeFacturation || "Non renseignée"}</span>
+      <div className="cabinet-table-cell" data-label="Adresse de Facturation">
+        <div className="cabinet-address-info">
+          <FileText size={16} className="cabinet-info-icon" />
+          <span>{cabinet.adresseDeFacturation || "Non renseignée"}</span>
+        </div>
       </div>
-    </div>
 
-    <div className="cabinet-table-cell actions">
-      <div className="cabinet-actions">
-        <button
-          onClick={() => onEdit(cabinet)}
-          className="cabinet-edit-btn"
-          title="Modifier"
-          aria-label="Modifier"
-        >
-          <Edit size={16} />
-        </button>
-        <button
-          onClick={() => onDelete(cabinet.id)}
-          className="cabinet-delete-btn"
-          title="Supprimer"
-          aria-label="Supprimer"
-        >
-          <Trash2 size={16} />
-        </button>
+      <div className="cabinet-table-cell" data-label="Statut Mot de Passe">
+        <div className="cabinet-password-status">
+          <span
+            className={`password-status-badge ${
+              cabinet.passwordSend ? "sent" : "not-sent"
+            }`}
+          >
+            {cabinet.passwordSend ? "Envoyé" : "Non envoyé"}
+          </span>
+        </div>
+      </div>
+
+      <div className="cabinet-table-cell actions">
+        <div className="cabinet-actions">
+          <button
+            onClick={() => onSendPassword(cabinet)}
+            className={`cabinet-send-btn ${cabinet.passwordSend ? "sent" : ""}`}
+            disabled={
+              cabinet.passwordSend || sendingPasswords.includes(cabinet.id)
+            }
+            title={
+              cabinet.passwordSend
+                ? "Mot de passe déjà envoyé"
+                : "Envoyer le mot de passe"
+            }
+            aria-label="Envoyer mot de passe"
+          >
+            {sendingPasswords.includes(cabinet.id) ? (
+              <div className="cabinet-loading-spinner small"></div>
+            ) : (
+              <KeyRound />
+            )}
+          </button>
+          <button
+            onClick={() => onEdit(cabinet)}
+            className="cabinet-edit-btn"
+            title="Modifier"
+            aria-label="Modifier"
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={() => onDelete(cabinet.id)}
+            className="cabinet-delete-btn"
+            title="Supprimer"
+            aria-label="Supprimer"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-));
+  )
+);
 
 CabinetRow.displayName = "CabinetRow";
 
@@ -171,6 +216,7 @@ const Cabinet = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sendingPasswords, setSendingPasswords] = useState([]);
   const navigate = useNavigate();
 
   // SWR hook pour récupérer l'utilisateur connecté
@@ -196,7 +242,7 @@ const Cabinet = () => {
   } = useSWR(isAuthenticated ? "cabinets" : null, getCabinets, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
-    refreshInterval: 30000, // Rafraîchir toutes les 30 secondes
+    refreshInterval: 30000,
     errorRetryCount: 3,
     errorRetryInterval: 1000,
   });
@@ -244,12 +290,124 @@ const Cabinet = () => {
       navigate("/login");
     }
   }, [isAuthenticated, navigate]);
+  // =======================
+  // Utilitaires AES
+  // =======================
+  function strToArrayBuffer(str) {
+    return new TextEncoder().encode(str);
+  }
 
-  // Handlers optimisés
+  function arrayBufferToBase64(buffer) {
+    let binary = "";
+    const bytes = new Uint8Array(buffer);
+    for (let b of bytes) {
+      binary += String.fromCharCode(b);
+    }
+    return btoa(binary);
+  }
+
+  async function importKey(secret) {
+    return await crypto.subtle.importKey(
+      "raw",
+      strToArrayBuffer(secret),
+      { name: "AES-CBC" },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  }
+
+  // =======================
+  // Génération mot de passe
+  // =======================
+  async function generatePassword(email) {
+    const emailPrefix = email.split("@")[0];
+    const currentYear = new Date().getFullYear();
+    const baseString = emailPrefix + "mysmilelab" + currentYear;
+
+    const SECRET_KEY = "0123456789abcdef"; // doit matcher avec backend
+    const IV = "0000000000000000"; // doit matcher avec backend
+
+    const key = await importKey(SECRET_KEY);
+    const iv = strToArrayBuffer(IV);
+
+    const encrypted = await crypto.subtle.encrypt(
+      { name: "AES-CBC", iv },
+      key,
+      strToArrayBuffer(baseString)
+    );
+
+    return arrayBufferToBase64(encrypted);
+  }
+
+  // =======================
+  // Handler envoi mot de passe
+  // =======================
+  const handleSendPassword = useCallback(
+    async (cabinet) => {
+      setSendingPasswords((prev) => [...prev, cabinet.id]);
+
+      try {
+        // Générer mot de passe chiffré
+        const password = await generatePassword(cabinet.email);
+
+        // Préparer données EmailJS
+        const templateParams = {
+          to_email: cabinet.email,
+          cabinet_name: cabinet.nom,
+          password: password, // mot de passe chiffré
+          to_name: cabinet.nom,
+        };
+
+        // Envoyer l'email
+        await emailjs.send(
+          EMAILJS_SERVICE_ID,
+          EMAILJS_TEMPLATE_ID,
+          templateParams
+        );
+
+        // Marquer comme envoyé via API
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          `/api/cabinet/${cabinet.id}/mark-password-sent`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Erreur lors de la mise à jour du statut d'envoi");
+        }
+
+        // Mettre à jour localement
+        const updatedCabinet = { ...cabinet, passwordSend: true };
+        mutateCabinets(
+          cabinets.map((c) => (c.id === cabinet.id ? updatedCabinet : c)),
+          false
+        );
+
+        setSuccess(`Mot de passe envoyé avec succès à ${cabinet.nom}`);
+        setTimeout(() => setSuccess(null), 3000);
+
+        // Revalider
+        mutateCabinets();
+      } catch (error) {
+        console.error("Erreur lors de l'envoi:", error);
+        setError(`Erreur lors de l'envoi du mot de passe: ${error.message}`);
+        setTimeout(() => setError(null), 3000);
+      } finally {
+        setSendingPasswords((prev) => prev.filter((id) => id !== cabinet.id));
+      }
+    },
+    [cabinets, mutateCabinets]
+  );
+
+  // Handlers optimisés existants
   const handleSubmit = useCallback(
     async (values, { setSubmitting, resetForm }) => {
       try {
-        // Vérifier que l'utilisateur est bien chargé
         if (!currentUser?.id) {
           throw new Error("Informations utilisateur non disponibles");
         }
@@ -260,10 +418,9 @@ const Cabinet = () => {
           : "/api/cabinet";
         const method = editingCabinet ? "PUT" : "POST";
 
-        // Ajouter l'userId aux données envoyées
         const payload = {
           ...values,
-          userId: currentUser.id, // Ajouter l'ID de l'utilisateur connecté
+          userId: currentUser.id,
         };
 
         const response = await fetch(url, {
@@ -287,7 +444,6 @@ const Cabinet = () => {
 
         const data = await response.json();
 
-        // Mutation optimiste avec SWR
         if (editingCabinet) {
           mutateCabinets(
             cabinets.map((c) => (c.id === data.id ? data : c)),
@@ -304,7 +460,6 @@ const Cabinet = () => {
         resetForm();
         setTimeout(() => setSuccess(null), 3000);
 
-        // Revalider les données pour s'assurer de la cohérence
         mutateCabinets();
       } catch (err) {
         setError(err.message);
@@ -340,7 +495,6 @@ const Cabinet = () => {
           throw new Error("Erreur lors de la suppression du cabinet");
         }
 
-        // Mutation optimiste
         mutateCabinets(
           cabinets.filter((c) => c.id !== cabinetId),
           false
@@ -348,12 +502,10 @@ const Cabinet = () => {
         setSuccess("Cabinet supprimé avec succès");
         setTimeout(() => setSuccess(null), 3000);
 
-        // Revalider pour s'assurer de la cohérence
         mutateCabinets();
       } catch (err) {
         setError(err.message);
         setTimeout(() => setError(null), 3000);
-        // En cas d'erreur, revalider pour restaurer l'état correct
         mutateCabinets();
       }
     },
@@ -361,9 +513,6 @@ const Cabinet = () => {
   );
 
   const openCreateModal = useCallback(() => {
-    console.log("openCreateModal appelé", { currentUser, userLoading });
-
-    // Vérifier que l'utilisateur est chargé avant d'ouvrir le modal
     if (userLoading) {
       setError("Chargement des informations utilisateur en cours...");
       setTimeout(() => setError(null), 3000);
@@ -391,31 +540,10 @@ const Cabinet = () => {
     setSearchTerm(e.target.value);
   }, []);
 
-  // Affichage de debug pour vérifier l'état
-  React.useEffect(() => {
-    console.log("État du composant:", {
-      isAuthenticated,
-      currentUser,
-      userLoading,
-      userError,
-      cabinetsLoading,
-      cabinetsError,
-    });
-  }, [
-    isAuthenticated,
-    currentUser,
-    userLoading,
-    userError,
-    cabinetsLoading,
-    cabinetsError,
-  ]);
-
-  // Affichage immédiat de l'interface
   if (!isAuthenticated) {
-    return null; // ou un composant de redirection
+    return null;
   }
 
-  // Afficher un spinner si les données utilisateur ne sont pas encore chargées
   const isLoading = userLoading || cabinetsLoading;
 
   return (
@@ -490,6 +618,9 @@ const Cabinet = () => {
                   <div className="cabinet-table-cell header">
                     Adresse de Facturation
                   </div>
+                  <div className="cabinet-table-cell header">
+                    Statut Mot de Passe
+                  </div>
                   <div className="cabinet-table-cell header actions">
                     Actions
                   </div>
@@ -501,6 +632,8 @@ const Cabinet = () => {
                       cabinet={cabinet}
                       onEdit={handleEdit}
                       onDelete={handleDelete}
+                      onSendPassword={handleSendPassword}
+                      sendingPasswords={sendingPasswords}
                     />
                   ))}
                 </div>

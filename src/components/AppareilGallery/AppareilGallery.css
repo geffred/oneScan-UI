@@ -203,6 +203,8 @@
   box-shadow: var(--gallery-shadow);
   transition: var(--gallery-transition);
   border: 1px solid var(--gallery-border);
+  width: 380px;
+  margin: 0px auto;
 }
 
 .appareil-card:hover {

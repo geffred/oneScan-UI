@@ -26,6 +26,7 @@ export default defineConfig({
       "/api/cabinet": "http://localhost:8080",
       "/api/cabinet/": "http://localhost:8080", // Pour les routes avec ID
       "/api/cabinet/nom": "http://localhost:8080",
+      "/api/cabinet/*/mark-password-sent": "http://localhost:8080",
 
       // Routes Cabinet - Authentification
       "/api/cabinet/auth/login": "http://localhost:8080",

@@ -25,7 +25,7 @@ import { useAuth } from "../../components/Config/AuthContext";
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [loginType, setLoginType] = useState("laboratoire");
+  const [loginType, setLoginType] = useState("cabinet");
   const [showCabinetInfo, setShowCabinetInfo] = useState(false);
 
   const navigate = useNavigate();
