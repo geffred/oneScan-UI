@@ -43,12 +43,12 @@ const Header = () => {
             </li>
             <li>
               <NavLink
-                to="/#platforms"
+                to="/suivi-commandes"
                 className={({ isActive }) =>
                   `nav-link${isActive ? " active" : ""}`
                 }
               >
-                Plateformes
+                Suivre ma commande
               </NavLink>
             </li>
             <li>
@@ -59,17 +59,6 @@ const Header = () => {
                 }
               >
                 Comment ça marche
-              </NavLink>
-            </li>
-            <li></li>
-            <li>
-              <NavLink
-                to="/support"
-                className={({ isActive }) =>
-                  `nav-link${isActive ? " active" : ""}`
-                }
-              >
-                Support
               </NavLink>
             </li>
           </ul>

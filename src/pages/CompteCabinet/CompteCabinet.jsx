@@ -28,6 +28,7 @@ import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import "./CompteCabinet.css";
+import Footer from "../../components/Footer/Footer";
 
 // Fetcher function for SWR
 const fetcher = async (url) => {
@@ -709,17 +710,8 @@ const CompteCabinet = () => {
             )}
           </div>
         </div>
-
-        {/* Footer */}
-        <footer className="compte-cabinet-footer">
-          <div className="compte-cabinet-footer-content">
-            <p className="compte-cabinet-footer-text">
-              &copy; Mysmilelab - Cabinet Dentaire
-              <label>Tous les droits sont réservés.</label>
-            </p>
-          </div>
-        </footer>
       </div>
+      <Footer />
     </>
   );
 };

@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 6rem;
   position: relative;
   overflow: hidden;
 }
@@ -394,14 +394,8 @@
   background: linear-gradient(135deg, #64748b 0%, #475569 100%);
 }
 
-.login-btn-cabinet {
-   background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-}
 
-.login-btn-cabinet:hover:not(:disabled) {
-  box-shadow: 0 8px 25px rgba(5, 150, 105, 0.4);
-}
+
 
 .login-loading-spinner {
   display: flex;

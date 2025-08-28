@@ -5,6 +5,7 @@
   display: flex;
   flex-direction: column;
   background: #f8fafc;
+  margin: 6rem 0 0 0;
 }
 
 /* Header */
