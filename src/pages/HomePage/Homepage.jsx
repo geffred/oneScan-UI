@@ -15,6 +15,7 @@ const Homepage = () => {
   return (
     <div className="homepage">
       <Header />
+
       <HeroSection />
       <TrackingSection />
       <FeaturesSection />

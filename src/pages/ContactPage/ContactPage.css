@@ -1,0 +1,42 @@
+/* ContactPage - Page complète de contact */
+
+.contact-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+}
+
+/* Main Content */
+.contact-page-main {
+  flex: 1;
+  background: #f8fafc;
+  margin-top: 6rem; /* Espace pour le header fixe */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .contact-page-main {
+    margin-top: 4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-page-main {
+    margin-top: 3.5rem;
+  }
+}
+
+/* Animation de la page */
+.contact-page {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

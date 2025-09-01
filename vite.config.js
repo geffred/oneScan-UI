@@ -83,7 +83,7 @@ export default defineConfig({
       "/api/public/commandes/*/notification/sent": "http://localhost:8080",
       "/api/public/commandes/*/vu": "http://localhost:8080",
 
-      // ==================== NOUVELLES ROUTES APPAREILS ====================
+      // ==================== ROUTES APPAREILS ====================
 
       // Routes Appareil - CRUD
       "/api/appareils": "http://localhost:8080",
@@ -99,6 +99,32 @@ export default defineConfig({
       "/api/images/upload/": "http://localhost:8080", // Upload simple
       "/api/images/upload-multiple/": "http://localhost:8080", // Upload multiple
       "/api/images/appareil/": "http://localhost:8080", // Images par appareil
+
+      // ==================== ROUTES MEDITLINK OAUTH2 ====================
+
+      // Routes d'authentification MeditLink OAuth2
+      "/api/meditlink/auth/login": "http://localhost:8080", // Initiation OAuth2 MeditLink
+      "/api/meditlink/auth/callback": "http://localhost:8080", // Callback OAuth2 MeditLink
+      "/api/meditlink/auth/status": "http://localhost:8080", // Statut authentification MeditLink
+      "/api/meditlink/auth/refresh": "http://localhost:8080", // Rafraîchissement token MeditLink
+      "/api/meditlink/auth/logout": "http://localhost:8080", // Déconnexion MeditLink
+
+      // Routes utilisateur MeditLink
+      "/api/meditlink/user/me": "http://localhost:8080", // Informations utilisateur connecté
+
+      // Proxy API MeditLink (toutes les routes API MeditLink)
+      "/api/meditlink/api/": "http://localhost:8080", // Proxy vers l'API MeditLink
+      "/api/meditlink/api/v1/": "http://localhost:8080", // API MeditLink v1
+      "/api/meditlink/api/v1/me": "http://localhost:8080", // Profil utilisateur MeditLink
+      "/api/meditlink/api/v1/groups": "http://localhost:8080", // Groupes MeditLink
+      "/api/meditlink/api/v1/cases": "http://localhost:8080", // Cas MeditLink
+      "/api/meditlink/api/v1/files": "http://localhost:8080", // Fichiers MeditLink
+      "/api/meditlink/api/v1/orders": "http://localhost:8080", // Commandes MeditLink
+
+      // Routes spécifiques MeditLink avec wildcards
+      "/api/meditlink/api/v1/cases/": "http://localhost:8080", // Cas spécifique MeditLink
+      "/api/meditlink/api/v1/files/": "http://localhost:8080", // Fichier spécifique MeditLink
+      "/api/meditlink/api/v1/orders/": "http://localhost:8080", // Commande spécifique MeditLink
     },
   },
 });

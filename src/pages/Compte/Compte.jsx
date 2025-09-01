@@ -13,11 +13,21 @@ import {
   Lock,
   Eye,
   EyeOff,
+  Globe,
+  LogOut,
 } from "lucide-react";
 import { useAuth } from "../../components/Config/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import "./Compte.css";
+
+const countries = [
+  { value: "FR", label: "France" },
+  { value: "BE", label: "Belgique" },
+  { value: "CH", label: "Suisse" },
+  { value: "CA", label: "Canada" },
+  { value: "LU", label: "Luxembourg" },
+];
 
 const Compte = () => {
   const {
@@ -28,7 +38,8 @@ const Compte = () => {
   } = useAuth();
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -53,11 +64,7 @@ const Compte = () => {
           throw new Error("Token non trouvé");
         }
 
-        // Décoder le token pour obtenir l'email
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        const userEmail = payload.sub;
-
-        const response = await fetch(`/api/auth/user/${userEmail}`, {
+        const response = await fetch(`/api/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -83,19 +90,20 @@ const Compte = () => {
   const validationSchema = Yup.object({
     firstName: Yup.string().required("Le prénom est requis"),
     lastName: Yup.string().required("Le nom est requis"),
-    email: Yup.string().email("Email invalide").required("L'email est requis"),
     phone: Yup.string().matches(
       /^\+?[0-9\s-]+$/,
       "Numéro de téléphone invalide"
     ),
-    address: Yup.string(),
-    company: Yup.string(),
+    country: Yup.string(),
+    companyType: Yup.string(),
     newsletter: Yup.boolean(),
     currentPassword: Yup.string().when("newPassword", {
       is: (val) => val && val.length > 0,
-      then: Yup.string().required(
-        "Le mot de passe actuel est requis pour changer le mot de passe"
-      ),
+      then: () =>
+        Yup.string().required(
+          "Le mot de passe actuel est requis pour changer le mot de passe"
+        ),
+      otherwise: () => Yup.string(),
     }),
     newPassword: Yup.string()
       .min(6, "Le mot de passe doit contenir au moins 6 caractères")
@@ -108,11 +116,27 @@ const Compte = () => {
       ),
   });
 
-  const handleSubmit = async (values, { setSubmitting }) => {
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Token non trouvé");
+      }
+
+      // Préparer les données à envoyer (sans les mots de passe vides)
+      const updateData = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        phone: values.phone,
+        country: values.country,
+        companyType: values.companyType,
+        newsletter: values.newsletter,
+      };
+
+      // Ajouter les mots de passe seulement s'ils sont fournis
+      if (values.newPassword && values.currentPassword) {
+        updateData.currentPassword = values.currentPassword;
+        updateData.newPassword = values.newPassword;
       }
 
       const response = await fetch("/api/auth/update", {
@@ -121,7 +145,7 @@ const Compte = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
@@ -135,10 +159,21 @@ const Compte = () => {
       setUserData(data);
       setIsEditing(false);
       setSuccess("Vos informations ont été mises à jour avec succès");
-      setTimeout(() => setSuccess(null), 3000);
+
+      // Réinitialiser les champs de mot de passe
+      resetForm({
+        values: {
+          ...values,
+          currentPassword: "",
+          newPassword: "",
+        },
+      });
+
+      setTimeout(() => setSuccess(null), 5000);
     } catch (err) {
       setError(err.message);
       console.error("Erreur handleSubmit:", err);
+      setTimeout(() => setError(null), 5000);
     } finally {
       setSubmitting(false);
     }
@@ -182,6 +217,11 @@ const Compte = () => {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/";
   };
 
   if (!userData) {
@@ -246,8 +286,8 @@ const Compte = () => {
                 lastName: userData.lastName || "",
                 email: userData.email || "",
                 phone: userData.phone || "",
-                address: userData.address || "",
-                company: userData.company || "",
+                country: userData.country || "",
+                companyType: userData.companyType || "",
                 newsletter: userData.newsletter || false,
                 currentPassword: "",
                 newPassword: "",
@@ -256,12 +296,12 @@ const Compte = () => {
               onSubmit={handleSubmit}
               enableReinitialize
             >
-              {({ isSubmitting, values }) => (
+              {({ isSubmitting, values, resetForm }) => (
                 <Form className="compte-profile-form">
                   <div className="compte-form-fields-grid">
                     <div className="compte-input-field-group">
                       <label htmlFor="firstName" className="compte-field-label">
-                        Prénom
+                        Prénom *
                       </label>
                       <div className="compte-input-field-wrapper">
                         <User className="compte-input-field-icon" />
@@ -281,7 +321,7 @@ const Compte = () => {
 
                     <div className="compte-input-field-group">
                       <label htmlFor="lastName" className="compte-field-label">
-                        Nom
+                        Nom *
                       </label>
                       <div className="compte-input-field-wrapper">
                         <User className="compte-input-field-icon" />
@@ -308,15 +348,15 @@ const Compte = () => {
                         <Field
                           name="email"
                           type="email"
-                          className="compte-text-input-field"
-                          disabled={!isEditing}
+                          className="compte-text-input-field compte-email-disabled"
+                          disabled={true} // Email toujours non modifiable
                         />
                       </div>
-                      <ErrorMessage
-                        name="email"
-                        component="div"
-                        className="compte-field-error-message"
-                      />
+                      {isEditing && (
+                        <small className="compte-field-note">
+                          L'email ne peut pas être modifié
+                        </small>
+                      )}
                     </div>
 
                     <div className="compte-input-field-group">
@@ -340,40 +380,50 @@ const Compte = () => {
                     </div>
 
                     <div className="compte-input-field-group">
-                      <label htmlFor="address" className="compte-field-label">
-                        Adresse
+                      <label htmlFor="country" className="compte-field-label">
+                        Pays
                       </label>
                       <div className="compte-input-field-wrapper">
-                        <Home className="compte-input-field-icon" />
+                        <Globe className="compte-input-field-icon" />
                         <Field
-                          name="address"
-                          type="text"
+                          as="select"
+                          name="country"
                           className="compte-text-input-field"
                           disabled={!isEditing}
-                        />
+                        >
+                          <option value="">Sélectionnez un pays</option>
+                          {countries.map((country) => (
+                            <option key={country.value} value={country.value}>
+                              {country.label}
+                            </option>
+                          ))}
+                        </Field>
                       </div>
                       <ErrorMessage
-                        name="address"
+                        name="country"
                         component="div"
                         className="compte-field-error-message"
                       />
                     </div>
 
                     <div className="compte-input-field-group">
-                      <label htmlFor="company" className="compte-field-label">
-                        Entreprise
+                      <label
+                        htmlFor="companyType"
+                        className="compte-field-label"
+                      >
+                        Type d'entreprise
                       </label>
                       <div className="compte-input-field-wrapper">
                         <Building className="compte-input-field-icon" />
                         <Field
-                          name="company"
+                          name="companyType"
                           type="text"
                           className="compte-text-input-field"
                           disabled={!isEditing}
                         />
                       </div>
                       <ErrorMessage
-                        name="company"
+                        name="companyType"
                         component="div"
                         className="compte-field-error-message"
                       />
@@ -381,6 +431,10 @@ const Compte = () => {
 
                     {isEditing && (
                       <>
+                        <div className="compte-password-section-header">
+                          <h3>Changer le mot de passe (optionnel)</h3>
+                        </div>
+
                         <div className="compte-input-field-group">
                           <label
                             htmlFor="currentPassword"
@@ -392,15 +446,18 @@ const Compte = () => {
                             <Lock className="compte-input-field-icon" />
                             <Field
                               name="currentPassword"
-                              type={showPassword ? "text" : "password"}
+                              type={showCurrentPassword ? "text" : "password"}
                               className="compte-text-input-field"
+                              placeholder="Laissez vide si vous ne souhaitez pas changer"
                             />
                             <button
                               type="button"
                               className="compte-password-visibility-toggle"
-                              onClick={() => setShowPassword(!showPassword)}
+                              onClick={() =>
+                                setShowCurrentPassword(!showCurrentPassword)
+                              }
                             >
-                              {showPassword ? (
+                              {showCurrentPassword ? (
                                 <EyeOff size={18} />
                               ) : (
                                 <Eye size={18} />
@@ -425,15 +482,18 @@ const Compte = () => {
                             <Lock className="compte-input-field-icon" />
                             <Field
                               name="newPassword"
-                              type={showPassword ? "text" : "password"}
+                              type={showNewPassword ? "text" : "password"}
                               className="compte-text-input-field"
+                              placeholder="Minimum 6 caractères"
                             />
                             <button
                               type="button"
                               className="compte-password-visibility-toggle"
-                              onClick={() => setShowPassword(!showPassword)}
+                              onClick={() =>
+                                setShowNewPassword(!showNewPassword)
+                              }
                             >
-                              {showPassword ? (
+                              {showNewPassword ? (
                                 <EyeOff size={18} />
                               ) : (
                                 <Eye size={18} />
@@ -472,7 +532,12 @@ const Compte = () => {
                     <div className="compte-form-action-buttons">
                       <button
                         type="button"
-                        onClick={() => setIsEditing(false)}
+                        onClick={() => {
+                          setIsEditing(false);
+                          resetForm();
+                          setError(null);
+                          setSuccess(null);
+                        }}
                         className="compte-cancel-changes-btn"
                       >
                         Annuler
@@ -501,7 +566,15 @@ const Compte = () => {
             </Formik>
 
             {!isEditing && (
-              <div className="compte-delete-account-section">
+              <div className="compte-account-actions-section">
+                <button
+                  onClick={handleLogout}
+                  className="compte-logout-account-btn"
+                >
+                  <LogOut size={18} />
+                  Déconnexion
+                </button>
+
                 <button
                   onClick={handleDeleteAccount}
                   disabled={isDeleting}

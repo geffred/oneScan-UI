@@ -18,7 +18,7 @@ const Header = () => {
   };
 
   return (
-    <header className="header">
+    <header className="header-base">
       <div className="header-content">
         <Link to="/" className="header-logo">
           <div className="header-logo-icon">
@@ -59,6 +59,17 @@ const Header = () => {
                 }
               >
                 Comment ça marche
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink
+                to="/contact"
+                className={({ isActive }) =>
+                  `nav-link${isActive ? " active" : ""}`
+                }
+              >
+                Nous Contacter
               </NavLink>
             </li>
           </ul>

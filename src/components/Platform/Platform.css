@@ -299,6 +299,7 @@
   justify-content: center;
   z-index: 1000;
   backdrop-filter: blur(4px);
+
 }
 
 .platform-modal {
@@ -306,9 +307,10 @@
   border-radius: 20px;
   width: 90%;
   max-width: 500px;
-  max-height: 90vh;
+  max-height: 95vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 20px ;
 }
 
 .platform-modal-header {
@@ -841,4 +843,366 @@
   .platform-manual-code-input {
     font-size: 0.8rem;
   }
+}
+
+
+
+
+/* Ajouts CSS pour MeditLink OAuth - À ajouter à votre Platform.css existant */
+
+/* Status banners container */
+.platform-status-banners {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.platform-status-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid;
+  transition: all 0.2s ease;
+}
+
+.platform-status-banner.connected {
+  background-color: #f0f9f4;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.platform-status-banner.disconnected {
+  background-color: #fef3f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.platform-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.platform-banner-content small {
+  color: #6b7280;
+  font-weight: 400;
+  font-size: 12px;
+}
+
+/* MeditLink specific status in cards */
+.platform-meditlink-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.platform-meditlink-status.connected {
+  background-color: #f0f9f4;
+  color: #047857;
+}
+
+.platform-meditlink-status.disconnected {
+  background-color: #fef3f2;
+  color: #dc2626;
+}
+
+/* User info display in cards */
+.platform-user-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 4px 8px;
+  background-color: #f8fafc;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #475569;
+  font-weight: 500;
+}
+
+/* MeditLink disconnect button */
+.platform-disconnect-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #dc2626;
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.platform-disconnect-btn:hover {
+  background-color: #dc2626;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.platform-disconnect-btn:active {
+  transform: translateY(0);
+}
+
+/* MeditLink OAuth Modal */
+.platform-meditlink-modal {
+  max-width: 500px;
+  width: 90%;
+}
+
+.platform-meditlink-auth-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  text-align: center;
+}
+
+.platform-meditlink-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.platform-meditlink-info svg {
+  color: #3b82f6;
+}
+
+.platform-meditlink-info h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.platform-meditlink-info p {
+  margin: 0;
+  color: #6b7280;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.platform-meditlink-features {
+  text-align: left;
+  background-color: #f8fafc;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.platform-meditlink-features h4 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.platform-meditlink-features ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.platform-meditlink-features li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.platform-meditlink-features li svg {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.platform-meditlink-security {
+  background-color: #fef3f2;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.platform-meditlink-security p {
+  margin: 0;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #92400e;
+}
+
+.platform-meditlink-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.platform-meditlink-connect-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 200px;
+  justify-content: center;
+}
+
+.platform-meditlink-connect-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.platform-meditlink-connect-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.platform-meditlink-connect-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Info banner in form */
+.platform-info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.platform-info-banner svg {
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.platform-info-banner div {
+  flex: 1;
+}
+
+.platform-info-banner strong {
+  color: #1e40af;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.platform-info-banner p {
+  margin: 0;
+  color: #1e40af;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Connect button with Shield icon for MeditLink */
+.platform-connect-btn svg[data-lucide="shield"] {
+  color: #3b82f6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .platform-status-banners {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .platform-status-banner {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .platform-banner-content small {
+    font-size: 11px;
+  }
+  
+  .platform-meditlink-modal {
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .platform-meditlink-auth-content {
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .platform-meditlink-connect-btn {
+    padding: 10px 20px;
+    font-size: 15px;
+    min-width: 180px;
+  }
+  
+  .platform-info-banner {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .platform-info-banner p {
+    font-size: 13px;
+  }
+}
+
+/* Loading spinner animation for refresh button */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Enhanced card actions layout */
+.platform-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 12px;
+}
+
+/* Ensure buttons are properly sized */
+.platform-card-actions button {
+  flex-shrink: 0;
+}
+
+/* Special styling for connected status */
+.platform-connect-btn.connected {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+.platform-connect-btn.connected:hover {
+  background-color: #059669;
+  border-color: #059669;
 }

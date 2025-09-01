@@ -1,5 +1,5 @@
 /* Header Styles */
-.header {
+.header-base {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   position: fixed;

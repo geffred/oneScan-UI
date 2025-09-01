@@ -4,6 +4,7 @@ import DashboardPage from "./Dashboard/DashboardPage";
 import LoginPage from "./LoginPage/LoginPage";
 import RegisterPage from "./RegisterPage/RegisterPage";
 import TermsPage from "./TermsPage/TermsPage";
+import ContactPage from "./ContactPage/ContactPage";
 import PrivateRoute from "../components/Config/PrivateRoute";
 import Compte from "./Compte/Compte";
 import CommandeDetails from "../components/CommandeDetails/CommandeDetails";
@@ -12,6 +13,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AppareilGalleryPage from "./AppareilGalleryPage/AppareilGalleryPage";
 import CompteCabinet from "./CompteCabinet/CompteCabinet";
+import MeditLinkCallback from "./MeditLinkCallback/MeditLinkCallback";
 
 function App() {
   return (
@@ -32,9 +34,11 @@ function App() {
           <Route path="/" element={<Homepage />}>
             <Route index element={<Homepage />} />
           </Route>
+          <Route path="/meditLink/callback" element={<MeditLinkCallback />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/compte" element={<Compte />} />
           <Route path="/suivi-commandes" element={<SuiviCommandesPage />} />
           <Route path="/appareils" element={<AppareilGalleryPage />} />

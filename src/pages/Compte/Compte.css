@@ -326,6 +326,26 @@
   border-radius: 12px;
 }
 
+.compte-logout-account-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 2px solid #007AFF;
+  color: #007AFF;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+}
+
+.compte-account-actions-section{
+
+  display: flex;
+  justify-content: space-between;
+}
+
 .compte-delete-account-btn:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.1);
   border-color: #ef4444;
@@ -418,3 +438,110 @@
     left: 0.75rem;
   }
 }
+
+
+/* Styles additionnels pour le composant Compte */
+
+/* Style pour l'email désactivé */
+.compte-email-disabled {
+  background-color: #f5f5f5 !important;
+  color: #666 !important;
+  cursor: not-allowed !important;
+}
+
+/* Note explicative pour les champs */
+.compte-field-note {
+  display: block;
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Section mot de passe */
+.compte-password-section-header {
+  grid-column: 1 / -1;
+  margin: 20px 0 10px 0;
+  padding: 15px 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+.compte-password-section-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Bouton de visibilité du mot de passe */
+.compte-password-visibility-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.compte-password-visibility-toggle:hover {
+  color: #007bff;
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* Améliorer les notifications */
+.compte-error-notification,
+.compte-success-notification {
+  position: relative;
+  padding: 12px 40px 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.compte-error-notification {
+  background-color: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+}
+
+.compte-success-notification {
+  background-color: #efe;
+  border: 1px solid #cfc;
+  color: #363;
+}
+
+.compte-notification-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.compte-notification-close:hover {
+  opacity: 1;
+}
+
+/* Responsive pour les grilles de champs */
+@media (max-width: 768px) {
+  .compte-form-fields-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .compte-password-section-header {
+    grid-column: 1;
+  }
+}
+
+
