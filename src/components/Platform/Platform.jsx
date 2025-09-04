@@ -151,7 +151,7 @@ const check3ShapeAuthStatus = async () => {
   return response.json();
 };
 
-// Nouvelles fonctions pour MeditLink OAuth
+// Fonctions pour MeditLink OAuth
 const initiateMeditLinkAuth = async () => {
   const response = await fetch("/api/meditlink/auth/login", {
     credentials: "include",
@@ -659,17 +659,19 @@ const Platform = () => {
     const code = urlParams.get("code");
     const state = urlParams.get("state");
 
-    if (code && state) {
+    if (code) {
       // Vérifier si c'est un callback MeditLink
       if (
         location.pathname.includes("/meditLink/callback") ||
-        state.includes("meditlink") ||
-        urlParams.get("source") === "meditlink"
+        (state && state.includes("meditlink")) ||
+        urlParams.get("source") === "meditlink" ||
+        !state // MeditLink n'envoie pas toujours de state
       ) {
         console.log("🔍 Callback MeditLink détecté");
         handleMeditLinkCallback(code, state);
       } else {
-        console.log("🔍 Code OAuth 3Shape détecté dans l'URL");
+        // Par défaut, traiter comme 3Shape si pas de state ou pas MeditLink
+        console.log("🔍 Code OAuth détecté, traitement par défaut");
         handleManualAuthCode(code, state);
       }
 
@@ -778,7 +780,7 @@ const Platform = () => {
     [mutateThreeshapeStatus]
   );
 
-  // Nouveaux handlers pour MeditLink OAuth
+  // Handlers pour MeditLink OAuth
   const handleMeditLinkConnect = useCallback(async (platform) => {
     setIsMeditLinkModalOpen(true);
   }, []);
@@ -803,15 +805,22 @@ const Platform = () => {
       try {
         console.log("🔄 Traitement du callback MeditLink...");
 
+        // Préparer le body de la requête
+        const params = new URLSearchParams();
+        params.append("code", code);
+
+        // Ajouter state seulement s'il est présent
+        if (state && state.trim() !== "") {
+          params.append("state", state);
+        }
+
         const response = await fetch("/api/meditlink/auth/callback", {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
           credentials: "include",
-          body: `code=${encodeURIComponent(code)}&state=${encodeURIComponent(
-            state
-          )}`,
+          body: params.toString(),
         });
 
         if (response.ok) {

@@ -10,6 +10,7 @@ import Footer from "../../components/Footer/Footer";
 import "./Homepage.css"; // Assuming you have a CSS file for styling
 import AvisSection from "../../components/AvisSection/AvisSection";
 import TrackingSection from "../../components/TrackingSection/TrackingSection";
+import MeditLinkCases from "../../components/MeditLinkCases/MeditLinkCases";
 
 const Homepage = () => {
   return (
@@ -17,6 +18,7 @@ const Homepage = () => {
       <Header />
 
       <HeroSection />
+      <MeditLinkCases />
       <TrackingSection />
       <FeaturesSection />
       <PlatformsSection />

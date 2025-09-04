@@ -125,6 +125,7 @@ export default defineConfig({
       "/api/meditlink/api/v1/cases/": "http://localhost:8080", // Cas spécifique MeditLink
       "/api/meditlink/api/v1/files/": "http://localhost:8080", // Fichier spécifique MeditLink
       "/api/meditlink/api/v1/orders/": "http://localhost:8080", // Commande spécifique MeditLink
+      "/api/meditlink/cases": "http://localhost:8080",
     },
   },
 });
