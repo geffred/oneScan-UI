@@ -1,0 +1,365 @@
+/* MeditLinkDashboard.css - Version simplifiée */
+
+.meditlink-dashboard {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* HEADER */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-title h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1f2937;
+}
+
+/* STATUS INDICATOR */
+.meditlink-dashboard-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.meditlink-dashboard-status.loading {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.meditlink-dashboard-status.connected {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.meditlink-dashboard-status.connected.expiring {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.meditlink-dashboard-status.disconnected {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* ERROR BANNER */
+.meditlink-dashboard-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.error-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+/* CONTENT GRID */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+/* CARDS */
+.meditlink-dashboard-card {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.card-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.card-content {
+  padding: 1rem;
+}
+
+/* USER INFO CARD */
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.user-field {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.user-field label {
+  font-weight: 500;
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.user-field span {
+  color: #1f2937;
+  font-size: 0.875rem;
+}
+
+
+
+.auth-field {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.auth-field label {
+  font-weight: 500;
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-badge.authenticated {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.status-badge.not-authenticated {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.expiring-notice {
+  color: #92400e;
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+/* ACTIONS CARD */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.meditlink-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+}
+
+.meditlink-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.meditlink-btn.primary {
+  background: #3b82f6;
+  color: white;
+}
+
+
+
+.meditlink-btn.info {
+  background: #0891b2;
+  color: white;
+}
+
+.meditlink-btn.danger {
+  background: #ef4444;
+  color: white;
+}
+
+/* INFO CARD */
+.integration-info p {
+  color: #6b7280;
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+/* MODAL */
+.meditlink-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.meditlink-modal {
+  background: white;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1f2937;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.modal-content {
+  padding: 1rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+
+.loading-details {
+  display: flex;
+  flex-direction: column; 
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  color: #6b7280;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ANIMATIONS */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .meditlink-dashboard {
+    padding: 1rem;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-field,
+  .auth-field,
+  .token-field {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .meditlink-modal {
+    margin: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .meditlink-dashboard {
+    padding: 0.75rem;
+  }
+
+  .card-header,
+  .card-content {
+    padding: 0.75rem;
+  }
+}

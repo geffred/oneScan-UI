@@ -31,6 +31,8 @@ import {
 import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import CryptoJS from "crypto-js";
+import useMeditLinkAuth from "../Config/useMeditLinkAuth";
+import MeditLinkDashboard from "../MeditLinkDashboard/MeditLinkDashboard";
 import "./Platform.css";
 
 // Configuration mise en cache
@@ -151,61 +153,6 @@ const check3ShapeAuthStatus = async () => {
   return response.json();
 };
 
-// Fonctions pour MeditLink OAuth
-const initiateMeditLinkAuth = async () => {
-  const response = await fetch("/api/meditlink/auth/login", {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      "Erreur lors de l'initiation de l'authentification MeditLink"
-    );
-  }
-
-  const data = await response.json();
-  return data.authUrl;
-};
-
-const checkMeditLinkAuthStatus = async () => {
-  const response = await fetch("/api/meditlink/auth/status", {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error("Erreur lors de la vérification du statut MeditLink");
-  }
-
-  return response.json();
-};
-
-const getMeditLinkUser = async () => {
-  const response = await fetch("/api/meditlink/user/me", {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      "Erreur lors de la récupération des infos utilisateur MeditLink"
-    );
-  }
-
-  return response.json();
-};
-
-const logoutMeditLink = async () => {
-  const response = await fetch("/api/meditlink/auth/logout", {
-    method: "POST",
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error("Erreur lors de la déconnexion MeditLink");
-  }
-
-  return response.json();
-};
-
 // Composant de carte optimisé avec React.memo
 const PlatformCard = React.memo(
   ({
@@ -215,6 +162,7 @@ const PlatformCard = React.memo(
     onConnect3Shape,
     onConnectMeditLink,
     onDisconnectMeditLink,
+    onShowMeditLinkDashboard,
     threeshapeStatus,
     meditlinkStatus,
   }) => {
@@ -303,22 +251,35 @@ const PlatformCard = React.memo(
           {isMeditLink && (
             <>
               {meditlinkStatus?.authenticated ? (
-                <button
-                  onClick={() => onDisconnectMeditLink(platform)}
-                  className="platform-disconnect-btn"
-                  aria-label="Déconnecter de MeditLink"
-                >
-                  <X size={16} />
-                  Déconnecter
-                </button>
+                <div className="meditlink-actions-group">
+                  <button
+                    onClick={() => onShowMeditLinkDashboard(platform)}
+                    className="platform-connect-btn"
+                    aria-label="Tableau de bord MeditLink"
+                  >
+                    <Activity size={16} />
+                    Dashboard
+                  </button>
+                  <button
+                    onClick={() => onDisconnectMeditLink(platform)}
+                    className="platform-disconnect-btn"
+                    aria-label="Déconnecter de MeditLink"
+                  >
+                    <X size={16} />
+                    Déconnecter
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={() => onConnectMeditLink(platform)}
                   className="platform-connect-btn"
+                  disabled={meditlinkStatus?.loading}
                   aria-label="Connecter à MeditLink"
                 >
                   <Shield size={16} />
-                  Connecter OAuth
+                  {meditlinkStatus?.loading
+                    ? "Connexion..."
+                    : "Connecter OAuth"}
                 </button>
               )}
             </>
@@ -474,7 +435,7 @@ const ThreeShapeOAuthModal = React.memo(
 
 ThreeShapeOAuthModal.displayName = "ThreeShapeOAuthModal";
 
-// Nouveau composant modal pour MeditLink OAuth
+// Composant modal pour MeditLink OAuth
 const MeditLinkOAuthModal = React.memo(
   ({ isOpen, onClose, onStartAuth, isLoading }) => {
     if (!isOpen) return null;
@@ -576,10 +537,27 @@ const Platform = () => {
 
   // États pour MeditLink OAuth
   const [isMeditLinkModalOpen, setIsMeditLinkModalOpen] = useState(false);
-  const [isMeditLinkAuthLoading, setIsMeditLinkAuthLoading] = useState(false);
+  const [showMeditLinkDashboard, setShowMeditLinkDashboard] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Hook MeditLink Auth - Configuration sans auto-refresh
+  const {
+    authStatus: meditlinkAuthStatus,
+    userInfo: meditlinkUserInfo,
+    isLoading: meditlinkLoading,
+    error: meditlinkError,
+    isAuthenticated: meditlinkAuthenticated,
+    initiateAuth: startMeditlinkAuth,
+    logout: meditlinkLogout,
+    refresh: refreshMeditlink,
+    clearError: clearMeditlinkError,
+  } = useMeditLinkAuth({
+    autoRefresh: false, // Désactiver le rafraîchissement automatique
+    refreshInterval: 0, // Pas d'intervalle de rafraîchissement
+    fetchOnMount: true, // Vérifier le statut au montage seulement
+  });
 
   // SWR hooks pour les données
   const {
@@ -625,34 +603,6 @@ const Platform = () => {
     }
   );
 
-  // SWR hook pour le statut MeditLink
-  const {
-    data: meditlinkStatus,
-    error: meditlinkError,
-    mutate: mutateMeditlinkStatus,
-  } = useSWR(
-    isAuthenticated ? "meditlink-status" : null,
-    checkMeditLinkAuthStatus,
-    {
-      revalidateOnFocus: false,
-      refreshInterval: 60000,
-      errorRetryCount: 1,
-      onError: () => {},
-    }
-  );
-
-  // Hook pour les informations utilisateur MeditLink
-  const { data: meditlinkUser, mutate: mutateMeditlinkUser } = useSWR(
-    meditlinkStatus?.authenticated ? "meditlink-user" : null,
-    getMeditLinkUser,
-    {
-      revalidateOnFocus: false,
-      refreshInterval: 300000, // 5 minutes
-      errorRetryCount: 1,
-      onError: () => {},
-    }
-  );
-
   // Détecter automatiquement les paramètres OAuth dans l'URL
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -680,15 +630,22 @@ const Platform = () => {
     }
   }, [location, navigate]);
 
-  // Mettre à jour le statut MeditLink avec les infos utilisateur
+  // Combiné MeditLink Status avec les infos utilisateur
   const combinedMeditlinkStatus = useMemo(() => {
-    if (!meditlinkStatus) return null;
-
     return {
-      ...meditlinkStatus,
-      userInfo: meditlinkUser,
+      authenticated: meditlinkAuthenticated,
+      userInfo: meditlinkUserInfo,
+      loading: meditlinkLoading,
+      error: meditlinkError,
+      ...meditlinkAuthStatus,
     };
-  }, [meditlinkStatus, meditlinkUser]);
+  }, [
+    meditlinkAuthenticated,
+    meditlinkUserInfo,
+    meditlinkLoading,
+    meditlinkError,
+    meditlinkAuthStatus,
+  ]);
 
   // Filtrage mémorisé
   const filteredPlatforms = useMemo(() => {
@@ -726,6 +683,16 @@ const Platform = () => {
       setTimeout(() => setError(null), 3000);
     }
   }, [platformsError]);
+
+  useEffect(() => {
+    if (meditlinkError) {
+      setError("Erreur MeditLink: " + meditlinkError);
+      setTimeout(() => {
+        setError(null);
+        clearMeditlinkError();
+      }, 5000);
+    }
+  }, [meditlinkError, clearMeditlinkError]);
 
   // Redirection si non authentifié
   useEffect(() => {
@@ -787,18 +754,13 @@ const Platform = () => {
 
   const handleStartMeditLinkAuth = useCallback(async () => {
     try {
-      setIsMeditLinkAuthLoading(true);
-      const authUrl = await initiateMeditLinkAuth();
-      console.log("🔗 Redirection vers MeditLink OAuth");
-      window.location.href = authUrl;
+      setIsMeditLinkModalOpen(false);
+      await startMeditlinkAuth();
     } catch (err) {
-      setError(
-        "Erreur lors de l'initiation de la connexion MeditLink: " + err.message
-      );
+      setError("Erreur lors de la connexion MeditLink: " + err.message);
       setTimeout(() => setError(null), 5000);
-      setIsMeditLinkAuthLoading(false);
     }
-  }, []);
+  }, [startMeditlinkAuth]);
 
   const handleMeditLinkCallback = useCallback(
     async (code, state) => {
@@ -827,9 +789,8 @@ const Platform = () => {
           const data = await response.json();
           console.log("✅ Authentification MeditLink réussie");
 
-          // Revalider les statuts
-          mutateMeditlinkStatus();
-          mutateMeditlinkUser();
+          // Rafraîchir les données MeditLink
+          refreshMeditlink();
 
           setSuccess(
             `Connexion MeditLink établie avec succès ! Bienvenue ${
@@ -846,7 +807,7 @@ const Platform = () => {
         setTimeout(() => setError(null), 5000);
       }
     },
-    [mutateMeditlinkStatus, mutateMeditlinkUser]
+    [refreshMeditlink]
   );
 
   const handleMeditLinkDisconnect = useCallback(
@@ -856,9 +817,7 @@ const Platform = () => {
       }
 
       try {
-        await logoutMeditLink();
-        mutateMeditlinkStatus();
-        mutateMeditlinkUser();
+        await meditlinkLogout();
         setSuccess("Déconnexion MeditLink réussie");
         setTimeout(() => setSuccess(null), 3000);
         console.log("🔓 Déconnexion MeditLink réussie");
@@ -867,8 +826,16 @@ const Platform = () => {
         setTimeout(() => setError(null), 5000);
       }
     },
-    [mutateMeditlinkStatus, mutateMeditlinkUser]
+    [meditlinkLogout]
   );
+
+  const handleShowMeditLinkDashboard = useCallback((platform) => {
+    setShowMeditLinkDashboard(true);
+  }, []);
+
+  const handleCloseMeditLinkDashboard = useCallback(() => {
+    setShowMeditLinkDashboard(false);
+  }, []);
 
   // Handlers existants optimisés
   const handleSubmit = useCallback(
@@ -1011,9 +978,8 @@ const Platform = () => {
 
   const refreshAllStatuses = useCallback(() => {
     mutateThreeshapeStatus();
-    mutateMeditlinkStatus();
-    mutateMeditlinkUser();
-  }, [mutateThreeshapeStatus, mutateMeditlinkStatus, mutateMeditlinkUser]);
+    refreshMeditlink();
+  }, [mutateThreeshapeStatus, refreshMeditlink]);
 
   // Affichage immédiat de l'interface même si les données utilisateur chargent encore
   if (!isAuthenticated) {
@@ -1036,15 +1002,13 @@ const Platform = () => {
               <button
                 onClick={refreshAllStatuses}
                 className="platform-refresh-btn"
-                disabled={is3ShapeAuthLoading || isMeditLinkAuthLoading}
+                disabled={is3ShapeAuthLoading || meditlinkLoading}
                 title="Actualiser tous les statuts"
               >
                 <RefreshCw
                   size={18}
                   className={
-                    is3ShapeAuthLoading || isMeditLinkAuthLoading
-                      ? "spinning"
-                      : ""
+                    is3ShapeAuthLoading || meditlinkLoading ? "spinning" : ""
                   }
                 />
               </button>
@@ -1064,68 +1028,6 @@ const Platform = () => {
           {success && (
             <div className="platform-success-notification">{success}</div>
           )}
-
-          {/* Status Banners */}
-          <div className="platform-status-banners">
-            {/* 3Shape Status Banner */}
-            {threeshapeStatus && (
-              <div
-                className={`platform-status-banner platform-3shape-banner ${
-                  threeshapeStatus.authenticated ? "connected" : "disconnected"
-                }`}
-              >
-                {threeshapeStatus.authenticated ? (
-                  <>
-                    <CheckCircle size={20} />
-                    <span>3Shape connecté et authentifié</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle size={20} />
-                    <span>
-                      3Shape non connecté - Connectez une plateforme 3Shape pour
-                      accéder aux données
-                    </span>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* MeditLink Status Banner */}
-            {combinedMeditlinkStatus && (
-              <div
-                className={`platform-status-banner platform-meditlink-banner ${
-                  combinedMeditlinkStatus.authenticated
-                    ? "connected"
-                    : "disconnected"
-                }`}
-              >
-                {combinedMeditlinkStatus.authenticated ? (
-                  <>
-                    <CheckCircle size={20} />
-                    <div className="platform-banner-content">
-                      <span>MeditLink connecté et authentifié</span>
-                      {combinedMeditlinkStatus.userInfo && (
-                        <small>
-                          Connecté en tant que:{" "}
-                          {combinedMeditlinkStatus.userInfo.name}(
-                          {combinedMeditlinkStatus.userInfo.email})
-                        </small>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle size={20} />
-                    <span>
-                      MeditLink non connecté - Utilisez OAuth pour vous
-                      authentifier
-                    </span>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
 
           {/* Search Bar */}
           <div className="platform-search-section">
@@ -1158,6 +1060,7 @@ const Platform = () => {
                     onConnect3Shape={handle3ShapeConnect}
                     onConnectMeditLink={handleMeditLinkConnect}
                     onDisconnectMeditLink={handleMeditLinkDisconnect}
+                    onShowMeditLinkDashboard={handleShowMeditLinkDashboard}
                     threeshapeStatus={threeshapeStatus}
                     meditlinkStatus={combinedMeditlinkStatus}
                   />
@@ -1336,8 +1239,28 @@ const Platform = () => {
         isOpen={isMeditLinkModalOpen}
         onClose={closeMeditLinkModal}
         onStartAuth={handleStartMeditLinkAuth}
-        isLoading={isMeditLinkAuthLoading}
+        isLoading={meditlinkLoading}
       />
+
+      {/* Modal Dashboard MeditLink */}
+      {showMeditLinkDashboard && (
+        <div className="platform-modal-overlay">
+          <div className="platform-modal platform-meditlink-dashboard-modal">
+            <div className="platform-modal-header">
+              <h2>Tableau de bord MeditLink</h2>
+              <button
+                onClick={handleCloseMeditLinkDashboard}
+                className="platform-modal-close"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="platform-modal-content">
+              <MeditLinkDashboard />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
