@@ -14,6 +14,140 @@ import {
 } from "lucide-react";
 import CommentSection from "./CommentSection";
 
+const MeditLinkFileDownloadButton = React.memo(
+  ({ file, externalId, disabled, isLoading }) => {
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    const downloadMeditLinkFile = async (fileUuid, fileName, externalId) => {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Token manquant");
+
+      // Étape 1: Récupérer les informations de téléchargement
+      const infoResponse = await fetch(
+        `/api/meditlink/files/${fileUuid}?type=stl`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!infoResponse.ok) {
+        throw new Error(
+          `Erreur ${infoResponse.status}: ${infoResponse.statusText}`
+        );
+      }
+
+      const fileInfo = await infoResponse.json();
+
+      if (!fileInfo.downloadUrl) {
+        throw new Error("URL de téléchargement non disponible");
+      }
+
+      // Étape 2: Télécharger le fichier depuis l'URL fournie
+      const downloadResponse = await fetch(fileInfo.downloadUrl);
+
+      if (!downloadResponse.ok) {
+        throw new Error(
+          `Erreur de téléchargement ${downloadResponse.status}: ${downloadResponse.statusText}`
+        );
+      }
+
+      const blob = await downloadResponse.blob();
+
+      if (blob.size === 0) {
+        throw new Error("Le fichier téléchargé est vide");
+      }
+
+      // Étape 3: Créer le nom de fichier final
+      let downloadFilename = fileInfo.downloadFileName || fileName;
+
+      // Si le fichier téléchargé est un .7z, on garde ce format
+      // Sinon on utilise le nom original avec extension .stl
+      if (
+        !downloadFilename.toLowerCase().endsWith(".7z") &&
+        !downloadFilename.toLowerCase().endsWith(".stl")
+      ) {
+        downloadFilename = downloadFilename.replace(/\.[^/.]+$/, "") + ".stl";
+      }
+
+      // Étape 4: Déclencher le téléchargement
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = downloadFilename;
+
+      document.body.appendChild(a);
+      a.click();
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 100);
+
+      return blob;
+    };
+
+    const handleDownload = async () => {
+      if (!file.uuid || disabled) return;
+
+      setIsDownloading(true);
+      try {
+        await downloadMeditLinkFile(file.uuid, file.name, externalId);
+        // toast.success(`Fichier ${file.name} téléchargé avec succès`);
+      } catch (error) {
+        console.error(
+          `Erreur lors du téléchargement du fichier ${file.name}:`,
+          error
+        );
+        // toast.error(`Erreur lors du téléchargement du fichier ${file.name}: ${error.message}`);
+      } finally {
+        setIsDownloading(false);
+      }
+    };
+
+    const getFileTypeLabel = (fileType) => {
+      switch (fileType) {
+        case "SCAN_DATA":
+          return "Scan";
+        case "ATTACHED_DATA":
+          return "Fichier";
+        default:
+          return "Fichier";
+      }
+    };
+
+    const formatFileSize = (bytes) => {
+      if (bytes === 0) return "0 B";
+      const k = 1024;
+      const sizes = ["B", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    };
+
+    return (
+      <button
+        className="details-scan-download-btn meditlink-file-btn"
+        onClick={handleDownload}
+        disabled={disabled || isLoading || isDownloading}
+        title={`Télécharger ${file.name} (${formatFileSize(file.size)})`}
+      >
+        <Download size={16} />
+        <div className="file-info">
+          <span className="file-name">{file.name}</span>
+          <span className="file-details">
+            {getFileTypeLabel(file.fileType)} - {formatFileSize(file.size)}
+          </span>
+        </div>
+        {isDownloading && (
+          <div className="details-download-spinner-small"></div>
+        )}
+      </button>
+    );
+  }
+);
+
 const ScanDownloadButton = React.memo(
   ({ hash, label, externalId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -206,7 +340,64 @@ const CommandeInfoGrid = ({
   mutateCommentaire,
   showNotification,
 }) => {
+  const [meditLinkFiles, setMeditLinkFiles] = useState([]);
+  const [isLoadingFiles, setIsLoadingFiles] = useState(false);
+
   const isThreeShape = commande && commande.plateforme === "THREESHAPE";
+  const isMeditLink = commande && commande.plateforme === "MEDITLINK";
+
+  // Fonction pour récupérer les fichiers MeditLink
+  const fetchMeditLinkFiles = async () => {
+    if (!isMeditLink || !commande.externalId) return;
+
+    setIsLoadingFiles(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Token manquant");
+
+      const response = await fetch(
+        `/api/meditlink/orders/${commande.externalId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+      }
+
+      const orderData = await response.json();
+
+      // Extraire les fichiers du cas
+      if (orderData.case && orderData.case.files) {
+        // Filtrer seulement les fichiers de type SCAN_DATA pour les STL
+        const scanFiles = orderData.case.files.filter(
+          (file) =>
+            file.fileType === "SCAN_DATA" ||
+            (file.fileType === "ATTACHED_DATA" &&
+              file.name.toLowerCase().includes(".stl"))
+        );
+        setMeditLinkFiles(scanFiles);
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des fichiers MeditLink:",
+        error
+      );
+      // toast.error("Impossible de récupérer les fichiers MeditLink");
+    } finally {
+      setIsLoadingFiles(false);
+    }
+  };
+
+  // Charger les fichiers MeditLink au montage du composant
+  useEffect(() => {
+    if (isMeditLink) {
+      fetchMeditLinkFiles();
+    }
+  }, [isMeditLink, commande.externalId]);
 
   return (
     <div className="details-info-grid">
@@ -354,6 +545,7 @@ const CommandeInfoGrid = ({
             <span className="details-item-label">ID interne :</span>
             <span className="details-item-value">{commande.id}</span>
           </div>
+
           {commande.typeAppareil && (
             <div className="details-item">
               <span className="details-item-label">Type d'appareil :</span>
@@ -362,7 +554,8 @@ const CommandeInfoGrid = ({
               </span>
             </div>
           )}
-          {/* Affichage des hash des scans si disponible */}
+
+          {/* Affichage des hash des scans ThreeShape */}
           {isThreeShape && (commande.hash_upper || commande.hash_lower) && (
             <div className="details-item">
               <span className="details-item-label">Scans disponibles :</span>
@@ -385,6 +578,35 @@ const CommandeInfoGrid = ({
                     isLoading={actionStates.downloadLower}
                   />
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Affichage des fichiers MeditLink */}
+          {isMeditLink && (
+            <div className="details-item">
+              <span className="details-item-label">
+                Fichiers disponibles :
+                {isLoadingFiles && (
+                  <span className="loading-text"> (Chargement...)</span>
+                )}
+              </span>
+              <div className="details-scans-container meditlink-files-container">
+                {meditLinkFiles.length > 0
+                  ? meditLinkFiles.map((file) => (
+                      <MeditLinkFileDownloadButton
+                        key={file.uuid}
+                        file={file}
+                        externalId={commande.externalId}
+                        disabled={isLoadingFiles}
+                        isLoading={isLoadingFiles}
+                      />
+                    ))
+                  : !isLoadingFiles && (
+                      <span className="no-files-message">
+                        Aucun fichier disponible
+                      </span>
+                    )}
               </div>
             </div>
           )}

@@ -7,7 +7,6 @@ import {
   Plus,
   Search,
   Filter,
-  Download,
   Eye,
   Calendar,
   Building,
@@ -26,7 +25,7 @@ import "./commandes.css";
 
 // Configuration mise en cache
 const platformEndpoints = {
-  MEDITLINK: "/api/meditlink/commandes",
+  MEDITLINK: "/api/meditlink/cases/save",
   ITERO: "/api/itero/commandes",
   THREESHAPE: "/api/cases/save",
   DEXIS: "/api/dexis/commandes",
@@ -71,151 +70,136 @@ const getCommandes = async () => {
 };
 
 // Composants optimisés avec React.memo
-const CommandeRow = React.memo(
-  ({ commande, onViewDetails, onDownload, isDownloading }) => {
-    const formatDate = (dateString) => {
-      if (!dateString) return "Non spécifiée";
-      const date = new Date(dateString);
-      return date.toLocaleDateString("fr-FR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-    };
+const CommandeRow = React.memo(({ commande, onViewDetails }) => {
+  const formatDate = (dateString) => {
+    if (!dateString) return "Non spécifiée";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
-    const getEcheanceStatus = (dateEcheance) => {
-      if (!dateEcheance)
-        return { status: "unknown", label: "Non spécifiée", class: "gray" };
+  const getEcheanceStatus = (dateEcheance) => {
+    if (!dateEcheance)
+      return { status: "unknown", label: "Non spécifiée", class: "gray" };
 
-      const today = new Date();
-      const echeance = new Date(dateEcheance);
-      const diffTime = echeance - today;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const today = new Date();
+    const echeance = new Date(dateEcheance);
+    const diffTime = echeance - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      if (diffDays < 0)
-        return { status: "expired", label: "Échue", class: "red" };
-      if (diffDays <= 3)
-        return {
-          status: "urgent",
-          label: `${diffDays}j restant`,
-          class: "yellow",
-        };
+    if (diffDays < 0)
+      return { status: "expired", label: "Échue", class: "red" };
+    if (diffDays <= 3)
       return {
-        status: "normal",
+        status: "urgent",
         label: `${diffDays}j restant`,
-        class: "green",
+        class: "yellow",
       };
+    return {
+      status: "normal",
+      label: `${diffDays}j restant`,
+      class: "green",
     };
+  };
 
-    const getPlateformeColor = (plateforme) => {
-      const colors = {
-        MEDITLINK: "blue",
-        ITERO: "green",
-        THREESHAPE: "purple",
-        DEXIS: "orange",
-      };
-      return colors[plateforme] || "gray";
+  const getPlateformeColor = (plateforme) => {
+    const colors = {
+      MEDITLINK: "blue",
+      ITERO: "green",
+      THREESHAPE: "purple",
+      DEXIS: "orange",
     };
+    return colors[plateforme] || "gray";
+  };
 
-    const echeanceStatus = getEcheanceStatus(commande.dateEcheance);
-    const plateformeColor = getPlateformeColor(commande.plateforme);
+  const echeanceStatus = getEcheanceStatus(commande.dateEcheance);
+  const plateformeColor = getPlateformeColor(commande.plateforme);
 
-    return (
-      <div
-        className={`commandes-table-row ${
-          !commande.vu ? "commandes-row-unread" : ""
-        }`}
-        onClick={() => onViewDetails(commande)}
-        style={{ cursor: "pointer" }}
-      >
-        <div className="commandes-table-cell" data-label="ID">
-          <span className="commandes-external-id">
-            #{commande.externalId ? commande.externalId.substring(0, 4) : "N/A"}
+  return (
+    <div
+      className={`commandes-table-row ${
+        !commande.vu ? "commandes-row-unread" : ""
+      }`}
+      onClick={() => onViewDetails(commande)}
+      style={{ cursor: "pointer" }}
+    >
+      <div className="commandes-table-cell" data-label="ID">
+        <span className="commandes-external-id">
+          #{commande.externalId ? commande.externalId.substring(0, 4) : "N/A"}
+        </span>
+      </div>
+
+      <div className="commandes-table-cell" data-label="Patient">
+        <div className="commandes-patient-info">
+          {!commande.vu && <span className="commandes-unread-badge"></span>}
+          <span className="commandes-patient-name">
+            {commande.refPatient || "Non spécifié"}
           </span>
-        </div>
-
-        <div className="commandes-table-cell" data-label="Patient">
-          <div className="commandes-patient-info">
-            {!commande.vu && <span className="commandes-unread-badge"></span>}
-            <span className="commandes-patient-name">
-              {commande.refPatient || "Non spécifié"}
-            </span>
-          </div>
-        </div>
-
-        <div className="commandes-table-cell" data-label="Cabinet">
-          <span className="commandes-cabinet-name">
-            {commande.cabinet || "Non spécifié"}
-          </span>
-        </div>
-
-        <div className="commandes-table-cell" data-label="Plateforme">
-          <span
-            className={`commandes-plateforme-badge commandes-plateforme-${plateformeColor}`}
-          >
-            {commande.plateforme}
-          </span>
-        </div>
-
-        <div className="commandes-table-cell" data-label="Réception">
-          <div className="commandes-date-info">
-            <Calendar size={14} />
-            <span>{formatDate(commande.dateReception)}</span>
-          </div>
-        </div>
-
-        <div className="commandes-table-cell" data-label="Échéance">
-          <div className="commandes-date-info">
-            <Clock size={14} />
-            <span>
-              {commande.dateEcheance != null
-                ? formatDate(commande.dateEcheance)
-                : "Non spécifiée"}
-            </span>
-          </div>
-        </div>
-
-        <div className="commandes-table-cell" data-label="Statut">
-          <span
-            className={`commandes-status-badge commandes-status-${echeanceStatus.class}`}
-          >
-            {echeanceStatus.label}
-          </span>
-        </div>
-
-        <div className="commandes-table-cell" data-label="Actions">
-          <div className="commandes-actions">
-            <button
-              className="commandes-action-btn commandes-action-download"
-              title="Télécharger le scan 3D"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDownload(commande);
-              }}
-              disabled={isDownloading}
-            >
-              {isDownloading ? (
-                <div className="commandes-download-spinner"></div>
-              ) : (
-                <Download size={16} />
-              )}
-            </button>
-            <button
-              className="commandes-action-btn commandes-action-view"
-              title="Voir les détails"
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewDetails(commande);
-              }}
-            >
-              <Eye size={16} />
-            </button>
-          </div>
         </div>
       </div>
-    );
-  }
-);
+
+      <div className="commandes-table-cell" data-label="Cabinet">
+        <span className="commandes-cabinet-name">
+          {commande.cabinet || "Non spécifié"}
+        </span>
+      </div>
+
+      <div className="commandes-table-cell" data-label="Plateforme">
+        <span
+          className={`commandes-plateforme-badge commandes-plateforme-${plateformeColor}`}
+        >
+          {commande.plateforme}
+        </span>
+      </div>
+
+      <div className="commandes-table-cell" data-label="Réception">
+        <div className="commandes-date-info">
+          <Calendar size={14} />
+          <span>{formatDate(commande.dateReception)}</span>
+        </div>
+      </div>
+
+      <div className="commandes-table-cell" data-label="Échéance">
+        <div className="commandes-date-info">
+          <Clock size={14} />
+          <span>
+            {commande.dateEcheance != null
+              ? formatDate(commande.dateEcheance)
+              : "Non spécifiée"}
+          </span>
+        </div>
+      </div>
+
+      <div className="commandes-table-cell" data-label="Statut">
+        <span
+          className={`commandes-status-badge commandes-status-${echeanceStatus.class}`}
+        >
+          {echeanceStatus.label}
+        </span>
+      </div>
+
+      <div className="commandes-table-cell" data-label="Actions">
+        <div className="commandes-actions">
+          <button
+            className={`commandes-action-btn  ${
+              !commande.vu ? "commandes-action-view" : ""
+            }`}
+            title="Voir les détails"
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(commande);
+            }}
+          >
+            <Eye size={16} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
 
 CommandeRow.displayName = "CommandeRow";
 
@@ -310,7 +294,6 @@ const Commandes = () => {
   const [customDateTo, setCustomDateTo] = useState("");
   const [syncStatus, setSyncStatus] = useState({});
   const [isSyncing, setIsSyncing] = useState(false);
-  const [downloadingCommands, setDownloadingCommands] = useState(new Set());
 
   // SWR hooks pour les données
   const {
@@ -349,8 +332,126 @@ const Commandes = () => {
     errorRetryCount: 3,
   });
 
-  // Fonction pour synchroniser les commandes d'une plateforme spécifique
-  const syncPlatformCommandes = useCallback(
+  // Fonction pour calculer les dates des 5 derniers jours en millisecondes
+  const getLast5DaysTimestamps = useCallback(() => {
+    const now = new Date();
+    const endDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999
+    );
+
+    const startDate = new Date(endDate);
+    startDate.setDate(startDate.getDate() - 5);
+    startDate.setHours(0, 0, 0, 0);
+
+    return {
+      start: startDate.getTime(),
+      end: endDate.getTime(),
+    };
+  }, []);
+
+  // Fonction pour synchroniser les commandes MeditLink avec les 5 derniers jours
+  const syncMeditLinkCommandes = useCallback(async () => {
+    const timestamps = getLast5DaysTimestamps();
+    const endpoint = `/api/meditlink/cases/save?page=0&size=20&start=${timestamps.start}&end=${timestamps.end}`;
+
+    setSyncStatus((prev) => ({
+      ...prev,
+      MEDITLINK: {
+        status: "loading",
+        message: "Synchronisation MeditLink en cours...",
+      },
+    }));
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+
+        // Actualiser les données après synchronisation
+        mutateCommandes();
+
+        setSyncStatus((prev) => ({
+          ...prev,
+          MEDITLINK: {
+            status: "success",
+            message: "Synchronisation MeditLink réussie",
+          },
+        }));
+
+        // Notification Toastify pour succès
+        toast.success("MeditLink synchronisée avec succès (5 derniers jours)", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } else {
+        const errorText = await response.text();
+        setSyncStatus((prev) => ({
+          ...prev,
+          MEDITLINK: {
+            status: "error",
+            message: "Erreur de synchronisation MeditLink",
+          },
+        }));
+
+        // Notification Toastify pour erreur
+        toast.error("❌ Erreur lors de la synchronisation MeditLink", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
+    } catch (err) {
+      console.error("Erreur lors de la synchronisation MeditLink:", err);
+      setSyncStatus((prev) => ({
+        ...prev,
+        MEDITLINK: {
+          status: "error",
+          message: "Erreur de connexion MeditLink",
+        },
+      }));
+
+      // Notification Toastify pour erreur de connexion
+      toast.error(" Erreur de connexion avec MeditLink", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+
+    // Effacer le statut après 3 secondes
+    setTimeout(() => {
+      setSyncStatus((prev) => {
+        const newStatus = { ...prev };
+        delete newStatus.MEDITLINK;
+        return newStatus;
+      });
+    }, 3000);
+  }, [getLast5DaysTimestamps, mutateCommandes]);
+
+  // Fonction pour synchroniser les autres plateformes (3Shape, Itero, Dexis)
+  const syncOtherPlatform = useCallback(
     async (platformName) => {
       const endpoint = platformEndpoints[platformName];
       if (!endpoint) {
@@ -364,7 +465,7 @@ const Commandes = () => {
         ...prev,
         [platformName]: {
           status: "loading",
-          message: "Synchronisation en cours...",
+          message: `Synchronisation ${platformName} en cours...`,
         },
       }));
 
@@ -386,7 +487,7 @@ const Commandes = () => {
             ...prev,
             [platformName]: {
               status: "success",
-              message: "Synchronisation réussie",
+              message: `Synchronisation ${platformName} réussie`,
             },
           }));
 
@@ -405,7 +506,7 @@ const Commandes = () => {
             ...prev,
             [platformName]: {
               status: "error",
-              message: "Erreur de synchronisation",
+              message: `Erreur de synchronisation ${platformName}`,
             },
           }));
 
@@ -428,7 +529,7 @@ const Commandes = () => {
           ...prev,
           [platformName]: {
             status: "error",
-            message: "Erreur de connexion",
+            message: `Erreur de connexion ${platformName}`,
           },
         }));
 
@@ -461,15 +562,19 @@ const Commandes = () => {
 
     setIsSyncing(true);
 
-    const syncPromises = userPlatforms.map((platform) =>
-      syncPlatformCommandes(platform.name)
-    );
+    const syncPromises = userPlatforms.map((platform) => {
+      if (platform.name === "MEDITLINK") {
+        return syncMeditLinkCommandes();
+      } else {
+        return syncOtherPlatform(platform.name);
+      }
+    });
 
     await Promise.all(syncPromises);
     setIsSyncing(false);
 
     // Notification pour synchronisation globale
-    toast.success("outes les plateformes synchronisées", {
+    toast.success("Toutes les plateformes synchronisées", {
       position: "top-right",
       autoClose: 3000,
       hideProgressBar: false,
@@ -477,7 +582,19 @@ const Commandes = () => {
       pauseOnHover: true,
       draggable: true,
     });
-  }, [userPlatforms, syncPlatformCommandes]);
+  }, [userPlatforms, syncMeditLinkCommandes, syncOtherPlatform]);
+
+  // Fonction pour synchroniser une plateforme spécifique
+  const syncPlatformCommandes = useCallback(
+    (platformName) => {
+      if (platformName === "MEDITLINK") {
+        return syncMeditLinkCommandes();
+      } else {
+        return syncOtherPlatform(platformName);
+      }
+    },
+    [syncMeditLinkCommandes, syncOtherPlatform]
+  );
 
   // Fonction pour filtrer par date
   const filterByDate = useCallback(
@@ -509,82 +626,6 @@ const Commandes = () => {
     },
     [dateFilter, customDateFrom, customDateTo]
   );
-
-  // Fonction pour télécharger le scan 3D
-  const handleDownload = useCallback(async (commande) => {
-    const commandId = commande.externalId;
-
-    setDownloadingCommands((prev) => new Set([...prev, commandId]));
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/meditlink/download/${commandId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        method: "POST",
-        body: JSON.stringify({ commandId }),
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
-        a.href = url;
-        a.download = `scan-3D-${commandId}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-
-        // Notification Toastify pour succès du téléchargement
-        toast.success(`Scan 3D téléchargé avec succès`, {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-
-        // Ouvrir l'explorateur Windows dans le dossier Téléchargements (si supporté par le navigateur)
-        try {
-          if ("showDirectoryPicker" in window) {
-            await window.showDirectoryPicker();
-          }
-        } catch (explorerError) {
-          console.log("Ouverture automatique de l'explorateur non supportée");
-        }
-      } else {
-        // Notification Toastify pour erreur de téléchargement
-        toast.error(` Erreur lors du téléchargement`, {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-      }
-    } catch (error) {
-      // Notification Toastify pour erreur de connexion
-      toast.error(` Erreur de connexion lors du téléchargement`, {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    } finally {
-      setDownloadingCommands((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(commandId);
-        return newSet;
-      });
-    }
-  }, []);
 
   // Fonction pour voir les détails d'une commande
   const handleViewDetails = useCallback(
@@ -872,8 +913,6 @@ const Commandes = () => {
                   key={commande.id}
                   commande={commande}
                   onViewDetails={handleViewDetails}
-                  onDownload={handleDownload}
-                  isDownloading={downloadingCommands.has(commande.externalId)}
                 />
               ))}
             </div>

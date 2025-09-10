@@ -27,22 +27,36 @@ const MeditLinkCallback = () => {
   const hasSucceededRef = useRef(false);
   const hasRedirectedRef = useRef(false);
   const timeoutRef = useRef(null);
+  const refreshIntervalRef = useRef(null);
+
+  // Fonction pour rafraîchir la session
+  const refreshSession = useRef(async () => {
+    try {
+      await fetch("/api/meditlink/auth/refresh", {
+        method: "POST",
+        credentials: "include",
+      });
+      console.log("Session rafraîchie ✅");
+    } catch (e) {
+      console.error("Erreur de rafraîchissement", e);
+    }
+  });
 
   useEffect(() => {
-    if (status === "success") {
-      const interval = setInterval(async () => {
-        try {
-          await fetch("/api/meditlink/auth/refresh", {
-            credentials: "include",
-          });
-          console.log("Session rafraîchie ✅");
-        } catch (e) {
-          console.error("Erreur de rafraîchissement", e);
-        }
-      }, 0.5 * 60 * 1000); // toutes les 30 secondes
-
-      return () => clearInterval(interval);
+    // Démarrer le rafraîchissement automatique seulement après une authentification réussie
+    if (status === "success" && !refreshIntervalRef.current) {
+      refreshIntervalRef.current = setInterval(() => {
+        refreshSession.current();
+      }, 30 * 1000); // Toutes les 30 secondes
     }
+
+    // Nettoyer l'intervalle lors du démontage du composant
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+    };
   }, [status]);
 
   const handleCallback = async (code, state = null, isRetry = false) => {
@@ -114,6 +128,9 @@ const MeditLinkCallback = () => {
           });
         }
 
+        // Rafraîchir immédiatement la session après succès
+        refreshSession.current();
+
         // Planifier la redirection une seule fois
         if (!hasRedirectedRef.current) {
           hasRedirectedRef.current = true;
@@ -159,6 +176,10 @@ const MeditLinkCallback = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+      refreshIntervalRef.current = null;
+    }
     navigate("/Dashboard/Platform", { replace: true });
   };
 
@@ -190,6 +211,10 @@ const MeditLinkCallback = () => {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+      }
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
       }
     };
   }, [location.search]);

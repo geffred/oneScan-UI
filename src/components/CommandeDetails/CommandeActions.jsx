@@ -34,7 +34,6 @@ const CommandeActions = ({
   handleGenerateOrder,
   handleOpenBonCommande,
   handleSendEmailNotification,
-  handleDownload,
 }) => {
   return (
     <div className="details-actions-section">
@@ -84,15 +83,6 @@ const CommandeActions = ({
             <span>Notification envoyée</span>
           </div>
         )}
-
-        <ActionCard
-          onClick={handleDownload}
-          disabled={actionStates.download}
-          icon={<Download size={24} />}
-          title="Télécharger le scan 3D"
-          description="Récupérer le fichier ZIP contenant le scan 3D de cette commande"
-          isLoading={actionStates.download}
-        />
       </div>
     </div>
   );

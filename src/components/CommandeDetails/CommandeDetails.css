@@ -1217,3 +1217,124 @@
   margin: 15px 0;
   font-weight: 500;
 }
+
+
+/* Styles pour les boutons de téléchargement MeditLink */
+
+.meditlink-file-btn:hover:not(:disabled) {
+  background: #0070e7;
+}
+
+.meditlink-file-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.meditlink-file-btn .file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.meditlink-file-btn .file-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.meditlink-file-btn .file-details {
+  font-size: 11px;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Container pour les fichiers MeditLink */
+.meditlink-files-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.meditlink-files-container .meditlink-file-btn {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* Messages d'état */
+.loading-text {
+  color: #6b7280;
+  font-style: italic;
+  font-size: 12px;
+}
+
+.no-files-message {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 13px;
+  padding: 8px;
+  text-align: center;
+  border: 1px dashed #d1d5db;
+  border-radius: 4px;
+  background-color: #f9fafb;
+}
+
+/* Amélioration des styles existants pour les scans ThreeShape */
+.details-scans-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+
+
+.details-scan-download-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Spinner de téléchargement */
+.details-download-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .meditlink-file-btn .file-name {
+    font-size: 12px;
+  }
+  
+  .meditlink-file-btn .file-details {
+    font-size: 10px;
+  }
+  
+  .details-scan-download-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+    min-height: 32px;
+  }
+}
