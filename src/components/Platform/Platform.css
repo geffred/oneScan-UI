@@ -1,4 +1,4 @@
-/* Platform.css - Styles for Platform CRUD Component */
+/* Platform.css - Optimized without box-shadow */
 
 /* Main Wrapper */
 .platform-main-wrapper {
@@ -17,7 +17,6 @@
 .platform-management-card {
   background: white;
   border-radius: 24px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   border: 1px solid #e2e8f0;
   overflow: hidden;
   padding: 2.5rem;
@@ -61,20 +60,18 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: linear-gradient(135deg, #007AFF 0%, #007AFF 100%);
   color: white;
   border: none;
   padding: 1rem 2rem;
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
+  transition: transform 0.2s ease;
 }
 
 .platform-create-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 122, 255, 0.4);
 }
 
 /* Status Messages */
@@ -85,7 +82,6 @@
   border-radius: 12px;
   margin-bottom: 1.5rem;
   font-weight: 500;
-  border-left: 4px solid #ef4444;
 }
 
 .platform-success-notification {
@@ -95,7 +91,6 @@
   border-radius: 12px;
   margin-bottom: 1.5rem;
   font-weight: 500;
-  border-left: 4px solid #10b981;
 }
 
 /* Search Section */
@@ -123,14 +118,13 @@
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: border-color 0.2s ease;
   background: white;
 }
 
 .platform-search-input:focus {
   outline: none;
   border-color: #007AFF;
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
 }
 
 /* Platform List */
@@ -149,13 +143,12 @@
   border: 2px solid #e2e8f0;
   border-radius: 16px;
   padding: 1.5rem;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease;
   position: relative;
 }
 
 .platform-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 122, 255, 0.15);
   border-color: #007AFF;
 }
 
@@ -231,7 +224,7 @@
   padding: 0.5rem;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -250,7 +243,7 @@
   padding: 0.5rem;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -299,7 +292,6 @@
   justify-content: center;
   z-index: 1000;
   backdrop-filter: blur(4px);
-
 }
 
 .platform-modal {
@@ -309,8 +301,7 @@
   max-width: 500px;
   max-height: 95vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  padding: 20px ;
+  padding: 20px;
 }
 
 .meditlink-actions-group{
@@ -340,7 +331,7 @@
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 8px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .platform-modal-close:hover {
@@ -394,7 +385,7 @@
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: border-color 0.2s ease;
   background: white;
 }
 
@@ -402,7 +393,6 @@
 .platform-select-input:focus {
   outline: none;
   border-color: #007AFF;
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
 }
 
 .platform-password-toggle {
@@ -414,7 +404,7 @@
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 8px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   z-index: 1;
 }
 
@@ -446,7 +436,7 @@
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .platform-cancel-btn:hover {
@@ -462,16 +452,14 @@
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
 }
 
 .platform-save-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 122, 255, 0.4);
 }
 
 .platform-save-btn:disabled {
@@ -525,88 +513,7 @@
   font-weight: 500;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .platform-management-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .platform-management-title {
-    font-size: 2rem;
-  }
-
-  .platform-create-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .platform-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .platform-modal {
-    width: 95%;
-    margin: 1rem;
-  }
-
-  .platform-modal-form {
-    padding: 1.5rem;
-  }
-
-  .platform-modal-actions {
-    flex-direction: column;
-  }
-
-  .platform-cancel-btn,
-  .platform-save-btn {
-    width: 100%;
-  }
-
-  .platform-card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .platform-main-wrapper {
-    padding: 1rem;
-  }
-
-  .platform-management-card {
-    padding: 1.5rem;
-    border-radius: 16px;
-  }
-
-  .platform-management-title {
-    font-size: 1.75rem;
-  }
-
-  .platform-text-input,
-  .platform-select-input {
-    padding: 0.875rem 0.875rem 0.875rem 2.5rem;
-  }
-
-  .platform-input-icon {
-    left: 0.75rem;
-  }
-
-  .platform-search-input {
-    padding: 0.875rem 0.875rem 0.875rem 2.5rem;
-  }
-
-  .platform-search-icon {
-    left: 0.75rem;
-  }
-}
-
-
-/******************************************************/
-
-/* Styles pour 3Shape OAuth */
+/* 3Shape OAuth */
 .platform-3shape-banner {
   display: flex;
   align-items: center;
@@ -661,7 +568,7 @@
   background: #007AFF;
   color: white;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -689,7 +596,7 @@
   background: white;
   color: #64748b;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .platform-refresh-btn:hover {
@@ -755,12 +662,11 @@
   text-decoration: none;
   border-radius: 8px;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .platform-3shape-auth-link:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
 }
 
 .platform-manual-code-form {
@@ -775,7 +681,7 @@
   border: 2px solid #e2e8f0;
   border-radius: 6px;
   font-size: 0.875rem;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.2s ease;
 }
 
 .platform-manual-code-input:focus {
@@ -794,7 +700,7 @@
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   align-self: flex-start;
 }
 
@@ -832,30 +738,7 @@
   line-height: 1.5;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .platform-header-actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
-  }
-  
-  .platform-3shape-modal {
-    width: 95vw;
-    margin: 1rem;
-  }
-  
-  .platform-manual-code-input {
-    font-size: 0.8rem;
-  }
-}
-
-
-
-
-/* Ajouts CSS pour MeditLink OAuth - À ajouter à votre Platform.css existant */
-
-/* Status banners container */
+/* MeditLink OAuth */
 .platform-status-banners {
   display: flex;
   flex-direction: column;
@@ -899,7 +782,6 @@
   font-size: 12px;
 }
 
-/* MeditLink specific status in cards */
 .platform-meditlink-status {
   display: flex;
   align-items: center;
@@ -921,7 +803,6 @@
   color: #dc2626;
 }
 
-/* User info display in cards */
 .platform-user-info {
   display: flex;
   align-items: center;
@@ -935,7 +816,6 @@
   font-weight: 500;
 }
 
-/* MeditLink disconnect button */
 .platform-disconnect-btn {
   display: flex;
   align-items: center;
@@ -961,7 +841,6 @@
   transform: translateY(0);
 }
 
-/* MeditLink OAuth Modal */
 .platform-meditlink-modal {
   max-width: 500px;
   width: 90%;
@@ -1075,7 +954,6 @@
 .platform-meditlink-connect-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #1d4ed8, #1e40af);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .platform-meditlink-connect-btn:active:not(:disabled) {
@@ -1088,7 +966,6 @@
   transform: none;
 }
 
-/* Info banner in form */
 .platform-info-banner {
   display: flex;
   align-items: flex-start;
@@ -1124,13 +1001,97 @@
   line-height: 1.5;
 }
 
-/* Connect button with Shield icon for MeditLink */
 .platform-connect-btn svg[data-lucide="shield"] {
   color: #3b82f6;
 }
 
-/* Responsive adjustments */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+.platform-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.platform-card-actions button {
+  flex-shrink: 0;
+}
+
+.platform-connect-btn.connected {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+.platform-connect-btn.connected:hover {
+  background-color: #059669;
+  border-color: #059669;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
+  .platform-management-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .platform-management-title {
+    font-size: 2rem;
+  }
+
+  .platform-create-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .platform-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-modal {
+    width: 95%;
+    margin: 1rem;
+  }
+
+  .platform-modal-form {
+    padding: 1.5rem;
+  }
+
+  .platform-modal-actions {
+    flex-direction: column;
+  }
+
+  .platform-cancel-btn,
+  .platform-save-btn {
+    width: 100%;
+  }
+
+  .platform-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .platform-header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .platform-3shape-modal {
+    width: 95vw;
+    margin: 1rem;
+  }
+  
+  .platform-manual-code-input {
+    font-size: 0.8rem;
+  }
+
   .platform-status-banners {
     gap: 8px;
     margin-bottom: 16px;
@@ -1172,42 +1133,34 @@
   }
 }
 
-/* Loading spinner animation for refresh button */
-.spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
+@media (max-width: 480px) {
+  .platform-main-wrapper {
+    padding: 1rem;
   }
-  to {
-    transform: rotate(360deg);
+
+  .platform-management-card {
+    padding: 1.5rem;
+    border-radius: 16px;
   }
-}
 
-/* Enhanced card actions layout */
-.platform-card-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-top: 12px;
-}
+  .platform-management-title {
+    font-size: 1.75rem;
+  }
 
-/* Ensure buttons are properly sized */
-.platform-card-actions button {
-  flex-shrink: 0;
-}
+  .platform-text-input,
+  .platform-select-input {
+    padding: 0.875rem 0.875rem 0.875rem 2.5rem;
+  }
 
-/* Special styling for connected status */
-.platform-connect-btn.connected {
-  background-color: #10b981;
-  border-color: #10b981;
-  color: white;
-}
+  .platform-input-icon {
+    left: 0.75rem;
+  }
 
-.platform-connect-btn.connected:hover {
-  background-color: #059669;
-  border-color: #059669;
+  .platform-search-input {
+    padding: 0.875rem 0.875rem 0.875rem 2.5rem;
+  }
+
+  .platform-search-icon {
+    left: 0.75rem;
+  }
 }

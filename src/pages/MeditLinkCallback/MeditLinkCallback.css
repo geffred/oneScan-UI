@@ -11,16 +11,13 @@
   background: white;
   border-radius: 16px;
   padding: 3rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   max-width: 500px;
   width: 100%;
   text-align: center;
   animation: slideIn 0.5s ease-out;
 }
 
-.callback-card.loading { border-top: 4px solid #3b82f6; }
-.callback-card.success { border-top: 4px solid #10b981; }
-.callback-card.error { border-top: 4px solid #ef4444; }
 
 .callback-header {
   margin-bottom: 2rem;

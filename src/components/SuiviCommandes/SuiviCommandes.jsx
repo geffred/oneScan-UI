@@ -43,7 +43,7 @@ const ETAPES_SUIVI = [
     detail:
       "Votre commande a été reçue et est en cours de validation. Nos équipes vérifient les spécifications techniques et préparent le processus de fabrication.",
     icon: Clock,
-    color: "#f59e0b",
+    color: "#3b82f6",
   },
   {
     status: "EN_COURS",
@@ -61,7 +61,7 @@ const ETAPES_SUIVI = [
     detail:
       "La fabrication de votre appareil est terminée. Nos équipes procèdent aux derniers contrôles qualité avant conditionnement et expédition.",
     icon: CheckCircle2,
-    color: "#10b981",
+    color: "#3b82f6",
   },
   {
     status: "EXPEDIEE",
@@ -70,7 +70,7 @@ const ETAPES_SUIVI = [
     detail:
       "Votre commande a été expédiée et est en route vers votre cabinet dentaire. Vous recevrez bientôt un avis de livraison.",
     icon: Truck,
-    color: "#8b5cf6",
+    color: "#3b82f6",
   },
 ];
 
@@ -104,7 +104,7 @@ const StatusIndicator = ({
             isPassed ? "completed" : ""
           }`}
           style={{
-            backgroundColor: isActive || isPassed ? etape.color : "#e5e7eb",
+            backgroundColor: isActive || isPassed ? etape.color : "#ffffffff",
             borderColor: etape.color,
           }}
         >

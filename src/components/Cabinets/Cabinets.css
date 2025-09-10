@@ -99,12 +99,10 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: var(--cabinet-transition);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
 }
 
 .cabinet-create-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 122, 255, 0.35);
 }
 
 /* Notifications */
@@ -116,7 +114,7 @@
   margin-bottom: 1.5rem;
   font-weight: 500;
   font-size: 0.9rem;
-  border-left: 3px solid var(--cabinet-error);
+
 }
 
 .cabinet-success-notification {
@@ -127,7 +125,6 @@
   margin-bottom: 1.5rem;
   font-weight: 500;
   font-size: 0.9rem;
-  border-left: 3px solid var(--cabinet-success);
 }
 
 /* Search */
@@ -534,12 +531,10 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
 
 .cabinet-save-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
 }
 
 .cabinet-save-btn:disabled {

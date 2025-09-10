@@ -92,8 +92,6 @@
   -webkit-text-fill-color: transparent;
 }
 
-
-
 .commandes-stat-label {
   font-size: var(--commandes-font-sm);
   color: rgba(255, 255, 255, 0.9);
@@ -200,15 +198,6 @@
   height: 16px;
   margin-right: 0.5rem;
   border-width: 2px;
-}
-
-.commandes-download-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--commandes-border-light);
-  border-top: 2px solid var(--commandes-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
@@ -493,7 +482,7 @@
 
 .commandes-table-header {
   display: grid;
-  grid-template-columns: 100px 1fr 1fr 120px 120px 120px 100px 120px;
+  grid-template-columns: 100px 1fr 1fr 120px 120px 120px 120px 80px;
   background: var(--commandes-background-muted);
   border-bottom: 1px solid var(--commandes-border);
 }
@@ -505,7 +494,7 @@
 
 .commandes-table-row {
   display: grid;
-  grid-template-columns: 100px 1fr 1fr 120px 120px 120px 100px 120px;
+  grid-template-columns: 100px 1fr 1fr 120px 120px 120px 120px 80px;
   border-bottom: 1px solid var(--commandes-border-light);
   transition: var(--commandes-transition);
 }
@@ -644,6 +633,7 @@
 .commandes-actions {
   display: flex;
   gap: 0.5rem;
+  justify-content: center;
 }
 
 .commandes-action-btn {
@@ -671,16 +661,6 @@
 
 .commandes-action-view:hover:not(:disabled) {
   background: var(--commandes-primary-dark);
-  transform: scale(1.05);
-}
-
-.commandes-action-download {
-  background: var(--commandes-success);
-  color: white;
-}
-
-.commandes-action-download:hover:not(:disabled) {
-  background: #059669;
   transform: scale(1.05);
 }
 
@@ -741,7 +721,7 @@
 @media (max-width: 1200px) {
   .commandes-table-header,
   .commandes-table-row {
-    grid-template-columns: 80px 1fr 1fr 100px 100px 100px 80px 100px;
+    grid-template-columns: 80px 1fr 1fr 100px 100px 100px 80px 70px;
   }
 
   .commandes-platforms-grid {

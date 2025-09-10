@@ -13,11 +13,19 @@ import {
 import useMeditLinkAuth from "../../components/Config/useMeditLinkAuth";
 import "./MeditLinkDashboard.css";
 
-const fetcher = (url) =>
-  fetch(url, { credentials: "include" }).then((res) => {
+const fetcher = (url) => {
+  const token = localStorage.getItem("token");
+  return fetch(url, {
+    credentials: "include",
+    headers: {
+      Authorization: token ? `Bearer ${token}` : "",
+      "Content-Type": "application/json",
+    },
+  }).then((res) => {
     if (!res.ok) throw new Error(res.statusText);
     return res.json();
   });
+};
 
 const MeditLinkDashboard = () => {
   const {
