@@ -1,12 +1,46 @@
-import React from "react";
-import { Search, Star, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import {
+  Search,
+  Clock,
+  Settings,
+  CheckCircle2,
+  Truck,
+  ArrowRight,
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import "./TrackingSection.css";
 
+const ETAPES_SUIVI = [
+  { status: "EN_ATTENTE", label: "En attente", color: "#3b82f6", icon: Clock },
+  {
+    status: "EN_COURS",
+    label: "En cours de fabrication",
+    color: "#3b82f6",
+    icon: Settings,
+  },
+  {
+    status: "TERMINEE",
+    label: "Contrôle qualité",
+    color: "#3b82f6",
+    icon: CheckCircle2,
+  },
+  { status: "EXPEDIEE", label: "Expédition", color: "#3b82f6", icon: Truck },
+];
+
 const TrackingSection = () => {
+  const [numeroSuivi, setNumeroSuivi] = useState("");
+  const navigate = useNavigate();
+
+  const handleFollow = () => {
+    if (numeroSuivi.trim()) {
+      navigate(`/suivi-commandes?numero=${numeroSuivi.trim()}`);
+    }
+  };
+
   return (
     <section className="tracking-section">
       <div className="tracking-container">
+        {/* Visual mockup */}
         <div className="tracking-visual">
           <div className="tracking-mockup">
             <div className="mockup-header">
@@ -20,26 +54,27 @@ const TrackingSection = () => {
             <div className="mockup-content">
               <div className="mockup-search">
                 <Search size={16} />
-                <span>CMD123456</span>
+                892265
               </div>
               <div className="mockup-status">
-                <div className="status-step active">
-                  <div className="status-dot"></div>
-                  <span>En cours de fabrication</span>
-                </div>
-                <div className="status-step">
-                  <div className="status-dot"></div>
-                  <span>Contrôle qualité</span>
-                </div>
-                <div className="status-step">
-                  <div className="status-dot"></div>
-                  <span>Expédition</span>
-                </div>
+                {ETAPES_SUIVI.map((etape, index) => (
+                  <div
+                    key={index}
+                    className={`status-step ${index === 1 ? "active" : ""}`}
+                  >
+                    <div
+                      className="status-dot"
+                      style={{ backgroundColor: etape.color }}
+                    />
+                    <span>{etape.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
+        {/* Content */}
         <div className="tracking-content">
           <div className="tracking-header">
             <h2 className="tracking-title">Suivez votre commande MySmileLab</h2>
@@ -58,12 +93,35 @@ const TrackingSection = () => {
               <h3>Recherche instantanée</h3>
               <p>Trouvez votre commande avec votre numéro de suivi</p>
             </div>
+
             <div className="tracking-feature">
               <div className="feature-icon">
                 <div className="pulse-dot"></div>
               </div>
               <h3>Suivi en temps réel</h3>
               <p>Mises à jour automatiques du statut de fabrication</p>
+            </div>
+
+            <div className="tracking-feature">
+              <div className="feature-icon">
+                <Clock size={24} />
+              </div>
+              <h3>Notification à la réception</h3>
+              <p>
+                Recevez une alerte dès que votre commande est reçue par le
+                laboratoire
+              </p>
+            </div>
+
+            <div className="tracking-feature">
+              <div className="feature-icon">
+                <CheckCircle2 size={24} />
+              </div>
+              <h3>Contrôle qualité garanti</h3>
+              <p>
+                Suivez les vérifications et validations de vos appareils à
+                chaque étape
+              </p>
             </div>
           </div>
 

@@ -1,5 +1,6 @@
 import React from "react";
-import { ArrowRight, MessageSquare } from "lucide-react";
+import { MessageSquare } from "lucide-react";
+import { Link } from "react-router-dom";
 import "./CTASection.css";
 
 const CTASection = () => (
@@ -8,16 +9,13 @@ const CTASection = () => (
       <div className="cta-content">
         <h2 className="cta-title">Prêt à transformer votre laboratoire ?</h2>
         <p className="cta-description">
-          Rejoignez les centaines de laboratoires dentaires qui ont déjà adopté
-          Mysmilelab pour optimiser leur production.
+          Rejoignez les dizaines de laboratoires dentaires qui commandent via
+          Mysmilelab chez Smilelab Ortho.
         </p>
         <div className="cta-buttons">
-          <button className="btn-primary btn-large">
-            Commencer maintenant <ArrowRight size={20} />
-          </button>
-          <button className="btn-secondary btn-large">
+          <Link to="/contact" className="btn-secondary btn-large">
             <MessageSquare size={20} /> Contacter un expert
-          </button>
+          </Link>
         </div>
       </div>
     </div>

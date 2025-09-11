@@ -6,8 +6,8 @@ const StatsSection = () => (
     <div className="container">
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-value">50+</div>
-          <div className="stat-text">Laboratoires partenaires</div>
+          <div className="stat-value">10+</div>
+          <div className="stat-text">cabinets partenaires</div>
         </div>
         <div className="stat-card">
           <div className="stat-value">1k+</div>
@@ -18,7 +18,7 @@ const StatsSection = () => (
           <div className="stat-text">Précision IA</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">75%</div>
+          <div className="stat-value">92%</div>
           <div className="stat-text">Temps gagné</div>
         </div>
       </div>

@@ -22,14 +22,18 @@ const HeroSection = () => {
           <div className="hero-text">
             <h1>Révolutionnez votre laboratoire dentaire avec l'IA</h1>
             <p>
-              Centralisez toutes vos commandes de plateformes comme Itero,
-              MedditLink, 3Shape et Dexis. Générez automatiquement vos bons de
-              commande et socles dentaires grâce à l'intelligence artificielle.
+              Actuellement exclusif au laboratoire SmilelabOrtho, Mysmilelab
+              centralise toutes vos commandes provenant de plateformes comme
+              Itero, MeditLink, 3Shape et Dexis. Générez automatiquement vos
+              bons de commande à partir d'un simple commentaire grâce à
+              l'intelligence artificielle.
             </p>
+
             <div className="hero-buttons">
               <button className="btn-primary" onClick={handleLogin}>
-                Démarrer gratuitement <ArrowRight size={20} />
+                Connectez-vous <ArrowRight size={20} />
               </button>
+
               <button className="btn-secondary" onClick={handleDemo}>
                 <Play size={20} /> Voir la démo
               </button>
@@ -42,7 +46,7 @@ const HeroSection = () => {
                   <Bot size={24} />
                 </div>
                 <div>
-                  <h3>IA Lab Dashboard</h3>
+                  <h3>Mysmilelab</h3>
                   <p style={{ fontSize: "0.875rem", color: "#64748b" }}>
                     Gestion intelligente
                   </p>

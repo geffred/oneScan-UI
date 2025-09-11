@@ -118,10 +118,11 @@
 }
 
 .tracking-feature h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color:#2e2e2e ;
+  font-size: 1.2rem;
+  color:#3b3b3b ;
   line-height: 20px;
+  font-family: calibri;
+  font-weight: bold;
 }
 
 .tracking-feature p {

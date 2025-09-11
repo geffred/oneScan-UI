@@ -3,6 +3,8 @@ import { Menu, X } from "lucide-react";
 import "./Header.css";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../Config/AuthContext";
+import { Plus } from "lucide-react";
+import { HashLink } from "react-router-hash-link";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -38,7 +40,7 @@ const Header = () => {
                   `nav-link${isActive ? " active" : ""}`
                 }
               >
-                Nos appareils
+                Appareils
               </NavLink>
             </li>
             <li>
@@ -48,18 +50,19 @@ const Header = () => {
                   `nav-link${isActive ? " active" : ""}`
                 }
               >
-                Suivre ma commande
+                Suivi des commandes
               </NavLink>
             </li>
-            <li>
-              <NavLink
+            <li className="lien">
+              <HashLink
+                smooth
                 to="/#process"
                 className={({ isActive }) =>
                   `nav-link${isActive ? " active" : ""}`
                 }
               >
                 Comment ça marche
-              </NavLink>
+              </HashLink>
             </li>
 
             <li>
@@ -69,7 +72,7 @@ const Header = () => {
                   `nav-link${isActive ? " active" : ""}`
                 }
               >
-                Nous Contacter
+                Contact
               </NavLink>
             </li>
           </ul>
@@ -98,8 +101,13 @@ const Header = () => {
               {userType === "cabinet" ? "Mon Compte" : "Dashboard"}
             </Link>
           ) : (
-            <Link to="/register" className="btn-signup">
-              Essai gratuit
+            <Link
+              to="/contact"
+              className="mobile-btn-signup"
+              onClick={toggleMobileMenu}
+            >
+              <Plus size={16} style={{ marginRight: "6px" }} />
+              Ajouter mon cabinet
             </Link>
           )}
         </div>
@@ -172,11 +180,12 @@ const Header = () => {
               </Link>
             )}
             <Link
-              to="/register"
+              to="/contact"
               className="mobile-btn-signup"
               onClick={toggleMobileMenu}
             >
-              Essai gratuit
+              <Plus size={16} style={{ marginRight: "6px" }} />
+              Ajouter mon cabinet
             </Link>
           </div>
         </div>

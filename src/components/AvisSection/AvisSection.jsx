@@ -8,63 +8,63 @@ const AvisSection = () => {
   const testimonials = [
     {
       id: 1,
-      name: "Dr. Marie Dubois",
-      position: "Directrice Technique",
-      company: "Laboratoire DentoParis",
+      name: "Kevina Tsague",
+      position: "Prothésiste Dentaire",
+      company: "Lab Dentaire Mons",
       location: "Mons, Belgique",
       rating: 5,
-      text: "Mysmilelab a révolutionné notre flux de travail. Nous avons réduit de 70% le temps de traitement des commandes et nos erreurs ont pratiquement disparu. L'intégration avec Itero et 3Shape est parfaite.",
-      avatar: "MD",
+      text: "SmileLab Ortho a considérablement simplifié notre gestion quotidienne. Nous traitons les commandes beaucoup plus rapidement et les erreurs sont quasi inexistantes.",
+      avatar: "KT",
     },
     {
       id: 2,
-      name: "Marc Fontaine",
+      name: "Stéphane C",
       position: "Prothésiste Dentaire",
-      company: "Lab Sourire Plus",
-      location: "Liège, Belgique",
+      company: "",
+      location: "Bruxelles, Belgique",
       rating: 5,
-      text: "L'IA générative pour les bons de commande est impressionnante. Elle comprend parfaitement les spécifications techniques et génère des socles précis. Un gain de temps énorme !",
-      avatar: "MF",
+      text: "Depuis que nous utilisons SmileLab Ortho, la centralisation de nos outils nous permet de gagner plusieurs heures par semaine. Tout est plus clair et facile à suivre.",
+      avatar: "SC",
     },
     {
       id: 3,
-      name: "Dr. Sophie Martin",
-      position: "Chef de Production",
-      company: "Centre Dentaire Innovant",
-      location: "Bruxelles, Belgique",
+      name: "Mey ",
+      position: "Prothésiste Dentaire",
+      company: " ",
+      location: "Soignie, Belgique",
       rating: 5,
-      text: "Depuis l'adoption de Mysmilelab, notre productivité a explosé. La centralisation de toutes nos plateformes en une seule interface nous fait gagner plusieurs heures par jour.",
-      avatar: "SM",
+      text: "L’interface est intuitive et les fonctionnalités nous permettent d’éviter les erreurs répétitives. Notre productivité a nettement augmenté.",
+      avatar: "M",
     },
     {
       id: 4,
-      name: "Jean-Pierre Moreau",
-      position: "Gérant",
-      company: "Laboratoire Precision",
-      location: "Mons, Belgique",
+      name: "Laura Verstraete",
+      position: "Prothésiste Dentaire",
+      company: "Lab SmileTech",
+      location: "Bruxelles, Belgique",
       rating: 5,
-      text: "L'automatisation des socles dentaires est un game-changer. La précision millimétrique et la rapidité d'exécution ont considérablement amélioré notre qualité de service.",
-      avatar: "JPM",
+      text: "Grâce à SmileLab Ortho, le suivi des commandes est devenu transparent. Nous pouvons facilement vérifier l’état de chaque projet et gagner en précision.",
+      avatar: "LV",
     },
     {
       id: 5,
-      name: "Dr. Claire Rousseau",
-      position: "Responsable Qualité",
-      company: "DentalTech Pro",
-      location: "Bordeaux, France",
+      name: "Joe",
+      position: "Prothésiste Dentaire",
+      company: "",
+      location: "Mons, Belgique",
       rating: 5,
-      text: "Le support client est exceptionnel et la plateforme est intuitive. Nos équipes ont été formées rapidement et adoptent facilement les nouvelles fonctionnalités.",
-      avatar: "CR",
+      text: "L’outil nous fait économiser énormément de temps et réduit les risques d’erreurs. C’est devenu indispensable dans notre laboratoire.",
+      avatar: "JD",
     },
     {
       id: 6,
-      name: "Antoine Bergeron",
-      position: "Directeur Technique",
-      company: "Lab Excellence",
-      location: "Bruxelles, Belgique",
+      name: "Geffred N. Tchapda",
+      position: "Designer 3D",
+      company: "cgcm studio",
+      location: "Charleroi, Belgique",
       rating: 5,
-      text: "Les analytics en temps réel nous permettent de suivre nos performances et d'optimiser continuellement nos processus. Un outil indispensable pour un laboratoire moderne.",
-      avatar: "AB",
+      text: "SmileLab Ortho centralise tous nos processus et facilite la communication entre nos équipes. Nous sommes beaucoup plus efficaces au quotidien.",
+      avatar: "TNG",
     },
   ];
 
@@ -101,7 +101,9 @@ const AvisSection = () => {
     <section className="testimonials-wrapper">
       <div className="testimonials-container-main">
         <div className="testimonials-header">
-          <h2 className="testimonials-main-title">Ce que disent nos clients</h2>
+          <h2 className="testimonials-main-title">
+            Ce que disent nos premiers Utilisateurs
+          </h2>
           <p className="testimonials-main-subtitle">
             Découvrez comment Mysmilelab transforme le quotidien des
             laboratoires dentaires partout en France
@@ -186,17 +188,19 @@ const AvisSection = () => {
 
         <div className="testimonials-metrics-section">
           <div className="testimonials-metric-item">
-            <span className="testimonials-metric-number">4.9/5</span>
-            <span className="testimonials-metric-label">Note moyenne</span>
+            <span className="testimonials-metric-number">+25</span>
+            <span className="testimonials-metric-label">Commande par jour</span>
           </div>
           <div className="testimonials-metric-item">
-            <span className="testimonials-metric-number">50+</span>
-            <span className="testimonials-metric-label">Avis clients</span>
-          </div>
-          <div className="testimonials-metric-item">
-            <span className="testimonials-metric-number">98%</span>
+            <span className="testimonials-metric-number">92%</span>
             <span className="testimonials-metric-label">
-              Recommandent Mysmilelab
+              Gain de temps constaté
+            </span>
+          </div>
+          <div className="testimonials-metric-item">
+            <span className="testimonials-metric-number">4.9/5</span>
+            <span className="testimonials-metric-label">
+              Satisfaction moyenne
             </span>
           </div>
         </div>

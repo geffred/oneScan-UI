@@ -35,7 +35,7 @@ const FeaturesSection = () => (
           <div className="feature-icon">
             <Scan size={28} />
           </div>
-          <h3 className="feature-title">Socles automatisés</h3>
+          <h3 className="feature-title">Socles automatisés ( à venir )</h3>
           <p className="feature-description">
             Création automatique de socles dentaires optimisés à partir de vos
             scans intra-oraux avec précision millimétrique.
