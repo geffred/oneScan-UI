@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { Menu, X, User, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import "./navbar.css";
+import "./Navbar.css";
 
 const Navbar = ({
   sidebarOpen,

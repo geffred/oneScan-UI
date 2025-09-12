@@ -21,7 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
-import "./commandes.css";
+import "./Commandes.css";
 
 // Configuration mise en cache
 const platformEndpoints = {
