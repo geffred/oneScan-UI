@@ -9,7 +9,7 @@ import {
   PackageSearch,
   GitCompare,
 } from "lucide-react";
-import "./sidebar.css";
+import "./Sidebar.css";
 
 const Sidebar = ({
   sidebarOpen,
