@@ -2,13 +2,27 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig(({ mode }) => {
+  // Déterminer l'URL de base de l'API selon l'environnement
+  const isProduction = mode === "production";
+
+  // En production, utiliser l'URL de production
+  if (isProduction) {
+    return {
+      plugins: [react()],
+      server: {
+        proxy: {
+          // Toutes vos routes de proxy pointent vers l'URL de production
+          "/api": "https://www.mysmilelab.be",
+          "/deepseek": "https://www.mysmilelab.be",
+        },
+      },
+    };
+  }
+
+  // En développement, charger les variables d'environnement
   try {
     const env = loadEnv(mode, process.cwd(), "");
-
-    const isProduction = mode === "production";
-    const API_BASE_URL = isProduction
-      ? env.production.VITE_API_BASE_URL
-      : env.VITE_API_BASE_URL;
+    const API_BASE_URL = env.VITE_API_BASE_URL || "http://localhost:8080";
 
     return {
       plugins: [react()],
