@@ -22,7 +22,7 @@ import CommandeInfoGrid from "./CommandeInfoGrid";
 import CommandeActions from "./CommandeActions";
 import { EmailService } from "./EmailService";
 
-import "./commandeDetails.css";
+import "./CommandeDetails.css";
 
 // API Services
 const fetchWithAuth = async (url) => {
