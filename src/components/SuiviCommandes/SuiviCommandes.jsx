@@ -14,7 +14,7 @@ import {
   Building,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import "./suiviCommandes.css";
+import "./SuiviCommandes.css";
 
 // Fonction pour récupérer les détails d'une commande par numéro de suivi
 const fetchCommandeByNumeroSuivi = async (numeroSuivi) => {
