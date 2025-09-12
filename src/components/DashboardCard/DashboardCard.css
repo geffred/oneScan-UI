@@ -7,6 +7,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   padding: 2rem;
   border: 1px solid #f1f5f9;
+  max-width: 100%;
 }
 
 .dashboard-card-title {
@@ -20,6 +21,7 @@
 .dashboard-card-grid {
   display: grid;
   gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .dashboard-card-grid-1 { grid-template-columns: 1fr; }
@@ -71,6 +73,18 @@
   background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
 }
 
+.dashboard-card-stat-icon-container-red {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+}
+
+.dashboard-card-stat-icon-container-orange {
+  background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+}
+
+.dashboard-card-stat-icon-container-pink {
+  background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+}
+
 .dashboard-card-stat-icon {
   width: 28px;
   height: 28px;
@@ -80,6 +94,9 @@
 .dashboard-card-stat-icon-green { color: #00C896; }
 .dashboard-card-stat-icon-yellow { color: #FFB800; }
 .dashboard-card-stat-icon-purple { color: #8B5CF6; }
+.dashboard-card-stat-icon-red { color: #EF4444; }
+.dashboard-card-stat-icon-orange { color: #F97316; }
+.dashboard-card-stat-icon-pink { color: #EC4899; }
 
 .dashboard-card-stat-info {
   flex: 1;
@@ -139,10 +156,27 @@
 .dashboard-card-activity-dot-blue { background: #007AFF; }
 .dashboard-card-activity-dot-green { background: #00C896; }
 .dashboard-card-activity-dot-yellow { background: #FFB800; }
+.dashboard-card-activity-dot-red { background: #EF4444; }
+.dashboard-card-activity-dot-gray { background: #94a3b8; }
+
+.dashboard-card-activity-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
 
 .dashboard-card-activity-text {
   font-size: 0.95rem;
   color: #475569;
+  font-weight: 500;
+}
+
+.dashboard-card-activity-date {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 /* Buttons */
@@ -163,67 +197,386 @@
 }
 
 .dashboard-card-btn-primary:hover {
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #0056CC 0%, #004099 100%);
+  transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
 }
 
 .dashboard-card-btn-secondary {
-  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
 }
 
 .dashboard-card-btn-secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(100, 116, 139, 0.4);
+  background: #e2e8f0;
+  transform: translateY(-1px);
 }
 
-.dashboard-card-btn-full {
-  width: 100%;
-  margin-bottom: 0.75rem;
+/* DashboardCard.css - Styles pour les graphiques */
+
+.dashboard-card-chart-container {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Responsive Design */
+.dashboard-card-chart-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.dashboard-card-chart {
+  flex: 1;
+  min-height: 300px;
+  position: relative;
+}
+
+/* Animation pour les nouveaux éléments */
+@keyframes dashboard-card-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-card-stat,
+.dashboard-card-activity-item {
+  animation: dashboard-card-fadeIn 0.5s ease-out;
+}
+
+/* États de chargement */
+.dashboard-card-loading {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%);
+  background-size: 200% 100%;
+  animation: dashboard-card-loading 1.5s infinite;
+}
+
+@keyframes dashboard-card-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.dashboard-card-loading .dashboard-card-stat-number,
+.dashboard-card-loading .dashboard-card-stat-label,
+.dashboard-card-loading .dashboard-card-activity-text {
+  color: transparent;
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+/* États vides */
+.dashboard-card-empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: #94a3b8;
+}
+
+.dashboard-card-empty-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  opacity: 0.5;
+}
+
+.dashboard-card-empty-text {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+/* Badges d'état */
+.dashboard-card-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.dashboard-card-badge-new {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.dashboard-card-badge-urgent {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.dashboard-card-badge-late {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Espacement utilitaire */
+.dashboard-card-space-y-3 > * + * {
+  margin-top: 0.75rem;
+}
+
+.dashboard-card-space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+/* Focus states pour accessibilité */
+.dashboard-card-stat:focus-visible,
+.dashboard-card-activity-item:focus-visible {
+  outline: 2px solid #007AFF;
+  outline-offset: 2px;
+}
+
+/* RESPONSIVE DESIGN - AMÉLIORATIONS MOBILE */
+
+/* Tablettes et petits écrans */
+@media (max-width: 1200px) {
+  .dashboard-card-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .dashboard-card-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-card-stat-number {
+    font-size: 1.75rem;
+  }
+}
+
+/* Tablettes en mode portrait et grands téléphones */
+@media (max-width: 900px) {
+  .dashboard-card-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Téléphones et petits appareils */
 @media (max-width: 768px) {
+  .dashboard-card-card {
+    padding: 1.5rem;
+    border-radius: 14px;
+  }
+  
   .dashboard-card-grid-2,
   .dashboard-card-grid-3,
   .dashboard-card-grid-4 {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
-
-  .dashboard-card-card {
-    padding: 1.5rem;
-  }
-
-  .dashboard-card-title {
-    font-size: 1.5rem;
-  }
-
-  .dashboard-card-stat-number {
-    font-size: 1.8rem;
-  }
-
+  
   .dashboard-card-stat {
-    padding: 1rem;
+    padding: 1.25rem;
+    border-radius: 14px;
   }
-
+  
   .dashboard-card-stat-icon-container {
     width: 50px;
     height: 50px;
   }
-
+  
   .dashboard-card-stat-icon {
     width: 24px;
     height: 24px;
   }
+  
+  .dashboard-card-stat-number {
+    font-size: 1.75rem;
+  }
+  
+  .dashboard-card-stat-label {
+    font-size: 0.85rem;
+  }
+  
+  .dashboard-card-activity-section {
+    padding: 1.5rem;
+    border-radius: 14px;
+    margin-top: 1.5rem;
+  }
+  
+  .dashboard-card-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .dashboard-card-activity-title {
+    font-size: 1.2rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .dashboard-card-chart-container {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+  
+  .dashboard-card-chart {
+    min-height: 250px;
+  }
 }
 
-@media (min-width: 1024px) {
-  .dashboard-card-grid-3 {
-    grid-template-columns: repeat(3, 1fr);
+/* Téléphones petits (moins de 480px) */
+@media (max-width: 480px) {
+  .dashboard-card-card {
+    padding: 1rem;
+    border-radius: 12px;
   }
+  
+  .dashboard-card-grid {
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .dashboard-card-stat {
+    flex-direction: row;
+    text-align: left;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+  
+  .dashboard-card-stat-icon-container {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+  }
+  
+  .dashboard-card-stat-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .dashboard-card-stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .dashboard-card-stat-label {
+    font-size: 0.8rem;
+  }
+  
+  .dashboard-card-activity-section {
+    padding: 1rem;
+    border-radius: 12px;
+    margin-top: 1rem;
+  }
+  
+  .dashboard-card-activity-item {
+    flex-direction: row;
+    text-align: left;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  
+  .dashboard-card-activity-content {
+    align-items: flex-start;
+  }
+  
+  .dashboard-card-activity-text {
+    font-size: 0.9rem;
+  }
+  
+  .dashboard-card-activity-date {
+    font-size: 0.75rem;
+  }
+  
+  .dashboard-card-chart-container {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+  
+  .dashboard-card-chart-title {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .dashboard-card-chart {
+    min-height: 200px;
+  }
+  
+  .dashboard-card-title {
+    font-size: 1.3rem;
+  }
+  
+  .dashboard-card-activity-title {
+    font-size: 1.1rem;
+  }
+}
 
-  .dashboard-card-grid-4 {
-    grid-template-columns: repeat(4, 1fr);
+/* Très petits téléphones (moins de 350px) */
+@media (max-width: 350px) {
+  .dashboard-card-stat {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .dashboard-card-stat-info {
+    text-align: center;
+  }
+  
+  .dashboard-card-stat-icon-container {
+    margin: 0 auto;
+  }
+  
+  .dashboard-card-activity-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .dashboard-card-activity-content {
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* Mode sombre (optionnel) */
+@media (prefers-color-scheme: dark) {
+  .dashboard-card-card,
+  .dashboard-card-stat,
+  .dashboard-card-activity-section,
+  .dashboard-card-chart-container {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  
+  .dashboard-card-stat-label,
+  .dashboard-card-activity-text {
+    color: #cbd5e1;
+  }
+  
+  .dashboard-card-stat-number {
+    color: #f8fafc;
+  }
+  
+  .dashboard-card-activity-item:hover {
+    background: #334155;
+  }
+  
+  .dashboard-card-btn-secondary {
+    background: #334155;
+    color: #cbd5e1;
+    border-color: #475569;
+  }
+  
+  .dashboard-card-btn-secondary:hover {
+    background: #475569;
+  }
+  
+  .dashboard-card-chart-title {
+    color: #f1f5f9;
   }
 }

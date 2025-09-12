@@ -89,18 +89,20 @@ const Sidebar = ({
           Suivi de commande
         </button>
 
-        <button
-          onClick={() => {
-            setActiveComponent("socles");
-            toggleSidebar();
-          }}
-          className={`sidebar-item ${
-            activeComponent === "socles" ? "active" : ""
-          }`}
-        >
-          <Database className="sidebar-icon" />
-          Socles
-        </button>
+        {/*
+            <button
+                onClick={() => {
+                  setActiveComponent("socles");
+                  toggleSidebar();
+                }}
+                className={`sidebar-item ${
+                  activeComponent === "socles" ? "active" : ""
+                }`}
+              >
+                <Database className="sidebar-icon" />
+                Socles
+            </button>
+          */}
 
         <button
           onClick={() => {
@@ -115,9 +117,11 @@ const Sidebar = ({
           Analytique
         </button>
 
-        <button className="sidebar-item">
-          <LoaderCircle className="sidebar-icon" /> À propos
-        </button>
+        {/*
+            <button className="sidebar-item">
+              <LoaderCircle className="sidebar-icon" /> À propos
+            </button>
+          */}
       </nav>
     </div>
   );

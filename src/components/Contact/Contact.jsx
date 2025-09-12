@@ -114,7 +114,7 @@ const Contact = () => {
                     <Phone className="contact-detail-icon" />
                     <div>
                       <strong>Téléphone</strong>
-                      <p>+33 1 23 45 67 89</p>
+                      <p>+32 0 493 35 73 28</p>
                     </div>
                   </div>
 
@@ -123,9 +123,9 @@ const Contact = () => {
                     <div>
                       <strong>Adresse</strong>
                       <p>
-                        123 Rue de l'Innovation
+                        Boulevard Roosevelt 23
                         <br />
-                        75001 Paris, France
+                        7060 Soignies
                       </p>
                     </div>
                   </div>
@@ -282,13 +282,10 @@ const Contact = () => {
                             className="contact-select"
                           >
                             <option value="">Sélectionnez un sujet</option>
-                            <option value="demo">
-                              Demande de démonstration
+                            <option value="demo">Ajout de mon cabinet</option>
+                            <option value="support">
+                              Demande d'information{" "}
                             </option>
-                            <option value="pricing">
-                              Information tarifaire
-                            </option>
-                            <option value="support">Support technique</option>
                             <option value="partnership">Partenariat</option>
                             <option value="other">Autre</option>
                           </Field>

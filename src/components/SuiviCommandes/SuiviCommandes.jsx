@@ -313,7 +313,7 @@ function SuiviCommandes() {
               <input
                 type="text"
                 className="suivi-search-input"
-                placeholder="Entrez votre numéro de suivi (ex: CMD123456)"
+                placeholder="Entrez votre numéro de suivi (ex: 623456)"
                 value={numeroSuivi}
                 onChange={(e) => setNumeroSuivi(e.target.value)}
                 onKeyPress={handleKeyPress}

@@ -7,7 +7,7 @@ import ProcessSection from "../../components/ProcessSection/ProcessSection";
 import StatsSection from "../../components/StatsSection/StatsSection";
 import CTASection from "../../components/CTASection/CTASection";
 import Footer from "../../components/Footer/Footer";
-import "./Homepage.css"; // Assuming you have a CSS file for styling
+import "./HomePage.css"; // Assuming you have a CSS file for styling
 import AvisSection from "../../components/AvisSection/AvisSection";
 import TrackingSection from "../../components/TrackingSection/TrackingSection";
 
