@@ -118,22 +118,22 @@ const Header = () => {
 
         <div className={`mobile-menu ${mobileMenuOpen ? "open" : ""}`}>
           <NavLink
-            to="/#features"
+            to="/Appareils"
             className={({ isActive }) =>
               `mobile-nav-link${isActive ? " active" : ""}`
             }
             onClick={toggleMobileMenu}
           >
-            Fonctionnalités
+            Appareils
           </NavLink>
           <NavLink
-            to="/#platforms"
+            to="/suivi-commandes"
             className={({ isActive }) =>
               `mobile-nav-link${isActive ? " active" : ""}`
             }
             onClick={toggleMobileMenu}
           >
-            Plateformes
+            Suivi des commandes
           </NavLink>
           <NavLink
             to="/#process"
@@ -144,19 +144,21 @@ const Header = () => {
           >
             Comment ça marche
           </NavLink>
+          {/*
+              <Link
+                  to="/pricing"
+                  className="mobile-nav-link"
+                  onClick={toggleMobileMenu}
+                >
+                Tarifs
+              </Link>
+              */}
           <Link
-            to="/pricing"
+            to="/contact"
             className="mobile-nav-link"
             onClick={toggleMobileMenu}
           >
-            Tarifs
-          </Link>
-          <Link
-            to="/support"
-            className="mobile-nav-link"
-            onClick={toggleMobileMenu}
-          >
-            Support
+            Contact
           </Link>
 
           <div className="mobile-menu-actions">
@@ -176,7 +178,7 @@ const Header = () => {
                 className="mobile-btn-login"
                 onClick={toggleMobileMenu}
               >
-                Connexion
+                Se Connecter
               </Link>
             )}
             <Link
