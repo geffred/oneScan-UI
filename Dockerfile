@@ -3,13 +3,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copier les fichiers de configuration
+# Copier les fichiers de configuration essentiels
 COPY package*.json ./
 COPY vite.config.js ./
 COPY index.html ./
-
-# Copier tsconfig.json s'il existe
-COPY tsconfig.json ./ 2>/dev/null || true
 
 # Installer toutes les dépendances
 RUN npm ci
