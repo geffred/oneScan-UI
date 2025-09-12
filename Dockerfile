@@ -6,7 +6,6 @@ WORKDIR /app
 # Copier les fichiers de configuration
 COPY package*.json ./
 COPY vite.config.js ./
-COPY tsconfig.json ./
 COPY index.html ./
 COPY . .
 
