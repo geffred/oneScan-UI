@@ -83,6 +83,7 @@ const fetchWithAuth = async (url) => {
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,
+      cache: "no-store", // <-- empêche le cache / If-None-Match
     },
   });
 
