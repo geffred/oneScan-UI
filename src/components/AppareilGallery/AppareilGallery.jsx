@@ -18,7 +18,7 @@ import {
   User,
   RefreshCw,
 } from "lucide-react";
-import { fetchPublic, createApiUrl } from "../config/api";
+import { fetchPublic, createApiUrl } from "../Config/api";
 import "./AppareilGallery.css";
 
 // Enums pour les filtres
