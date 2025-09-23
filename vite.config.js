@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig(({ mode }) => {
@@ -21,8 +21,8 @@ export default defineConfig(({ mode }) => {
 
   // En développement, charger les variables d'environnement
   try {
-    const env = loadEnv(mode, process.cwd(), "");
-    const API_BASE_URL = env.VITE_API_BASE_URL || "http://localhost:8080";
+    //const env = loadEnv(mode, process.cwd(), "");
+    const API_BASE_URL = "https://mysmilelab-api-production.up.railway.app";
 
     return {
       plugins: [react()],
