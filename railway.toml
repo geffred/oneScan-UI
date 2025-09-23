@@ -1,0 +1,18 @@
+[service]
+name = "Mysmilelab-UI"
+
+[deploy]
+startCommand = "npm run build && npx serve dist"
+
+[[services.ports]]
+port = 3000
+protocol = "tcp"
+
+[services.ports.proxy]
+enableProxyProtocol = false
+type = "http"
+
+# Routes pour proxy API
+[[services.routes]]
+source = "/api"
+target = "mysmilelab-api.up.railway.app"
