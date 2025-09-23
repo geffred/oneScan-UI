@@ -12,8 +12,8 @@ export default defineConfig(({ mode }) => {
       server: {
         proxy: {
           // Toutes vos routes de proxy pointent vers l'URL de production
-          "/api": "https://www.mysmilelab.be",
-          "/deepseek": "https://www.mysmilelab.be",
+          "/api": "mysmilelab-api-production.up.railway.app",
+          "/deepseek": "mysmilelab-api-production.up.railway.app",
         },
       },
     };
