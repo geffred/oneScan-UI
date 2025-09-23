@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { AuthContext } from "../Config/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { apiClient, buildApiUrl } from "../config/api"; // Import des nouvelles fonctions
+import { apiClient, buildApiUrl } from "../Config/api"; // Import des nouvelles fonctions
 import "./Appareils.css";
 
 // Enums
