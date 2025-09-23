@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { AuthContext } from "../Config/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { apiClient, buildApiUrl } from "../Config/api"; // Import des nouvelles fonctions
 import "./Appareils.css";
 
 // Enums
@@ -76,14 +75,32 @@ const validationSchema = Yup.object({
   ),
 });
 
-// Fonctions API utilisant le nouveau client
+// Fonction de fetch pour SWR
+const fetchWithAuth = async (url) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
+// Fonctions API
 const getAppareils = async () => {
-  return apiClient.get("/api/appareils");
+  return fetchWithAuth("/api/appareils");
 };
 
 const getCurrentUser = async () => {
   try {
-    return await apiClient.get("/api/auth/me");
+    return await fetchWithAuth("/api/auth/me");
   } catch (error) {
     console.error("Erreur lors de la récupération de l'utilisateur:", error);
     throw error;
@@ -210,19 +227,36 @@ const ImageUploadModal = React.memo(
 
       setIsUploading(true);
       try {
+        const token = localStorage.getItem("token");
         const formData = new FormData();
 
         if (selectedFiles.length === 1) {
           formData.append("file", selectedFiles[0]);
-          await apiClient.upload(`/api/images/upload/${appareilId}`, formData);
+          const response = await fetch(`/api/images/upload/${appareilId}`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          });
+
+          if (!response.ok) throw new Error("Erreur lors de l'upload");
         } else {
           selectedFiles.forEach((file) => {
             formData.append("files", file);
           });
-          await apiClient.upload(
+          const response = await fetch(
             `/api/images/upload-multiple/${appareilId}`,
-            formData
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              body: formData,
+            }
           );
+
+          if (!response.ok) throw new Error("Erreur lors de l'upload multiple");
         }
 
         toast.success("Images uploadées avec succès");
@@ -230,7 +264,6 @@ const ImageUploadModal = React.memo(
         onClose();
         setSelectedFiles([]);
       } catch (error) {
-        console.error("Erreur upload:", error);
         toast.error("Erreur lors de l'upload des images");
       } finally {
         setIsUploading(false);
@@ -386,20 +419,37 @@ const Appareils = () => {
           throw new Error("Informations utilisateur non disponibles");
         }
 
+        const token = localStorage.getItem("token");
+        const url = editingAppareil
+          ? `/api/appareils/${editingAppareil.id}`
+          : "/api/appareils";
+        const method = editingAppareil ? "PUT" : "POST";
+
         const payload = {
           ...values,
           user: { id: currentUser.id },
         };
 
-        let data;
-        if (editingAppareil) {
-          data = await apiClient.put(
-            `/api/appareils/${editingAppareil.id}`,
-            payload
+        const response = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(
+            errorData ||
+              `Erreur lors de ${
+                editingAppareil ? "la modification" : "la création"
+              } de l'appareil`
           );
-        } else {
-          data = await apiClient.post("/api/appareils", payload);
         }
+
+        const data = await response.json();
 
         // Mutation optimiste
         if (editingAppareil) {
@@ -418,8 +468,7 @@ const Appareils = () => {
         resetForm();
         mutateAppareils();
       } catch (err) {
-        console.error("Erreur soumission:", err);
-        toast.error(err.message || "Erreur lors de l'opération");
+        toast.error(err.message);
       } finally {
         setSubmitting(false);
       }
@@ -441,7 +490,17 @@ const Appareils = () => {
       }
 
       try {
-        await apiClient.delete(`/api/appareils/${appareilId}`);
+        const token = localStorage.getItem("token");
+        const response = await fetch(`/api/appareils/${appareilId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Erreur lors de la suppression de l'appareil");
+        }
 
         mutateAppareils(
           appareils.filter((a) => a.id !== appareilId),
@@ -450,8 +509,7 @@ const Appareils = () => {
         toast.success("Appareil supprimé avec succès");
         mutateAppareils();
       } catch (err) {
-        console.error("Erreur suppression:", err);
-        toast.error(err.message || "Erreur lors de la suppression");
+        toast.error(err.message);
         mutateAppareils();
       }
     },
