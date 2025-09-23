@@ -16,9 +16,7 @@ import {
   Wrench,
   Image as ImageIcon,
   User,
-  RefreshCw,
 } from "lucide-react";
-import { fetchPublic, createApiUrl } from "../Config/api";
 import "./AppareilGallery.css";
 
 // Enums pour les filtres
@@ -53,7 +51,18 @@ const OPTIONS = [
   { value: "AUCUN", label: "Aucune option" },
 ];
 
-// Fonctions API utilisant la nouvelle configuration
+// Fonction de fetch sans authentification pour les routes publiques
+const fetchPublic = async (url) => {
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
+// Fonctions API
 const getAppareils = async () => {
   return fetchPublic("/api/appareils");
 };
@@ -62,7 +71,7 @@ const getAppareils = async () => {
 const AppareilCard = React.memo(({ appareil, onViewDetails }) => {
   const thumbnailImage =
     appareil.images && appareil.images.length > 0
-      ? createApiUrl(`/api/images/${appareil.images[0].imagePath}`)
+      ? `/api/images/${appareil.images[0].imagePath}`
       : null;
 
   const categoryLabel =
@@ -80,15 +89,9 @@ const AppareilCard = React.memo(({ appareil, onViewDetails }) => {
             src={thumbnailImage}
             alt={appareil.nom}
             onError={(e) => {
-              console.error("Error loading image:", thumbnailImage);
               e.target.style.display = "none";
-              if (e.target.nextSibling) {
-                e.target.nextSibling.style.display = "flex";
-              }
+              e.target.nextSibling.style.display = "flex";
             }}
-            onLoad={() =>
-              console.log("Image loaded successfully:", thumbnailImage)
-            }
           />
         ) : null}
         <div
@@ -155,9 +158,24 @@ AppareilCard.displayName = "AppareilCard";
 // Modal de détails
 const AppareilDetailModal = React.memo(({ appareil, onClose }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [imageLoadErrors, setImageLoadErrors] = useState(new Set());
+  const [imageErrors, setImageErrors] = useState({});
 
   if (!appareil) return null;
+
+  const handleImageError = (imageId) => {
+    console.error(`Erreur de chargement d'image dans le modal:`, imageId);
+    setImageErrors((prev) => ({ ...prev, [imageId]: true }));
+  };
+
+  const handleImageLoad = (imageId) => {
+    console.log(`Image chargée dans le modal:`, imageId);
+  };
+
+  // Afficher les informations de debug
+  React.useEffect(() => {
+    console.log("Modal ouvert pour appareil:", appareil);
+    console.log("Images de l'appareil:", appareil.images);
+  }, [appareil]);
 
   const categoryLabel =
     CATEGORIES.find((c) => c.value === appareil.categorie)?.label ||
@@ -180,19 +198,6 @@ const AppareilDetailModal = React.memo(({ appareil, onClose }) => {
     }
   };
 
-  const handleImageError = (imagePath) => {
-    console.error("Error loading image in modal:", imagePath);
-    setImageLoadErrors((prev) => new Set(prev).add(imagePath));
-  };
-
-  const currentImage = appareil.images?.[currentImageIndex];
-  const currentImageUrl = currentImage
-    ? createApiUrl(`/api/images/${currentImage.imagePath}`)
-    : null;
-  const hasError = currentImage
-    ? imageLoadErrors.has(currentImage.imagePath)
-    : false;
-
   return (
     <div className="appareil-detail-overlay">
       <div className="appareil-detail-modal">
@@ -207,21 +212,21 @@ const AppareilDetailModal = React.memo(({ appareil, onClose }) => {
           <div className="appareil-detail-images">
             {appareil.images && appareil.images.length > 0 ? (
               <div className="appareil-detail-image-viewer">
-                {!hasError ? (
-                  <img
-                    src={currentImageUrl}
-                    alt={`${appareil.nom} - Image ${currentImageIndex + 1}`}
-                    onError={() => handleImageError(currentImage.imagePath)}
-                    onLoad={() =>
-                      console.log("Modal image loaded:", currentImageUrl)
-                    }
-                  />
-                ) : (
-                  <div className="appareil-detail-image-placeholder">
-                    <Settings size={64} />
-                    <span>Image non disponible</span>
-                  </div>
-                )}
+                <img
+                  src={`/api/images/${appareil.images[currentImageIndex].imagePath}`}
+                  alt={`${appareil.nom} - Image ${currentImageIndex + 1}`}
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "flex";
+                  }}
+                />
+                <div
+                  className="appareil-detail-image-placeholder"
+                  style={{ display: "none" }}
+                >
+                  <Settings size={64} />
+                  <span>Image non disponible</span>
+                </div>
 
                 {appareil.images.length > 1 && (
                   <>
@@ -252,35 +257,18 @@ const AppareilDetailModal = React.memo(({ appareil, onClose }) => {
 
             {appareil.images && appareil.images.length > 1 && (
               <div className="appareil-detail-thumbnails">
-                {appareil.images.map((image, index) => {
-                  const thumbUrl = createApiUrl(
-                    `/api/images/${image.imagePath}`
-                  );
-                  const hasThumbError = imageLoadErrors.has(image.imagePath);
-
-                  return (
-                    <div
-                      key={image.id}
-                      className="appareil-detail-thumbnail-container"
-                    >
-                      {!hasThumbError ? (
-                        <img
-                          src={thumbUrl}
-                          alt={`Thumbnail ${index + 1}`}
-                          className={`appareil-detail-thumbnail ${
-                            index === currentImageIndex ? "active" : ""
-                          }`}
-                          onClick={() => setCurrentImageIndex(index)}
-                          onError={() => handleImageError(image.imagePath)}
-                        />
-                      ) : (
-                        <div className="appareil-detail-thumbnail-error">
-                          <ImageIcon size={16} />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                {appareil.images.map((image, index) => (
+                  <img
+                    key={image.id}
+                    src={`/api/images/${image.imagePath}`}
+                    alt={`Thumbnail ${index + 1}`}
+                    className={`appareil-detail-thumbnail ${
+                      index === currentImageIndex ? "active" : ""
+                    }`}
+                    onClick={() => setCurrentImageIndex(index)}
+                    onError={(e) => (e.target.style.display = "none")}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -371,28 +359,18 @@ const AppareilGallery = () => {
   const [selectedOption, setSelectedOption] = useState("");
   const [selectedAppareil, setSelectedAppareil] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
 
-  // SWR hook pour récupérer les appareils
+  // SWR hook pour récupérer les appareils (maintenant public)
   const {
     data: appareils = [],
     error,
     isLoading,
-    mutate,
-  } = useSWR(`appareils-gallery-${retryCount}`, getAppareils, {
+  } = useSWR("appareils-gallery", getAppareils, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
-    refreshInterval: 60000,
+    refreshInterval: 60000, // Rafraîchir toutes les minutes
     errorRetryCount: 3,
-    errorRetryInterval: 5000,
-    onError: (err) => {
-      console.error("SWR Error:", err);
-      toast.error(`Erreur lors du chargement des appareils: ${err.message}`);
-    },
-    onSuccess: (data) => {
-      console.log("SWR Success - Appareils chargés:", data);
-      toast.success(`${data.length} appareil(s) chargé(s) avec succès`);
-    },
+    errorRetryInterval: 1000,
   });
 
   // Filtrage des appareils
@@ -411,6 +389,13 @@ const AppareilGallery = () => {
       return matchesSearch && matchesCategory && matchesOption;
     });
   }, [appareils, searchTerm, selectedCategory, selectedOption]);
+
+  // Gestion des erreurs
+  React.useEffect(() => {
+    if (error) {
+      toast.error("Erreur lors de la récupération des appareils");
+    }
+  }, [error]);
 
   // Handlers
   const handleSearchChange = useCallback((e) => {
@@ -439,50 +424,11 @@ const AppareilGallery = () => {
     setSelectedOption("");
   }, []);
 
-  const handleRetry = useCallback(() => {
-    setRetryCount((prev) => prev + 1);
-    mutate();
-  }, [mutate]);
-
-  const handleTestApi = async () => {
-    try {
-      toast.info("Test de connexion API en cours...");
-      const testUrl = createApiUrl("/api/appareils");
-      console.log("Testing API URL:", testUrl);
-
-      const response = await fetch(testUrl);
-      console.log("Test response:", response);
-
-      if (response.ok) {
-        toast.success("Connexion API réussie!");
-      } else {
-        toast.error(`Erreur API: ${response.status}`);
-      }
-    } catch (err) {
-      toast.error(`Erreur de connexion: ${err.message}`);
-    }
-  };
-
   return (
     <div className="appareil-gallery">
       <div className="appareil-gallery-header">
         <h1>Galerie des Appareils</h1>
         <p>Découvrez notre collection d'appareils dentaires</p>
-
-        {/* Boutons de debug */}
-        <div className="debug-buttons">
-          <button onClick={handleTestApi} className="debug-btn">
-            Tester l'API
-          </button>
-          <button
-            onClick={handleRetry}
-            className="debug-btn"
-            disabled={isLoading}
-          >
-            <RefreshCw size={14} />
-            Recharger
-          </button>
-        </div>
       </div>
 
       {/* Barre de recherche et filtres */}
@@ -540,8 +486,6 @@ const AppareilGallery = () => {
       <div className="appareil-gallery-results">
         <p className="results-count">
           {filteredAppareils.length} appareil(s) trouvé(s)
-          {isLoading && " - Chargement..."}
-          {error && " - Erreur de chargement"}
         </p>
       </div>
 
@@ -551,16 +495,6 @@ const AppareilGallery = () => {
           <div className="appareil-gallery-loading">
             <div className="loading-spinner"></div>
             <p>Chargement des appareils...</p>
-          </div>
-        ) : error ? (
-          <div className="appareil-gallery-error">
-            <Settings size={64} />
-            <h3>Erreur de chargement</h3>
-            <p>Impossible de charger les appareils. Veuillez réessayer.</p>
-            <button onClick={handleRetry} className="retry-btn">
-              <RefreshCw size={16} />
-              Réessayer
-            </button>
           </div>
         ) : filteredAppareils.length === 0 ? (
           <div className="appareil-gallery-empty">
