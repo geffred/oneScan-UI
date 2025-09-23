@@ -95,7 +95,9 @@ const fetchWithAuth = async (url) => {
 
 // Fonctions API
 const getAppareils = async () => {
-  return fetchWithAuth("/api/appareils");
+  return fetchWithAuth(
+    "https://mysmilelab-api-production.up.railway.app/api/appareils"
+  );
 };
 
 const getCurrentUser = async () => {
