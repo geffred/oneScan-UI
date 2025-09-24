@@ -113,6 +113,13 @@ const getCurrentUser = async () => {
 };
 
 console.log("API_BASE_URL =", API_BASE_URL);
+console.log("getAppareils URL =", `${API_BASE_URL}/appareils`);
+
+fetchWithAuth(`${API_BASE_URL}/appareils`)
+  .then((data) => console.log("Données des appareils:", data))
+  .catch((error) =>
+    console.error("Erreur lors du fetch des appareils:", error)
+  );
 
 // Composant Upload d'images
 const ImageUploadModal = React.memo(
