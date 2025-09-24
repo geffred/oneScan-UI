@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback } from "react";
+import useSWR from "swr";
 import { toast } from "react-toastify";
 import {
   Settings,
@@ -54,17 +55,15 @@ const OPTIONS = [
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // ex: "http://localhost:8080/api"
 
 // Fonction de fetch public
-const fetchPublic = async (endpoint) => {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`);
+const fetchPublic = async (url) => {
+  const response = await fetch(`${API_BASE_URL}${url}`);
   if (!response.ok)
     throw new Error(`Erreur ${response.status}: ${response.statusText}`);
   return response.json();
 };
 
 // Fonction pour récupérer les appareils
-const getAppareils = async () => {
-  return fetchPublic("/appareils");
-};
+const getAppareils = async () => fetchPublic("/appareils");
 
 // Composant Card d'appareil
 const AppareilCard = React.memo(({ appareil, onViewDetails }) => {
@@ -320,28 +319,26 @@ AppareilDetailModal.displayName = "AppareilDetailModal";
 
 // Composant principal
 const AppareilGallery = () => {
-  const [appareils, setAppareils] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
   const [selectedAppareil, setSelectedAppareil] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  // Fetch des appareils
-  useEffect(() => {
-    getAppareils()
-      .then((data) => setAppareils(data))
-      .catch((err) => {
-        console.error(err);
-        setError(err.message);
-        toast.error("Erreur lors de la récupération des appareils");
-      })
-      .finally(() => setIsLoading(false));
-  }, []);
+  // SWR hook pour récupérer les appareils
+  const {
+    data: appareils = [],
+    error,
+    isLoading,
+  } = useSWR("appareils-gallery", getAppareils, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    refreshInterval: 60000,
+    errorRetryCount: 3,
+    errorRetryInterval: 1000,
+  });
 
-  // Filtrage des appareils
+  // Filtrage
   const filteredAppareils = useMemo(() => {
     return appareils.filter((appareil) => {
       const matchesSearch =
@@ -355,6 +352,11 @@ const AppareilGallery = () => {
       return matchesSearch && matchesCategory && matchesOption;
     });
   }, [appareils, searchTerm, selectedCategory, selectedOption]);
+
+  // Gestion des erreurs
+  React.useEffect(() => {
+    if (error) toast.error("Erreur lors de la récupération des appareils");
+  }, [error]);
 
   // Handlers
   const handleSearchChange = useCallback(
@@ -471,7 +473,7 @@ const AppareilGallery = () => {
         )}
       </div>
 
-      {/* Modal de détails */}
+      {/* Modal */}
       {selectedAppareil && (
         <AppareilDetailModal
           appareil={selectedAppareil}
