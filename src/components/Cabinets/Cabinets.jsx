@@ -420,10 +420,26 @@ const Cabinet = () => {
           : `${API_BASE_URL}/cabinet`;
         const method = editingCabinet ? "PUT" : "POST";
 
-        const payload = {
+        let payload = {
           ...values,
           userId: currentUser.id,
         };
+
+        // ✅ Si on est en mode édition
+        if (editingCabinet) {
+          const emailChanged = values.email !== editingCabinet.email;
+          const passwordNotSent = !editingCabinet.passwordSend;
+
+          if (emailChanged && passwordNotSent) {
+            // Regénérer un nouveau mot de passe basé sur le nouvel email
+            const newPassword = await generatePassword(values.email);
+
+            payload = {
+              ...payload,
+              motDePasse: newPassword, // ajoute le nouveau mot de passe généré
+            };
+          }
+        }
 
         const response = await fetch(url, {
           method,
