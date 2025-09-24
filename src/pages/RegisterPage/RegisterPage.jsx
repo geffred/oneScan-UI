@@ -14,18 +14,21 @@ import {
   ArrowLeft,
   CheckCircle,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./RegisterPage.css";
 import Footer from "../../components/Footer/Footer";
 import Header from "../../components/Header/Header";
-import { useNavigate } from "react-router-dom";
+
+// Variable d'environnement
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Options pour le type de société
+  const navigate = useNavigate();
+
   const companyTypes = [
     { value: "prothesiste", label: "Prothésiste Dentaire" },
     { value: "dentiste", label: "Dentiste" },
@@ -33,7 +36,6 @@ const RegisterPage = () => {
     { value: "particulier", label: "Particulier" },
   ];
 
-  // Liste des pays (simplifié)
   const countries = [
     { value: "FR", label: "France" },
     { value: "BE", label: "Belgique" },
@@ -42,7 +44,6 @@ const RegisterPage = () => {
     { value: "LU", label: "Luxembourg" },
   ];
 
-  // Schéma de validation Yup
   const validationSchema = Yup.object({
     firstName: Yup.string()
       .min(2, "Le prénom doit contenir au moins 2 caractères")
@@ -82,7 +83,6 @@ const RegisterPage = () => {
     newsletter: Yup.boolean(),
   });
 
-  // Valeurs initiales
   const initialValues = {
     firstName: "",
     lastName: "",
@@ -96,12 +96,10 @@ const RegisterPage = () => {
     newsletter: false,
   };
 
-  const navigate = useNavigate();
-
   const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -169,9 +167,9 @@ const RegisterPage = () => {
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
               >
-                {({ isSubmitting, touched, errors, values }) => (
+                {({ isSubmitting, touched, errors }) => (
                   <Form className="register-form">
-                    {/* Nom et Prénom */}
+                    {/* Prénom et Nom */}
                     <div className="register-form-row">
                       <div className="register-form-group">
                         <label
@@ -353,7 +351,7 @@ const RegisterPage = () => {
                       </div>
                     </div>
 
-                    {/* Mot de passe */}
+                    {/* Mot de passe et confirmation */}
                     <div className="register-form-group">
                       <label htmlFor="password" className="register-form-label">
                         Mot de passe *
@@ -388,15 +386,8 @@ const RegisterPage = () => {
                         component="div"
                         className="register-error-message"
                       />
-                      <div className="register-password-strength">
-                        <small className="register-password-hint">
-                          8 caractères minimum, avec majuscule, minuscule et
-                          chiffre
-                        </small>
-                      </div>
                     </div>
 
-                    {/* Confirmation mot de passe */}
                     <div className="register-form-group">
                       <label
                         htmlFor="confirmPassword"

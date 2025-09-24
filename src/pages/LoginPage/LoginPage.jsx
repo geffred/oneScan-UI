@@ -12,15 +12,21 @@ import {
   Building2,
   Info,
   AlertCircle,
+  Shield,
+  Bot,
+  Link2,
+  BarChart2,
+  Zap,
 } from "lucide-react";
-import { Bot, Link2, BarChart2, Shield, Zap } from "lucide-react";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./LoginPage.css";
 import Footer from "../../components/Footer/Footer";
 import Header from "../../components/Header/Header";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/Config/AuthContext";
+
+// Variable d'environnement
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -38,13 +44,13 @@ const LoginPage = () => {
       let requestBody = {};
 
       if (loginType === "laboratoire") {
-        endpoint = "/api/auth/login";
+        endpoint = `${API_BASE_URL}/api/auth/login`;
         requestBody = {
           email: values.email,
           password: values.password,
         };
       } else {
-        endpoint = "/api/cabinet/auth/login";
+        endpoint = `${API_BASE_URL}/api/cabinet/auth/login`;
         requestBody = {
           email: values.email,
           motDePasse: values.password,
