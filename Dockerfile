@@ -4,14 +4,12 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copier les fichiers de configuration essentiels
-COPY package*.json ./
-COPY vite.config.js ./
-COPY index.html ./
+COPY package*.json vite.config.js ./
 
-# Installer toutes les dépendances
+# Installer les dépendances
 RUN npm ci
 
-# Copier le code source
+# Copier tout le code source
 COPY . .
 
 # Build de l'application
@@ -22,14 +20,14 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Installer serveur static
+# Installer un serveur statique
 RUN npm install -g serve
 
-# Copier les fichiers buildés depuis l'étape builder
+# Copier uniquement les fichiers buildés
 COPY --from=builder /app/dist ./dist
 
-# Exposer le port
+# Exposer le port (Railway fournit $PORT automatiquement)
 EXPOSE 3000
 
-# Commande de démarrage
-CMD ["serve", "-s", "dist", "-l", "3000"]
+# Lancer le serveur sur le port Railway ($PORT ou 3000 par défaut)
+CMD ["sh", "-c", "serve -s dist -l ${PORT:-3000}"]
