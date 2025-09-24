@@ -98,18 +98,16 @@ const fetchWithAuth = async (url, options = {}) => {
   return response.json();
 };
 
-// Fonctions API
+// Endpoint public
 const getAppareils = async () => {
-  return fetchWithAuth(`${API_BASE_URL}/appareils`);
+  const response = await fetch(`${API_BASE_URL}/appareils`);
+  if (!response.ok) throw new Error(`Erreur ${response.status}`);
+  return response.json();
 };
 
+// Endpoint protégé
 const getCurrentUser = async () => {
-  try {
-    return await fetchWithAuth(`${API_BASE_URL}/auth/me`);
-  } catch (error) {
-    console.error("Erreur lors de la récupération de l'utilisateur:", error);
-    throw error;
-  }
+  return fetchWithAuth(`${API_BASE_URL}/auth/me`);
 };
 
 console.log("API_BASE_URL =", API_BASE_URL);
@@ -233,13 +231,16 @@ const Appareils = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
+  // Toujours récupérer les appareils (même si pas loggé)
+  const { data: appareils = [], mutate: mutateAppareils } = useSWR(
+    "appareils",
+    getAppareils
+  );
+
+  // Ne récupérer l’utilisateur que si loggé
   const { data: currentUser } = useSWR(
     isAuthenticated ? "currentUser" : null,
     getCurrentUser
-  );
-  const { data: appareils = [], mutate: mutateAppareils } = useSWR(
-    isAuthenticated ? "appareils" : null,
-    getAppareils
   );
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
