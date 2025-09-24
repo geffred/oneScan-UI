@@ -21,6 +21,8 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import "./Compte.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const countries = [
   { value: "FR", label: "France" },
   { value: "BE", label: "Belgique" },
@@ -64,7 +66,7 @@ const Compte = () => {
           throw new Error("Token non trouvé");
         }
 
-        const response = await fetch(`/api/auth/me`, {
+        const response = await fetch(`${API_BASE_URL}/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -139,7 +141,7 @@ const Compte = () => {
         updateData.newPassword = values.newPassword;
       }
 
-      const response = await fetch("/api/auth/update", {
+      const response = await fetch(`${API_BASE_URL}/auth/update`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -195,7 +197,7 @@ const Compte = () => {
         throw new Error("Token non trouvé");
       }
 
-      const response = await fetch("/api/auth/delete", {
+      const response = await fetch(`${API_BASE_URL}/auth/delete`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -9,6 +9,8 @@ const fetcher = (url) =>
     return res.json();
   });
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export const useMeditLinkAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -16,7 +18,7 @@ export const useMeditLinkAuth = () => {
 
   // SWR uniquement pour le statut d'auth
   const { data: authStatus, mutate: mutateAuth } = useSWR(
-    "/api/meditlink/auth/status",
+    `${API_BASE_URL}/meditlink/auth/status`,
     fetcher,
     {
       refreshInterval: 30000,
@@ -31,7 +33,7 @@ export const useMeditLinkAuth = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch("/api/meditlink/auth/login", {
+      const response = await fetch(`${API_BASE_URL}/meditlink/auth/login`, {
         credentials: "include",
       });
 
@@ -57,7 +59,7 @@ export const useMeditLinkAuth = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch("/api/meditlink/auth/logout", {
+      const response = await fetch(`${API_BASE_URL}/meditlink/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -91,7 +93,7 @@ export const useMeditLinkAuth = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch("/api/meditlink/auth/refresh", {
+      const response = await fetch(`${API_BASE_URL}/meditlink/auth/refresh`, {
         method: "POST",
         credentials: "include",
       });
@@ -118,9 +120,12 @@ export const useMeditLinkAuth = () => {
 
   const getTokenDetails = useCallback(async () => {
     try {
-      const response = await fetch("/api/meditlink/auth/token-debug", {
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/meditlink/auth/token-debug`,
+        {
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Erreur lors de la récupération des détails du token");

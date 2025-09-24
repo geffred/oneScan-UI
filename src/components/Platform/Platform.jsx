@@ -35,6 +35,8 @@ import useMeditLinkAuth from "../Config/useMeditLinkAuth";
 import MeditLinkDashboard from "../MeditLinkDashboard/MeditLinkDashboard";
 import "./Platform.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // Configuration mise en cache
 const SECRET_KEY = "MaCleSecrete12345";
 const platformTypes = [
@@ -97,19 +99,19 @@ const getUserData = async () => {
   if (!token) throw new Error("Token manquant");
 
   const userEmail = JSON.parse(atob(token.split(".")[1])).sub;
-  return fetchWithAuth(`/api/auth/user/${userEmail}`);
+  return fetchWithAuth(`${API_BASE_URL}/auth/user/${userEmail}`);
 };
 
 // Fonction pour récupérer les plateformes d'un utilisateur
 const getUserPlatforms = async (userId) => {
   if (!userId) return [];
-  return fetchWithAuth(`/api/platforms/user/${userId}`);
+  return fetchWithAuth(`${API_BASE_URL}/platforms/user/${userId}`);
 };
 
 // Fonctions pour 3Shape Authentication
 const initiate3ShapeAuth = async () => {
   const token = localStorage.getItem("token");
-  const response = await fetch("/api/login", {
+  const response = await fetch(`${API_BASE_URL}/login`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -127,9 +129,12 @@ const initiate3ShapeAuth = async () => {
 
 const complete3ShapeAuth = async (code, state) => {
   const token = localStorage.getItem("token");
-  const response = await fetch(`/api/callback?code=${code}&state=${state}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/callback?code=${code}&state=${state}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
 
   if (!response.ok) {
     throw new Error(
@@ -142,7 +147,7 @@ const complete3ShapeAuth = async (code, state) => {
 
 const check3ShapeAuthStatus = async () => {
   const token = localStorage.getItem("token");
-  const response = await fetch("/api/auth/status", {
+  const response = await fetch(`${API_BASE_URL}/auth/status`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -776,14 +781,17 @@ const Platform = () => {
           params.append("state", state);
         }
 
-        const response = await fetch("/api/meditlink/auth/callback", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          credentials: "include",
-          body: params.toString(),
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/meditlink/auth/callback`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            credentials: "include",
+            body: params.toString(),
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();
@@ -843,8 +851,8 @@ const Platform = () => {
       try {
         const token = localStorage.getItem("token");
         const url = editingPlatform
-          ? `/api/platforms/${editingPlatform.id}`
-          : "/api/platforms";
+          ? `${API_BASE_URL}/platforms/${editingPlatform.id}`
+          : `${API_BASE_URL}/platforms`;
         const method = editingPlatform ? "PUT" : "POST";
 
         const platformData = {
@@ -919,10 +927,13 @@ const Platform = () => {
 
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`/api/platforms/${platformId}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/platforms/${platformId}`,
+          {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Erreur lors de la suppression de la plateforme");

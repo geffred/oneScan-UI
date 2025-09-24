@@ -24,6 +24,7 @@ import { EmailService } from "./EmailService";
 
 import "./CommandeDetails.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // API Services
 const fetchWithAuth = async (url) => {
   const token = localStorage.getItem("token");
@@ -43,23 +44,23 @@ const fetchWithAuth = async (url) => {
 };
 
 const getCommandes = async () => {
-  return fetchWithAuth("/api/public/commandes");
+  return fetchWithAuth(`${API_BASE_URL}/public/commandes`);
 };
 
 const getCommandeByExternalId = async (externalId) => {
   if (!externalId) throw new Error("ExternalId manquant");
-  return fetchWithAuth(`/api/public/commandes/${externalId}`);
+  return fetchWithAuth(`${API_BASE_URL}/public/commandes/${externalId}`);
 };
 
 const getCabinets = async () => {
-  return fetchWithAuth("/api/cabinet");
+  return fetchWithAuth(`${API_BASE_URL}/cabinet`);
 };
 
 const getCommentaire = async (plateforme, externalId) => {
   if (!plateforme || !externalId) return null;
 
   try {
-    const endpoint = `/api/${plateforme.toLowerCase()}/commentaire/${externalId}`;
+    const endpoint = `${API_BASE_URL}/${plateforme.toLowerCase()}/commentaire/${externalId}`;
     const data = await fetchWithAuth(endpoint);
     return data.commentaire || data.comments || null;
   } catch (error) {
@@ -72,13 +73,16 @@ const markAsRead = async (commandeId) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
 
-  const response = await fetch(`/api/public/commandes/${commandeId}/vu`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/public/commandes/${commandeId}/vu`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
   if (!response.ok) {
     throw new Error(`Erreur ${response.status}: ${response.statusText}`);
@@ -91,14 +95,17 @@ const updateCabinetId = async (commandeId, cabinetId) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
 
-  const response = await fetch(`/api/public/commandes/cabinet/${commandeId}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(cabinetId),
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/public/commandes/cabinet/${commandeId}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(cabinetId),
+    }
+  );
 
   if (!response.ok) {
     throw new Error(`Erreur ${response.status}: ${response.statusText}`);
@@ -134,14 +141,17 @@ const updateCommandeStatus = async (commandeId, status) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
 
-  const response = await fetch(`/api/public/commandes/statut/${commandeId}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(status),
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/public/commandes/statut/${commandeId}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(status),
+    }
+  );
 
   if (!response.ok) {
     throw new Error(`Erreur ${response.status}: ${response.statusText}`);
@@ -289,7 +299,7 @@ const CommandeDetails = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `/api/${commande.plateforme.toLowerCase()}/download/${
+        `${API_BASE_URL}/${commande.plateforme.toLowerCase()}/download/${
           commande.externalId
         }`,
         {

@@ -21,6 +21,8 @@ import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "./Cabinets.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // Schema de validation mis en cache
 const validationSchema = Yup.object({
   nom: Yup.string()
@@ -69,13 +71,13 @@ const fetchWithAuth = async (url) => {
 
 // Fonction pour récupérer les cabinets
 const getCabinets = async () => {
-  return fetchWithAuth("/api/cabinet");
+  return fetchWithAuth(`${API_BASE_URL}/cabinet`);
 };
 
 // Fonction pour récupérer les informations de l'utilisateur connecté
 const getCurrentUser = async () => {
   try {
-    return await fetchWithAuth("/api/auth/me");
+    return await fetchWithAuth(`${API_BASE_URL}/auth/me`);
   } catch (error) {
     console.error("Erreur lors de la récupération de l'utilisateur:", error);
     throw error;
@@ -368,7 +370,7 @@ const Cabinet = () => {
         // Marquer comme envoyé via API
         const token = localStorage.getItem("token");
         const response = await fetch(
-          `/api/cabinet/${cabinet.id}/mark-password-sent`,
+          `${API_BASE_URL}/cabinet/${cabinet.id}/mark-password-sent`,
           {
             method: "POST",
             headers: {
@@ -414,8 +416,8 @@ const Cabinet = () => {
 
         const token = localStorage.getItem("token");
         const url = editingCabinet
-          ? `/api/cabinet/${editingCabinet.id}`
-          : "/api/cabinet";
+          ? `${API_BASE_URL}/cabinet/${editingCabinet.id}`
+          : `${API_BASE_URL}/cabinet`;
         const method = editingCabinet ? "PUT" : "POST";
 
         const payload = {
@@ -484,7 +486,7 @@ const Cabinet = () => {
 
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`/api/cabinet/${cabinetId}`, {
+        const response = await fetch(`${API_BASE_URL}/cabinet/${cabinetId}`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,

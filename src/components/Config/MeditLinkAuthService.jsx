@@ -1,9 +1,11 @@
 // MeditLinkAuthService.js
 // Service d'authentification dédié pour MeditLink OAuth
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 class MeditLinkAuthService {
   constructor() {
-    this.baseUrl = "/api/meditlink";
+    this.baseUrl = `${API_BASE_URL}/meditlink`;
     this.authStatus = null;
     this.userInfo = null;
     this.callbacks = new Set();

@@ -8,6 +8,8 @@ const EMAILJS_PUBLIC_KEY = "lAe4pEEgnlrd0Uu9C";
 // Initialiser EmailJS
 emailjs.init(EMAILJS_PUBLIC_KEY);
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export class EmailService {
   static async sendEmailNotification(commande, cabinet, commentaire) {
     try {
@@ -79,7 +81,7 @@ export class EmailService {
     if (!token) throw new Error("Token manquant");
 
     const response = await fetch(
-      `/api/public/commandes/${commandeId}/notification/sent`,
+      `${API_BASE_URL}/public/commandes/${commandeId}/notification/sent`,
       {
         method: "POST",
         headers: {
@@ -101,7 +103,7 @@ export class EmailService {
     if (!token) throw new Error("Token manquant");
 
     const response = await fetch(
-      `/api/public/commandes/${commandeId}/notification`,
+      `${API_BASE_URL}/public/commandes/${commandeId}/notification`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -30,6 +30,7 @@ import Navbar from "../../components/Navbar/Navbar";
 import "./CompteCabinet.css";
 import Footer from "../../components/Footer/Footer";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // Fetcher function for SWR
 const fetcher = async (url) => {
   const response = await fetch(url);
@@ -54,16 +55,21 @@ const CompteCabinet = () => {
     data: commandes,
     error: commandesError,
     isLoading: loadingCommandes,
-  } = useSWR(cabinetData?.id ? `/api/public/commandes` : null, fetcher, {
-    revalidateOnFocus: false,
-    revalidateInterval: 30000, // Revalidation toutes les 30 secondes
-    onSuccess: (data) => {
-      // Filtrer les commandes pour ce cabinet
-      return (
-        data?.filter((commande) => commande.cabinetId === cabinetData?.id) || []
-      );
-    },
-  });
+  } = useSWR(
+    cabinetData?.id ? `${API_BASE_URL}/public/commandes` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateInterval: 30000, // Revalidation toutes les 30 secondes
+      onSuccess: (data) => {
+        // Filtrer les commandes pour ce cabinet
+        return (
+          data?.filter((commande) => commande.cabinetId === cabinetData?.id) ||
+          []
+        );
+      },
+    }
+  );
 
   // Filtrer les commandes pour ce cabinet
   const filteredCommandes =
@@ -165,7 +171,7 @@ const CompteCabinet = () => {
       // Si changement de mot de passe demandé, utiliser l'API dédiée
       if (values.newPassword && values.currentPassword) {
         const passwordResponse = await fetch(
-          `/api/cabinet/auth/change-password?email=${
+          `${API_BASE_URL}/cabinet/auth/change-password?email=${
             cabinetData.email
           }&currentPassword=${encodeURIComponent(
             values.currentPassword
@@ -190,7 +196,7 @@ const CompteCabinet = () => {
       // Pour les cabinets, il faut utiliser une approche différente car ils n'ont pas de JWT
       // On va d'abord récupérer les données actuelles puis les mettre à jour
       const profileResponse = await fetch(
-        `/api/cabinet/auth/profile?email=${cabinetData.email}`
+        `${API_BASE_URL}/cabinet/auth/profile?email=${cabinetData.email}`
       );
 
       if (!profileResponse.ok) {
@@ -226,7 +232,7 @@ const CompteCabinet = () => {
   // Gestion de la déconnexion
   const handleLogout = async () => {
     try {
-      await fetch("/api/cabinet/auth/logout", {
+      await fetch(`${API_BASE_URL}/cabinet/auth/logout`, {
         method: "POST",
       });
     } catch (err) {

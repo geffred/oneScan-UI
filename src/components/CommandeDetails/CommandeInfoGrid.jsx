@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import CommentSection from "./CommentSection";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const MeditLinkFileDownloadButton = React.memo(
   ({ file, externalId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -24,7 +25,7 @@ const MeditLinkFileDownloadButton = React.memo(
 
       // Étape 1: Récupérer les informations de téléchargement
       const infoResponse = await fetch(
-        `/api/meditlink/files/${fileUuid}?type=stl`,
+        `${API_BASE_URL}/meditlink/files/${fileUuid}?type=stl`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -157,7 +158,7 @@ const ScanDownloadButton = React.memo(
       if (!token) throw new Error("Token manquant");
 
       const response = await fetch(
-        `/api/cases/${externalId}/attachments/${hash}`,
+        `${API_BASE_URL}/cases/${externalId}/attachments/${hash}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -356,7 +357,7 @@ const CommandeInfoGrid = ({
       if (!token) throw new Error("Token manquant");
 
       const response = await fetch(
-        `/api/meditlink/orders/${commande.externalId}`,
+        `${API_BASE_URL}/meditlink/orders/${commande.externalId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

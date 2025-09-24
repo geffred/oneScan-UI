@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FileText, Edit3, Save, X } from "lucide-react";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const CommentSection = ({
   commentaire,
   isLoading,
@@ -40,7 +41,7 @@ const CommentSection = ({
     setIsSaving(true);
     try {
       const response = await fetch(
-        `/api/public/commandes/commentaire/${commande.id}`,
+        `${API_BASE_URL}/public/commandes/commentaire/${commande.id}`,
         {
           method: "POST",
           headers: {

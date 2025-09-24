@@ -11,6 +11,7 @@ import {
 import { AuthContext } from "../../components/Config/AuthContext";
 import "./MeditLinkCallback.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const MeditLinkCallback = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,7 +33,7 @@ const MeditLinkCallback = () => {
   // Fonction pour rafraîchir la session
   const refreshSession = useRef(async () => {
     try {
-      await fetch("/api/meditlink/auth/refresh", {
+      await fetch(`${API_BASE_URL}/meditlink/auth/refresh`, {
         method: "POST",
         credentials: "include",
       });
@@ -80,7 +81,7 @@ const MeditLinkCallback = () => {
         params.append("state", state);
       }
 
-      const response = await fetch("/api/meditlink/auth/callback", {
+      const response = await fetch(`${API_BASE_URL}/meditlink/auth/callback`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         credentials: "include",

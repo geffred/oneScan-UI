@@ -13,6 +13,8 @@ import {
 import useMeditLinkAuth from "../../components/Config/useMeditLinkAuth";
 import "./MeditLinkDashboard.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const fetcher = (url) => {
   const token = localStorage.getItem("token");
   return fetch(url, {
@@ -45,7 +47,7 @@ const MeditLinkDashboard = () => {
 
   // SWR uniquement pour l’auth status
   const { data: authData, mutate: mutateAuth } = useSWR(
-    "/api/meditlink/auth/status",
+    `${API_BASE_URL}/meditlink/auth/status`,
     fetcher,
     { refreshInterval: 30000 }
   );

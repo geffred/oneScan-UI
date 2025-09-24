@@ -26,6 +26,8 @@ import {
 import { Line, Bar, Doughnut } from "react-chartjs-2";
 import "./DashboardCard.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // Enregistrer les composants Chart.js
 ChartJS.register(
   CategoryScale,
@@ -59,17 +61,17 @@ const fetchWithAuth = async (url) => {
 
 // Fonction pour récupérer les commandes
 const getCommandes = async () => {
-  return fetchWithAuth("/api/public/commandes");
+  return fetchWithAuth(`${API_BASE_URL}/public/commandes`);
 };
 
 // Fonction pour récupérer les cabinets
 const getCabinets = async () => {
-  return fetchWithAuth("/api/cabinet");
+  return fetchWithAuth(`${API_BASE_URL}/cabinet`);
 };
 
 // Fonction pour récupérer les plateformes
 const getPlatforms = async () => {
-  return fetchWithAuth("/api/platforms");
+  return fetchWithAuth(`${API_BASE_URL}/platforms`);
 };
 
 // Fonction pour récupérer les données utilisateur
@@ -78,7 +80,7 @@ const getUserData = async () => {
   if (!token) throw new Error("Token manquant");
 
   const userEmail = JSON.parse(atob(token.split(".")[1])).sub;
-  return fetchWithAuth(`/api/auth/user/${userEmail}`);
+  return fetchWithAuth(`${API_BASE_URL}/auth/user/${userEmail}`);
 };
 
 const DashboardCard = () => {
@@ -86,7 +88,7 @@ const DashboardCard = () => {
 
   // SWR hooks pour les données
   const { data: commandes = [] } = useSWR(
-    isAuthenticated ? "/api/public/commandes" : null,
+    isAuthenticated ? `${API_BASE_URL}/public/commandes` : null,
     getCommandes,
     {
       revalidateOnFocus: false,

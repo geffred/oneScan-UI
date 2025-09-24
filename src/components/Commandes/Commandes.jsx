@@ -23,12 +23,14 @@ import {
 import { AuthContext } from "../../components/Config/AuthContext";
 import "./Commandes.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // Configuration mise en cache
 const platformEndpoints = {
-  MEDITLINK: "/api/meditlink/cases/save",
-  ITERO: "/api/itero/commandes",
-  THREESHAPE: "/api/cases/save",
-  DEXIS: "/api/dexis/commandes",
+  MEDITLINK: `${API_BASE_URL}/meditlink/cases/save`,
+  ITERO: `${API_BASE_URL}/itero/commandes`,
+  THREESHAPE: `${API_BASE_URL}/cases/save`,
+  DEXIS: `${API_BASE_URL}/dexis/commandes`,
 };
 
 // Fonction fetcher pour SWR
@@ -55,18 +57,18 @@ const getUserData = async () => {
   if (!token) throw new Error("Token manquant");
 
   const userEmail = JSON.parse(atob(token.split(".")[1])).sub;
-  return fetchWithAuth(`/api/auth/user/${userEmail}`);
+  return fetchWithAuth(`${API_BASE_URL}/auth/user/${userEmail}`);
 };
 
 // Fonction pour récupérer les plateformes d'un utilisateur
 const getUserPlatforms = async (userId) => {
   if (!userId) return [];
-  return fetchWithAuth(`/api/platforms/user/${userId}`);
+  return fetchWithAuth(`${API_BASE_URL}/platforms/user/${userId}`);
 };
 
 // Fonction pour récupérer les commandes
 const getCommandes = async () => {
-  return fetchWithAuth("/api/public/commandes");
+  return fetchWithAuth(`${API_BASE_URL}/public/commandes`);
 };
 
 // Composants optimisés avec React.memo
@@ -325,12 +327,16 @@ const Commandes = () => {
     error: commandesError,
     isLoading: commandesLoading,
     mutate: mutateCommandes,
-  } = useSWR(isAuthenticated ? "/api/public/commandes" : null, getCommandes, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: true,
-    refreshInterval: 60000, // Rafraîchir toutes les minutes
-    errorRetryCount: 3,
-  });
+  } = useSWR(
+    isAuthenticated ? `${API_BASE_URL}/public/commandes` : null,
+    getCommandes,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 60000, // Rafraîchir toutes les minutes
+      errorRetryCount: 3,
+    }
+  );
 
   // Fonction pour calculer les dates des 5 derniers jours en millisecondes
   const getLast5DaysTimestamps = useCallback(() => {
@@ -358,7 +364,7 @@ const Commandes = () => {
   // Fonction pour synchroniser les commandes MeditLink avec les 5 derniers jours
   const syncMeditLinkCommandes = useCallback(async () => {
     const timestamps = getLast5DaysTimestamps();
-    const endpoint = `/api/meditlink/cases/save?page=0&size=20&start=${timestamps.start}&end=${timestamps.end}`;
+    const endpoint = `${API_BASE_URL}/meditlink/cases/save?page=0&size=20&start=${timestamps.start}&end=${timestamps.end}`;
 
     setSyncStatus((prev) => ({
       ...prev,

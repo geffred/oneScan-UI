@@ -16,10 +16,14 @@ import {
 import { toast } from "react-toastify";
 import "./SuiviCommandes.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // Fonction pour récupérer les détails d'une commande par numéro de suivi
 const fetchCommandeByNumeroSuivi = async (numeroSuivi) => {
   // Cette route est publique, pas besoin de token
-  const response = await fetch(`/api/public/commandes/suivi/${numeroSuivi}`);
+  const response = await fetch(
+    `${API_BASE_URL}/public/commandes/suivi/${numeroSuivi}`
+  );
 
   if (!response.ok) {
     if (response.status === 404) {
