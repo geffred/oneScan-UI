@@ -112,6 +112,8 @@ const getCurrentUser = async () => {
   }
 };
 
+console.log("API_BASE_URL =", API_BASE_URL);
+
 // Composant Upload d'images
 const ImageUploadModal = React.memo(
   ({ isOpen, onClose, appareilId, onUploadSuccess }) => {
