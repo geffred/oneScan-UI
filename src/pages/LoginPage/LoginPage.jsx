@@ -44,13 +44,13 @@ const LoginPage = () => {
       let requestBody = {};
 
       if (loginType === "laboratoire") {
-        endpoint = `${API_BASE_URL}/api/auth/login`;
+        endpoint = `${API_BASE_URL}/auth/login`;
         requestBody = {
           email: values.email,
           password: values.password,
         };
       } else {
-        endpoint = `${API_BASE_URL}/api/cabinet/auth/login`;
+        endpoint = `${API_BASE_URL}/cabinet/auth/login`;
         requestBody = {
           email: values.email,
           motDePasse: values.password,
