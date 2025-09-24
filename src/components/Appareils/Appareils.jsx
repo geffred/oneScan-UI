@@ -95,12 +95,16 @@ const fetchWithAuth = async (url) => {
 
 // Fonctions API
 const getAppareils = async () => {
-  return fetchWithAuth("/api/appareils");
+  return fetchWithAuth(
+    "https://mysmilelab-api-production.up.railway.app/api/appareils"
+  );
 };
 
 const getCurrentUser = async () => {
   try {
-    return await fetchWithAuth("/api/auth/me");
+    return await fetchWithAuth(
+      "https://mysmilelab-api-production.up.railway.app/api/auth/me"
+    );
   } catch (error) {
     console.error("Erreur lors de la récupération de l'utilisateur:", error);
     throw error;
