@@ -1,23 +1,9 @@
-import React, { useState, useContext, useMemo, useCallback } from "react";
+import React, { useState, useContext } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import useSWR from "swr";
 import { toast } from "react-toastify";
-import {
-  Settings,
-  Plus,
-  Edit,
-  Trash2,
-  Save,
-  X,
-  Search,
-  FileText,
-  Tag,
-  Upload,
-  Image,
-  Eye,
-  Wrench,
-} from "lucide-react";
+import { X } from "lucide-react";
 import { AuthContext } from "../Config/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "./Appareils.css";
@@ -78,26 +64,6 @@ const validationSchema = Yup.object({
   ),
 });
 
-// Fonction de fetch sécurisée
-const fetchWithAuth = async (url, options = {}) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Token manquant");
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...(options.headers || {}),
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
-  }
-
-  return response.json();
-};
-
 // Endpoint public
 const getAppareils = async () => {
   const response = await fetch(`${API_BASE_URL}/appareils`);
@@ -107,25 +73,17 @@ const getAppareils = async () => {
 
 // Endpoint protégé
 const getCurrentUser = async () => {
-  return fetchWithAuth(`${API_BASE_URL}/auth/me`);
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
+
+  const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error(`Erreur ${response.status}`);
+  return response.json();
 };
 
 console.log("API_BASE_URL =", API_BASE_URL);
-console.log("getAppareils URL =", `${API_BASE_URL}/appareils`);
-
-fetch(`${API_BASE_URL}/appareils`)
-  .then((response) => {
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP ! statut: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then((data) => {
-    console.log("Données des appareils:", data);
-  })
-  .catch((error) => {
-    console.error("Erreur lors du fetch des appareils:", error);
-  });
 
 // Composant Upload d'images
 const ImageUploadModal = React.memo(
@@ -231,13 +189,13 @@ const Appareils = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  // Toujours récupérer les appareils (même si pas loggé)
+  // Toujours récupérer les appareils
   const { data: appareils = [], mutate: mutateAppareils } = useSWR(
     "appareils",
     getAppareils
   );
 
-  // Ne récupérer l’utilisateur que si loggé
+  // Récupérer l’utilisateur uniquement si loggé
   const { data: currentUser } = useSWR(
     isAuthenticated ? "currentUser" : null,
     getCurrentUser
