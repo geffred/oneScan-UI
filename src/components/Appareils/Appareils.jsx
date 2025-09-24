@@ -94,17 +94,15 @@ const fetchWithAuth = async (url) => {
 };
 
 // Fonctions API
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const getAppareils = async () => {
-  return fetchWithAuth(
-    "https://mysmilelab-api-production.up.railway.app/api/appareils"
-  );
+  return fetchWithAuth(`${API_BASE_URL}/appareils`);
 };
 
 const getCurrentUser = async () => {
   try {
-    return await fetchWithAuth(
-      "https://mysmilelab-api-production.up.railway.app/api/auth/me"
-    );
+    return await fetchWithAuth(`${API_BASE_URL}/auth/me`);
   } catch (error) {
     console.error("Erreur lors de la récupération de l'utilisateur:", error);
     throw error;
