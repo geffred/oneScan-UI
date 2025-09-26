@@ -41,6 +41,7 @@ const fetchWithAuth = async (url) => {
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,
+      credentials: "include",
     },
   });
 
@@ -379,6 +380,7 @@ const Commandes = () => {
       const response = await fetch(endpoint, {
         headers: {
           Authorization: `Bearer ${token}`,
+          credentials: "include",
         },
       });
 
