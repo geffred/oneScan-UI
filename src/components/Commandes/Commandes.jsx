@@ -339,8 +339,8 @@ const Commandes = () => {
     }
   );
 
-  // Fonction pour calculer les dates des 5 derniers jours en millisecondes
-  const getLast5DaysTimestamps = useCallback(() => {
+  // Fonction pour calculer les dates des 30 derniers jours en millisecondes
+  const getLast30DaysTimestamps = useCallback(() => {
     const now = new Date();
     const endDate = new Date(
       now.getFullYear(),
@@ -353,7 +353,7 @@ const Commandes = () => {
     );
 
     const startDate = new Date(endDate);
-    startDate.setDate(startDate.getDate() - 5);
+    startDate.setDate(startDate.getDate() - 30);
     startDate.setHours(0, 0, 0, 0);
 
     return {
@@ -362,9 +362,9 @@ const Commandes = () => {
     };
   }, []);
 
-  // Fonction pour synchroniser les commandes MeditLink avec les 5 derniers jours
+  // Fonction pour synchroniser les commandes MeditLink avec les 30 derniers jours
   const syncMeditLinkCommandes = useCallback(async () => {
-    const timestamps = getLast5DaysTimestamps();
+    const timestamps = getLast30DaysTimestamps();
     const endpoint = `${API_BASE_URL}/meditlink/cases/save?page=0&size=20&start=${timestamps.start}&end=${timestamps.end}`;
 
     setSyncStatus((prev) => ({
@@ -456,7 +456,7 @@ const Commandes = () => {
         return newStatus;
       });
     }, 3000);
-  }, [getLast5DaysTimestamps, mutateCommandes]);
+  }, [getLast30DaysTimestamps, mutateCommandes]);
 
   // Fonction pour synchroniser les autres plateformes (3Shape, Itero, Dexis)
   const syncOtherPlatform = useCallback(
