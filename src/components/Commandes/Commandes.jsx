@@ -41,8 +41,8 @@ const fetchWithAuth = async (url) => {
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,
-      credentials: "include",
     },
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -380,8 +380,8 @@ const Commandes = () => {
       const response = await fetch(endpoint, {
         headers: {
           Authorization: `Bearer ${token}`,
-          credentials: "include",
         },
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -483,6 +483,7 @@ const Commandes = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          credentials: "include",
         });
 
         if (response.ok) {
