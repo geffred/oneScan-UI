@@ -30,6 +30,7 @@ const MeditLinkFileDownloadButton = React.memo(
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          credentials: "include",
         }
       );
 
@@ -163,6 +164,7 @@ const ScanDownloadButton = React.memo(
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          credentials: "include",
         }
       );
 
@@ -362,6 +364,7 @@ const CommandeInfoGrid = ({
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          credentials: "include",
         }
       );
 
