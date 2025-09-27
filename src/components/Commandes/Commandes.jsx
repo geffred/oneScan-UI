@@ -19,8 +19,14 @@ import {
   Loader2,
   CalendarDays,
   X,
+  Shield,
+  Link2,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
+import useMeditLinkAuth from "../Config/useMeditLinkAuth";
+import useThreeShapeAuth from "../Config/useThreeShapeAuth";
 import "./Commandes.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -206,58 +212,129 @@ const CommandeRow = React.memo(({ commande, onViewDetails }) => {
 
 CommandeRow.displayName = "CommandeRow";
 
-const PlatformCard = React.memo(({ platform, syncStatus, onSync }) => {
-  const getSyncStatusIcon = () => {
-    if (!syncStatus) return null;
+const PlatformCard = React.memo(
+  ({ platform, syncStatus, onSync, connectionStatus }) => {
+    const getSyncStatusIcon = () => {
+      if (!syncStatus) return null;
 
-    switch (syncStatus.status) {
-      case "loading":
-        return <div className="commandes-sync-spinner"></div>;
-      case "success":
-        return <CheckCircle size={14} className="commandes-sync-success" />;
-      case "error":
-        return <AlertCircle size={14} className="commandes-sync-error" />;
-      default:
-        return null;
-    }
-  };
+      switch (syncStatus.status) {
+        case "loading":
+          return <div className="commandes-sync-spinner"></div>;
+        case "success":
+          return <CheckCircle size={14} className="commandes-sync-success" />;
+        case "error":
+          return <AlertCircle size={14} className="commandes-sync-error" />;
+        default:
+          return null;
+      }
+    };
 
-  return (
-    <div className="commandes-platform-card">
-      <div className="commandes-platform-info">
-        <h4 className="commandes-platform-name">{platform.name}</h4>
-        <p className="commandes-platform-email">{platform.email}</p>
-      </div>
-      <div className="commandes-platform-actions">
-        {syncStatus && (
-          <div
-            className={`commandes-sync-status commandes-sync-${syncStatus.status}`}
-          >
-            {getSyncStatusIcon()}
-            <span>{syncStatus.message}</span>
-          </div>
-        )}
-        <button
-          className="commandes-btn commandes-btn-secondary"
-          onClick={() => onSync(platform.name)}
-          disabled={syncStatus?.status === "loading"}
-        >
-          {syncStatus?.status === "loading" ? (
-            <>
-              <Loader2 size={14} className="commandes-sync-loading" />
-              Sync...
-            </>
+    const getConnectionStatusIcon = () => {
+      if (!connectionStatus)
+        return <WifiOff size={16} className="commandes-connection-unknown" />;
+
+      switch (platform.name) {
+        case "MEDITLINK":
+          return connectionStatus.authenticated ? (
+            <Shield size={16} className="commandes-connection-success" />
           ) : (
-            <>
-              <Plus size={14} />
-              Récupérer
-            </>
+            <Shield size={16} className="commandes-connection-error" />
+          );
+        case "THREESHAPE":
+          return connectionStatus.authenticated ? (
+            <Link2 size={16} className="commandes-connection-success" />
+          ) : (
+            <Link2 size={16} className="commandes-connection-error" />
+          );
+        default:
+          return <Wifi size={16} className="commandes-connection-unknown" />;
+      }
+    };
+
+    const getConnectionStatusText = () => {
+      if (!connectionStatus) return "Statut inconnu";
+
+      switch (platform.name) {
+        case "MEDITLINK":
+          return connectionStatus.authenticated
+            ? "Connecté OAuth"
+            : "Non connecté";
+        case "THREESHAPE":
+          return connectionStatus.authenticated
+            ? "Connecté OAuth"
+            : "Non connecté";
+        default:
+          return "Configuration requise";
+      }
+    };
+
+    const isConnected = connectionStatus?.authenticated === true;
+
+    return (
+      <div className="commandes-platform-card">
+        <div className="commandes-platform-info">
+          <div className="commandes-platform-header">
+            <h4 className="commandes-platform-name">{platform.name}</h4>
+            <div
+              className={`commandes-connection-status ${
+                isConnected ? "connected" : "disconnected"
+              }`}
+            >
+              {getConnectionStatusIcon()}
+              <span className="commandes-connection-text">
+                {getConnectionStatusText()}
+              </span>
+            </div>
+          </div>
+          <p className="commandes-platform-email">{platform.email}</p>
+
+          {/* Affichage des informations utilisateur si connecté */}
+          {isConnected && connectionStatus.userInfo && (
+            <div className="commandes-user-info">
+              <span className="commandes-user-name">
+                {connectionStatus.userInfo.name}
+              </span>
+            </div>
           )}
-        </button>
+        </div>
+
+        <div className="commandes-platform-actions">
+          {syncStatus && (
+            <div
+              className={`commandes-sync-status commandes-sync-${syncStatus.status}`}
+            >
+              {getSyncStatusIcon()}
+              <span>{syncStatus.message}</span>
+            </div>
+          )}
+
+          <button
+            className={`commandes-btn ${
+              isConnected ? "commandes-btn-primary" : "commandes-btn-disabled"
+            }`}
+            onClick={() => onSync(platform.name)}
+            disabled={syncStatus?.status === "loading" || !isConnected}
+            title={
+              !isConnected ? "Connexion OAuth requise" : "Récupérer les données"
+            }
+          >
+            {syncStatus?.status === "loading" ? (
+              <>
+                <Loader2 size={14} className="commandes-sync-loading" />
+                Sync...
+              </>
+            ) : (
+              <>
+                <Plus size={14} />
+                {isConnected ? "Récupérer" : "Non connecté"}
+              </>
+            )}
+          </button>
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 PlatformCard.displayName = "PlatformCard";
 
@@ -298,6 +375,23 @@ const Commandes = () => {
   const [syncStatus, setSyncStatus] = useState({});
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // Hooks d'authentification pour les plateformes
+  const {
+    authStatus: meditlinkAuthStatus,
+    userInfo: meditlinkUserInfo,
+    isAuthenticated: meditlinkAuthenticated,
+  } = useMeditLinkAuth({
+    autoRefresh: false,
+    refreshInterval: 0,
+    fetchOnMount: true,
+  });
+
+  const {
+    authStatus: threeshapeAuthStatus,
+    isAuthenticated: threeshapeAuthenticated,
+    hasToken: threeshapeHasToken,
+  } = useThreeShapeAuth();
+
   // SWR hooks pour les données
   const {
     data: userData,
@@ -337,6 +431,36 @@ const Commandes = () => {
       refreshInterval: 60000, // Rafraîchir toutes les minutes
       errorRetryCount: 3,
     }
+  );
+
+  // Fonction pour obtenir le statut de connexion d'une plateforme
+  const getConnectionStatus = useCallback(
+    (platformName) => {
+      switch (platformName) {
+        case "MEDITLINK":
+          return {
+            authenticated: meditlinkAuthenticated,
+            userInfo: meditlinkUserInfo,
+            ...meditlinkAuthStatus,
+          };
+        case "THREESHAPE":
+          return {
+            authenticated: threeshapeAuthenticated,
+            hasToken: threeshapeHasToken,
+            ...threeshapeAuthStatus,
+          };
+        default:
+          return { authenticated: false };
+      }
+    },
+    [
+      meditlinkAuthenticated,
+      meditlinkUserInfo,
+      meditlinkAuthStatus,
+      threeshapeAuthenticated,
+      threeshapeHasToken,
+      threeshapeAuthStatus,
+    ]
   );
 
   // Fonction pour calculer les dates des 30 derniers jours en millisecondes
@@ -568,13 +692,28 @@ const Commandes = () => {
     [mutateCommandes]
   );
 
-  // Fonction pour synchroniser toutes les plateformes
+  // Fonction pour synchroniser toutes les plateformes connectées
   const syncAllPlatforms = useCallback(async () => {
     if (userPlatforms.length === 0) return;
 
     setIsSyncing(true);
 
-    const syncPromises = userPlatforms.map((platform) => {
+    // Filtrer seulement les plateformes connectées
+    const connectedPlatforms = userPlatforms.filter((platform) => {
+      const connectionStatus = getConnectionStatus(platform.name);
+      return connectionStatus.authenticated;
+    });
+
+    if (connectedPlatforms.length === 0) {
+      toast.warning("Aucune plateforme connectée à synchroniser", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      setIsSyncing(false);
+      return;
+    }
+
+    const syncPromises = connectedPlatforms.map((platform) => {
       if (platform.name === "MEDITLINK") {
         return syncMeditLinkCommandes();
       } else {
@@ -586,7 +725,7 @@ const Commandes = () => {
     setIsSyncing(false);
 
     // Notification pour synchronisation globale
-    toast.success("Toutes les plateformes synchronisées", {
+    toast.success(`${connectedPlatforms.length} plateformes synchronisées`, {
       position: "top-right",
       autoClose: 3000,
       hideProgressBar: false,
@@ -594,18 +733,36 @@ const Commandes = () => {
       pauseOnHover: true,
       draggable: true,
     });
-  }, [userPlatforms, syncMeditLinkCommandes, syncOtherPlatform]);
+  }, [
+    userPlatforms,
+    syncMeditLinkCommandes,
+    syncOtherPlatform,
+    getConnectionStatus,
+  ]);
 
   // Fonction pour synchroniser une plateforme spécifique
   const syncPlatformCommandes = useCallback(
     (platformName) => {
+      // Vérifier si la plateforme est connectée
+      const connectionStatus = getConnectionStatus(platformName);
+      if (!connectionStatus.authenticated) {
+        toast.warning(
+          `${platformName} n'est pas connectée. Veuillez d'abord vous connecter.`,
+          {
+            position: "top-right",
+            autoClose: 3000,
+          }
+        );
+        return;
+      }
+
       if (platformName === "MEDITLINK") {
         return syncMeditLinkCommandes();
       } else {
         return syncOtherPlatform(platformName);
       }
     },
-    [syncMeditLinkCommandes, syncOtherPlatform]
+    [syncMeditLinkCommandes, syncOtherPlatform, getConnectionStatus]
   );
 
   // Fonction pour filtrer par date
@@ -678,8 +835,19 @@ const Commandes = () => {
         return echeance < today;
       }).length || 0;
 
-    return { totalCommandes, commandesNonVues, commandesEchues };
-  }, [commandes]);
+    const connectedPlatformsCount = userPlatforms.filter((platform) => {
+      const connectionStatus = getConnectionStatus(platform.name);
+      return connectionStatus.authenticated;
+    }).length;
+
+    return {
+      totalCommandes,
+      commandesNonVues,
+      commandesEchues,
+      connectedPlatformsCount,
+      totalPlatformsCount: userPlatforms.length,
+    };
+  }, [commandes, userPlatforms, getConnectionStatus]);
 
   // Filtrage et tri des commandes mémorisés
   const filteredCommandes = useMemo(() => {
@@ -774,6 +942,12 @@ const Commandes = () => {
               </span>
               <span className="commandes-stat-label">Échues</span>
             </div>
+            <div className="commandes-stat">
+              <span className="commandes-stat-number commandes-stat-platforms">
+                {stats.connectedPlatformsCount}/{stats.totalPlatformsCount}
+              </span>
+              <span className="commandes-stat-label">Connectées</span>
+            </div>
           </div>
         </div>
         <div className="commandes-header-actions">
@@ -781,7 +955,12 @@ const Commandes = () => {
             <button
               className="commandes-btn commandes-btn-primary"
               onClick={syncAllPlatforms}
-              disabled={isSyncing}
+              disabled={isSyncing || stats.connectedPlatformsCount === 0}
+              title={
+                stats.connectedPlatformsCount === 0
+                  ? "Aucune plateforme connectée"
+                  : "Synchroniser toutes les plateformes connectées"
+              }
             >
               {isSyncing ? (
                 <>
@@ -791,7 +970,7 @@ const Commandes = () => {
               ) : (
                 <>
                   <RefreshCw size={16} />
-                  Synchroniser tout
+                  Synchroniser tout ({stats.connectedPlatformsCount})
                 </>
               )}
             </button>
@@ -804,7 +983,8 @@ const Commandes = () => {
         <div className="commandes-platforms-section">
           <h3 className="commandes-platforms-title">
             <Server size={20} />
-            Vos Plateformes
+            Vos Plateformes ({stats.connectedPlatformsCount}/
+            {stats.totalPlatformsCount} connectées)
           </h3>
           <div className="commandes-platforms-grid">
             {userPlatforms.map((platform) => (
@@ -813,9 +993,21 @@ const Commandes = () => {
                 platform={platform}
                 syncStatus={syncStatus[platform.name]}
                 onSync={syncPlatformCommandes}
+                connectionStatus={getConnectionStatus(platform.name)}
               />
             ))}
           </div>
+
+          {stats.connectedPlatformsCount === 0 && (
+            <div className="commandes-platforms-warning">
+              <AlertCircle size={20} />
+              <p>
+                Aucune plateforme n'est connectée. Rendez-vous dans la section
+                <strong> Plateformes</strong> pour configurer vos connexions
+                OAuth.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -902,7 +1094,7 @@ const Commandes = () => {
             <h3 className="commandes-empty-title">Aucune commande trouvée</h3>
             <p className="commandes-empty-message">
               {commandes?.length === 0
-                ? "Aucune commande n'a été créée pour le moment. Utilisez les boutons ci-dessus pour synchroniser vos plateformes."
+                ? "Aucune commande n'a été créée pour le moment. Connectez vos plateformes et utilisez les boutons ci-dessus pour synchroniser."
                 : "Aucune commande ne correspond à vos filtres."}
             </p>
           </div>

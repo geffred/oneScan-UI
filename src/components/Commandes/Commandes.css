@@ -815,3 +815,173 @@
     font-size: var(--commandes-font-2xl);
   }
 }
+
+
+/* Stat pour les plateformes connectées */
+.commandes-stat-platforms {
+  background: #10b981;
+  border-radius: 25px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Header de plateforme avec statut */
+.commandes-platform-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.commandes-platform-name {
+  font-size: var(--commandes-font-lg);
+  font-weight: 600;
+  color: var(--commandes-text-primary);
+  margin: 0;
+}
+
+/* Statut de connexion */
+.commandes-connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: var(--commandes-font-sm);
+  font-weight: 500;
+  align-self: flex-start;
+}
+
+.commandes-connection-status.connected {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.commandes-connection-status.disconnected {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #ef4444;
+}
+
+.commandes-connection-text {
+  font-size: var(--commandes-font-sm);
+}
+
+/* Icônes de connexion */
+.commandes-connection-success {
+  color: #10b981;
+}
+
+.commandes-connection-error {
+  color: #ef4444;
+}
+
+.commandes-connection-unknown {
+  color: #6b7280;
+}
+
+/* Informations utilisateur */
+.commandes-user-info {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.commandes-user-name {
+  font-size: var(--commandes-font-sm);
+  color: #1e40af;
+  font-weight: 500;
+}
+
+/* Bouton désactivé pour plateforme non connectée */
+.commandes-btn-disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border: 1px solid #e5e7eb;
+  cursor: not-allowed;
+}
+
+.commandes-btn-disabled:hover {
+  background: #f3f4f6;
+  color: #9ca3af;
+  transform: none;
+}
+
+/* Warning pour plateformes non connectées */
+.commandes-platforms-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: var(--commandes-radius);
+  color: #92400e;
+  margin-top: 1rem;
+}
+
+.commandes-platforms-warning p {
+  margin: 0;
+  font-size: var(--commandes-font-base);
+  line-height: 1.5;
+}
+
+.commandes-platforms-warning strong {
+  font-weight: 600;
+}
+
+/* Mise à jour du titre des plateformes */
+.commandes-platforms-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--commandes-font-xl);
+  font-weight: 600;
+  color: var(--commandes-primary);
+  margin-bottom: 1rem;
+}
+
+/* Amélioration des actions de plateforme */
+.commandes-platform-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+/* Responsive pour les nouveaux éléments */
+@media (max-width: 768px) {
+  .commandes-connection-status {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+  }
+  
+  .commandes-platform-header {
+    gap: 0.25rem;
+  }
+  
+  .commandes-user-info {
+    margin-top: 0.25rem;
+    padding: 0.375rem;
+  }
+  
+  .commandes-platforms-warning {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .commandes-connection-status {
+    align-self: stretch;
+    justify-content: center;
+  }
+  
+  .commandes-platform-actions {
+    gap: 0.5rem;
+  }
+}
