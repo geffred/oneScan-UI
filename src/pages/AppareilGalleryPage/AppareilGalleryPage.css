@@ -4,7 +4,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 6rem 0 0 0;
+  padding: 4rem 0 0 0;
+
 }
 
 .appareil-gallery-page-main {

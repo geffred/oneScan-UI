@@ -87,7 +87,7 @@
   left: 4rem;
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -139,7 +139,7 @@
 .testimonials-author-avatar {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -189,7 +189,7 @@
   height: 60px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF;
   color: white;
   display: flex;
   align-items: center;
@@ -204,7 +204,7 @@
 .testimonials-nav-btn:hover {
   transform: translateY(-3px) scale(1.1);
   box-shadow: 0 15px 40px rgba(0, 122, 255, 0.6);
-  background: linear-gradient(135deg, #0056CC 0%, #003d99 100%);
+  background: #007AFF;
 }
 
 .testimonials-nav-btn:active {
@@ -386,7 +386,7 @@
 .author-avatar {
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+    background: #007AFF;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -434,7 +434,7 @@
   height: 50px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF;
   color: white;
   display: flex;
   align-items: center;

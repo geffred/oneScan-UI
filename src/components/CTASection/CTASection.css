@@ -39,7 +39,7 @@
 
 /* Bouton primaire */
 .btn-primary {
-  background: linear-gradient(135deg, #007aff 0%, #0056cc 100%);
+  background:#007AFF;
   color: white;
   padding: 1rem 2rem;
   border-radius: 12px;

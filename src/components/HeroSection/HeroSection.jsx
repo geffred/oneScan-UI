@@ -16,7 +16,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="hero-section">
+    <section className="hero-section" id="home">
       <div className="hero-content">
         <div className="hero-grid">
           <div className="hero-text">

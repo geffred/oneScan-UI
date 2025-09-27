@@ -15,6 +15,7 @@ import AppareilGalleryPage from "./AppareilGalleryPage/AppareilGalleryPage";
 import CompteCabinet from "./CompteCabinet/CompteCabinet";
 import MeditLinkCallback from "./MeditLinkCallback/MeditLinkCallback";
 import ThreeShapeCallback from "./ThreeShapeCallback/ThreeShapeCallback";
+import CabinetRegisterPage from "./CabinetRegisterPage/CabinetRegisterPage";
 
 function App() {
   return (
@@ -37,7 +38,10 @@ function App() {
           </Route>
           <Route path="/meditLink/callback" element={<MeditLinkCallback />} />
           <Route path="/3shapde/callback" element={<ThreeShapeCallback />} />
+          <Route path="/cabinet/register" element={<CabinetRegisterPage />} />
+          <Route path="/compte/cabinet" element={<CompteCabinet />} />
           <Route path="/login" element={<LoginPage />} />
+          {/* <Route path="/register" element={<RegisterPage />} /> */}
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/contact" element={<ContactPage />} />
@@ -54,7 +58,6 @@ function App() {
               path="/dashboard/commande/:externalId"
               element={<CommandeDetails />}
             />
-
             <Route path="/compte/cabinet" element={<CompteCabinet />} />
           </Route>
         </Routes>

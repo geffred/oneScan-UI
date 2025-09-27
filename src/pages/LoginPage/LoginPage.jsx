@@ -104,7 +104,7 @@ const LoginPage = () => {
   return (
     <>
       <Header />
-      <div className="login-auth-wrapper">
+      <div className="login-auth-wrapper" id="header-login">
         <div className="login-auth-container">
           <div className="login-auth-header">
             <Link to="/" className="login-back-link">

@@ -3,7 +3,6 @@ import { Menu, X } from "lucide-react";
 import "./Header.css";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../Config/AuthContext";
-import { Plus } from "lucide-react";
 import { HashLink } from "react-router-hash-link";
 
 const Header = () => {
@@ -19,39 +18,45 @@ const Header = () => {
     window.location.href = "/";
   };
 
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
   return (
-    <header className="header-base">
+    <header className="header-base" id="header">
       <div className="header-content">
-        <Link to="/" className="header-logo">
+        <HashLink smooth to="/#home" className="header-logo">
           <div className="header-logo-icon">
             <span className="header-logo-text">s</span>
           </div>
           <span className="header-brand">
             <span className="lab">My</span>smilelab
           </span>
-        </Link>
+        </HashLink>
 
         <nav className="header-nav">
           <ul className="nav-links">
             <li>
-              <NavLink
-                to="/Appareils"
+              <HashLink
+                smooth
+                to="/Appareils#header-appareils"
                 className={({ isActive }) =>
                   `nav-link${isActive ? " active" : ""}`
                 }
               >
-                Appareils
-              </NavLink>
+                Nos appareils
+              </HashLink>
             </li>
             <li>
-              <NavLink
-                to="/suivi-commandes"
+              <HashLink
+                smooth
+                to="/suivi-commandes#suivi-header"
                 className={({ isActive }) =>
                   `nav-link${isActive ? " active" : ""}`
                 }
               >
                 Suivi des commandes
-              </NavLink>
+              </HashLink>
             </li>
             <li className="lien">
               <HashLink
@@ -61,19 +66,19 @@ const Header = () => {
                   `nav-link${isActive ? " active" : ""}`
                 }
               >
-                Comment ça marche
+                Guide d'utilisation
               </HashLink>
             </li>
-
             <li>
-              <NavLink
-                to="/contact"
+              <HashLink
+                smooth
+                to="/contact#header-contact"
                 className={({ isActive }) =>
                   `nav-link${isActive ? " active" : ""}`
                 }
               >
-                Contact
-              </NavLink>
+                Nous contacter
+              </HashLink>
             </li>
           </ul>
         </nav>
@@ -84,9 +89,9 @@ const Header = () => {
               Déconnexion
             </button>
           ) : (
-            <Link to="/login" className="btn-login">
+            <HashLink smooth to="/login#header-login" className="btn-login">
               Connexion
-            </Link>
+            </HashLink>
           )}
 
           {isAuthenticated ? (
@@ -101,14 +106,13 @@ const Header = () => {
               {userType === "cabinet" ? "Mon Compte" : "Dashboard"}
             </Link>
           ) : (
-            <Link
-              to="/contact"
-              className="mobile-btn-signup"
-              onClick={toggleMobileMenu}
+            <HashLink
+              smooth
+              to="/cabinet/register#header-register"
+              className="btn-signup" // Changé de mobile-btn-signup à btn-signup
             >
-              <Plus size={16} style={{ marginRight: "6px" }} />
-              Ajouter mon cabinet
-            </Link>
+              Inscription
+            </HashLink>
           )}
         </div>
 
@@ -117,78 +121,69 @@ const Header = () => {
         </button>
 
         <div className={`mobile-menu ${mobileMenuOpen ? "open" : ""}`}>
-          <NavLink
-            to="/Appareils"
-            className={({ isActive }) =>
-              `mobile-nav-link${isActive ? " active" : ""}`
-            }
-            onClick={toggleMobileMenu}
+          <HashLink
+            smooth
+            to="/Appareils#header-appareils"
+            className="mobile-nav-link"
+            onClick={closeMobileMenu}
           >
-            Appareils
-          </NavLink>
-          <NavLink
-            to="/suivi-commandes"
-            className={({ isActive }) =>
-              `mobile-nav-link${isActive ? " active" : ""}`
-            }
-            onClick={toggleMobileMenu}
+            Nos Appareils
+          </HashLink>
+          <HashLink
+            smooth
+            id="suivi-header"
+            to="/suivi-commandes#suivi-header"
+            className="mobile-nav-link"
+            onClick={closeMobileMenu}
           >
             Suivi des commandes
-          </NavLink>
-          <NavLink
+          </HashLink>
+          <HashLink
+            smooth
             to="/#process"
-            className={({ isActive }) =>
-              `mobile-nav-link${isActive ? " active" : ""}`
-            }
-            onClick={toggleMobileMenu}
-          >
-            Comment ça marche
-          </NavLink>
-          {/*
-              <Link
-                  to="/pricing"
-                  className="mobile-nav-link"
-                  onClick={toggleMobileMenu}
-                >
-                Tarifs
-              </Link>
-              */}
-          <Link
-            to="/contact"
             className="mobile-nav-link"
-            onClick={toggleMobileMenu}
+            onClick={closeMobileMenu}
           >
-            Contact
-          </Link>
+            Guide d'utilisation
+          </HashLink>
+          <HashLink
+            smooth
+            to="/contact#header-contact"
+            className="mobile-nav-link"
+            onClick={closeMobileMenu}
+          >
+            Nous contacter
+          </HashLink>
 
           <div className="mobile-menu-actions">
             {isAuthenticated ? (
               <button
                 onClick={() => {
                   handleLogout();
-                  toggleMobileMenu();
+                  closeMobileMenu();
                 }}
                 className="mobile-btn-login"
               >
                 Déconnexion
               </button>
             ) : (
-              <Link
-                to="/login"
+              <HashLink
+                smooth
+                to="/login#header-login"
                 className="mobile-btn-login"
-                onClick={toggleMobileMenu}
+                onClick={closeMobileMenu}
               >
-                Se Connecter
-              </Link>
+                Connexion
+              </HashLink>
             )}
-            <Link
-              to="/contact"
+            <HashLink
+              smooth
+              to="/cabinet/register#header-register"
               className="mobile-btn-signup"
-              onClick={toggleMobileMenu}
+              onClick={closeMobileMenu}
             >
-              <Plus size={16} style={{ marginRight: "6px" }} />
-              Ajouter mon cabinet
-            </Link>
+              Inscription
+            </HashLink>
           </div>
         </div>
       </div>

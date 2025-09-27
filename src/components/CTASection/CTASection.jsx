@@ -1,6 +1,6 @@
 import React from "react";
 import { MessageSquare } from "lucide-react";
-import { Link } from "react-router-dom";
+import { HashLink } from "react-router-hash-link";
 import "./CTASection.css";
 
 const CTASection = () => (
@@ -13,9 +13,13 @@ const CTASection = () => (
           Mysmilelab chez Smilelab Ortho.
         </p>
         <div className="cta-buttons">
-          <Link to="/contact" className="btn-secondary btn-large">
+          <HashLink
+            smooth
+            to="/contact#header-contact"
+            className="btn-secondary btn-large"
+          >
             <MessageSquare size={20} /> Contacter un expert
-          </Link>
+          </HashLink>
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import Footer from "../../components/Footer/Footer";
 
 const SuiviCommandesPage = () => {
   return (
-    <div className="suivi-page">
+    <div className="suivi-page" id="suivi-header">
       <main className="suivi-page-main">
         <Header />
         <SuiviCommandes />

@@ -43,7 +43,7 @@
 }
 
 .header-content {
-  max-width: 1200px;
+  max-width: 1500px;
   margin: 0 auto;
   padding: 0 2rem;
   display: flex;
@@ -113,7 +113,7 @@
   padding: 0;
 }
 
-.lien a{
+.nav-links a{
   color: #64748b;
   text-decoration: none;
   font-weight: 500;
@@ -122,7 +122,7 @@
     text-decoration: none !important;
 }
 
-.lien a::after {
+.nav-links a::after {
   content: '';
   position: absolute;
   bottom: -5px;
@@ -133,7 +133,18 @@
   transition: width 0.3s ease;
 }
 
-.lien a:hover::after {
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #007AFF;
+  transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
   width: 100%;
 }
 
@@ -149,11 +160,11 @@
 
 }
 
-.nav-link:hover {
+.nav-links a:hover {
   color: #007AFF;
 }
 
-.nav-link::after {
+.nav-links .nav-link::after {
   content: '';
   position: absolute;
   bottom: -5px;
@@ -164,8 +175,8 @@
   transition: width 0.3s ease;
 }
 
-.nav-link:hover::after {
-  width: 100%;
+.nav-links .nav-link:hover::after {
+  width: 100% ;
 }
 
 .header-actions {
@@ -204,8 +215,9 @@
   color: #007AFF;
 }
 
+/* Remplacer la classe mobile-btn-signup par btn-signup pour le bouton inscription */
 .btn-signup {
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF;
   color: white;
   text-decoration: none;
   padding: 0.75rem 1.5rem;
@@ -213,11 +225,16 @@
   font-weight: 600;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+  border: none;
+  cursor: pointer;
+  display: inline-block;
 }
 
 .btn-signup:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+  background: #0056CC;
+  color: white;
 }
 
 .mobile-menu-toggle {

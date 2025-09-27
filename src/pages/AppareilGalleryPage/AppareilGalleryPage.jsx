@@ -5,7 +5,7 @@ import Footer from "../../components/Footer/Footer";
 
 const AppareilGalleryPage = () => {
   return (
-    <div className="appareil-gallery-page">
+    <div className="appareil-gallery-page" id="header-appareils">
       <main className="appareil-gallery-page-main">
         <Header />
         <AppareilGallery />

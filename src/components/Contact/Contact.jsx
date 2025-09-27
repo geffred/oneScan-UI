@@ -78,7 +78,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="contact-section">
+    <div className="contact-section" id="header-contact">
       <div className="container">
         <div className="contact-content">
           {/* Header */}

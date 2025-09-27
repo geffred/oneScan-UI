@@ -10,6 +10,7 @@ import Footer from "../../components/Footer/Footer";
 import "./HomePage.css"; // Assuming you have a CSS file for styling
 import AvisSection from "../../components/AvisSection/AvisSection";
 import TrackingSection from "../../components/TrackingSection/TrackingSection";
+import AddressMap from "../../components/AddressMap/AddressMap";
 
 const Homepage = () => {
   return (
@@ -23,6 +24,7 @@ const Homepage = () => {
       <AvisSection />
       <StatsSection />
       <CTASection />
+      <AddressMap />
       <Footer />
     </div>
   );
