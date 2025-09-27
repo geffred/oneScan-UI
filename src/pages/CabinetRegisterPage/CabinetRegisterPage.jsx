@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { HashLink } from "react-router-hash-link";
 import {
   User,
   Mail,
@@ -472,12 +473,12 @@ const CabinetRegisterPage = () => {
               <div className="cabinet-register-login-section">
                 <p className="cabinet-register-login-text">
                   Vous avez déjà un compte cabinet ?{" "}
-                  <Link
-                    to="/cabinet/login"
+                  <HashLink
+                    to="/login#header-login"
                     className="cabinet-register-login-link"
                   >
                     Se connecter
-                  </Link>
+                  </HashLink>
                 </p>
               </div>
             </div>

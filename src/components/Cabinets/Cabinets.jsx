@@ -23,7 +23,7 @@ import "./Cabinets.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Schema de validation mis en cache
+// Schema de validation
 const validationSchema = Yup.object({
   nom: Yup.string()
     .required("Le nom du cabinet est requis")
@@ -59,11 +59,13 @@ const fetchWithAuth = async (url) => {
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Erreur ${response.status}`);
   }
 
   return response.json();
@@ -84,13 +86,7 @@ const getCurrentUser = async () => {
   }
 };
 
-// Fonction pour générer le mot de passe
-const generatePassword = (email) => {
-  const emailPrefix = email.substring(0, email.indexOf("@"));
-  return `${emailPrefix}mysmilelab2025`;
-};
-
-// Composant de ligne de tableau optimisé avec React.memo
+// Composant de ligne de tableau
 const CabinetRow = React.memo(
   ({ cabinet, onEdit, onDelete, onSendPassword, sendingPasswords }) => (
     <div className="cabinet-table-row">
@@ -186,31 +182,6 @@ const CabinetRow = React.memo(
 
 CabinetRow.displayName = "CabinetRow";
 
-// Composant de chargement optimisé pour la liste
-const ListLoadingSpinner = React.memo(() => (
-  <div className="cabinet-list-loading">
-    <div className="cabinet-loading-spinner" aria-label="Chargement"></div>
-    <p>Chargement des cabinets...</p>
-  </div>
-));
-
-ListLoadingSpinner.displayName = "ListLoadingSpinner";
-
-// État vide optimisé
-const EmptyState = React.memo(({ searchTerm }) => (
-  <div className="cabinet-empty-state">
-    <Building2 size={48} />
-    <h3>Aucun cabinet trouvé</h3>
-    <p>
-      {searchTerm
-        ? "Aucun cabinet ne correspond à votre recherche."
-        : "Commencez par ajouter votre premier cabinet."}
-    </p>
-  </div>
-));
-
-EmptyState.displayName = "EmptyState";
-
 const Cabinet = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -228,26 +199,19 @@ const Cabinet = () => {
     isLoading: userLoading,
   } = useSWR(isAuthenticated ? "currentUser" : null, getCurrentUser, {
     revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    errorRetryCount: 3,
-    onError: (error) => {
-      console.error("Erreur SWR utilisateur:", error);
-    },
   });
 
   // SWR hook pour les cabinets
   const {
-    data: cabinets = [],
+    data: cabinetsData,
     error: cabinetsError,
     isLoading: cabinetsLoading,
     mutate: mutateCabinets,
   } = useSWR(isAuthenticated ? "cabinets" : null, getCabinets, {
     revalidateOnFocus: false,
-    revalidateOnReconnect: true,
-    refreshInterval: 30000,
-    errorRetryCount: 3,
-    errorRetryInterval: 1000,
   });
+
+  const cabinets = cabinetsData || [];
 
   // Filtrage mémorisé
   const filteredCabinets = useMemo(() => {
@@ -292,154 +256,38 @@ const Cabinet = () => {
       navigate("/login");
     }
   }, [isAuthenticated, navigate]);
-  // =======================
-  // Utilitaires AES
-  // =======================
-  function strToArrayBuffer(str) {
-    return new TextEncoder().encode(str);
-  }
-
-  function arrayBufferToBase64(buffer) {
-    let binary = "";
-    const bytes = new Uint8Array(buffer);
-    for (let b of bytes) {
-      binary += String.fromCharCode(b);
-    }
-    return btoa(binary);
-  }
-
-  async function importKey(secret) {
-    return await crypto.subtle.importKey(
-      "raw",
-      strToArrayBuffer(secret),
-      { name: "AES-CBC" },
-      false,
-      ["encrypt", "decrypt"]
-    );
-  }
 
   // =======================
-  // Génération mot de passe
+  // Handler principal de soumission
   // =======================
-  async function generatePassword(email) {
-    const emailPrefix = email.split("@")[0];
-    const currentYear = new Date().getFullYear();
-    const baseString = emailPrefix + "mysmilelab" + currentYear;
-
-    const SECRET_KEY = "0123456789abcdef"; // doit matcher avec backend
-    const IV = "0000000000000000"; // doit matcher avec backend
-
-    const key = await importKey(SECRET_KEY);
-    const iv = strToArrayBuffer(IV);
-
-    const encrypted = await crypto.subtle.encrypt(
-      { name: "AES-CBC", iv },
-      key,
-      strToArrayBuffer(baseString)
-    );
-
-    return arrayBufferToBase64(encrypted);
-  }
-
-  // =======================
-  // Handler envoi mot de passe
-  // =======================
-  const handleSendPassword = useCallback(
-    async (cabinet) => {
-      setSendingPasswords((prev) => [...prev, cabinet.id]);
-
-      try {
-        // Générer mot de passe chiffré
-        const password = await generatePassword(cabinet.email);
-
-        // Préparer données EmailJS
-        const templateParams = {
-          to_email: cabinet.email,
-          cabinet_name: cabinet.nom,
-          password: password, // mot de passe chiffré
-          to_name: cabinet.nom,
-        };
-
-        // Envoyer l'email
-        await emailjs.send(
-          EMAILJS_SERVICE_ID,
-          EMAILJS_TEMPLATE_ID,
-          templateParams
-        );
-
-        // Marquer comme envoyé via API
-        const token = localStorage.getItem("token");
-        const response = await fetch(
-          `${API_BASE_URL}/cabinet/${cabinet.id}/mark-password-sent`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Erreur lors de la mise à jour du statut d'envoi");
-        }
-
-        // Mettre à jour localement
-        const updatedCabinet = { ...cabinet, passwordSend: true };
-        mutateCabinets(
-          cabinets.map((c) => (c.id === cabinet.id ? updatedCabinet : c)),
-          false
-        );
-
-        setSuccess(`Mot de passe envoyé avec succès à ${cabinet.nom}`);
-        setTimeout(() => setSuccess(null), 3000);
-
-        // Revalider
-        mutateCabinets();
-      } catch (error) {
-        console.error("Erreur lors de l'envoi:", error);
-        setError(`Erreur lors de l'envoi du mot de passe: ${error.message}`);
-        setTimeout(() => setError(null), 3000);
-      } finally {
-        setSendingPasswords((prev) => prev.filter((id) => id !== cabinet.id));
-      }
-    },
-    [cabinets, mutateCabinets]
-  );
-
-  // Handlers optimisés existants
   const handleSubmit = useCallback(
     async (values, { setSubmitting, resetForm }) => {
       try {
-        if (!currentUser?.id) {
-          throw new Error("Informations utilisateur non disponibles");
-        }
+        setError(null);
 
         const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("Token d'authentification manquant");
+        }
+
         const url = editingCabinet
           ? `${API_BASE_URL}/cabinet/${editingCabinet.id}`
           : `${API_BASE_URL}/cabinet`;
+
         const method = editingCabinet ? "PUT" : "POST";
 
-        let payload = {
-          ...values,
-          userId: currentUser.id,
+        // ✅ CORRECTION : Payload correct pour l'API
+        const payload = {
+          nom: values.nom,
+          email: values.email,
+          numeroDeTelephone: values.numeroDeTelephone,
+          adresseDeLivraison: values.adresseDeLivraison || "",
+          adresseDeFacturation: values.adresseDeFacturation || "",
+          // Le mot de passe est généré automatiquement par le backend
+          // Ne pas l'envoyer depuis le frontend
         };
 
-        // ✅ Si on est en mode édition
-        if (editingCabinet) {
-          const emailChanged = values.email !== editingCabinet.email;
-          const passwordNotSent = !editingCabinet.passwordSend;
-
-          if (emailChanged && passwordNotSent) {
-            // Regénérer un nouveau mot de passe basé sur le nouvel email
-            const newPassword = await generatePassword(values.email);
-
-            payload = {
-              ...payload,
-              motDePasse: newPassword, // ajoute le nouveau mot de passe généré
-            };
-          }
-        }
+        console.log("Envoi payload:", payload);
 
         const response = await fetch(url, {
           method,
@@ -450,26 +298,33 @@ const Cabinet = () => {
           body: JSON.stringify(payload),
         });
 
+        const responseData = await response.json();
+
         if (!response.ok) {
-          const errorData = await response.text();
           throw new Error(
-            errorData ||
-              `Erreur lors de ${
+            responseData.message ||
+              `Erreur ${response.status} lors de ${
                 editingCabinet ? "la modification" : "la création"
-              } du cabinet`
+              }`
           );
         }
 
-        const data = await response.json();
-
+        // ✅ CORRECTION : Gestion correcte de la réponse
+        let updatedCabinet;
         if (editingCabinet) {
+          // Pour la modification, la réponse contient directement le cabinet
+          updatedCabinet = responseData;
           mutateCabinets(
-            cabinets.map((c) => (c.id === data.id ? data : c)),
+            cabinets.map((c) =>
+              c.id === updatedCabinet.id ? updatedCabinet : c
+            ),
             false
           );
           setSuccess("Cabinet modifié avec succès");
         } else {
-          mutateCabinets([...cabinets, data], false);
+          // Pour la création, la réponse a une structure différente
+          updatedCabinet = responseData.cabinet;
+          mutateCabinets([...cabinets, updatedCabinet], false);
           setSuccess("Cabinet créé avec succès");
         }
 
@@ -478,17 +333,98 @@ const Cabinet = () => {
         resetForm();
         setTimeout(() => setSuccess(null), 3000);
 
+        // Revalider les données
         mutateCabinets();
       } catch (err) {
-        setError(err.message);
-        setTimeout(() => setError(null), 3000);
+        console.error("Erreur détaillée:", err);
+        setError(err.message || "Une erreur est survenue");
+        setTimeout(() => setError(null), 5000);
       } finally {
         setSubmitting(false);
       }
     },
-    [editingCabinet, cabinets, mutateCabinets, currentUser]
+    [editingCabinet, cabinets, mutateCabinets]
   );
 
+  // =======================
+  // Handler envoi mot de passe (simplifié)
+  // =======================
+  const handleSendPassword = useCallback(
+    async (cabinet) => {
+      setSendingPasswords((prev) => [...prev, cabinet.id]);
+
+      try {
+        const token = localStorage.getItem("token");
+
+        // Appeler l'API pour régénérer le mot de passe
+        const regenerateResponse = await fetch(
+          `${API_BASE_URL}/cabinet/${cabinet.id}/regenerate-password`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!regenerateResponse.ok) {
+          throw new Error("Erreur lors de la génération du mot de passe");
+        }
+
+        const regenerateData = await regenerateResponse.json();
+        const newPassword = regenerateData.newPassword;
+
+        // Envoyer l'email avec le nouveau mot de passe
+        const templateParams = {
+          to_email: cabinet.email,
+          cabinet_name: cabinet.nom,
+          password: newPassword,
+          to_name: cabinet.nom,
+        };
+
+        await emailjs.send(
+          EMAILJS_SERVICE_ID,
+          EMAILJS_TEMPLATE_ID,
+          templateParams
+        );
+
+        // Marquer comme envoyé
+        const markResponse = await fetch(
+          `${API_BASE_URL}/cabinet/${cabinet.id}/mark-password-sent`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!markResponse.ok) {
+          throw new Error("Erreur lors de la mise à jour du statut d'envoi");
+        }
+
+        const updatedCabinet = { ...cabinet, passwordSend: true };
+        mutateCabinets(
+          cabinets.map((c) => (c.id === cabinet.id ? updatedCabinet : c)),
+          false
+        );
+
+        setSuccess(`Mot de passe envoyé avec succès à ${cabinet.nom}`);
+        setTimeout(() => setSuccess(null), 3000);
+      } catch (error) {
+        console.error("Erreur lors de l'envoi:", error);
+        setError(`Erreur lors de l'envoi du mot de passe: ${error.message}`);
+        setTimeout(() => setError(null), 5000);
+      } finally {
+        setSendingPasswords((prev) => prev.filter((id) => id !== cabinet.id));
+      }
+    },
+    [cabinets, mutateCabinets]
+  );
+
+  // =======================
+  // Autres handlers
+  // =======================
   const handleEdit = useCallback((cabinet) => {
     setEditingCabinet(cabinet);
     setIsModalOpen(true);
@@ -519,35 +455,18 @@ const Cabinet = () => {
         );
         setSuccess("Cabinet supprimé avec succès");
         setTimeout(() => setSuccess(null), 3000);
-
-        mutateCabinets();
       } catch (err) {
         setError(err.message);
         setTimeout(() => setError(null), 3000);
-        mutateCabinets();
       }
     },
     [cabinets, mutateCabinets]
   );
 
   const openCreateModal = useCallback(() => {
-    if (userLoading) {
-      setError("Chargement des informations utilisateur en cours...");
-      setTimeout(() => setError(null), 3000);
-      return;
-    }
-
-    if (!currentUser?.id) {
-      setError(
-        "Impossible de récupérer les informations utilisateur. Veuillez vous reconnecter."
-      );
-      setTimeout(() => setError(null), 3000);
-      return;
-    }
-
     setEditingCabinet(null);
     setIsModalOpen(true);
-  }, [currentUser, userLoading]);
+  }, []);
 
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
@@ -584,14 +503,10 @@ const Cabinet = () => {
             <button
               onClick={openCreateModal}
               className="cabinet-create-btn"
-              disabled={userLoading}
+              disabled={isLoading}
             >
               <Plus size={18} />
-              {userLoading
-                ? "Chargement utilisateur..."
-                : cabinetsLoading
-                ? "Chargement cabinets..."
-                : "Ajouter un cabinet"}
+              {isLoading ? "Chargement..." : "Ajouter un cabinet"}
             </button>
           </div>
 
@@ -619,9 +534,20 @@ const Cabinet = () => {
           {/* Cabinets List */}
           <div className="cabinet-list-container">
             {isLoading ? (
-              <ListLoadingSpinner />
+              <div className="cabinet-list-loading">
+                <div className="cabinet-loading-spinner"></div>
+                <p>Chargement des cabinets...</p>
+              </div>
             ) : filteredCabinets.length === 0 ? (
-              <EmptyState searchTerm={searchTerm} />
+              <div className="cabinet-empty-state">
+                <Building2 size={48} />
+                <h3>Aucun cabinet trouvé</h3>
+                <p>
+                  {searchTerm
+                    ? "Aucun cabinet ne correspond à votre recherche."
+                    : "Commencez par ajouter votre premier cabinet."}
+                </p>
+              </div>
             ) : (
               <div className="cabinet-table-container">
                 <div className="cabinet-table-header">
@@ -631,10 +557,10 @@ const Cabinet = () => {
                   <div className="cabinet-table-cell header">Email</div>
                   <div className="cabinet-table-cell header">Téléphone</div>
                   <div className="cabinet-table-cell header">
-                    Adresse de Livraison
+                    Adresse Livraison
                   </div>
                   <div className="cabinet-table-cell header">
-                    Adresse de Facturation
+                    Adresse Facturation
                   </div>
                   <div className="cabinet-table-cell header">
                     Statut Mot de Passe
@@ -680,7 +606,7 @@ const Cabinet = () => {
               onSubmit={handleSubmit}
               enableReinitialize
             >
-              {({ isSubmitting }) => (
+              {({ isSubmitting, values }) => (
                 <Form className="cabinet-modal-form">
                   <div className="cabinet-form-fields">
                     <div className="cabinet-input-group">
@@ -792,7 +718,7 @@ const Cabinet = () => {
                     </button>
                     <button
                       type="submit"
-                      disabled={isSubmitting || !currentUser?.id}
+                      disabled={isSubmitting}
                       className="cabinet-save-btn"
                     >
                       {isSubmitting ? (

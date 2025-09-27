@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { HashLink } from "react-router-hash-link";
 import {
   Eye,
   EyeOff,
@@ -322,26 +323,16 @@ const LoginPage = () => {
                 )}
               </Formik>
 
-              {loginType === "laboratoire" && (
-                <div className="login-signup-section">
-                  <p className="login-signup-text">
-                    Vous n'avez pas encore de compte ?{" "}
-                    <Link to="/register" className="login-signup-link">
-                      Créer un compte laboratoire
-                    </Link>
-                  </p>
-                </div>
-              )}
-
               {loginType === "cabinet" && (
                 <div className="login-signup-section">
                   <p className="login-signup-text">
-                    <strong>
-                      Seuls les laboratoires peuvent créer des comptes.
-                    </strong>
-                    <br />
-                    Contactez votre laboratoire partenaire pour obtenir vos
-                    accès.
+                    Vous n'avez pas encore de compte ?{" "}
+                    <HashLink
+                      to="/cabinet/register#header-register"
+                      className="login-signup-link"
+                    >
+                      Créer un compte laboratoire
+                    </HashLink>
                   </p>
                 </div>
               )}

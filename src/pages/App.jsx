@@ -42,7 +42,6 @@ function App() {
           <Route path="/compte/cabinet" element={<CompteCabinet />} />
           <Route path="/login" element={<LoginPage />} />
           {/* <Route path="/register" element={<RegisterPage />} /> */}
-          <Route path="/register" element={<RegisterPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/compte" element={<Compte />} />
