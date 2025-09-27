@@ -331,7 +331,7 @@ const LoginPage = () => {
                       to="/cabinet/register#header-register"
                       className="login-signup-link"
                     >
-                      Créer un compte laboratoire
+                      Créer un compte
                     </HashLink>
                   </p>
                 </div>
