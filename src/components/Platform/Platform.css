@@ -67,7 +67,7 @@
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease;
+
 }
 
 .platform-create-btn:hover {
@@ -619,124 +619,241 @@
   gap: 1rem;
 }
 
-/* Modal 3Shape */
+/* Modal 3Shape - Style épuré comme le callback */
 .platform-3shape-modal {
-  max-width: 600px;
-  width: 90vw;
+  max-width: 500px;
+  width: 90%;
+  background: white;
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  animation: slideIn 0.5s ease-out;
+}
+
+.platform-3shape-modal .platform-modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 0;
+  border-bottom: none;
+  position: relative;
+}
+
+.platform-3shape-modal .platform-modal-close {
+  position: absolute;
+  top: -1rem;
+  right: -1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.platform-3shape-modal .platform-modal-close:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.platform-3shape-modal .platform-modal-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  order: 2;
 }
 
 .platform-3shape-auth-content {
-  padding: 1.5rem 0;
-}
-
-.platform-3shape-step {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.platform-3shape-step:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.platform-3shape-step h3 {
-  color: #1e293b;
-  margin-bottom: 0.75rem;
-  font-size: 1.1rem;
-}
-
-.platform-3shape-step p {
-  color: #64748b;
-  margin-bottom: 1rem;
-  line-height: 1.6;
-}
-
-.platform-3shape-auth-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: transform 0.2s ease;
-}
-
-.platform-3shape-auth-link:hover {
-  transform: translateY(-2px);
-}
-
-.platform-manual-code-form {
   display: flex;
   flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.platform-3shape-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 1rem;
 }
 
-.platform-manual-code-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  transition: border-color 0.2s ease;
+.platform-3shape-info svg {
+  color: #3b82f6;
+  margin-bottom: 0.5rem;
 }
 
-.platform-manual-code-input:focus {
-  outline: none;
-  border-color: #007AFF;
+.platform-3shape-info h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
-.platform-manual-auth-btn {
+.platform-3shape-info p {
+  margin: 0;
+  color: #6b7280;
+  line-height: 1.6;
+  font-size: 1.125rem;
+}
+
+.platform-3shape-features {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: left;
+}
+
+.platform-3shape-features h4 {
+  margin: 0 0 1rem 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.platform-3shape-features ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.platform-3shape-features li {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.875rem 1.5rem;
-  background: #10b981;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.platform-3shape-features li svg {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.platform-3shape-security {
+  background: #eff6ff;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: left;
+}
+
+.platform-3shape-security p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1e40af;
+}
+
+.platform-3shape-security strong {
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.platform-3shape-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.platform-3shape-connect-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
   color: white;
   border: none;
   border-radius: 8px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  align-self: flex-start;
+  min-width: 200px;
+  justify-content: center;
 }
 
-.platform-manual-auth-btn:hover:not(:disabled) {
-  background: #059669;
-  transform: translateY(-1px);
+.platform-3shape-connect-btn:hover:not(:disabled) {
+  background: #2563eb;
 }
 
-.platform-manual-auth-btn:disabled {
-  opacity: 0.6;
+.platform-3shape-connect-btn:disabled {
+  opacity: 0.7;
   cursor: not-allowed;
-  transform: none;
 }
 
-.platform-3shape-help {
-  background: #f8fafc;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+.platform-3shape-modal .platform-modal-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: 0;
+  border-top: none;
+  margin-top: 0;
 }
 
-.platform-3shape-help p {
-  margin-bottom: 1rem;
-  color: #475569;
+.platform-3shape-modal .platform-cancel-btn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  min-width: 120px;
+  padding: 0.75rem 1.5rem;
 }
 
-.platform-3shape-help ol {
-  margin: 0;
-  padding-left: 1.5rem;
-  color: #64748b;
+.platform-3shape-modal .platform-cancel-btn:hover {
+  background: #4b5563;
+  border-color: transparent;
 }
 
-.platform-3shape-help li {
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
+/* Animation */
+@keyframes slideIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(30px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
 }
+
+/* Responsive pour le modal 3Shape */
+@media (max-width: 640px) {
+  .platform-3shape-modal {
+    width: 95%;
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  .platform-3shape-modal .platform-modal-header h2 {
+    font-size: 20px;
+  }
+  
+  .platform-3shape-info p {
+    font-size: 1rem;
+  }
+  
+  .platform-3shape-connect-btn {
+    min-width: 100%;
+    padding: 0.875rem 1.5rem;
+  }
+  
+  .platform-3shape-modal .platform-cancel-btn {
+    min-width: 100%;
+    margin-top: 0.5rem;
+  }
+  
+  .platform-3shape-features {
+    padding: 1rem;
+  }
+  
+  .platform-3shape-security {
+    padding: 0.875rem;
+  }
+}
+
 
 /* MeditLink OAuth */
 .platform-status-banners {
@@ -946,7 +1063,6 @@
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
   min-width: 200px;
   justify-content: center;
 }

@@ -32,6 +32,7 @@ import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import CryptoJS from "crypto-js";
 import useMeditLinkAuth from "../Config/useMeditLinkAuth";
+import useThreeShapeAuth from "../Config/useThreeShapeAuth";
 import MeditLinkDashboard from "../MeditLinkDashboard/MeditLinkDashboard";
 import "./Platform.css";
 
@@ -106,56 +107,6 @@ const getUserData = async () => {
 const getUserPlatforms = async (userId) => {
   if (!userId) return [];
   return fetchWithAuth(`${API_BASE_URL}/platforms/user/${userId}`);
-};
-
-// Fonctions pour 3Shape Authentication
-const initiate3ShapeAuth = async () => {
-  const token = localStorage.getItem("token");
-  const response = await fetch(`${API_BASE_URL}/login`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!response.ok) {
-    throw new Error("Erreur lors de l'initiation de l'authentification 3Shape");
-  }
-
-  const text = await response.text();
-  const urlMatch = text.match(/href="([^"]+)"/);
-  if (urlMatch) {
-    return urlMatch[1];
-  }
-  throw new Error("URL d'authentification non trouvée");
-};
-
-const complete3ShapeAuth = async (code, state) => {
-  const token = localStorage.getItem("token");
-  const response = await fetch(
-    `${API_BASE_URL}/callback?code=${code}&state=${state}`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      "Erreur lors de la finalisation de l'authentification 3Shape"
-    );
-  }
-
-  return response.text();
-};
-
-const check3ShapeAuthStatus = async () => {
-  const token = localStorage.getItem("token");
-  const response = await fetch(`${API_BASE_URL}/auth/status`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!response.ok) {
-    throw new Error("Erreur lors de la vérification du statut 3Shape");
-  }
-
-  return response.json();
 };
 
 // Composant de carte optimisé avec React.memo
@@ -235,6 +186,16 @@ const PlatformCard = React.memo(
               <div className="platform-user-info">
                 <Shield size={14} />
                 <span>{meditlinkStatus.userInfo.name}</span>
+              </div>
+            )}
+
+          {/* Affichage des infos de connexion 3Shape si connecté */}
+          {is3Shape &&
+            threeshapeStatus?.authenticated &&
+            threeshapeStatus.hasToken && (
+              <div className="platform-user-info">
+                <Link2 size={14} />
+                <span>Token 3Shape actif</span>
               </div>
             )}
         </div>
@@ -339,10 +300,7 @@ EmptyState.displayName = "EmptyState";
 
 // Composant modal pour 3Shape OAuth
 const ThreeShapeOAuthModal = React.memo(
-  ({ isOpen, onClose, authUrl, onManualCode }) => {
-    const [manualCode, setManualCode] = useState("");
-    const [manualState, setManualState] = useState("");
-
+  ({ isOpen, onClose, onStartAuth, isLoading }) => {
     if (!isOpen) return null;
 
     return (
@@ -356,74 +314,59 @@ const ThreeShapeOAuthModal = React.memo(
           </div>
 
           <div className="platform-3shape-auth-content">
-            <div className="platform-3shape-step">
-              <h3>Étape 1: Authentification</h3>
+            <div className="platform-3shape-info">
+              <Link2 size={48} />
+              <h3>Authentification 3Shape OAuth</h3>
               <p>
-                Cliquez sur le lien ci-dessous pour vous connecter à 3Shape :
+                Connectez-vous à votre compte 3Shape pour accéder à vos cas et
+                synchroniser vos données.
               </p>
-              <a
-                href={authUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="platform-3shape-auth-link"
+            </div>
+
+            <div className="platform-3shape-features">
+              <h4>Accès aux fonctionnalités :</h4>
+              <ul>
+                <li>
+                  <CheckCircle size={16} /> Consultation de vos cas
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Téléchargement des fichiers STL
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Gestion des connexions
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Sauvegarde automatique en base
+                </li>
+              </ul>
+            </div>
+
+            <div className="platform-3shape-security">
+              <p>
+                <strong>Note :</strong> Une nouvelle fenêtre s'ouvrira pour
+                l'authentification. Après connexion, vous serez redirigé
+                automatiquement.
+              </p>
+            </div>
+
+            <div className="platform-3shape-actions">
+              <button
+                onClick={onStartAuth}
+                disabled={isLoading}
+                className="platform-3shape-connect-btn"
               >
-                <Link2 size={18} />
-                Se connecter à 3Shape
-              </a>
-            </div>
-
-            <div className="platform-3shape-step">
-              <h3>Étape 2: Code d'autorisation</h3>
-              <p>
-                Après connexion, copiez le code et l'état depuis l'URL de
-                redirection :
-              </p>
-
-              <div className="platform-manual-code-form">
-                <div className="platform-input-group">
-                  <label>Code d'autorisation :</label>
-                  <input
-                    type="text"
-                    value={manualCode}
-                    onChange={(e) => setManualCode(e.target.value)}
-                    placeholder="Ex: CC7D62D5981FB4632C2DF0689B439AC04882387C9A1FE691E85F62FC7025081C-1"
-                    className="platform-manual-code-input"
-                  />
-                </div>
-
-                <div className="platform-input-group">
-                  <label>État (state) :</label>
-                  <input
-                    type="text"
-                    value={manualState}
-                    onChange={(e) => setManualState(e.target.value)}
-                    placeholder="Ex: RNgFlDN2byZoJPE9pKNlEQ"
-                    className="platform-manual-code-input"
-                  />
-                </div>
-
-                <button
-                  onClick={() => onManualCode(manualCode, manualState)}
-                  disabled={!manualCode.trim() || !manualState.trim()}
-                  className="platform-manual-auth-btn"
-                >
-                  <CheckCircle size={18} />
-                  Finaliser la connexion
-                </button>
-              </div>
-            </div>
-
-            <div className="platform-3shape-help">
-              <p>
-                <strong>Instructions :</strong>
-              </p>
-              <ol>
-                <li>Cliquez sur "Se connecter à 3Shape"</li>
-                <li>Connectez-vous avec vos identifiants 3Shape</li>
-                <li>Vous serez redirigé vers une URL contenant le code</li>
-                <li>Copiez les paramètres "code" et "state" depuis l'URL</li>
-                <li>Collez-les dans les champs ci-dessus</li>
-              </ol>
+                {isLoading ? (
+                  <>
+                    <div className="platform-loading-spinner"></div>
+                    Connexion...
+                  </>
+                ) : (
+                  <>
+                    <Link2 size={18} />
+                    Se connecter avec 3Shape
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
@@ -537,8 +480,6 @@ const Platform = () => {
 
   // États pour 3Shape OAuth
   const [is3ShapeModalOpen, setIs3ShapeModalOpen] = useState(false);
-  const [threeshapeAuthUrl, setThreeshapeAuthUrl] = useState("");
-  const [is3ShapeAuthLoading, setIs3ShapeAuthLoading] = useState(false);
 
   // États pour MeditLink OAuth
   const [isMeditLinkModalOpen, setIsMeditLinkModalOpen] = useState(false);
@@ -559,10 +500,23 @@ const Platform = () => {
     refresh: refreshMeditlink,
     clearError: clearMeditlinkError,
   } = useMeditLinkAuth({
-    autoRefresh: false, // Désactiver le rafraîchissement automatique
-    refreshInterval: 0, // Pas d'intervalle de rafraîchissement
-    fetchOnMount: true, // Vérifier le statut au montage seulement
+    autoRefresh: false,
+    refreshInterval: 0,
+    fetchOnMount: true,
   });
+
+  // Hook 3Shape Auth
+  const {
+    authStatus: threeshapeAuthStatus,
+    isLoading: threeshapeLoading,
+    error: threeshapeError,
+    isAuthenticated: threeshapeAuthenticated,
+    hasToken: threeshapeHasToken,
+    initiateAuth: startThreeshapeAuth,
+    refresh: refreshThreeshape,
+    testConnection: testThreeshapeConnection,
+    clearError: clearThreeshapeError,
+  } = useThreeShapeAuth();
 
   // SWR hooks pour les données
   const {
@@ -592,22 +546,6 @@ const Platform = () => {
     }
   );
 
-  // SWR hook pour le statut 3Shape
-  const {
-    data: threeshapeStatus,
-    error: threeshapeError,
-    mutate: mutateThreeshapeStatus,
-  } = useSWR(
-    isAuthenticated ? "threeshape-status" : null,
-    check3ShapeAuthStatus,
-    {
-      revalidateOnFocus: false,
-      refreshInterval: 60000,
-      errorRetryCount: 1,
-      onError: () => {},
-    }
-  );
-
   // Détecter automatiquement les paramètres OAuth dans l'URL
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -619,19 +557,32 @@ const Platform = () => {
       if (
         location.pathname.includes("/meditLink/callback") ||
         (state && state.includes("meditlink")) ||
-        urlParams.get("source") === "meditlink" ||
-        !state // MeditLink n'envoie pas toujours de state
+        urlParams.get("source") === "meditlink"
       ) {
-        console.log("🔍 Callback MeditLink détecté");
+        console.log("Callback MeditLink détecté");
         handleMeditLinkCallback(code, state);
-      } else {
-        // Par défaut, traiter comme 3Shape si pas de state ou pas MeditLink
-        console.log("🔍 Code OAuth détecté, traitement par défaut");
-        handleManualAuthCode(code, state);
+      }
+      // Vérifier si c'est un callback 3Shape
+      else if (
+        location.pathname.includes("/3shapde/callback") ||
+        (state && state.includes("3shape")) ||
+        urlParams.get("source") === "3shape"
+      ) {
+        console.log("Callback 3Shape détecté - redirection");
+        navigate(`/3shapde/callback${location.search}`, { replace: true });
+        return;
+      }
+      // Par défaut, rediriger vers 3Shape si pas d'indication spécifique
+      else {
+        console.log("Code OAuth détecté - redirection vers 3Shape callback");
+        navigate(`/3shapde/callback${location.search}`, { replace: true });
+        return;
       }
 
-      // Nettoyer l'URL après traitement
-      navigate(location.pathname, { replace: true });
+      // Nettoyer l'URL après traitement (seulement si pas de redirection)
+      if (!location.pathname.includes("/callback")) {
+        navigate(location.pathname, { replace: true });
+      }
     }
   }, [location, navigate]);
 
@@ -650,6 +601,23 @@ const Platform = () => {
     meditlinkLoading,
     meditlinkError,
     meditlinkAuthStatus,
+  ]);
+
+  // Combiné 3Shape Status
+  const combinedThreeshapeStatus = useMemo(() => {
+    return {
+      authenticated: threeshapeAuthenticated,
+      hasToken: threeshapeHasToken,
+      loading: threeshapeLoading,
+      error: threeshapeError,
+      ...threeshapeAuthStatus,
+    };
+  }, [
+    threeshapeAuthenticated,
+    threeshapeHasToken,
+    threeshapeLoading,
+    threeshapeError,
+    threeshapeAuthStatus,
   ]);
 
   // Filtrage mémorisé
@@ -699,6 +667,16 @@ const Platform = () => {
     }
   }, [meditlinkError, clearMeditlinkError]);
 
+  useEffect(() => {
+    if (threeshapeError) {
+      setError("Erreur 3Shape: " + threeshapeError);
+      setTimeout(() => {
+        setError(null);
+        clearThreeshapeError();
+      }, 5000);
+    }
+  }, [threeshapeError, clearThreeshapeError]);
+
   // Redirection si non authentifié
   useEffect(() => {
     if (!isAuthenticated) {
@@ -706,51 +684,20 @@ const Platform = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Handlers pour 3Shape OAuth (existants)
+  // Handlers pour 3Shape OAuth
   const handle3ShapeConnect = useCallback(async (platform) => {
-    try {
-      setIs3ShapeAuthLoading(true);
-      const authUrl = await initiate3ShapeAuth();
-      setThreeshapeAuthUrl(authUrl);
-      setIs3ShapeModalOpen(true);
-      console.log("🔗 URL d'authentification 3Shape générée");
-    } catch (err) {
-      setError(
-        "Erreur lors de l'initiation de la connexion 3Shape: " + err.message
-      );
-      setTimeout(() => setError(null), 5000);
-    } finally {
-      setIs3ShapeAuthLoading(false);
-    }
+    setIs3ShapeModalOpen(true);
   }, []);
 
-  const handleManualAuthCode = useCallback(
-    async (code, state) => {
-      if (!code || !state) {
-        setError("Code et état requis pour l'authentification");
-        return;
-      }
-
-      try {
-        setIs3ShapeAuthLoading(true);
-        await complete3ShapeAuth(code, state);
-        mutateThreeshapeStatus();
-        setSuccess("Connexion 3Shape établie avec succès !");
-        setIs3ShapeModalOpen(false);
-        setTimeout(() => setSuccess(null), 5000);
-        console.log("✅ Authentification 3Shape réussie");
-      } catch (err) {
-        setError(
-          "Erreur lors de la finalisation de l'authentification 3Shape: " +
-            err.message
-        );
-        setTimeout(() => setError(null), 5000);
-      } finally {
-        setIs3ShapeAuthLoading(false);
-      }
-    },
-    [mutateThreeshapeStatus]
-  );
+  const handleStart3ShapeAuth = useCallback(async () => {
+    try {
+      setIs3ShapeModalOpen(false);
+      await startThreeshapeAuth();
+    } catch (err) {
+      setError("Erreur lors de la connexion 3Shape: " + err.message);
+      setTimeout(() => setError(null), 5000);
+    }
+  }, [startThreeshapeAuth]);
 
   // Handlers pour MeditLink OAuth
   const handleMeditLinkConnect = useCallback(async (platform) => {
@@ -770,13 +717,11 @@ const Platform = () => {
   const handleMeditLinkCallback = useCallback(
     async (code, state) => {
       try {
-        console.log("🔄 Traitement du callback MeditLink...");
+        console.log("Traitement du callback MeditLink...");
 
-        // Préparer le body de la requête
         const params = new URLSearchParams();
         params.append("code", code);
 
-        // Ajouter state seulement s'il est présent
         if (state && state.trim() !== "") {
           params.append("state", state);
         }
@@ -795,9 +740,8 @@ const Platform = () => {
 
         if (response.ok) {
           const data = await response.json();
-          console.log("✅ Authentification MeditLink réussie");
+          console.log("Authentification MeditLink réussie");
 
-          // Rafraîchir les données MeditLink
           refreshMeditlink();
 
           setSuccess(
@@ -828,7 +772,7 @@ const Platform = () => {
         await meditlinkLogout();
         setSuccess("Déconnexion MeditLink réussie");
         setTimeout(() => setSuccess(null), 3000);
-        console.log("🔓 Déconnexion MeditLink réussie");
+        console.log("Déconnexion MeditLink réussie");
       } catch (err) {
         setError("Erreur lors de la déconnexion MeditLink: " + err.message);
         setTimeout(() => setError(null), 5000);
@@ -896,7 +840,6 @@ const Platform = () => {
         resetForm();
         setTimeout(() => setSuccess(null), 3000);
 
-        // Revalider les données pour s'assurer de la cohérence
         mutatePlatforms();
       } catch (err) {
         setError(err.message);
@@ -939,7 +882,6 @@ const Platform = () => {
           throw new Error("Erreur lors de la suppression de la plateforme");
         }
 
-        // Mutation optimiste
         mutatePlatforms(
           platforms.filter((p) => p.id !== platformId),
           false
@@ -947,12 +889,10 @@ const Platform = () => {
         setSuccess("Plateforme supprimée avec succès");
         setTimeout(() => setSuccess(null), 3000);
 
-        // Revalider pour s'assurer de la cohérence
         mutatePlatforms();
       } catch (err) {
         setError(err.message);
         setTimeout(() => setError(null), 3000);
-        // En cas d'erreur, revalider pour restaurer l'état correct
         mutatePlatforms();
       }
     },
@@ -972,7 +912,6 @@ const Platform = () => {
 
   const close3ShapeModal = useCallback(() => {
     setIs3ShapeModalOpen(false);
-    setThreeshapeAuthUrl("");
   }, []);
 
   const closeMeditLinkModal = useCallback(() => {
@@ -988,9 +927,9 @@ const Platform = () => {
   }, []);
 
   const refreshAllStatuses = useCallback(() => {
-    mutateThreeshapeStatus();
+    refreshThreeshape();
     refreshMeditlink();
-  }, [mutateThreeshapeStatus, refreshMeditlink]);
+  }, [refreshThreeshape, refreshMeditlink]);
 
   // Affichage immédiat de l'interface même si les données utilisateur chargent encore
   if (!isAuthenticated) {
@@ -1013,13 +952,13 @@ const Platform = () => {
               <button
                 onClick={refreshAllStatuses}
                 className="platform-refresh-btn"
-                disabled={is3ShapeAuthLoading || meditlinkLoading}
+                disabled={threeshapeLoading || meditlinkLoading}
                 title="Actualiser tous les statuts"
               >
                 <RefreshCw
                   size={18}
                   className={
-                    is3ShapeAuthLoading || meditlinkLoading ? "spinning" : ""
+                    threeshapeLoading || meditlinkLoading ? "spinning" : ""
                   }
                 />
               </button>
@@ -1072,7 +1011,7 @@ const Platform = () => {
                     onConnectMeditLink={handleMeditLinkConnect}
                     onDisconnectMeditLink={handleMeditLinkDisconnect}
                     onShowMeditLinkDashboard={handleShowMeditLinkDashboard}
-                    threeshapeStatus={threeshapeStatus}
+                    threeshapeStatus={combinedThreeshapeStatus}
                     meditlinkStatus={combinedMeditlinkStatus}
                   />
                 ))}
@@ -1147,6 +1086,21 @@ const Platform = () => {
                       </div>
                     )}
 
+                    {/* Info spéciale pour 3Shape */}
+                    {values.name === "THREESHAPE" && (
+                      <div className="platform-info-banner">
+                        <Link2 size={16} />
+                        <div>
+                          <strong>Plateforme 3Shape :</strong>
+                          <p>
+                            Après création, utilisez le bouton "Connecter" pour
+                            vous authentifier avec votre compte 3Shape et
+                            accéder à vos cas.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="platform-input-group">
                       <label className="platform-field-label">Email</label>
                       <div className="platform-input-wrapper">
@@ -1168,7 +1122,8 @@ const Platform = () => {
                     <div className="platform-input-group">
                       <label className="platform-field-label">
                         Mot de passe
-                        {values.name === "MEDITLINK" && (
+                        {(values.name === "MEDITLINK" ||
+                          values.name === "THREESHAPE") && (
                           <small>
                             {" "}
                             (utilisé uniquement comme identifiant de
@@ -1241,8 +1196,8 @@ const Platform = () => {
       <ThreeShapeOAuthModal
         isOpen={is3ShapeModalOpen}
         onClose={close3ShapeModal}
-        authUrl={threeshapeAuthUrl}
-        onManualCode={handleManualAuthCode}
+        onStartAuth={handleStart3ShapeAuth}
+        isLoading={threeshapeLoading}
       />
 
       {/* Modal MeditLink OAuth */}

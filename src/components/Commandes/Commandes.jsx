@@ -399,14 +399,17 @@ const Commandes = () => {
         }));
 
         // Notification Toastify pour succès
-        toast.success("MeditLink synchronisée avec succès (5 derniers jours)", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        toast.success(
+          "MeditLink synchronisée avec succès (30 derniers jours)",
+          {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        );
       } else {
         const errorText = await response.text();
         setSyncStatus((prev) => ({

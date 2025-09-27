@@ -14,6 +14,7 @@ import "react-toastify/dist/ReactToastify.css";
 import AppareilGalleryPage from "./AppareilGalleryPage/AppareilGalleryPage";
 import CompteCabinet from "./CompteCabinet/CompteCabinet";
 import MeditLinkCallback from "./MeditLinkCallback/MeditLinkCallback";
+import ThreeShapeCallback from "./ThreeShapeCallback/ThreeShapeCallback";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
             <Route index element={<Homepage />} />
           </Route>
           <Route path="/meditLink/callback" element={<MeditLinkCallback />} />
+          <Route path="/3shapde/callback" element={<ThreeShapeCallback />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/terms" element={<TermsPage />} />
@@ -42,6 +44,7 @@ function App() {
           <Route path="/compte" element={<Compte />} />
           <Route path="/suivi-commandes" element={<SuiviCommandesPage />} />
           <Route path="/appareils" element={<AppareilGalleryPage />} />
+
           <Route element={<PrivateRoute />}>
             <Route
               path="/dashboard/:activeComponent"
