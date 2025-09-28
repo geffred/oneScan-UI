@@ -129,7 +129,7 @@ const PlatformCard = React.memo(
       <div className="platform-card">
         <div className="platform-card-header">
           <h3 className="platform-card-title">
-            {platform.name === "THREESHAPE" ? "3Shape" : "3Shape"}
+            {platform.name === "THREESHAPE" ? "3Shape" : platform.name}
           </h3>
 
           {is3Shape && (
