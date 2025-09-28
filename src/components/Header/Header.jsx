@@ -157,33 +157,36 @@ const Header = () => {
 
           <div className="mobile-menu-actions">
             {isAuthenticated ? (
-              <button
-                onClick={() => {
-                  handleLogout();
-                  closeMobileMenu();
-                }}
-                className="mobile-btn-login"
-              >
+              <button onClick={handleLogout} className="btn-logout">
                 Déconnexion
               </button>
             ) : (
-              <HashLink
-                smooth
-                to="/login#header-login"
-                className="mobile-btn-login"
-                onClick={closeMobileMenu}
-              >
+              <HashLink smooth to="/login#header-login" className="btn-login">
                 Connexion
               </HashLink>
             )}
-            <HashLink
-              smooth
-              to="/cabinet/register#header-register"
-              className="mobile-btn-signup"
-              onClick={closeMobileMenu}
-            >
-              Inscription
-            </HashLink>
+
+            {isAuthenticated ? (
+              <Link
+                style={{ textAlign: "center" }}
+                to={
+                  userType === "cabinet"
+                    ? "/compte/cabinet"
+                    : "/dashboard/Platform"
+                }
+                className="btn-signup"
+              >
+                {userType === "cabinet" ? "Mon Compte" : "Dashboard"}
+              </Link>
+            ) : (
+              <HashLink
+                smooth
+                to="/cabinet/register#header-register"
+                className="btn-signup" // Changé de mobile-btn-signup à btn-signup
+              >
+                Inscription
+              </HashLink>
+            )}
           </div>
         </div>
       </div>

@@ -274,7 +274,9 @@ const PlatformCard = React.memo(
       <div className="commandes-platform-card">
         <div className="commandes-platform-info">
           <div className="commandes-platform-header">
-            <h4 className="commandes-platform-name">{platform.name}</h4>
+            <h4 className="commandes-platform-name">
+              {platform.name === "THREESHAPE" ? "3Shape" : platform.name}
+            </h4>
             <div
               className={`commandes-connection-status ${
                 isConnected ? "connected" : "disconnected"
@@ -941,12 +943,6 @@ const Commandes = () => {
                 {stats.commandesEchues}
               </span>
               <span className="commandes-stat-label">Échues</span>
-            </div>
-            <div className="commandes-stat">
-              <span className="commandes-stat-number commandes-stat-platforms">
-                {stats.connectedPlatformsCount}/{stats.totalPlatformsCount}
-              </span>
-              <span className="commandes-stat-label">Connectées</span>
             </div>
           </div>
         </div>
