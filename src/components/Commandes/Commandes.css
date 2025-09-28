@@ -73,13 +73,13 @@
 .commandes-stat {
   text-align: center;
   padding: 1rem;
-  background: linear-gradient(135deg, var(--commandes-primary) 0%, var(--commandes-primary-dark) 100%);
+  background: var(--commandes-primary);
   border-radius: var(--commandes-radius);
   color: white;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  min-width: 200px;
+  min-width: 150px;
 }
 
 .commandes-stat-number {
