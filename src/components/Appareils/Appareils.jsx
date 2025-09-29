@@ -102,6 +102,24 @@ const getAppareils = async () => {
   return fetchWithAuth(`${API_BASE_URL}/appareils`);
 };
 
+const getImagesByAppareil = async (appareilId) => {
+  return fetchWithAuth(`${API_BASE_URL}/images/appareil/${appareilId}`);
+};
+
+const deleteImage = async (imageId) => {
+  const token = localStorage.getItem("token");
+  const response = await fetch(`${API_BASE_URL}/images/${imageId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+};
+
 const getCurrentUser = async () => {
   try {
     return await fetchWithAuth(`${API_BASE_URL}/auth/me`);
@@ -161,8 +179,8 @@ const AppareilRow = React.memo(
           <button
             onClick={() => onViewImages(appareil)}
             className="appareil-view-btn"
-            title="Voir les images"
-            aria-label="Voir les images"
+            title="Gérer les images"
+            aria-label="Gérer les images"
           >
             <Eye size={16} />
           </button>
@@ -215,11 +233,36 @@ const EmptyState = React.memo(({ searchTerm }) => (
 
 EmptyState.displayName = "EmptyState";
 
-// Composant d'upload d'images
-const ImageUploadModal = React.memo(
-  ({ isOpen, onClose, appareilId, onUploadSuccess }) => {
+// Composant pour afficher et gérer les images
+const ImageManagementModal = React.memo(
+  ({ isOpen, onClose, appareil, onImagesUpdate }) => {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
+    const [images, setImages] = useState([]);
+    const [isLoadingImages, setIsLoadingImages] = useState(false);
+
+    // Charger les images de l'appareil
+    const loadImages = useCallback(async () => {
+      if (!appareil?.id) return;
+
+      setIsLoadingImages(true);
+      try {
+        const imagesData = await getImagesByAppareil(appareil.id);
+        setImages(imagesData);
+      } catch (error) {
+        console.error("Erreur lors du chargement des images:", error);
+        toast.error("Erreur lors du chargement des images");
+      } finally {
+        setIsLoadingImages(false);
+      }
+    }, [appareil?.id]);
+
+    // Charger les images à l'ouverture du modal
+    React.useEffect(() => {
+      if (isOpen && appareil?.id) {
+        loadImages();
+      }
+    }, [isOpen, appareil?.id, loadImages]);
 
     const handleFileSelect = (e) => {
       const files = Array.from(e.target.files);
@@ -237,7 +280,7 @@ const ImageUploadModal = React.memo(
         if (selectedFiles.length === 1) {
           formData.append("file", selectedFiles[0]);
           const response = await fetch(
-            `${API_BASE_URL}/images/upload/${appareilId}`,
+            `${API_BASE_URL}/images/upload/${appareil.id}`,
             {
               method: "POST",
               headers: {
@@ -253,7 +296,7 @@ const ImageUploadModal = React.memo(
             formData.append("files", file);
           });
           const response = await fetch(
-            `${API_BASE_URL}/images/upload-multiple/${appareilId}`,
+            `${API_BASE_URL}/images/upload-multiple/${appareil.id}`,
             {
               method: "POST",
               headers: {
@@ -267,9 +310,9 @@ const ImageUploadModal = React.memo(
         }
 
         toast.success("Images uploadées avec succès");
-        onUploadSuccess();
-        onClose();
         setSelectedFiles([]);
+        loadImages(); // Recharger les images
+        onImagesUpdate(); // Notifier le parent
       } catch (error) {
         toast.error("Erreur lors de l'upload des images");
       } finally {
@@ -277,53 +320,125 @@ const ImageUploadModal = React.memo(
       }
     };
 
+    const handleDeleteImage = async (imageId, imagePath) => {
+      if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette image ?")) {
+        return;
+      }
+
+      try {
+        await deleteImage(imageId);
+        toast.success("Image supprimée avec succès");
+        setImages(images.filter((img) => img.id !== imageId)); // Mettre à jour l'état local
+        onImagesUpdate(); // Notifier le parent
+      } catch (error) {
+        toast.error("Erreur lors de la suppression de l'image");
+      }
+    };
+
     if (!isOpen) return null;
 
     return (
       <div className="appareil-modal-overlay">
-        <div className="appareil-modal">
+        <div className="appareil-modal" style={{ maxWidth: "800px" }}>
           <div className="appareil-modal-header">
-            <h2>Upload d'images</h2>
+            <h2>Gestion des images - {appareil?.nom}</h2>
             <button onClick={onClose} className="appareil-modal-close">
               <X size={24} />
             </button>
           </div>
           <div className="appareil-modal-form">
-            <div className="appareil-upload-area">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="appareil-file-input"
-              />
-              <Upload size={32} />
-              <p>Sélectionnez une ou plusieurs images</p>
-            </div>
-            {selectedFiles.length > 0 && (
-              <div className="appareil-selected-files">
-                <h4>Fichiers sélectionnés :</h4>
-                {selectedFiles.map((file, index) => (
-                  <div key={index} className="appareil-selected-file">
-                    {file.name}
-                  </div>
-                ))}
+            {/* Section Upload */}
+            <div className="appareil-upload-section">
+              <h3>Ajouter des images</h3>
+              <div className="appareil-upload-area">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="appareil-file-input"
+                />
+                <Upload size={32} />
+                <p>Sélectionnez une ou plusieurs images</p>
               </div>
-            )}
+              {selectedFiles.length > 0 && (
+                <div className="appareil-selected-files">
+                  <h4>Fichiers sélectionnés :</h4>
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="appareil-selected-file">
+                      {file.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {selectedFiles.length > 0 && (
+                <div className="appareil-upload-actions">
+                  <button
+                    onClick={handleUpload}
+                    disabled={isUploading}
+                    className="appareil-save-btn"
+                  >
+                    {isUploading ? "Upload en cours..." : "Uploader les images"}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Section Images existantes */}
+            <div className="appareil-existing-images-section">
+              <h3>Images existantes ({images.length})</h3>
+
+              {isLoadingImages ? (
+                <div className="appareil-images-loading">
+                  <div className="appareil-loading-spinner"></div>
+                  <p>Chargement des images...</p>
+                </div>
+              ) : images.length === 0 ? (
+                <div className="appareil-no-images">
+                  <Image size={48} />
+                  <p>Aucune image pour cet appareil</p>
+                </div>
+              ) : (
+                <div className="appareil-images-grid">
+                  {images.map((image) => (
+                    <div key={image.id} className="appareil-image-item">
+                      <div className="appareil-image-container">
+                        <img
+                          src={`${API_BASE_URL}/images/${image.imagePath}`}
+                          alt={`Image de ${appareil?.nom}`}
+                          className="appareil-image-preview"
+                          onError={(e) => {
+                            e.target.src = "/placeholder-image.jpg";
+                          }}
+                        />
+                        <button
+                          onClick={() =>
+                            handleDeleteImage(image.id, image.imagePath)
+                          }
+                          className="appareil-image-delete-btn"
+                          title="Supprimer l'image"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      <div className="appareil-image-info">
+                        <span className="appareil-image-name">
+                          {image.imagePath}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="appareil-modal-actions">
               <button
                 type="button"
                 onClick={onClose}
                 className="appareil-cancel-btn"
               >
-                Annuler
-              </button>
-              <button
-                onClick={handleUpload}
-                disabled={selectedFiles.length === 0 || isUploading}
-                className="appareil-save-btn"
-              >
-                {isUploading ? "Upload en cours..." : "Uploader"}
+                Fermer
               </button>
             </div>
           </div>
@@ -333,15 +448,15 @@ const ImageUploadModal = React.memo(
   }
 );
 
-ImageUploadModal.displayName = "ImageUploadModal";
+ImageManagementModal.displayName = "ImageManagementModal";
 
 // Composant principal
 const Appareils = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [editingAppareil, setEditingAppareil] = useState(null);
-  const [selectedAppareilForUpload, setSelectedAppareilForUpload] =
+  const [selectedAppareilForImages, setSelectedAppareilForImages] =
     useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
@@ -526,10 +641,14 @@ const Appareils = () => {
     [appareils, mutateAppareils]
   );
 
-  const handleViewImages = useCallback((appareil) => {
-    setSelectedAppareilForUpload(appareil);
-    setIsUploadModalOpen(true);
+  const handleManageImages = useCallback((appareil) => {
+    setSelectedAppareilForImages(appareil);
+    setIsImageModalOpen(true);
   }, []);
+
+  const handleImagesUpdate = useCallback(() => {
+    mutateAppareils(); // Recharger la liste des appareils pour mettre à jour le compteur d'images
+  }, [mutateAppareils]);
 
   const openCreateModal = useCallback(() => {
     if (userLoading) {
@@ -553,18 +672,14 @@ const Appareils = () => {
     setEditingAppareil(null);
   }, []);
 
-  const closeUploadModal = useCallback(() => {
-    setIsUploadModalOpen(false);
-    setSelectedAppareilForUpload(null);
+  const closeImageModal = useCallback(() => {
+    setIsImageModalOpen(false);
+    setSelectedAppareilForImages(null);
   }, []);
 
   const handleSearchChange = useCallback((e) => {
     setSearchTerm(e.target.value);
   }, []);
-
-  const handleUploadSuccess = useCallback(() => {
-    mutateAppareils();
-  }, [mutateAppareils]);
 
   if (!isAuthenticated) {
     return null;
@@ -645,7 +760,7 @@ const Appareils = () => {
                       appareil={appareil}
                       onEdit={handleEdit}
                       onDelete={handleDelete}
-                      onViewImages={handleViewImages}
+                      onViewImages={handleManageImages}
                     />
                   ))}
                 </div>
@@ -804,12 +919,12 @@ const Appareils = () => {
         </div>
       )}
 
-      {/* Modal Upload */}
-      <ImageUploadModal
-        isOpen={isUploadModalOpen}
-        onClose={closeUploadModal}
-        appareilId={selectedAppareilForUpload?.id}
-        onUploadSuccess={handleUploadSuccess}
+      {/* Modal Gestion des Images */}
+      <ImageManagementModal
+        isOpen={isImageModalOpen}
+        onClose={closeImageModal}
+        appareil={selectedAppareilForImages}
+        onImagesUpdate={handleImagesUpdate}
       />
     </div>
   );

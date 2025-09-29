@@ -16,6 +16,9 @@ import {
   Wrench,
   Image as ImageIcon,
   User,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
 } from "lucide-react";
 import "./AppareilGallery.css";
 
@@ -52,7 +55,7 @@ const OPTIONS = [
 ];
 
 // URL de l'API depuis les variables d'environnement
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // ex: "http://localhost:8080/api"
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Fonction de fetch public
 const fetchPublic = async (url) => {
@@ -86,6 +89,7 @@ const AppareilCard = React.memo(({ appareil, onViewDetails }) => {
           <img
             src={thumbnailImage}
             alt={appareil.nom}
+            loading="lazy"
             onError={(e) => {
               e.target.style.display = "none";
               e.target.nextSibling.style.display = "flex";
@@ -153,36 +157,278 @@ const AppareilCard = React.memo(({ appareil, onViewDetails }) => {
 
 AppareilCard.displayName = "AppareilCard";
 
-// Modal de détails
+// Composant pour le viewer d'image avec zoom optimisé
+// Composant pour le viewer d'image avec zoom optimisé
+const ImageViewer = React.memo(
+  ({ images, currentImageIndex, onNext, onPrev, onThumbnailClick }) => {
+    const [zoomLevel, setZoomLevel] = useState(1);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
+    const [showZoomControls, setShowZoomControls] = useState(true); // ← AJOUT: Contrôles visibles par défaut
+
+    const currentImage = images[currentImageIndex];
+
+    // Gestion du zoom optimisée
+    const handleZoomIn = useCallback(() => {
+      setZoomLevel((prev) => Math.min(prev + 0.3, 3));
+    }, []);
+
+    const handleZoomOut = useCallback(() => {
+      setZoomLevel((prev) => {
+        const newZoom = Math.max(prev - 0.3, 1);
+        if (newZoom <= 1) {
+          setPosition({ x: 0, y: 0 });
+        }
+        return newZoom;
+      });
+    }, []);
+
+    const handleResetZoom = useCallback(() => {
+      setZoomLevel(1);
+      setPosition({ x: 0, y: 0 });
+    }, []);
+
+    // Gestion du drag pour le panning
+    const handleMouseDown = useCallback(
+      (e) => {
+        if (zoomLevel > 1) {
+          setIsDragging(true);
+          setStartPosition({
+            x: e.clientX - position.x,
+            y: e.clientY - position.y,
+          });
+          e.preventDefault();
+        }
+      },
+      [zoomLevel, position]
+    );
+
+    const handleMouseMove = useCallback(
+      (e) => {
+        if (isDragging && zoomLevel > 1) {
+          setPosition({
+            x: e.clientX - startPosition.x,
+            y: e.clientY - startPosition.y,
+          });
+        }
+      },
+      [isDragging, zoomLevel, startPosition]
+    );
+
+    const handleMouseUp = useCallback(() => {
+      setIsDragging(false);
+    }, []);
+
+    // Gestion du zoom avec la molette de la souris
+    const handleWheel = useCallback(
+      (e) => {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          handleZoomIn();
+        } else {
+          handleZoomOut();
+        }
+      },
+      [handleZoomIn, handleZoomOut]
+    );
+
+    // Réinitialiser le zoom et position quand on change d'image
+    React.useEffect(() => {
+      setZoomLevel(1);
+      setPosition({ x: 0, y: 0 });
+    }, [currentImageIndex]);
+
+    return (
+      <div className="appareil-detail-images">
+        <div className="appareil-detail-image-viewer">
+          {currentImage ? (
+            <div
+              className="image-zoom-container"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onWheel={handleWheel}
+              style={{
+                cursor:
+                  zoomLevel > 1
+                    ? isDragging
+                      ? "grabbing"
+                      : "grab"
+                    : "default",
+              }}
+            >
+              <img
+                src={`${API_BASE_URL}/images/${currentImage.imagePath}`}
+                alt={`${currentImageIndex + 1}`}
+                loading="eager"
+                style={{
+                  transform: `scale(${zoomLevel}) translate(${position.x}px, ${position.y}px)`,
+                  transition: isDragging ? "none" : "transform 0.1s ease",
+                }}
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextSibling.style.display = "flex";
+                }}
+              />
+              <div
+                className="appareil-detail-image-placeholder"
+                style={{ display: "none" }}
+              >
+                <Settings size={64} />
+                <span>Image non disponible</span>
+              </div>
+            </div>
+          ) : (
+            <div className="appareil-detail-no-image">
+              <Settings size={64} />
+              <span>Aucune image disponible</span>
+            </div>
+          )}
+
+          {/* Contrôles de navigation */}
+          {images.length > 1 && (
+            <>
+              <button className="appareil-detail-nav-btn prev" onClick={onPrev}>
+                ‹
+              </button>
+              <button className="appareil-detail-nav-btn next" onClick={onNext}>
+                ›
+              </button>
+              <div className="appareil-detail-image-counter">
+                {currentImageIndex + 1} / {images.length}
+              </div>
+            </>
+          )}
+
+          {/* Contrôles de zoom - TOUJOURS VISIBLES */}
+          {currentImage && (
+            <div className="image-zoom-controls visible">
+              {" "}
+              {/* ← AJOUT de la classe 'visible' */}
+              <button
+                onClick={handleZoomOut}
+                disabled={zoomLevel <= 1}
+                className="zoom-control-btn"
+                title="Zoom arrière"
+              >
+                <ZoomOut size={16} />
+              </button>
+              <button
+                onClick={handleResetZoom}
+                className="zoom-control-btn"
+                title="Réinitialiser le zoom"
+              >
+                <RotateCcw size={16} />
+              </button>
+              <button
+                onClick={handleZoomIn}
+                disabled={zoomLevel >= 3}
+                className="zoom-control-btn"
+                title="Zoom avant"
+              >
+                <ZoomIn size={16} />
+              </button>
+              <span className="zoom-level">{Math.round(zoomLevel * 100)}%</span>
+            </div>
+          )}
+        </div>
+
+        {/* Thumbnails */}
+        {images.length > 1 && (
+          <div className="appareil-detail-thumbnails">
+            {images.map((image, index) => (
+              <img
+                key={image.id}
+                src={`${API_BASE_URL}/images/${image.imagePath}`}
+                alt={`Thumbnail ${index + 1}`}
+                loading="lazy"
+                className={`appareil-detail-thumbnail ${
+                  index === currentImageIndex ? "active" : ""
+                }`}
+                onClick={() => onThumbnailClick(index)}
+                onError={(e) => {
+                  e.target.style.display = "none";
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+
+ImageViewer.displayName = "ImageViewer";
+
+// Modal de détails optimisé
 const AppareilDetailModal = React.memo(({ appareil, onClose }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  if (!appareil) return null;
+  const categoryLabel = useMemo(
+    () =>
+      CATEGORIES.find((c) => c.value === appareil.categorie)?.label ||
+      appareil.categorie,
+    [appareil.categorie]
+  );
 
-  const categoryLabel =
-    CATEGORIES.find((c) => c.value === appareil.categorie)?.label ||
-    appareil.categorie;
-  const optionLabel =
-    OPTIONS.find((o) => o.value === appareil.options)?.label ||
-    appareil.options;
+  const optionLabel = useMemo(
+    () =>
+      OPTIONS.find((o) => o.value === appareil.options)?.label ||
+      appareil.options,
+    [appareil.options]
+  );
 
-  const nextImage = () => {
+  const nextImage = useCallback(() => {
     if (appareil.images && appareil.images.length > 1) {
       setCurrentImageIndex((prev) => (prev + 1) % appareil.images.length);
     }
-  };
+  }, [appareil.images]);
 
-  const prevImage = () => {
+  const prevImage = useCallback(() => {
     if (appareil.images && appareil.images.length > 1) {
       setCurrentImageIndex(
         (prev) => (prev - 1 + appareil.images.length) % appareil.images.length
       );
     }
-  };
+  }, [appareil.images]);
+
+  const handleThumbnailClick = useCallback((index) => {
+    setCurrentImageIndex(index);
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      } else if (e.key === "ArrowLeft") {
+        prevImage();
+      } else if (e.key === "ArrowRight") {
+        nextImage();
+      }
+    },
+    [onClose, prevImage, nextImage]
+  );
+
+  React.useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden"; // Empêche le scroll de la page
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
+    };
+  }, [handleKeyDown]);
+
+  if (!appareil) return null;
 
   return (
-    <div className="appareil-detail-overlay">
-      <div className="appareil-detail-modal">
+    <div className="appareil-detail-overlay" onClick={onClose}>
+      <div
+        className="appareil-detail-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="appareil-detail-header">
           <h2>{appareil.nom}</h2>
           <button onClick={onClose} className="appareil-detail-close">
@@ -191,52 +437,13 @@ const AppareilDetailModal = React.memo(({ appareil, onClose }) => {
         </div>
 
         <div className="appareil-detail-content">
-          <div className="appareil-detail-images">
-            {appareil.images && appareil.images.length > 0 ? (
-              <div className="appareil-detail-image-viewer">
-                <img
-                  src={`${API_BASE_URL}/images/${appareil.images[currentImageIndex].imagePath}`}
-                  alt={`${appareil.nom} - Image ${currentImageIndex + 1}`}
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "flex";
-                  }}
-                />
-                <div
-                  className="appareil-detail-image-placeholder"
-                  style={{ display: "none" }}
-                >
-                  <Settings size={64} />
-                  <span>Image non disponible</span>
-                </div>
-
-                {appareil.images.length > 1 && (
-                  <>
-                    <button
-                      className="appareil-detail-nav-btn prev"
-                      onClick={prevImage}
-                    >
-                      ‹
-                    </button>
-                    <button
-                      className="appareil-detail-nav-btn next"
-                      onClick={nextImage}
-                    >
-                      ›
-                    </button>
-                    <div className="appareil-detail-image-counter">
-                      {currentImageIndex + 1} / {appareil.images.length}
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="appareil-detail-no-image">
-                <Settings size={64} />
-                <span>Aucune image disponible</span>
-              </div>
-            )}
-          </div>
+          <ImageViewer
+            images={appareil.images || []}
+            currentImageIndex={currentImageIndex}
+            onNext={nextImage}
+            onPrev={prevImage}
+            onThumbnailClick={handleThumbnailClick}
+          />
 
           <div className="appareil-detail-info">
             <div className="appareil-detail-section">
@@ -317,7 +524,7 @@ const AppareilDetailModal = React.memo(({ appareil, onClose }) => {
 
 AppareilDetailModal.displayName = "AppareilDetailModal";
 
-// Composant principal
+// Composant principal optimisé
 const AppareilGallery = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -334,12 +541,12 @@ const AppareilGallery = () => {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
     refreshInterval: 60000,
-    errorRetryCount: 3,
-    errorRetryInterval: 1000,
   });
 
-  // Filtrage
+  // Filtrage mémorisé
   const filteredAppareils = useMemo(() => {
+    if (!appareils) return [];
+
     return appareils.filter((appareil) => {
       const matchesSearch =
         !searchTerm ||
@@ -355,10 +562,13 @@ const AppareilGallery = () => {
 
   // Gestion des erreurs
   React.useEffect(() => {
-    if (error) toast.error("Erreur lors de la récupération des appareils");
+    if (error) {
+      console.error("Erreur lors de la récupération des appareils:", error);
+      toast.error("Erreur lors de la récupération des appareils");
+    }
   }, [error]);
 
-  // Handlers
+  // Handlers mémorisés
   const handleSearchChange = useCallback(
     (e) => setSearchTerm(e.target.value),
     []
