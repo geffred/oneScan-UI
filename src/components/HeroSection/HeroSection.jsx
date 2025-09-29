@@ -20,13 +20,13 @@ const HeroSection = () => {
       <div className="hero-content">
         <div className="hero-grid">
           <div className="hero-text">
-            <h1>Révolutionnez votre laboratoire dentaire avec l'IA</h1>
+            <h1>Application de gestion des commandes de Smilelab</h1>
             <p>
-              Actuellement exclusif au laboratoire SmilelabOrtho, Mysmilelab
-              centralise toutes vos commandes provenant de plateformes comme
-              Itero, MeditLink, 3Shape et Dexis. Générez automatiquement vos
-              bons de commande à partir d'un simple commentaire grâce à
-              l'intelligence artificielle.
+              Découvrez notre plateforme dédiée à la gestion simplifiée de vos
+              commandes dentaires. Accédez à l'ensemble de vos demandes, suivez
+              leur statut en temps réel et gérez efficacement votre workflow.
+              Interface intuitive conçue pour optimiser votre collaboration avec
+              le laboratoire Smilelab.
             </p>
 
             <div className="hero-buttons">

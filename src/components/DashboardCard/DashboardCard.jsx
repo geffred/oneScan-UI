@@ -71,9 +71,13 @@ const getCabinets = async () => {
 
 // Fonction pour récupérer les plateformes
 const getPlatforms = async () => {
-  return fetchWithAuth(`${API_BASE_URL}/platforms`);
-};
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
 
+  const userEmail = JSON.parse(atob(token.split(".")[1])).sub;
+  // Utilisez la nouvelle route sans conflit
+  return fetchWithAuth(`${API_BASE_URL}/platforms/user/email/${userEmail}`);
+};
 // Fonction pour récupérer les données utilisateur
 const getUserData = async () => {
   const token = localStorage.getItem("token");

@@ -90,7 +90,7 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF;
   border-radius: 12px;
   color: white;
   flex-shrink: 0;
@@ -141,7 +141,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1.25rem 2rem;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF;
   color: white;
   text-decoration: none;
   border-radius: 16px;
@@ -285,7 +285,7 @@
 }
 
 .status-step.active {
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF;
   color: white;
 }
 

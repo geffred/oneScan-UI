@@ -1,37 +1,64 @@
 // src/context/AuthContext.js
 import { createContext, useState, useEffect, useContext } from "react";
+import { jwtDecode } from "jwt-decode";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userType, setUserType] = useState(null); // 'laboratoire' ou 'cabinet'
+  const [userType, setUserType] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // État de chargement
 
   useEffect(() => {
-    // Vérifier s'il y a un token (laboratoire) ou des données cabinet
-    const token = localStorage.getItem("token");
-    const cabinetData = localStorage.getItem("cabinetData");
-    const storedUserType = localStorage.getItem("userType");
+    const initializeAuth = () => {
+      const token = localStorage.getItem("token");
+      const cabinetData = localStorage.getItem("cabinetData");
+      const storedUserType = localStorage.getItem("userType");
 
-    if (token && storedUserType === "laboratoire") {
-      setIsAuthenticated(true);
-      setUserType("laboratoire");
-      // Décoder le JWT pour récupérer les infos utilisateur
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setUserData({
-          email: payload.sub,
-          // Ajouter d'autres données du payload si nécessaire
-        });
-      } catch (error) {
-        console.error("Error decoding token:", error);
+      if (token && storedUserType === "laboratoire") {
+        try {
+          const decoded = jwtDecode(token);
+          if (decoded.exp * 1000 > Date.now()) {
+            setIsAuthenticated(true);
+            setUserType("laboratoire");
+            setUserData({
+              email: decoded.sub,
+              // autres données...
+            });
+          } else {
+            // Token expiré
+            localStorage.removeItem("token");
+            localStorage.removeItem("userType");
+          }
+        } catch (error) {
+          console.error("Error decoding token:", error);
+          localStorage.removeItem("token");
+          localStorage.removeItem("userType");
+        }
+      } else if (cabinetData && storedUserType === "cabinet") {
+        try {
+          const data = JSON.parse(cabinetData);
+          if (data && data.id && data.email) {
+            setIsAuthenticated(true);
+            setUserType("cabinet");
+            setUserData(data);
+          } else {
+            // Données cabinet invalides
+            localStorage.removeItem("cabinetData");
+            localStorage.removeItem("userType");
+          }
+        } catch (error) {
+          console.error("Error parsing cabinet data:", error);
+          localStorage.removeItem("cabinetData");
+          localStorage.removeItem("userType");
+        }
       }
-    } else if (cabinetData && storedUserType === "cabinet") {
-      setIsAuthenticated(true);
-      setUserType("cabinet");
-      setUserData(JSON.parse(cabinetData));
-    }
+
+      setIsLoading(false); // Fin du chargement
+    };
+
+    initializeAuth();
   }, []);
 
   const login = (type, data, token = null) => {
@@ -41,12 +68,11 @@ export const AuthProvider = ({ children }) => {
 
     if (type === "laboratoire" && token) {
       localStorage.setItem("token", token);
-      // Décoder le token pour récupérer les infos utilisateur
       try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
+        const decoded = jwtDecode(token);
         setUserData({
-          email: payload.sub,
-          // Ajouter d'autres données du payload si nécessaire
+          email: decoded.sub,
+          // autres données...
         });
       } catch (error) {
         console.error("Error decoding token:", error);
@@ -71,6 +97,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated,
     userType,
     userData,
+    isLoading, // Exportez l'état de chargement
     login,
     logout,
   };
@@ -78,7 +105,6 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Hook personnalisé pour utiliser le contexte d'authentification
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

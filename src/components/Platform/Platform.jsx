@@ -41,18 +41,18 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // Configuration mise en cache
 const SECRET_KEY = "MaCleSecrete12345";
 const platformTypes = [
-  { value: "ITERO", label: "Itero" },
+  //{ value: "ITERO", label: "Itero" },
   { value: "THREESHAPE", label: "3Shape" },
-  { value: "DEXIS", label: "Dexis" },
+  //{ value: "DEXIS", label: "Dexis" },
   { value: "MEDITLINK", label: "MeditLink" },
-  { value: "AUTRE", label: "Autre" },
+  //{ value: "AUTRE", label: "Autre" },
 ];
 
 // Schema de validation mis en cache
 const validationSchema = Yup.object({
   name: Yup.string().required("Le nom de la plateforme est requis"),
   email: Yup.string().email("Email invalide").required("L'email est requis"),
-  password: Yup.string().required("Le mot de passe est requis"),
+  password: Yup.string().default("").notRequired(),
 });
 
 // Utilitaires optimisés
@@ -951,7 +951,7 @@ const Platform = () => {
               Gestion des Plateformes
             </h1>
             <div className="platform-header-actions">
-              <button
+              {/* <button
                 onClick={refreshAllStatuses}
                 className="platform-refresh-btn"
                 disabled={threeshapeLoading || meditlinkLoading}
@@ -962,8 +962,9 @@ const Platform = () => {
                   className={
                     threeshapeLoading || meditlinkLoading ? "spinning" : ""
                   }
-                />
-              </button>
+                /> 
+                  </button>*/}
+
               <button
                 onClick={openCreateModal}
                 className="platform-create-btn"
@@ -1121,7 +1122,7 @@ const Platform = () => {
                       />
                     </div>
 
-                    <div className="platform-input-group">
+                    {/*<div className="platform-input-group">
                       <label className="platform-field-label">
                         Mot de passe
                         {(values.name === "MEDITLINK" ||
@@ -1158,7 +1159,7 @@ const Platform = () => {
                         component="div"
                         className="platform-error-message"
                       />
-                    </div>
+                    </div> */}
                   </div>
 
                   <div className="platform-modal-actions">

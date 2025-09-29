@@ -1,38 +1,17 @@
 // src/components/PrivateRoute.js
-import { jwtDecode } from "jwt-decode";
 import { Navigate, Outlet } from "react-router-dom";
-
-const isTokenValid = (token) => {
-  if (!token) return false;
-  try {
-    const decoded = jwtDecode(token);
-    return decoded.exp * 1000 > Date.now();
-  } catch {
-    return false;
-  }
-};
-
-const isCabinetDataValid = (cabinetData) => {
-  try {
-    const data = JSON.parse(cabinetData);
-    return data && data.id && data.email;
-  } catch {
-    return false;
-  }
-};
+import { useAuth } from "./AuthContext";
 
 const PrivateRoute = ({ requiredUserType = null }) => {
-  const token = localStorage.getItem("token");
-  const cabinetData = localStorage.getItem("cabinetData");
-  const userType = localStorage.getItem("userType");
+  const { isAuthenticated, userType, isLoading } = useAuth();
 
-  // Vérifier l'authentification selon le type d'utilisateur
-  let isAuthenticated = false;
-
-  if (userType === "laboratoire" && token) {
-    isAuthenticated = isTokenValid(token);
-  } else if (userType === "cabinet" && cabinetData) {
-    isAuthenticated = isCabinetDataValid(cabinetData);
+  // Pendant le chargement, affichez un loader ou null
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   // Si pas authentifié, rediriger vers login
@@ -44,7 +23,7 @@ const PrivateRoute = ({ requiredUserType = null }) => {
   if (requiredUserType && userType !== requiredUserType) {
     // Rediriger vers le dashboard approprié selon le type d'utilisateur
     if (userType === "laboratoire") {
-      return <Navigate to="/dashboard/platform" replace />;
+      return <Navigate to="/dashboard/Platform" replace />;
     } else if (userType === "cabinet") {
       return <Navigate to="/dashboard/cabinet" replace />;
     }

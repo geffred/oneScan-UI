@@ -35,7 +35,7 @@
   font-weight: 800;
   color: #1e293b;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background:#007AFF ;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -170,7 +170,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF ;
   display: flex;
   align-items: center;
   justify-content: center;

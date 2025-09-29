@@ -118,7 +118,6 @@
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 1rem;
-  transition: border-color 0.2s ease;
   background: white;
 }
 
@@ -143,7 +142,6 @@
   border: 2px solid #e2e8f0;
   border-radius: 16px;
   padding: 1.5rem;
-  transition: transform 0.2s ease, border-color 0.2s ease;
   position: relative;
 }
 
@@ -224,7 +222,6 @@
   padding: 0.5rem;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -243,7 +240,6 @@
   padding: 0.5rem;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -331,7 +327,6 @@
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 8px;
-  transition: all 0.2s ease;
 }
 
 .platform-modal-close:hover {
@@ -385,7 +380,6 @@
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 1rem;
-  transition: border-color 0.2s ease;
   background: white;
 }
 
