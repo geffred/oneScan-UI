@@ -54,7 +54,7 @@
 .compte-profile-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background:#007AFF ;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -66,7 +66,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background:#007AFF ;
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -74,7 +74,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
+ 
 }
 
 .compte-edit-profile-btn:hover {
@@ -255,7 +255,7 @@
 
 .compte-save-changes-btn {
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF ;
   color: white;
   border: none;
   border-radius: 12px;

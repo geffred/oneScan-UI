@@ -110,7 +110,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+  background: #007AFF;
   color: var(--white);
   border: none;
   padding: 1rem 2rem;
@@ -404,7 +404,7 @@
 
 .compte-cabinet-save-changes-btn {
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+  background:#007AFF;
   color: var(--white);
   border: none;
   border-radius: var(--radius-md);
@@ -457,7 +457,7 @@
   justify-content: center;
   gap: 1.5rem;
   height: 100vh;
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+  background: #007AFF;
   color: var(--white);
 }
 

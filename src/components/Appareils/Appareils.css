@@ -77,7 +77,7 @@
 .appareil-management-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, var(--appareil-primary) 0%, var(--appareil-primary-dark) 100%);
+  background: #007AFF ;
   border-radius: var(--appareil-radius);
   display: flex;
   align-items: center;

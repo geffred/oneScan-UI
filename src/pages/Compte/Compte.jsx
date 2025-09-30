@@ -577,7 +577,7 @@ const Compte = () => {
                   Déconnexion
                 </button>
 
-                <button
+                {/*       <button
                   onClick={handleDeleteAccount}
                   disabled={isDeleting}
                   className="compte-delete-account-btn"
@@ -586,7 +586,7 @@ const Compte = () => {
                   {isDeleting
                     ? "Suppression en cours..."
                     : "Supprimer mon compte"}
-                </button>
+                </button>*/}
               </div>
             )}
           </div>
