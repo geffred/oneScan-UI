@@ -566,18 +566,18 @@ const Platform = () => {
       }
       // Vérifier si c'est un callback 3Shape
       else if (
-        location.pathname.includes("/3shapde/callback") ||
+        location.pathname.includes("/3shape/callback") ||
         (state && state.includes("3shape")) ||
         urlParams.get("source") === "3shape"
       ) {
         console.log("Callback 3Shape détecté - redirection");
-        navigate(`/3shapde/callback${location.search}`, { replace: true });
+        navigate(`/3shape/callback${location.search}`, { replace: true });
         return;
       }
       // Par défaut, rediriger vers 3Shape si pas d'indication spécifique
       else {
         console.log("Code OAuth détecté - redirection vers 3Shape callback");
-        navigate(`/3shapde/callback${location.search}`, { replace: true });
+        navigate(`/3shape/callback${location.search}`, { replace: true });
         return;
       }
 

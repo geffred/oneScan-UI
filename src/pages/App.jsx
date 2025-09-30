@@ -37,7 +37,7 @@ function App() {
             <Route index element={<Homepage />} />
           </Route>
           <Route path="/meditLink/callback" element={<MeditLinkCallback />} />
-          <Route path="/3shapde/callback" element={<ThreeShapeCallback />} />
+          <Route path="/3shape/callback" element={<ThreeShapeCallback />} />
           <Route path="/cabinet/register" element={<CabinetRegisterPage />} />
           <Route path="/compte/cabinet" element={<CompteCabinet />} />
           <Route path="/login" element={<LoginPage />} />
