@@ -1,8 +1,7 @@
-// CompteCabinet.jsx
 import React, { useState, useEffect, useContext } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import {
   Users,
   Mail,
@@ -29,19 +28,14 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import "./CompteCabinet.css";
 import Footer from "../../components/Footer/Footer";
+import { cabinetApi, apiGet } from "../../components/Config/apiUtils";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-// Fetcher function for SWR
-const fetcher = async (url) => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("Erreur lors de la récupération des données");
-  }
-  return response.json();
-};
+// Fetcher function for SWR avec JWT
+const fetcher = (url) => apiGet(url);
 
 const CompteCabinet = () => {
-  const { isAuthenticated, logout } = useContext(AuthContext);
+  const { isAuthenticated, userData, userType, logout } =
+    useContext(AuthContext);
   const [cabinetData, setCabinetData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -50,26 +44,32 @@ const CompteCabinet = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const navigate = useNavigate();
 
+  // SWR pour récupérer le profil du cabinet
+  const {
+    data: profileData,
+    error: profileError,
+    isLoading: loadingProfile,
+    mutate: mutateProfile,
+  } = useSWR(
+    isAuthenticated && userType === "cabinet" ? "/cabinet/auth/profile" : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      onSuccess: (data) => {
+        setCabinetData(data);
+      },
+    }
+  );
+
   // SWR pour récupérer les commandes
   const {
     data: commandes,
     error: commandesError,
     isLoading: loadingCommandes,
-  } = useSWR(
-    cabinetData?.id ? `${API_BASE_URL}/public/commandes` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateInterval: 30000, // Revalidation toutes les 30 secondes
-      onSuccess: (data) => {
-        // Filtrer les commandes pour ce cabinet
-        return (
-          data?.filter((commande) => commande.cabinetId === cabinetData?.id) ||
-          []
-        );
-      },
-    }
-  );
+  } = useSWR(cabinetData?.id ? `/public/commandes` : null, fetcher, {
+    revalidateOnFocus: false,
+    revalidateInterval: 30000, // Revalidation toutes les 30 secondes
+  });
 
   // Filtrer les commandes pour ce cabinet
   const filteredCommandes =
@@ -77,23 +77,25 @@ const CompteCabinet = () => {
     [];
 
   useEffect(() => {
-    // Vérifier l'authentification et récupérer les données du cabinet
-    const userType = localStorage.getItem("userType");
-    const storedCabinetData = localStorage.getItem("cabinetData");
-
-    if (!isAuthenticated || userType !== "cabinet" || !storedCabinetData) {
+    // Vérifier l'authentification
+    if (!isAuthenticated || userType !== "cabinet") {
       navigate("/login");
       return;
     }
 
-    try {
-      const parsedData = JSON.parse(storedCabinetData);
-      setCabinetData(parsedData);
-    } catch (err) {
-      setError("Erreur lors du chargement des données du cabinet");
-      navigate("/login");
+    // Les données du cabinet seront chargées via SWR
+    if (userData) {
+      setCabinetData(userData);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, userType, userData, navigate]);
+
+  // Gérer les erreurs de chargement du profil
+  useEffect(() => {
+    if (profileError) {
+      setError("Erreur lors du chargement du profil");
+      // Si erreur 401, déconnexion automatique gérée par apiUtils
+    }
+  }, [profileError]);
 
   // Fonctions utilitaires pour les statuts
   const getStatutIcon = (statut) => {
@@ -168,61 +170,46 @@ const CompteCabinet = () => {
   // Gestion de la soumission du formulaire
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      // Si changement de mot de passe demandé, utiliser l'API dédiée
+      // Si changement de mot de passe demandé
       if (values.newPassword && values.currentPassword) {
-        const passwordResponse = await fetch(
-          `${API_BASE_URL}/cabinet/auth/change-password?email=${
-            cabinetData.email
-          }&currentPassword=${encodeURIComponent(
-            values.currentPassword
-          )}&newPassword=${encodeURIComponent(values.newPassword)}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
+        await cabinetApi.changePassword(
+          values.currentPassword,
+          values.newPassword
         );
-
-        if (!passwordResponse.ok) {
-          const errorData = await passwordResponse.json();
-          throw new Error(
-            errorData.message || "Erreur lors du changement de mot de passe"
-          );
-        }
+        setSuccess("Mot de passe modifié avec succès");
       }
 
-      // Mettre à jour les autres informations du cabinet via l'API de profil
-      // Pour les cabinets, il faut utiliser une approche différente car ils n'ont pas de JWT
-      // On va d'abord récupérer les données actuelles puis les mettre à jour
-      const profileResponse = await fetch(
-        `${API_BASE_URL}/cabinet/auth/profile?email=${cabinetData.email}`
-      );
-
-      if (!profileResponse.ok) {
-        throw new Error("Erreur lors de la récupération du profil");
-      }
-
-      const currentProfile = await profileResponse.json();
-
-      // Créer un objet avec les nouvelles données
+      // Mettre à jour les autres informations du cabinet
       const updatedCabinetData = {
-        ...currentProfile,
+        ...cabinetData,
         nom: values.nom,
         numeroDeTelephone: values.numeroDeTelephone,
         adresseDeLivraison: values.adresseDeLivraison,
         adresseDeFacturation: values.adresseDeFacturation,
       };
 
-      // Sauvegarder les données mises à jour
-      setCabinetData(updatedCabinetData);
-      localStorage.setItem("cabinetData", JSON.stringify(updatedCabinetData));
+      // Appel API pour mettre à jour le profil
+      const updated = await cabinetApi.update(
+        cabinetData.id,
+        updatedCabinetData
+      );
+
+      // Mettre à jour les données locales
+      setCabinetData(updated);
+
+      // Revalider les données du profil
+      mutateProfile(updated);
 
       setIsEditing(false);
-      setSuccess("Vos informations ont été mises à jour avec succès");
+      setSuccess(
+        values.newPassword
+          ? "Vos informations et votre mot de passe ont été mis à jour avec succès"
+          : "Vos informations ont été mises à jour avec succès"
+      );
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err.message);
+      console.error("Erreur lors de la mise à jour:", err);
+      setError(err.message || "Erreur lors de la mise à jour du profil");
       setTimeout(() => setError(null), 5000);
     } finally {
       setSubmitting(false);
@@ -230,20 +217,9 @@ const CompteCabinet = () => {
   };
 
   // Gestion de la déconnexion
-  const handleLogout = async () => {
-    try {
-      await fetch(`${API_BASE_URL}/cabinet/auth/logout`, {
-        method: "POST",
-      });
-    } catch (err) {
-      console.error("Erreur lors de la déconnexion:", err);
-    } finally {
-      // Nettoyer le localStorage
-      localStorage.removeItem("cabinetData");
-      localStorage.removeItem("userType");
-      logout();
-      navigate("/login");
-    }
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   // Composant pour l'affichage d'une commande
@@ -314,7 +290,7 @@ const CompteCabinet = () => {
   );
 
   // État de chargement initial
-  if (!cabinetData) {
+  if (loadingProfile || !cabinetData) {
     return (
       <div className="compte-cabinet-initial-loading">
         <div className="compte-cabinet-loading-spinner"></div>

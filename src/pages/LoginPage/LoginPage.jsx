@@ -26,7 +26,6 @@ import Footer from "../../components/Footer/Footer";
 import Header from "../../components/Header/Header";
 import { useAuth } from "../../components/Config/AuthContext";
 
-// Variable d'environnement
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const LoginPage = () => {
@@ -73,14 +72,21 @@ const LoginPage = () => {
 
       const data = await response.json();
 
+      // Vérifier la présence du token
+      if (!data.token) {
+        throw new Error("Token manquant dans la réponse du serveur");
+      }
+
       if (loginType === "laboratoire") {
         login("laboratoire", null, data.token);
         navigate("/dashboard/platform");
       } else {
-        login("cabinet", data.cabinet);
+        // Pour les cabinets, passer aussi les données cabinet
+        login("cabinet", data.cabinet, data.token);
         navigate("/compte/cabinet");
       }
     } catch (error) {
+      console.error("Erreur lors de la connexion:", error);
       setFieldError("email", error.message);
     } finally {
       setIsLoading(false);

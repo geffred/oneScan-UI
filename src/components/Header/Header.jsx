@@ -5,6 +5,25 @@ import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../Config/AuthContext";
 import { HashLink } from "react-router-hash-link";
 
+// Composant wrapper pour résoudre le warning
+const CustomHashLink = ({
+  to,
+  children,
+  className,
+  activeClassName,
+  ...props
+}) => {
+  return (
+    <HashLink
+      to={to}
+      {...props}
+      className={typeof className === "function" ? undefined : className}
+    >
+      {children}
+    </HashLink>
+  );
+};
+
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAuthenticated, userType, logout } = useAuth();
@@ -25,51 +44,48 @@ const Header = () => {
   return (
     <header className="header-base" id="header">
       <div className="header-content">
-        <HashLink smooth to="/#home" className="header-logo">
+        <CustomHashLink smooth to="/#home" className="header-logo">
           <div className="header-logo-icon">
             <span className="header-logo-text">s</span>
           </div>
           <span className="header-brand">
             <span className="lab">My</span>smilelab
           </span>
-        </HashLink>
+        </CustomHashLink>
 
         <nav className="header-nav">
           <ul className="nav-links">
             <li>
-              <NavLink
-                to="/Appareils"
-                className={({ isActive }) =>
-                  `nav-link${isActive ? " active" : ""}`
-                }
+              <CustomHashLink
+                smooth
+                to="/Appareils#header-appareils"
+                className="nav-link"
               >
                 Nos appareils
-              </NavLink>
+              </CustomHashLink>
             </li>
             <li>
-              <NavLink
-                to="/suivi-commandes"
-                className={({ isActive }) =>
-                  `nav-link${isActive ? " active" : ""}`
-                }
+              <CustomHashLink
+                smooth
+                to="/suivi-commandes#suivi-header"
+                className="nav-link"
               >
                 Suivi des commandes
-              </NavLink>
+              </CustomHashLink>
             </li>
             <li className="lien">
-              <HashLink smooth to="/#process" className="nav-link">
+              <CustomHashLink smooth to="/#process" className="nav-link">
                 Guide d'utilisation
-              </HashLink>
+              </CustomHashLink>
             </li>
             <li>
-              <NavLink
-                to="/contact"
-                className={({ isActive }) =>
-                  `nav-link${isActive ? " active" : ""}`
-                }
+              <CustomHashLink
+                smooth
+                to="/contact#header-contact"
+                className="nav-link"
               >
                 Nous contacter
-              </NavLink>
+              </CustomHashLink>
             </li>
           </ul>
         </nav>
@@ -80,14 +96,13 @@ const Header = () => {
               Déconnexion
             </button>
           ) : (
-            <NavLink
-              to="/login"
-              className={({ isActive }) =>
-                `btn-login${isActive ? " active" : ""}`
-              }
+            <CustomHashLink
+              smooth
+              to="/login#header-login"
+              className="btn-login"
             >
               Connexion
-            </NavLink>
+            </CustomHashLink>
           )}
 
           {isAuthenticated ? (
@@ -102,14 +117,13 @@ const Header = () => {
               {userType === "cabinet" ? "Mon Compte" : "Dashboard"}
             </Link>
           ) : (
-            <NavLink
-              to="/cabinet/register"
-              className={({ isActive }) =>
-                `btn-signup${isActive ? " active" : ""}`
-              }
+            <CustomHashLink
+              smooth
+              to="/cabinet/register#header-register"
+              className="btn-signup"
             >
               Inscription
-            </NavLink>
+            </CustomHashLink>
           )}
         </div>
 
@@ -118,35 +132,39 @@ const Header = () => {
         </button>
 
         <div className={`mobile-menu ${mobileMenuOpen ? "open" : ""}`}>
-          <NavLink
-            to="/Appareils"
+          <CustomHashLink
+            smooth
+            to="/Appareils#header-appareils"
             className="mobile-nav-link"
             onClick={closeMobileMenu}
           >
             Nos Appareils
-          </NavLink>
-          <NavLink
-            to="/suivi-commandes"
+          </CustomHashLink>
+          <CustomHashLink
+            smooth
+            id="suivi-header"
+            to="/suivi-commandes#suivi-header"
             className="mobile-nav-link"
             onClick={closeMobileMenu}
           >
             Suivi des commandes
-          </NavLink>
-          <HashLink
+          </CustomHashLink>
+          <CustomHashLink
             smooth
             to="/#process"
             className="mobile-nav-link"
             onClick={closeMobileMenu}
           >
             Guide d'utilisation
-          </HashLink>
-          <NavLink
-            to="/contact"
+          </CustomHashLink>
+          <CustomHashLink
+            smooth
+            to="/contact#header-contact"
             className="mobile-nav-link"
             onClick={closeMobileMenu}
           >
             Nous contacter
-          </NavLink>
+          </CustomHashLink>
 
           <div className="mobile-menu-actions">
             {isAuthenticated ? (
@@ -154,13 +172,13 @@ const Header = () => {
                 Déconnexion
               </button>
             ) : (
-              <NavLink
-                to="/login"
+              <CustomHashLink
+                smooth
+                to="/login#header-login"
                 className="btn-login"
-                onClick={closeMobileMenu}
               >
                 Connexion
-              </NavLink>
+              </CustomHashLink>
             )}
 
             {isAuthenticated ? (
@@ -172,18 +190,17 @@ const Header = () => {
                     : "/dashboard/Platform"
                 }
                 className="btn-signup"
-                onClick={closeMobileMenu}
               >
                 {userType === "cabinet" ? "Mon Compte" : "Dashboard"}
               </Link>
             ) : (
-              <NavLink
-                to="/cabinet/register"
+              <CustomHashLink
+                smooth
+                to="/cabinet/register#header-register"
                 className="btn-signup"
-                onClick={closeMobileMenu}
               >
                 Inscription
-              </NavLink>
+              </CustomHashLink>
             )}
           </div>
         </div>
