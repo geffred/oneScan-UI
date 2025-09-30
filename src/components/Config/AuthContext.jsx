@@ -1,4 +1,10 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+} from "react";
 import { jwtDecode } from "jwt-decode";
 
 export const AuthContext = createContext();
@@ -9,52 +15,86 @@ export const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const initializeAuth = () => {
-      const token = localStorage.getItem("token");
-      const storedUserType = localStorage.getItem("userType");
+  const restoreSession = useCallback(() => {
+    const token = localStorage.getItem("token");
+    const storedUserType = localStorage.getItem("userType");
 
-      if (token && storedUserType) {
-        try {
-          const decoded = jwtDecode(token);
+    if (token && storedUserType) {
+      try {
+        const decoded = jwtDecode(token);
 
-          // Vérifier si le token n'est pas expiré
-          if (decoded.exp * 1000 > Date.now()) {
-            setIsAuthenticated(true);
-            setUserType(storedUserType);
+        // Vérifier si le token n'est pas expiré
+        if (decoded.exp * 1000 > Date.now()) {
+          setIsAuthenticated(true);
+          setUserType(storedUserType);
 
-            // Extraire les données selon le type d'utilisateur
-            if (storedUserType === "laboratoire") {
-              setUserData({
-                email: decoded.sub,
-                role: "laboratoire",
-              });
-            } else if (storedUserType === "cabinet") {
-              setUserData({
-                id: decoded.cabinetId,
-                email: decoded.sub,
-                nom: decoded.cabinetNom,
-                role: "cabinet",
-              });
-            }
-          } else {
-            // Token expiré
-            console.log("Token expiré");
-            localStorage.removeItem("token");
-            localStorage.removeItem("userType");
+          if (storedUserType === "laboratoire") {
+            setUserData({
+              email: decoded.sub,
+              role: "laboratoire",
+            });
+          } else if (storedUserType === "cabinet") {
+            setUserData({
+              id: decoded.cabinetId,
+              email: decoded.sub,
+              nom: decoded.cabinetNom,
+              role: "cabinet",
+            });
           }
-        } catch (error) {
-          console.error("Error decoding token:", error);
-          localStorage.removeItem("token");
-          localStorage.removeItem("userType");
+          return true;
+        } else {
+          // Token expiré - NE PAS nettoyer immédiatement
+          // Laisser l'utilisateur continuer à naviguer
+          // Le backend gérera l'expiration lors des requêtes
+          console.warn("Token expiré mais session maintenue");
+
+          // Garder les données de base pour l'UI
+          setIsAuthenticated(true);
+          setUserType(storedUserType);
+
+          if (storedUserType === "cabinet") {
+            setUserData({
+              id: decoded.cabinetId,
+              email: decoded.sub,
+              nom: decoded.cabinetNom,
+              role: "cabinet",
+            });
+          }
+          return true;
+        }
+      } catch (error) {
+        console.error("Erreur lors du décodage du token:", error);
+        // En cas d'erreur de décodage, nettoyer
+        localStorage.removeItem("token");
+        localStorage.removeItem("userType");
+        return false;
+      }
+    }
+    return false;
+  }, []);
+
+  useEffect(() => {
+    restoreSession();
+    setIsLoading(false);
+  }, [restoreSession]);
+
+  // Synchronisation entre onglets
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === "token" || e.key === "userType") {
+        if (e.newValue === null) {
+          setIsAuthenticated(false);
+          setUserType(null);
+          setUserData(null);
+        } else {
+          restoreSession();
         }
       }
-
-      setIsLoading(false);
     };
 
-    initializeAuth();
-  }, []);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [restoreSession]);
 
   const login = (type, cabinetData = null, token) => {
     if (!token) {
@@ -84,7 +124,7 @@ export const AuthProvider = ({ children }) => {
         });
       }
     } catch (error) {
-      console.error("Error decoding token:", error);
+      console.error("Erreur lors du décodage du token:", error);
     }
   };
 
@@ -96,8 +136,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("userType");
   };
 
-  // Fonction pour vérifier si le token est toujours valide
-  const checkTokenValidity = () => {
+  const checkTokenValidity = useCallback(() => {
     const token = localStorage.getItem("token");
     if (!token) return false;
 
@@ -107,7 +146,11 @@ export const AuthProvider = ({ children }) => {
     } catch {
       return false;
     }
-  };
+  }, []);
+
+  const refreshSession = useCallback(() => {
+    return restoreSession();
+  }, [restoreSession]);
 
   const value = {
     isAuthenticated,
@@ -118,6 +161,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     checkTokenValidity,
+    refreshSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
