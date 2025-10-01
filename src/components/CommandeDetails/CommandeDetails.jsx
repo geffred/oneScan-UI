@@ -593,7 +593,7 @@ const CommandeDetails = () => {
           <footer className="dashboardpage-footer">
             <div className="dashboardpage-footer-content">
               <p className="dashboardpage-footer-text">
-                &copy; IA Lab
+                &copy; Mysmilelab
                 <label>Tous les droits sont réservés.</label>
               </p>
             </div>
