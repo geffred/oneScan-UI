@@ -2,6 +2,8 @@ import Homepage from "./HomePage/Homepage";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DashboardPage from "./Dashboard/DashboardPage";
 import LoginPage from "./LoginPage/LoginPage";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 import RegisterPage from "./RegisterPage/RegisterPage";
 import TermsPage from "./TermsPage/TermsPage";
 import ContactPage from "./ContactPage/ContactPage";
@@ -9,7 +11,6 @@ import PrivateRoute from "../components/Config/PrivateRoute";
 import Compte from "./Compte/Compte";
 import CommandeDetails from "../components/CommandeDetails/CommandeDetails";
 import SuiviCommandesPage from "./SuiviCommandesPage/SuiviCommandesPage";
-import "react-toastify/dist/ReactToastify.css";
 import AppareilGalleryPage from "./AppareilGalleryPage/AppareilGalleryPage";
 import CompteCabinet from "./CompteCabinet/CompteCabinet";
 import MeditLinkCallback from "./MeditLinkCallback/MeditLinkCallback";
@@ -19,6 +20,18 @@ import CabinetRegisterPage from "./CabinetRegisterPage/CabinetRegisterPage";
 function App() {
   return (
     <div className="app">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Homepage />}>
