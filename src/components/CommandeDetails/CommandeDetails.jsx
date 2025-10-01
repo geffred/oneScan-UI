@@ -25,6 +25,7 @@ import { EmailService } from "./EmailService";
 import "./CommandeDetails.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // API Services
 const fetchWithAuth = async (url) => {
   const token = localStorage.getItem("token");
@@ -34,6 +35,7 @@ const fetchWithAuth = async (url) => {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    credentials: "include", // Ajouté ici
   });
 
   if (!response.ok) {
@@ -81,6 +83,7 @@ const markAsRead = async (commandeId) => {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
+      credentials: "include", // Ajouté ici
     }
   );
 
@@ -104,6 +107,7 @@ const updateCabinetId = async (commandeId, cabinetId) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(cabinetId),
+      credentials: "include", // Ajouté ici
     }
   );
 
@@ -128,6 +132,7 @@ const analyseCommentaireDeepSeek = async (commentaire, commandeId) => {
       commentaire: commentaire,
       commandeId: commandeId,
     }),
+    credentials: "include", // Ajouté ici
   });
 
   if (!response.ok) {
@@ -150,6 +155,7 @@ const updateCommandeStatus = async (commandeId, status) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(status),
+      credentials: "include", // Ajouté ici
     }
   );
 
@@ -307,6 +313,7 @@ const CommandeDetails = () => {
             Authorization: `Bearer ${token}`,
           },
           method: "POST",
+          credentials: "include", // Ajouté ici
         }
       );
 
