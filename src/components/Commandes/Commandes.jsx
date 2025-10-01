@@ -1,8 +1,6 @@
 import React, { useState, useContext, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import useSWR, { mutate } from "swr";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import {
   Plus,
   Search,
@@ -908,20 +906,6 @@ const Commandes = () => {
 
   return (
     <div className="commandes-card">
-      {/* Container Toastify pour les notifications */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-
       <div className="commandes-header">
         <div className="commandes-header-content">
           <h2 className="commandes-card-title">Gestion des Commandes</h2>

@@ -22,8 +22,6 @@ import CommandeInfoGrid from "./CommandeInfoGrid";
 import CommandeActions from "./CommandeActions";
 import { EmailService } from "./EmailService";
 
-import { ToastContainer } from "react-toastify";
-
 import "./CommandeDetails.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -617,18 +615,6 @@ const CommandeDetails = () => {
   if (commandeError || !commande) {
     return (
       <LayoutWrapper>
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-        />
         <ErrorState
           error={commandeError?.message || "Commande non trouvée"}
           onBack={handleBack}

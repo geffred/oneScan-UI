@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
@@ -73,33 +75,49 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="dashboardpage-app-container">
-      <Navbar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+    <>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      <div className="dashboardpage-app-container">
+        {/* Container Toastify pour les notifications */}
 
-      <div className="dashboardpage-main-layout">
-        <Sidebar
-          sidebarOpen={sidebarOpen}
-          toggleSidebar={toggleSidebar}
-          activeComponent={activeComponent}
-          setActiveComponent={handleComponentChange} // On utilise maintenant handleComponentChange
-        />
+        <Navbar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-        <div className="dashboardpage-main-content">
-          <main className="dashboardpage-content-area">
-            {renderActiveComponent()}
-          </main>
+        <div className="dashboardpage-main-layout">
+          <Sidebar
+            sidebarOpen={sidebarOpen}
+            toggleSidebar={toggleSidebar}
+            activeComponent={activeComponent}
+            setActiveComponent={handleComponentChange} // On utilise maintenant handleComponentChange
+          />
 
-          <footer className="dashboardpage-footer">
-            <div className="dashboardpage-footer-content">
-              <p className="dashboardpage-footer-text">
-                &copy; Mysmilelab
-                <label> Tous les droits sont réservés.</label>
-              </p>
-            </div>
-          </footer>
+          <div className="dashboardpage-main-content">
+            <main className="dashboardpage-content-area">
+              {renderActiveComponent()}
+            </main>
+
+            <footer className="dashboardpage-footer">
+              <div className="dashboardpage-footer-content">
+                <p className="dashboardpage-footer-text">
+                  &copy; Mysmilelab
+                  <label> Tous les droits sont réservés.</label>
+                </p>
+              </div>
+            </footer>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
