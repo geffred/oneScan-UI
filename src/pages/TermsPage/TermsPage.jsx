@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React from "react";
 import {
   ArrowLeft,
@@ -5,6 +6,11 @@ import {
   FileText,
   Users,
   AlertTriangle,
+  Building2,
+  Package,
+  MessageCircle,
+  Phone,
+  Mail,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import "./TermsPage.css";
@@ -12,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 
 const TermsPage = () => {
   const navigate = useNavigate();
+
   return (
     <div className="terms-page-wrapper">
       {/* Header */}
@@ -23,9 +30,11 @@ const TermsPage = () => {
           </Link>
           <div className="terms-logo-area">
             <div className="terms-logo-icon">
-              <span className="terms-logo-text">IA</span>
+              <span className="terms-logo-text">S</span>
             </div>
-            <h1 className="terms-brand-name">IA Lab</h1>
+            <span className="terms-brand-name">
+              <span className="lab">My</span>smilelab
+            </span>
           </div>
         </div>
       </div>
@@ -47,9 +56,10 @@ const TermsPage = () => {
             <div className="terms-summary-card">
               <h3 className="terms-summary-title">En résumé</h3>
               <p className="terms-summary-text">
-                Ces conditions régissent l'utilisation de la plateforme IA Lab,
-                dédiée à l'intelligence artificielle pour les laboratoires
-                dentaires. En utilisant nos services, vous acceptez ces termes.
+                Ces conditions régissent l'utilisation de la plateforme
+                MySmileLab, dédiée à la gestion des commandes entre cabinets
+                dentaires et laboratoires. En utilisant nos services, vous
+                acceptez ces termes.
               </p>
             </div>
           </div>
@@ -107,26 +117,29 @@ const TermsPage = () => {
               </div>
               <div className="terms-section-content">
                 <p className="terms-paragraph">
-                  <strong>IA Lab :</strong> Désigne la société IA Lab SAS,
-                  éditrice de la plateforme logicielle d'intelligence
-                  artificielle dédiée aux laboratoires dentaires.
+                  <strong>MySmileLab :</strong> Désigne la plateforme de gestion
+                  des commandes dédiée aux laboratoires dentaires et cabinets
+                  partenaires.
                 </p>
                 <p className="terms-paragraph">
                   <strong>Plateforme :</strong> Ensemble des services numériques
-                  proposés par IA Lab, incluant l'interface web, les API et les
-                  outils d'intelligence artificielle.
+                  proposés par MySmileLab, incluant l'interface web, les API et
+                  les outils de gestion des commandes.
                 </p>
                 <p className="terms-paragraph">
-                  <strong>Utilisateur :</strong> Toute personne physique ou
-                  morale utilisant les services IA Lab, incluant les
-                  laboratoires dentaires, dentistes, prothésistes et
-                  institutions d'enseignement.
+                  <strong>Laboratoire :</strong> Professionnel ou établissement
+                  dentaire utilisant la plateforme pour gérer ses commandes et
+                  relations avec les cabinets.
+                </p>
+                <p className="terms-paragraph">
+                  <strong>Cabinet Dentaire :</strong> Professionnel de santé
+                  dentaire utilisant la plateforme pour passer des commandes à
+                  son laboratoire partenaire.
                 </p>
                 <p className="terms-paragraph">
                   <strong>Données Client :</strong> Ensemble des informations,
-                  fichiers et données transmises par l'Utilisateur via la
-                  Plateforme, incluant les scans dentaires, commandes et
-                  informations patients.
+                  fichiers et données transmises via la Plateforme, incluant les
+                  commandes, informations patients et données de production.
                 </p>
               </div>
             </section>
@@ -141,7 +154,7 @@ const TermsPage = () => {
               </div>
               <div className="terms-section-content">
                 <p className="terms-paragraph">
-                  L'utilisation des services IA Lab implique l'acceptation
+                  L'utilisation des services MySmileLab implique l'acceptation
                   pleine et entière des présentes conditions générales
                   d'utilisation. Cette acceptation est matérialisée par la
                   création d'un compte utilisateur ou l'utilisation de nos
@@ -155,9 +168,9 @@ const TermsPage = () => {
                 <div className="terms-highlight-box">
                   <AlertTriangle className="terms-highlight-icon" size={20} />
                   <p className="terms-highlight-text">
-                    <strong>Important :</strong> L'utilisation de nos services à
-                    des fins médicales doit respecter la réglementation en
-                    vigueur dans votre pays.
+                    <strong>Important :</strong> L'utilisation de nos services
+                    pour la gestion de commandes dentaires doit respecter la
+                    réglementation en vigueur dans votre pays.
                   </p>
                 </div>
               </div>
@@ -166,14 +179,14 @@ const TermsPage = () => {
             {/* Section 3 */}
             <section id="services" className="terms-content-section">
               <div className="terms-section-header">
-                <FileText className="terms-section-icon" size={24} />
+                <Building2 className="terms-section-icon" size={24} />
                 <h2 className="terms-section-title">
                   3. Description des Services
                 </h2>
               </div>
               <div className="terms-section-content">
                 <p className="terms-paragraph">
-                  IA Lab propose une plateforme SaaS (Software as a Service)
+                  MySmileLab propose une plateforme SaaS (Software as a Service)
                   destinée aux professionnels du secteur dentaire, comprenant :
                 </p>
                 <ul className="terms-list">
@@ -181,13 +194,10 @@ const TermsPage = () => {
                     Centralisation des commandes provenant de plateformes
                     tierces (Itero, 3Shape, MedditLink, Dexis)
                   </li>
+                  <li>Suivi en temps réel du statut des commandes</li>
+                  <li>Gestion des workflows de production</li>
                   <li>
-                    Génération automatique de bons de commande via intelligence
-                    artificielle
-                  </li>
-                  <li>
-                    Création automatisée de socles dentaires à partir de scans
-                    intra-oraux
+                    Communication simplifiée entre cabinets et laboratoires
                   </li>
                   <li>Outils d'analyse et de reporting avancés</li>
                   <li>API pour intégration avec systèmes existants</li>
@@ -221,13 +231,21 @@ const TermsPage = () => {
                 </p>
                 <div className="terms-requirements-box">
                   <h4 className="terms-requirements-title">
-                    Exigences du compte :
+                    Types de comptes disponibles :
                   </h4>
                   <ul className="terms-requirements-list">
-                    <li>Âge minimum de 18 ans</li>
-                    <li>Adresse email professionnelle valide</li>
-                    <li>Informations d'identification vérifiables</li>
-                    <li>Respect des conditions d'utilisation</li>
+                    <li>
+                      <strong>Compte Laboratoire :</strong> Accès complet à la
+                      gestion des commandes et cabinets
+                    </li>
+                    <li>
+                      <strong>Compte Cabinet :</strong> Accès limité au suivi
+                      des commandes et communication
+                    </li>
+                    <li>
+                      <strong>Compte Administrateur :</strong> Gestion des
+                      utilisateurs et paramètres
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -236,7 +254,7 @@ const TermsPage = () => {
             {/* Section 5 */}
             <section id="usage" className="terms-content-section">
               <div className="terms-section-header">
-                <Shield className="terms-section-icon" size={24} />
+                <Package className="terms-section-icon" size={24} />
                 <h2 className="terms-section-title">
                   5. Utilisation des Services
                 </h2>
@@ -261,6 +279,7 @@ const TermsPage = () => {
                   </li>
                   <li>Ne pas perturber le fonctionnement de la plateforme</li>
                   <li>Respecter les droits de propriété intellectuelle</li>
+                  <li>Maintenir la confidentialité des données patients</li>
                 </ul>
                 <div className="terms-prohibited-box">
                   <h4 className="terms-prohibited-title">
@@ -285,16 +304,16 @@ const TermsPage = () => {
               </div>
               <div className="terms-section-content">
                 <p className="terms-paragraph">
-                  IA Lab s'engage à protéger vos données conformément au RGPD et
-                  aux réglementations applicables. Nous traitons vos données
-                  uniquement pour la fourniture de nos services.
+                  MySmileLab s'engage à protéger vos données conformément au
+                  RGPD et aux réglementations applicables. Nous traitons vos
+                  données uniquement pour la fourniture de nos services.
                 </p>
                 <div className="terms-data-principles">
                   <h4 className="terms-data-title">Nos principes :</h4>
                   <ul className="terms-data-list">
                     <li>
-                      <strong>Confidentialité :</strong> Chiffrement AES-256 de
-                      toutes les données
+                      <strong>Confidentialité :</strong> Chiffrement des données
+                      sensibles
                     </li>
                     <li>
                       <strong>Intégrité :</strong> Sauvegardes automatiques et
@@ -308,10 +327,14 @@ const TermsPage = () => {
                       <strong>Transparence :</strong> Droit d'accès,
                       rectification et suppression
                     </li>
+                    <li>
+                      <strong>Minimisation :</strong> Collecte uniquement des
+                      données nécessaires
+                    </li>
                   </ul>
                 </div>
                 <p className="terms-paragraph">
-                  Vous conservez la propriété de vos données. IA Lab agit en
+                  Vous conservez la propriété de vos données. MySmileLab agit en
                   qualité de sous-traitant et s'engage à ne pas utiliser vos
                   données à d'autres fins que la fourniture de nos services.
                 </p>
@@ -328,8 +351,8 @@ const TermsPage = () => {
               </div>
               <div className="terms-section-content">
                 <p className="terms-paragraph">
-                  IA Lab détient tous les droits de propriété intellectuelle sur
-                  la plateforme, incluant les algorithmes d'IA, l'interface
+                  MySmileLab détient tous les droits de propriété intellectuelle
+                  sur la plateforme, incluant les algorithmes, l'interface
                   utilisateur, la documentation et les marques associées.
                 </p>
                 <p className="terms-paragraph">
@@ -354,8 +377,8 @@ const TermsPage = () => {
               </div>
               <div className="terms-section-content">
                 <p className="terms-paragraph">
-                  IA Lab s'efforce de fournir des services de qualité mais ne
-                  peut garantir une disponibilité absolue ou l'absence
+                  MySmileLab s'efforce de fournir des services de qualité mais
+                  ne peut garantir une disponibilité absolue ou l'absence
                   d'erreurs. Notre responsabilité est limitée au montant des
                   sommes versées au cours des 12 derniers mois.
                 </p>
@@ -365,26 +388,28 @@ const TermsPage = () => {
                   </h4>
                   <ul className="terms-liability-list">
                     <li>
-                      Les résultats générés par l'IA sont des suggestions et non
-                      des prescriptions médicales
+                      Les informations fournies par la plateforme sont
+                      indicatives
                     </li>
                     <li>
                       L'utilisateur reste responsable de la validation finale
-                      des résultats
+                      des commandes
                     </li>
                     <li>
-                      IA Lab ne peut être tenu responsable des décisions
-                      médicales prises
+                      MySmileLab ne peut être tenu responsable des erreurs de
+                      production
                     </li>
                     <li>
-                      Force majeure et cas fortuits exemptent IA Lab de
+                      Force majeure et cas fortuits exemptent MySmileLab de
                       responsabilité
                     </li>
+                    <li>Responsabilité limitée aux dommages directs</li>
                   </ul>
                 </div>
                 <p className="terms-paragraph">
-                  Vous vous engagez à indemniser IA Lab contre toute réclamation
-                  résultant de votre utilisation non conforme des services.
+                  Vous vous engagez à indemniser MySmileLab contre toute
+                  réclamation résultant de votre utilisation non conforme des
+                  services.
                 </p>
               </div>
             </section>
@@ -429,7 +454,7 @@ const TermsPage = () => {
                   de la période de facturation en cours.
                 </p>
                 <p className="terms-paragraph">
-                  IA Lab se réserve le droit de suspendre ou résilier votre
+                  MySmileLab se réserve le droit de suspendre ou résilier votre
                   accès en cas de violation des présentes conditions, avec un
                   préavis de 15 jours sauf urgence justifiée.
                 </p>
@@ -450,7 +475,7 @@ const TermsPage = () => {
               </div>
               <div className="terms-section-content">
                 <p className="terms-paragraph">
-                  IA Lab se réserve le droit de modifier les présentes
+                  MySmileLab se réserve le droit de modifier les présentes
                   conditions générales. Les modifications majeures seront
                   notifiées par email avec un préavis minimum de 30 jours.
                 </p>
@@ -465,31 +490,39 @@ const TermsPage = () => {
             {/* Section 12 */}
             <section id="contact" className="terms-content-section">
               <div className="terms-section-header">
-                <Users className="terms-section-icon" size={24} />
+                <MessageCircle className="terms-section-icon" size={24} />
                 <h2 className="terms-section-title">
                   12. Contact et Juridiction
                 </h2>
               </div>
               <div className="terms-section-content">
                 <div className="terms-contact-info">
-                  <h4 className="terms-contact-title">IA Lab SAS</h4>
+                  <h4 className="terms-contact-title">MySmileLab</h4>
                   <p className="terms-contact-item">
-                    Boulevard Roosevelt 23 7060 Soignies
+                    <Building2 size={16} />
+                    Boulevard Roosevelt 23, 7060 Soignies
                   </p>
-                  <p className="terms-contact-item">TAV : BE BE0794998835</p>
-                  <p className="terms-contact-item">Email : legal@ia-lab.be</p>
                   <p className="terms-contact-item">
+                    <FileText size={16} />
+                    TVA : BE0794998835
+                  </p>
+                  <p className="terms-contact-item">
+                    <Mail size={16} />
+                    Email : contact@smilelabortho.be
+                  </p>
+                  <p className="terms-contact-item">
+                    <Phone size={16} />
                     Téléphone : +32(0) 493 35 73 28
                   </p>
                 </div>
                 <p className="terms-paragraph">
                   Pour toute question concernant ces conditions générales, vous
-                  pouvez nous contacter à l'adresse : legal@ia-lab.be
+                  pouvez nous contacter à l'adresse : contact@smilelabortho.be
                 </p>
                 <p className="terms-paragraph">
-                  Les présentes conditions sont régies par le droit français.
-                  Tout litige sera soumis à la compétence exclusive des
-                  tribunaux de Paris, après tentative de résolution amiable.
+                  Les présentes conditions sont régies par le droit belge. Tout
+                  litige sera soumis à la compétence exclusive des tribunaux de
+                  Bruxelles, après tentative de résolution amiable.
                 </p>
               </div>
             </section>

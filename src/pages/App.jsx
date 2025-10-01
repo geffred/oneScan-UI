@@ -9,7 +9,6 @@ import PrivateRoute from "../components/Config/PrivateRoute";
 import Compte from "./Compte/Compte";
 import CommandeDetails from "../components/CommandeDetails/CommandeDetails";
 import SuiviCommandesPage from "./SuiviCommandesPage/SuiviCommandesPage";
-import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AppareilGalleryPage from "./AppareilGalleryPage/AppareilGalleryPage";
 import CompteCabinet from "./CompteCabinet/CompteCabinet";
@@ -21,17 +20,6 @@ function App() {
   return (
     <div className="app">
       <BrowserRouter>
-        <ToastContainer
-          position="top-right"
-          autoClose={4000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
         <Routes>
           <Route path="/" element={<Homepage />}>
             <Route index element={<Homepage />} />

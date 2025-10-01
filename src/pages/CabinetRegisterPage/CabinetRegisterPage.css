@@ -296,7 +296,7 @@
 }
 
 .cabinet-register-cover-overlay {
-  background: rgba(0, 123, 255, 0.377);
+  background: rgb(0, 0, 0);
   color: white;
   display: flex;
   flex-direction: column;
@@ -304,7 +304,7 @@
   width: 100% !important;
   height: 100% !important;
   text-align: center;
-  backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); */
   opacity: 0.6;
 }
 

@@ -111,8 +111,9 @@ footer .lab{
 }
 
 .footer-link:hover {
-  color: #007AFF;
-  padding-left: 0.5rem;
+  /*color: #007AFF;*/
+  /*padding-left: 0.5rem;*/
+  cursor: default;
 }
 
 .social-links {
@@ -133,7 +134,6 @@ footer .lab{
   transition: all 0.3s ease;
   text-decoration: none;
 }
-
 .social-link:hover {
   background: #007AFF;
   color: white;

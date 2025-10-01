@@ -340,7 +340,7 @@
 }
 
 .method-card.highlight {
-  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  background:#007bff0e ;
   border: 1px solid #7dd3fc;
 }
 

@@ -24,9 +24,9 @@ const Footer = () => (
             </span>
           </div>
           <p className="footer-description">
-            La plateforme IA révolutionnaire pour laboratoires dentaires.
-            Centralisez, automatisez et optimisez votre production avec
-            l'intelligence artificielle.
+            La plateforme de gestion dédiée au laboratoire SmileLabOrtho.
+            Suivez, gérez et optimisez toutes vos commandes d'appareils
+            orthodontiques en temps réel.
           </p>
           <div className="footer-contact">
             <div className="contact-item">
@@ -46,9 +46,7 @@ const Footer = () => (
             <a href="#" className="social-link">
               <Facebook size={20} />
             </a>
-            <a href="#" className="social-link">
-              <Twitter size={20} />
-            </a>
+
             <a href="#" className="social-link">
               <Linkedin size={20} />
             </a>
@@ -81,11 +79,6 @@ const Footer = () => (
                 Sécurité
               </a>
             </li>
-            <li>
-              <a href="#" className="footer-link">
-                Tarifs
-              </a>
-            </li>
           </ul>
         </div>
 
@@ -102,11 +95,7 @@ const Footer = () => (
                 Carrières
               </a>
             </li>
-            <li>
-              <a href="#" className="footer-link">
-                Presse
-              </a>
-            </li>
+
             <li>
               <a href="#" className="footer-link">
                 Partenaires
@@ -138,16 +127,6 @@ const Footer = () => (
                 Formation
               </a>
             </li>
-            <li>
-              <a href="#" className="footer-link">
-                Communauté
-              </a>
-            </li>
-            <li>
-              <a href="#" className="footer-link">
-                Status
-              </a>
-            </li>
           </ul>
         </div>
       </div>
@@ -157,13 +136,13 @@ const Footer = () => (
           © {new Date().getFullYear()} Mysmilelab. Tous droits réservés.
         </div>
         <div className="footer-legal">
-          <a href="#" className="legal-link">
+          <a href="/terms" className="legal-link">
             Politique de confidentialité
           </a>
-          <a href="#" className="legal-link">
+          <a href="/terms" className="legal-link">
             Conditions d'utilisation
           </a>
-          <a href="#" className="legal-link">
+          <a href="/terms" className="legal-link">
             Cookies
           </a>
         </div>

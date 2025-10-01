@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import "./SuiviCommandes.css";
+import { ToastContainer } from "react-toastify";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -291,6 +292,18 @@ function SuiviCommandes() {
 
   return (
     <div className="suivi-commandes-container">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <div className="suivi-header">
         <div className="suivi-header-content">
           <h1 className="suivi-title">Suivi de commande</h1>

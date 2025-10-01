@@ -8,63 +8,76 @@ const AvisSection = () => {
   const testimonials = [
     {
       id: 1,
-      name: "Kevina Tsague",
-      position: "Prothésiste Dentaire",
-      company: "Lab Dentaire Mons",
-      location: "Mons, Belgique",
+      name: "Varsik Hakopian",
+      position: "",
+      company: "iDent Clinic",
+      location: "",
       rating: 5,
-      text: "SmileLab Ortho a considérablement simplifié notre gestion quotidienne. Nous traitons les commandes beaucoup plus rapidement et les erreurs sont quasi inexistantes.",
-      avatar: "KT",
+      text: "Merci à l'équipe SmileLAB ! Un travail professionnel avec des appareils orthodontiques de qualité. C'est MON laboratoire de référence.",
+      avatar: "VH",
     },
     {
       id: 2,
-      name: "Stéphane C",
-      position: "Prothésiste Dentaire",
+      name: "Morgel Svetlana",
+      position:
+        "DSO, CEO Smiley's orthodontics, Coordinatrice des post-gradués en orthodontie ULB Erasme",
       company: "",
       location: "Bruxelles, Belgique",
       rating: 5,
-      text: "Depuis que nous utilisons SmileLab Ortho, la centralisation de nos outils nous permet de gagner plusieurs heures par semaine. Tout est plus clair et facile à suivre.",
-      avatar: "SC",
+      text: "Excellent Labo ! Très satisfaite de leur travail. Personnellement je suis fan de leurs disjoncteurs frittés. Équipe professionnelle, efficace et respecte nos prescriptions. Ils sont disponibles pour répondre aux questions. Livraison en temps et en heure.",
+      avatar: "MS",
     },
     {
       id: 3,
-      name: "Mey ",
-      position: "Prothésiste Dentaire",
-      company: " ",
-      location: "Soignie, Belgique",
+      name: "Anne-Flore Latournerie",
+      position: "DSO",
+      company: "",
+      location: "",
       rating: 5,
-      text: "L’interface est intuitive et les fonctionnalités nous permettent d’éviter les erreurs répétitives. Notre productivité a nettement augmenté.",
-      avatar: "M",
+      text: "Cela fait environ 6 mois que je travaille avec Smile Lab et j'en suis très contente. Les appareils demandés sont de très bonne qualité et l'équipe est très réactive.",
+      avatar: "AF",
     },
     {
       id: 4,
-      name: "Laura Verstraete",
-      position: "Prothésiste Dentaire",
-      company: "Lab SmileTech",
-      location: "Bruxelles, Belgique",
+      name: "Bouzelmat Safia",
+      position: "DSO, Lys Dental",
+      company: "",
+      location: "",
       rating: 5,
-      text: "Grâce à SmileLab Ortho, le suivi des commandes est devenu transparent. Nous pouvons facilement vérifier l’état de chaque projet et gagner en précision.",
-      avatar: "LV",
+      text: "Très bon laboratoire d'orthodontie. Il est possible de réaliser tout type d'appareil de façon très personnalisée. Par téléphone (recommandé) La communication est privilégiée et offre une grande facilité dans les échanges avec le labo. Je recommande !",
+      avatar: "BS",
     },
     {
       id: 5,
-      name: "Joe",
-      position: "Prothésiste Dentaire",
-      company: "",
-      location: "Mons, Belgique",
+      name: "Prof. Dr. Maria Orellana",
+      position:
+        "Professor and clinic director of the Orthodontic Program at the Université Libre de Bruxelles (ULB) at the Erasme Hospital",
+      company: "Erasme Hospital",
+      location: "Bruxelles, Belgique",
       rating: 5,
-      text: "L’outil nous fait économiser énormément de temps et réduit les risques d’erreurs. C’est devenu indispensable dans notre laboratoire.",
-      avatar: "JD",
+      text: "Appareils de qualité, service impeccable, et le plus important : un processus entièrement digital qui nous permet de gagner du temps au fauteuil et augmente drastiquement la qualité de l'expérience du patient.",
+      avatar: "MO",
     },
     {
       id: 6,
-      name: "Geffred N. Tchapda",
-      position: "Designer 3D",
-      company: "cgcm studio",
-      location: "Charleroi, Belgique",
+      name: "El Hajjaji Mohssin",
+      position:
+        "DSO, CEO Orthosmile, Président BUOS (BELGIAN UNION OF ORTHODONTIST SPECIALISTS), Speaker",
+      company: "",
+      location: "",
       rating: 5,
-      text: "SmileLab Ortho centralise tous nos processus et facilite la communication entre nos équipes. Nous sommes beaucoup plus efficaces au quotidien.",
-      avatar: "TNG",
+      text: "Laboratoire d'orthodontie à l'écoute des clients. Communication digitale et réponse rapide. Livraison des travaux à temps.",
+      avatar: "EHM",
+    },
+    {
+      id: 7,
+      name: "Delfour Victoire",
+      position: "DSO",
+      company: "",
+      location: "",
+      rating: 5,
+      text: "Super laboratoire où un travail de qualité et de précision est réalisé. En plus de ça, l'équipe est vraiment sympathique. Je suis pleinement satisfaite et je recommande SmileLab.",
+      avatar: "DV",
     },
   ];
 
@@ -101,12 +114,10 @@ const AvisSection = () => {
     <section className="testimonials-wrapper">
       <div className="testimonials-container-main">
         <div className="testimonials-header">
-          <h2 className="testimonials-main-title">
-            Ce que disent nos premiers Utilisateurs
-          </h2>
+          <h2 className="testimonials-main-title">Ils nous recommandent</h2>
           <p className="testimonials-main-subtitle">
-            Découvrez comment Mysmilelab transforme le quotidien des
-            laboratoires dentaires partout en France
+            Des professionnels de l'orthodontie partagent leur satisfaction
+            après collaboration avec notre laboratoire
           </p>
         </div>
 

@@ -448,7 +448,7 @@ const RegisterPage = () => {
                           </Link>{" "}
                           et la{" "}
                           <Link
-                            to="/privacy"
+                            to="/terms"
                             target="_blank"
                             className="register-terms-link"
                           >

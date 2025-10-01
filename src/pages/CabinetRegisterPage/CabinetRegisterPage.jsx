@@ -429,7 +429,7 @@ const CabinetRegisterPage = () => {
                           </Link>{" "}
                           et la{" "}
                           <Link
-                            to="/privacy"
+                            to="/terms"
                             target="_blank"
                             className="cabinet-register-terms-link"
                           >
@@ -493,13 +493,13 @@ const CabinetRegisterPage = () => {
                 }}
               >
                 <div className="cabinet-register-cover-overlay">
-                  {/*  <h3 className="cabinet-register-cover-title">
+                  <h3 className="cabinet-register-cover-title">
                     L’innovation au cœur du sourire
                   </h3>
                   <p className="cabinet-register-cover-subtitle">
                     Des solutions orthodontiques précises et fiables pour vos
                     patients
-                  </p> */}
+                  </p>
                 </div>
               </div>
             </div>

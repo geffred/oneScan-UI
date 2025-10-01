@@ -103,6 +103,7 @@ const ProcessSection = () => {
                         appelant directement.
                       </p>
                       <ul>
+                        <li>Inscription en ligne via le bouton Inscription</li>
                         <li>
                           Formulaire en ligne avec sujet "Création de compte"
                         </li>

@@ -48,7 +48,7 @@
 .platform-management-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background:#007AFF ;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -60,7 +60,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #007AFF 0%, #007AFF 100%);
+  background: #007AFF ;
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -165,7 +165,7 @@
 }
 
 .platform-card-type {
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF ;
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
@@ -440,7 +440,7 @@
 
 .platform-save-btn {
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF ;
   color: white;
   border: none;
   border-radius: 12px;
@@ -1050,7 +1050,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: #007AFF ;
   color: white;
   border: none;
   border-radius: 8px;
@@ -1062,7 +1062,7 @@
 }
 
 .platform-meditlink-connect-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  background: #007AFF ;
   transform: translateY(-2px);
 }
 
