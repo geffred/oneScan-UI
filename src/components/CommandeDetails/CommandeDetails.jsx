@@ -118,7 +118,7 @@ const analyseCommentaireDeepSeek = async (commentaire, commandeId) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
 
-  const response = await fetch("/api/deepseek", {
+  const response = await fetch(`${API_BASE_URL}/deepseek`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
