@@ -15,6 +15,72 @@ import {
 import CommentSection from "./CommentSection";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// Fonction pour récupérer les données de génération de bon de commande
+const fetchCommandeData = async (externalId) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
+
+  const response = await fetch(
+    `${API_BASE_URL}/public/commandes/${externalId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
+// Fonction pour récupérer les données de fichiers (MeditLink)
+const fetchMeditLinkOrderData = async (externalId) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
+
+  const response = await fetch(
+    `${API_BASE_URL}/meditlink/orders/${externalId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
+// Fonction pour récupérer les données de fichiers (3Shape)
+const fetchThreeShapeOrderData = async (externalId) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
+
+  const response = await fetch(
+    `${API_BASE_URL}/threeshape/orders/${externalId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
 const MeditLinkFileDownloadButton = React.memo(
   ({ file, externalId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -150,16 +216,16 @@ const MeditLinkFileDownloadButton = React.memo(
   }
 );
 
-const ScanDownloadButton = React.memo(
+const ThreeShapeFileDownloadButton = React.memo(
   ({ hash, label, externalId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
 
-    const downloadScanByHash = async (externalId, hash, filename) => {
+    const downloadThreeShapeFile = async (externalId, hash, filename) => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Token manquant");
 
       const response = await fetch(
-        `${API_BASE_URL}/cases/${externalId}/attachments/${hash}`,
+        `${API_BASE_URL}/threeshape/files/${externalId}/${hash}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -225,7 +291,7 @@ const ScanDownloadButton = React.memo(
           8
         )}.stl`;
 
-        await downloadScanByHash(externalId, hash, filename);
+        await downloadThreeShapeFile(externalId, hash, filename);
         // toast.success(`Scan ${label} téléchargé avec succès`);
       } catch (error) {
         console.error(`Erreur lors du téléchargement du scan ${label}:`, error);
@@ -344,6 +410,7 @@ const CommandeInfoGrid = ({
   showNotification,
 }) => {
   const [meditLinkFiles, setMeditLinkFiles] = useState([]);
+  const [threeShapeFiles, setThreeShapeFiles] = useState([]);
   const [isLoadingFiles, setIsLoadingFiles] = useState(false);
 
   const isThreeShape = commande && commande.plateforme === "THREESHAPE";
@@ -355,24 +422,7 @@ const CommandeInfoGrid = ({
 
     setIsLoadingFiles(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Token manquant");
-
-      const response = await fetch(
-        `${API_BASE_URL}/meditlink/orders/${commande.externalId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
-      }
-
-      const orderData = await response.json();
+      const orderData = await fetchMeditLinkOrderData(commande.externalId);
 
       // Extraire les fichiers du cas
       if (orderData.case && orderData.case.files) {
@@ -396,12 +446,37 @@ const CommandeInfoGrid = ({
     }
   };
 
-  // Charger les fichiers MeditLink au montage du composant
+  // Fonction pour récupérer les fichiers 3Shape
+  const fetchThreeShapeFiles = async () => {
+    if (!isThreeShape || !commande.externalId) return;
+
+    setIsLoadingFiles(true);
+    try {
+      const orderData = await fetchThreeShapeOrderData(commande.externalId);
+
+      // Traiter les fichiers 3Shape selon la structure de l'API
+      if (orderData.files) {
+        setThreeShapeFiles(orderData.files);
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des fichiers 3Shape:",
+        error
+      );
+      // toast.error("Impossible de récupérer les fichiers 3Shape");
+    } finally {
+      setIsLoadingFiles(false);
+    }
+  };
+
+  // Charger les fichiers selon la plateforme
   useEffect(() => {
     if (isMeditLink) {
       fetchMeditLinkFiles();
+    } else if (isThreeShape) {
+      fetchThreeShapeFiles();
     }
-  }, [isMeditLink, commande.externalId]);
+  }, [isMeditLink, isThreeShape, commande.externalId]);
 
   return (
     <div className="details-info-grid">
@@ -559,13 +634,18 @@ const CommandeInfoGrid = ({
             </div>
           )}
 
-          {/* Affichage des hash des scans ThreeShape */}
-          {isThreeShape && (commande.hash_upper || commande.hash_lower) && (
+          {/* Affichage des fichiers 3Shape */}
+          {isThreeShape && (
             <div className="details-item">
-              <span className="details-item-label">Scans disponibles :</span>
+              <span className="details-item-label">
+                Fichiers disponibles :
+                {isLoadingFiles && (
+                  <span className="loading-text"> (Chargement...)</span>
+                )}
+              </span>
               <div className="details-scans-container">
                 {commande.hash_upper && (
-                  <ScanDownloadButton
+                  <ThreeShapeFileDownloadButton
                     hash={commande.hash_upper}
                     label="Upper"
                     externalId={commande.externalId}
@@ -574,7 +654,7 @@ const CommandeInfoGrid = ({
                   />
                 )}
                 {commande.hash_lower && (
-                  <ScanDownloadButton
+                  <ThreeShapeFileDownloadButton
                     hash={commande.hash_lower}
                     label="Lower"
                     externalId={commande.externalId}
@@ -582,6 +662,17 @@ const CommandeInfoGrid = ({
                     isLoading={actionStates.downloadLower}
                   />
                 )}
+                {threeShapeFiles.length > 0 &&
+                  threeShapeFiles.map((file, index) => (
+                    <ThreeShapeFileDownloadButton
+                      key={index}
+                      hash={file.hash}
+                      label={file.name || `Fichier ${index + 1}`}
+                      externalId={commande.externalId}
+                      disabled={isLoadingFiles}
+                      isLoading={isLoadingFiles}
+                    />
+                  ))}
               </div>
             </div>
           )}
