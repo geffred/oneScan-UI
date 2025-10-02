@@ -416,6 +416,26 @@ const CommandeInfoGrid = ({
   const isThreeShape = commande && commande.plateforme === "THREESHAPE";
   const isMeditLink = commande && commande.plateforme === "MEDITLINK";
 
+  // Ajouter une clé de dépendance pour forcer le rechargement
+  const [fileLoadKey, setFileLoadKey] = useState(0);
+
+  // Modifier le useEffect
+  useEffect(() => {
+    if (isMeditLink) {
+      fetchMeditLinkFiles();
+    } else if (isThreeShape) {
+      fetchThreeShapeFiles();
+    }
+  }, [isMeditLink, isThreeShape, commande.externalId, fileLoadKey]); // Ajouter fileLoadKey
+
+  // Exposer une fonction pour forcer le rechargement (via prop)
+  useEffect(() => {
+    if (typeof onFilesReloadNeeded === "function") {
+      // Callback pour notifier le parent qu'on peut recharger
+      onFilesReloadNeeded(() => setFileLoadKey((prev) => prev + 1));
+    }
+  }, []);
+
   // Fonction pour récupérer les fichiers MeditLink
   const fetchMeditLinkFiles = async () => {
     if (!isMeditLink || !commande.externalId) return;
@@ -476,7 +496,15 @@ const CommandeInfoGrid = ({
     } else if (isThreeShape) {
       fetchThreeShapeFiles();
     }
-  }, [isMeditLink, isThreeShape, commande.externalId]);
+  }, [isMeditLink, isThreeShape, commande.externalId, fileLoadKey]);
+
+  // Exposer une fonction pour forcer le rechargement (via prop)
+  useEffect(() => {
+    if (typeof onFilesReloadNeeded === "function") {
+      // Callback pour notifier le parent qu'on peut recharger
+      onFilesReloadNeeded(() => setFileLoadKey((prev) => prev + 1));
+    }
+  }, []);
 
   return (
     <div className="details-info-grid">

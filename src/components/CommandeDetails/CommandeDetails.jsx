@@ -369,6 +369,9 @@ const CommandeDetails = () => {
       await mutateCommande();
       await mutateCommandes();
 
+      // Forcer le rechargement des fichiers
+      setActionStates((prev) => ({ ...prev, reloadFiles: Date.now() }));
+
       toast.success(
         `Bon de commande généré avec succès pour la commande #${commande.externalId}`
       );
@@ -637,6 +640,7 @@ const CommandeDetails = () => {
         />
 
         <CommandeInfoGrid
+          reloadTrigger={actionStates.reloadFiles}
           commande={commande}
           echeanceStatus={echeanceStatus}
           plateformeColor={plateformeColor}
