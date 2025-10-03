@@ -169,7 +169,7 @@
 
 .status-badge.has-token {
   background: #dbeafe;
-  color: #1e40af;
+  color: #007AFF;
 }
 
 .status-badge.no-token {
@@ -222,7 +222,6 @@
   cursor: pointer;
   border: none;
   width: 100%;
-  transition: all 0.2s;
 }
 
 .threeshape-btn:disabled {
@@ -231,12 +230,12 @@
 }
 
 .threeshape-btn.primary {
-  background: #3b82f6;
+  background: #007AFF;
   color: white;
 }
 
 .threeshape-btn.primary:hover:not(:disabled) {
-  background: #2563eb;
+  background: #007AFF;
 }
 
 .threeshape-btn.secondary {
@@ -249,12 +248,12 @@
 }
 
 .threeshape-btn.info {
-  background: #0891b2;
+  background: #007AFF;
   color: white;
 }
 
 .threeshape-btn.info:hover:not(:disabled) {
-  background: #0e7490;
+  background: #007AFF;
 }
 
 .threeshape-btn.danger {
@@ -267,12 +266,12 @@
 }
 
 .threeshape-btn.test-btn {
-  background: #8b5cf6;
+  background: #007AFF;
   color: white;
 }
 
 .threeshape-btn.test-btn:hover:not(:disabled) {
-  background: #7c3aed;
+  background: #007AFF;
 }
 
 /* STATS */
@@ -295,7 +294,7 @@
 .stat-value {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1e40af;
+  color: #007AFF;
 }
 
 .stat-label {

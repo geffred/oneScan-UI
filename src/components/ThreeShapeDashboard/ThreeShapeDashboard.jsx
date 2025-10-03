@@ -265,7 +265,7 @@ const ThreeShapeDashboard = () => {
                 Rafraîchir
               </button>
 
-              <button
+              {/* <button
                 onClick={() =>
                   window.open(
                     `${API_BASE_URL}/threeshape/cases?page=0`,
@@ -284,7 +284,7 @@ const ThreeShapeDashboard = () => {
               >
                 <LogOut size={18} />
                 Déconnexion
-              </button>
+              </button> */}
             </>
           )}
         </div>

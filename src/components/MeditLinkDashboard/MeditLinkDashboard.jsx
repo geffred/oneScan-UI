@@ -1,5 +1,5 @@
-// MeditLinkDashboard.js - Version complète avec toutes les informations
-import React, { useState, useCallback, useEffect } from "react";
+// MeditLinkDashboard.js - Version nettoyée
+import React, { useState, useCallback } from "react";
 import useSWR from "swr";
 import {
   Shield,
@@ -10,12 +10,7 @@ import {
   CheckCircle,
   LogOut,
   User,
-  Calendar,
-  Clock,
   Info,
-  Server,
-  Download,
-  Upload,
 } from "lucide-react";
 import useMeditLinkAuth from "../../components/Config/useMeditLinkAuth";
 import "./MeditLinkDashboard.css";
@@ -47,12 +42,10 @@ const MeditLinkDashboard = () => {
     logout,
     refresh,
     clearError,
-    getTokenDetails,
     userInfo,
   } = useMeditLinkAuth();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [tokenDetails, setTokenDetails] = useState(null);
 
   // SWR pour les données utilisateur et statut
   const { data: authData, mutate: mutateAuth } = useSWR(
@@ -68,14 +61,6 @@ const MeditLinkDashboard = () => {
 
   const mergedAuthStatus = authData || authStatus;
   const mergedUserInfo = userData || userInfo;
-
-  // Récupérer les détails du token
-  useEffect(() => {
-    if (isAuthenticated && getTokenDetails) {
-      const details = getTokenDetails();
-      setTokenDetails(details);
-    }
-  }, [isAuthenticated, getTokenDetails]);
 
   // Handlers
   const handleConnect = useCallback(async () => {
@@ -94,7 +79,6 @@ const MeditLinkDashboard = () => {
       try {
         await logout();
         mutateAuth(undefined, { revalidate: false });
-        setTokenDetails(null);
       } catch (err) {
         console.error("Erreur déconnexion:", err);
       }
@@ -106,15 +90,10 @@ const MeditLinkDashboard = () => {
       setIsRefreshing(true);
       await refresh();
       mutateAuth();
-      // Recharger les détails du token après rafraîchissement
-      if (getTokenDetails) {
-        const details = getTokenDetails();
-        setTokenDetails(details);
-      }
     } finally {
       setIsRefreshing(false);
     }
-  }, [refresh, mutateAuth, getTokenDetails]);
+  }, [refresh, mutateAuth]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "Non disponible";
@@ -125,20 +104,6 @@ const MeditLinkDashboard = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  const getTimeRemaining = (expiresAt) => {
-    if (!expiresAt) return null;
-    const now = new Date().getTime();
-    const expires = new Date(expiresAt).getTime();
-    const remaining = expires - now;
-
-    if (remaining <= 0) return "Expiré";
-
-    const hours = Math.floor(remaining / (1000 * 60 * 60));
-    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-
-    return `${hours}h ${minutes}m`;
   };
 
   // Composants internes
@@ -153,10 +118,6 @@ const MeditLinkDashboard = () => {
     }
 
     if (isAuthenticated) {
-      const timeRemaining = tokenDetails?.expiresAt
-        ? getTimeRemaining(tokenDetails.expiresAt)
-        : null;
-
       return (
         <div
           className={`meditlink-dashboard-status connected ${
@@ -166,11 +127,8 @@ const MeditLinkDashboard = () => {
           <CheckCircle size={20} />
           <div className="status-details">
             <span>Connecté à MeditLink</span>
-            {timeRemaining && (
-              <span className="time-remaining">
-                {isExpiringSoon ? "⚠️ " : ""}
-                {timeRemaining}
-              </span>
+            {isExpiringSoon && (
+              <span className="time-remaining">⚠️ Bientôt expiré</span>
             )}
           </div>
         </div>
@@ -216,52 +174,6 @@ const MeditLinkDashboard = () => {
                 <span>{mergedUserInfo.company}</span>
               </div>
             )}
-            {mergedUserInfo.role && (
-              <div className="user-field">
-                <label>Rôle :</label>
-                <span className="role-badge">{mergedUserInfo.role}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const TokenInfoCard = () => {
-    if (!isAuthenticated || !tokenDetails) return null;
-
-    return (
-      <div className="meditlink-dashboard-card">
-        <div className="card-header">
-          <Shield size={20} />
-          <h3>Informations Token</h3>
-        </div>
-        <div className="card-content">
-          <div className="token-details">
-            <div className="token-field">
-              <label>Créé le :</label>
-              <span>{formatDate(tokenDetails.issuedAt)}</span>
-            </div>
-            <div className="token-field">
-              <label>Expire le :</label>
-              <span className={isExpiringSoon ? "expiring" : ""}>
-                {formatDate(tokenDetails.expiresAt)}
-                {isExpiringSoon && " ⚠️"}
-              </span>
-            </div>
-            <div className="token-field">
-              <label>Temps restant :</label>
-              <span>{getTimeRemaining(tokenDetails.expiresAt)}</span>
-            </div>
-            {tokenDetails.scopes && (
-              <div className="token-field">
-                <label>Scopes :</label>
-                <span className="scopes-list">
-                  {tokenDetails.scopes.join(", ")}
-                </span>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -291,12 +203,6 @@ const MeditLinkDashboard = () => {
               <label>Dernière mise à jour :</label>
               <span>{formatDate(new Date().toISOString())}</span>
             </div>
-            {mergedAuthStatus?.lastRefresh && (
-              <div className="auth-field">
-                <label>Dernier rafraîchissement :</label>
-                <span>{formatDate(mergedAuthStatus.lastRefresh)}</span>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -331,20 +237,7 @@ const MeditLinkDashboard = () => {
                   size={18}
                   className={isRefreshing ? "animate-spin" : ""}
                 />
-                {isRefreshing ? "Rafraîchissement..." : "Rafraîchir le token"}
-              </button>
-
-              <button
-                onClick={() =>
-                  window.open(
-                    `${API_BASE_URL}/meditlink/cases?page=0&size=10`,
-                    "_blank"
-                  )
-                }
-                className="meditlink-btn info"
-              >
-                <Download size={18} />
-                Voir les cas
+                {isRefreshing ? "Rafraîchissement..." : "Rafraîchir"}
               </button>
 
               <button
@@ -390,7 +283,6 @@ const MeditLinkDashboard = () => {
         <div className="dashboard-grid">
           <AuthStatusCard />
           <UserInfoCard />
-          <TokenInfoCard />
           <ActionsCard />
         </div>
       </div>

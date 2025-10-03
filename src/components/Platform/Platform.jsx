@@ -203,7 +203,10 @@ const PlatformCard = React.memo(
 
         <div className="platform-card-actions">
           {is3Shape && (
-            <div className="threeshape-actions-group">
+            <div
+              className="threeshape-actions-group"
+              style={{ display: "flex", gap: "4px", alignItems: "center" }}
+            >
               <button
                 onClick={() => onConnect3Shape(platform)}
                 className={`platform-connect-btn ${
@@ -217,7 +220,7 @@ const PlatformCard = React.memo(
               {threeshapeStatus?.authenticated && (
                 <button
                   onClick={() => onShowThreeShapeDashboard(platform)}
-                  className="platform-dashboard-btn"
+                  className="platform-connect-btn"
                   aria-label="Tableau de bord 3Shape"
                 >
                   <Activity size={16} />
