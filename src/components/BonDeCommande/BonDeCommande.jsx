@@ -80,7 +80,9 @@ const BonDeCommande = ({ commande, cabinet, onClose }) => {
         <div className="bon-de-commande-content" ref={bonDeCommandeRef}>
           <header className="bon-de-commande-header">
             <div className="bon-de-commande-logo">
-              <h1>IA Lab</h1>
+              <h1>
+                <span className="lab">My</span>smilelab
+              </h1>
               <p>Spécialiste en solutions dentaires numériques</p>
             </div>
             <div className="bon-de-commande-title">
