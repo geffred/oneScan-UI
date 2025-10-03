@@ -49,16 +49,6 @@ const platformTypes = [
   //{ value: "AUTRE", label: "Autre" },
 ];
 
-const [showThreeShapeDashboard, setShowThreeShapeDashboard] = useState(false);
-
-const handleShowThreeShapeDashboard = useCallback((platform) => {
-  setShowThreeShapeDashboard(true);
-}, []);
-
-const handleCloseThreeShapeDashboard = useCallback(() => {
-  setShowThreeShapeDashboard(false);
-}, []);
-
 // Schema de validation mis en cache
 const validationSchema = Yup.object({
   name: Yup.string().required("Le nom de la plateforme est requis"),
@@ -530,6 +520,15 @@ const Platform = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showThreeShapeDashboard, setShowThreeShapeDashboard] = useState(false);
+
+  const handleShowThreeShapeDashboard = useCallback((platform) => {
+    setShowThreeShapeDashboard(true);
+  }, []);
+
+  const handleCloseThreeShapeDashboard = useCallback(() => {
+    setShowThreeShapeDashboard(false);
+  }, []);
 
   // États pour 3Shape OAuth
   const [is3ShapeModalOpen, setIs3ShapeModalOpen] = useState(false);
