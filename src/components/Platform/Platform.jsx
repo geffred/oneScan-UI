@@ -34,6 +34,7 @@ import CryptoJS from "crypto-js";
 import useMeditLinkAuth from "../Config/useMeditLinkAuth";
 import useThreeShapeAuth from "../Config/useThreeShapeAuth";
 import MeditLinkDashboard from "../MeditLinkDashboard/MeditLinkDashboard";
+import ThreeShapeDashboard from "../ThreeShapeDashboard/ThreeShapeDashboard";
 import "./Platform.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -47,6 +48,16 @@ const platformTypes = [
   { value: "MEDITLINK", label: "MeditLink" },
   //{ value: "AUTRE", label: "Autre" },
 ];
+
+const [showThreeShapeDashboard, setShowThreeShapeDashboard] = useState(false);
+
+const handleShowThreeShapeDashboard = useCallback((platform) => {
+  setShowThreeShapeDashboard(true);
+}, []);
+
+const handleCloseThreeShapeDashboard = useCallback(() => {
+  setShowThreeShapeDashboard(false);
+}, []);
 
 // Schema de validation mis en cache
 const validationSchema = Yup.object({
@@ -108,6 +119,27 @@ const getUserPlatforms = async (userId) => {
   if (!userId) return [];
   return fetchWithAuth(`${API_BASE_URL}/platforms/user/${userId}`);
 };
+
+{
+  showThreeShapeDashboard && (
+    <div className="platform-modal-overlay">
+      <div className="platform-modal platform-threeshape-dashboard-modal">
+        <div className="platform-modal-header">
+          <h2>Tableau de bord 3Shape</h2>
+          <button
+            onClick={handleCloseThreeShapeDashboard}
+            className="platform-modal-close"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <div className="platform-modal-content">
+          <ThreeShapeDashboard />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Composant de carte optimisé avec React.memo
 const PlatformCard = React.memo(
@@ -214,6 +246,25 @@ const PlatformCard = React.memo(
               <Link2 size={16} />
               {threeshapeStatus?.authenticated ? "Reconnecter" : "Connecter"}
             </button>
+          )}
+
+          {showThreeShapeDashboard && (
+            <div className="platform-modal-overlay">
+              <div className="platform-modal platform-threeshape-dashboard-modal">
+                <div className="platform-modal-header">
+                  <h2>Tableau de bord 3Shape</h2>
+                  <button
+                    onClick={handleCloseThreeShapeDashboard}
+                    className="platform-modal-close"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+                <div className="platform-modal-content">
+                  <ThreeShapeDashboard />
+                </div>
+              </div>
+            </div>
           )}
 
           {isMeditLink && (

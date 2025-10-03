@@ -1,0 +1,371 @@
+/* ThreeShapeDashboard.css */
+.threeshape-dashboard {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* HEADER */
+.threeshape-dashboard .dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.threeshape-dashboard .header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.threeshape-dashboard .header-title h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1f2937;
+}
+
+.threeshape-dashboard .header-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* STATUS INDICATOR */
+.threeshape-dashboard-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.threeshape-dashboard-status.loading {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.threeshape-dashboard-status.connected {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.threeshape-dashboard-status.disconnected {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.threeshape-dashboard-status .status-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.threeshape-dashboard-status .token-status {
+  font-size: 0.75rem;
+  color: #059669;
+  font-weight: 400;
+}
+
+/* ERROR BANNER */
+.threeshape-dashboard-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.threeshape-dashboard-error .error-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+/* CONTENT GRID */
+.threeshape-dashboard .dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+/* CARDS */
+.threeshape-dashboard-card {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.threeshape-dashboard-card .card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.threeshape-dashboard-card .card-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.threeshape-dashboard-card .card-content {
+  padding: 1rem;
+}
+
+/* AUTH DETAILS */
+.threeshape-dashboard-card .auth-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.threeshape-dashboard-card .auth-field {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.threeshape-dashboard-card .auth-field label {
+  font-weight: 500;
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+/* STATUS BADGES */
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-badge.authenticated {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.status-badge.not-authenticated {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.status-badge.has-token {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.no-token {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* TEST CONNECTION */
+.test-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.test-result {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.test-result.success {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.test-result.error {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* ACTIONS */
+.threeshape-dashboard-card .action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.threeshape-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  transition: all 0.2s;
+}
+
+.threeshape-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.threeshape-btn.primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.threeshape-btn.primary:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.threeshape-btn.secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.threeshape-btn.secondary:hover:not(:disabled) {
+  background: #4b5563;
+}
+
+.threeshape-btn.info {
+  background: #0891b2;
+  color: white;
+}
+
+.threeshape-btn.info:hover:not(:disabled) {
+  background: #0e7490;
+}
+
+.threeshape-btn.danger {
+  background: #ef4444;
+  color: white;
+}
+
+.threeshape-btn.danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.threeshape-btn.test-btn {
+  background: #8b5cf6;
+  color: white;
+}
+
+.threeshape-btn.test-btn:hover:not(:disabled) {
+  background: #7c3aed;
+}
+
+/* STATS */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+/* FOOTER */
+.dashboard-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.footer-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* ANIMATIONS */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .threeshape-dashboard {
+    padding: 1rem;
+  }
+
+  .threeshape-dashboard .dashboard-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .threeshape-dashboard .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .threeshape-dashboard-card .auth-field {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .threeshape-dashboard {
+    padding: 0.75rem;
+  }
+
+  .threeshape-dashboard-card .card-header,
+  .threeshape-dashboard-card .card-content {
+    padding: 0.75rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
