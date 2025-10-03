@@ -42,11 +42,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // Configuration mise en cache
 const SECRET_KEY = "MaCleSecrete12345";
 const platformTypes = [
-  //{ value: "ITERO", label: "Itero" },
   { value: "THREESHAPE", label: "3Shape" },
-  //{ value: "DEXIS", label: "Dexis" },
   { value: "MEDITLINK", label: "MeditLink" },
-  //{ value: "AUTRE", label: "Autre" },
 ];
 
 // Schema de validation mis en cache
@@ -110,27 +107,6 @@ const getUserPlatforms = async (userId) => {
   return fetchWithAuth(`${API_BASE_URL}/platforms/user/${userId}`);
 };
 
-{
-  showThreeShapeDashboard && (
-    <div className="platform-modal-overlay">
-      <div className="platform-modal platform-threeshape-dashboard-modal">
-        <div className="platform-modal-header">
-          <h2>Tableau de bord 3Shape</h2>
-          <button
-            onClick={handleCloseThreeShapeDashboard}
-            className="platform-modal-close"
-          >
-            <X size={24} />
-          </button>
-        </div>
-        <div className="platform-modal-content">
-          <ThreeShapeDashboard />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // Composant de carte optimisé avec React.memo
 const PlatformCard = React.memo(
   ({
@@ -141,6 +117,7 @@ const PlatformCard = React.memo(
     onConnectMeditLink,
     onDisconnectMeditLink,
     onShowMeditLinkDashboard,
+    onShowThreeShapeDashboard,
     threeshapeStatus,
     meditlinkStatus,
   }) => {
@@ -226,34 +203,27 @@ const PlatformCard = React.memo(
 
         <div className="platform-card-actions">
           {is3Shape && (
-            <button
-              onClick={() => onConnect3Shape(platform)}
-              className={`platform-connect-btn ${
-                threeshapeStatus?.authenticated ? "connected" : ""
-              }`}
-              aria-label="Connecter à 3Shape"
-            >
-              <Link2 size={16} />
-              {threeshapeStatus?.authenticated ? "Reconnecter" : "Connecter"}
-            </button>
-          )}
-
-          {showThreeShapeDashboard && (
-            <div className="platform-modal-overlay">
-              <div className="platform-modal platform-threeshape-dashboard-modal">
-                <div className="platform-modal-header">
-                  <h2>Tableau de bord 3Shape</h2>
-                  <button
-                    onClick={handleCloseThreeShapeDashboard}
-                    className="platform-modal-close"
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
-                <div className="platform-modal-content">
-                  <ThreeShapeDashboard />
-                </div>
-              </div>
+            <div className="threeshape-actions-group">
+              <button
+                onClick={() => onConnect3Shape(platform)}
+                className={`platform-connect-btn ${
+                  threeshapeStatus?.authenticated ? "connected" : ""
+                }`}
+                aria-label="Connecter à 3Shape"
+              >
+                <Link2 size={16} />
+                {threeshapeStatus?.authenticated ? "Reconnecter" : "Connecter"}
+              </button>
+              {threeshapeStatus?.authenticated && (
+                <button
+                  onClick={() => onShowThreeShapeDashboard(platform)}
+                  className="platform-dashboard-btn"
+                  aria-label="Tableau de bord 3Shape"
+                >
+                  <Activity size={16} />
+                  Dashboard
+                </button>
+              )}
             </div>
           )}
 
@@ -521,26 +491,14 @@ const Platform = () => {
   const [success, setSuccess] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showThreeShapeDashboard, setShowThreeShapeDashboard] = useState(false);
-
-  const handleShowThreeShapeDashboard = useCallback((platform) => {
-    setShowThreeShapeDashboard(true);
-  }, []);
-
-  const handleCloseThreeShapeDashboard = useCallback(() => {
-    setShowThreeShapeDashboard(false);
-  }, []);
-
-  // États pour 3Shape OAuth
-  const [is3ShapeModalOpen, setIs3ShapeModalOpen] = useState(false);
-
-  // États pour MeditLink OAuth
-  const [isMeditLinkModalOpen, setIsMeditLinkModalOpen] = useState(false);
   const [showMeditLinkDashboard, setShowMeditLinkDashboard] = useState(false);
+  const [is3ShapeModalOpen, setIs3ShapeModalOpen] = useState(false);
+  const [isMeditLinkModalOpen, setIsMeditLinkModalOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Hook MeditLink Auth - Configuration sans auto-refresh
+  // Hook MeditLink Auth
   const {
     authStatus: meditlinkAuthStatus,
     userInfo: meditlinkUserInfo,
@@ -598,11 +556,28 @@ const Platform = () => {
     }
   );
 
+  // Handlers pour ThreeShape Dashboard
+  const handleShowThreeShapeDashboard = useCallback((platform) => {
+    setShowThreeShapeDashboard(true);
+  }, []);
+
+  const handleCloseThreeShapeDashboard = useCallback(() => {
+    setShowThreeShapeDashboard(false);
+  }, []);
+
+  // Handlers pour MeditLink Dashboard
+  const handleShowMeditLinkDashboard = useCallback((platform) => {
+    setShowMeditLinkDashboard(true);
+  }, []);
+
+  const handleCloseMeditLinkDashboard = useCallback(() => {
+    setShowMeditLinkDashboard(false);
+  }, []);
+
   useEffect(() => {
     const handleMessage = (event) => {
       if (event.data?.type === "THREESHAPE_AUTH_SUCCESS") {
         console.log("✅ Auth 3Shape réussie depuis le popup !");
-        // rafraîchir l’état ou rediriger directement
         refreshThreeshape();
         navigate("/Dashboard/Platform");
       }
@@ -610,7 +585,7 @@ const Platform = () => {
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [navigate]);
+  }, [navigate, refreshThreeshape]);
 
   // Détecter automatiquement les paramètres OAuth dans l'URL
   useEffect(() => {
@@ -765,6 +740,10 @@ const Platform = () => {
     }
   }, [startThreeshapeAuth]);
 
+  const close3ShapeModal = useCallback(() => {
+    setIs3ShapeModalOpen(false);
+  }, []);
+
   // Handlers pour MeditLink OAuth
   const handleMeditLinkConnect = useCallback(async (platform) => {
     setIsMeditLinkModalOpen(true);
@@ -847,12 +826,8 @@ const Platform = () => {
     [meditlinkLogout]
   );
 
-  const handleShowMeditLinkDashboard = useCallback((platform) => {
-    setShowMeditLinkDashboard(true);
-  }, []);
-
-  const handleCloseMeditLinkDashboard = useCallback(() => {
-    setShowMeditLinkDashboard(false);
+  const closeMeditLinkModal = useCallback(() => {
+    setIsMeditLinkModalOpen(false);
   }, []);
 
   // Handlers existants optimisés
@@ -976,14 +951,6 @@ const Platform = () => {
     setShowPassword(false);
   }, []);
 
-  const close3ShapeModal = useCallback(() => {
-    setIs3ShapeModalOpen(false);
-  }, []);
-
-  const closeMeditLinkModal = useCallback(() => {
-    setIsMeditLinkModalOpen(false);
-  }, []);
-
   const togglePassword = useCallback(() => {
     setShowPassword((prev) => !prev);
   }, []);
@@ -1015,20 +982,6 @@ const Platform = () => {
               Gestion des Plateformes
             </h1>
             <div className="platform-header-actions">
-              {/* <button
-                onClick={refreshAllStatuses}
-                className="platform-refresh-btn"
-                disabled={threeshapeLoading || meditlinkLoading}
-                title="Actualiser tous les statuts"
-              >
-                <RefreshCw
-                  size={18}
-                  className={
-                    threeshapeLoading || meditlinkLoading ? "spinning" : ""
-                  }
-                /> 
-                  </button>*/}
-
               <button
                 onClick={openCreateModal}
                 className="platform-create-btn"
@@ -1078,6 +1031,7 @@ const Platform = () => {
                     onConnectMeditLink={handleMeditLinkConnect}
                     onDisconnectMeditLink={handleMeditLinkDisconnect}
                     onShowMeditLinkDashboard={handleShowMeditLinkDashboard}
+                    onShowThreeShapeDashboard={handleShowThreeShapeDashboard}
                     threeshapeStatus={combinedThreeshapeStatus}
                     meditlinkStatus={combinedMeditlinkStatus}
                   />
@@ -1087,6 +1041,26 @@ const Platform = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal Dashboard 3Shape */}
+      {showThreeShapeDashboard && (
+        <div className="platform-modal-overlay">
+          <div className="platform-modal platform-threeshape-dashboard-modal">
+            <div className="platform-modal-header">
+              <h2>Tableau de bord 3Shape</h2>
+              <button
+                onClick={handleCloseThreeShapeDashboard}
+                className="platform-modal-close"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="platform-modal-content">
+              <ThreeShapeDashboard />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de création/édition */}
       {isModalOpen && !userLoading && userData && (
@@ -1185,45 +1159,6 @@ const Platform = () => {
                         className="platform-error-message"
                       />
                     </div>
-
-                    {/*<div className="platform-input-group">
-                      <label className="platform-field-label">
-                        Mot de passe
-                        {(values.name === "MEDITLINK" ||
-                          values.name === "THREESHAPE") && (
-                          <small>
-                            {" "}
-                            (utilisé uniquement comme identifiant de
-                            configuration)
-                          </small>
-                        )}
-                      </label>
-                      <div className="platform-input-wrapper">
-                        <Lock className="platform-input-icon" />
-                        <Field
-                          name="password"
-                          type={showPassword ? "text" : "password"}
-                          className="platform-text-input"
-                          placeholder="••••••••"
-                        />
-                        <button
-                          type="button"
-                          className="platform-password-toggle"
-                          onClick={togglePassword}
-                        >
-                          {showPassword ? (
-                            <EyeOff size={18} />
-                          ) : (
-                            <Eye size={18} />
-                          )}
-                        </button>
-                      </div>
-                      <ErrorMessage
-                        name="password"
-                        component="div"
-                        className="platform-error-message"
-                      />
-                    </div> */}
                   </div>
 
                   <div className="platform-modal-actions">
