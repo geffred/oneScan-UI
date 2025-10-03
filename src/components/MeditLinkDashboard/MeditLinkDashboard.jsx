@@ -1,4 +1,4 @@
-// MeditLinkDashboard.js - Version nettoyée
+// MeditLinkDashboard.js - Version mise à jour avec rafraîchissement fonctionnel
 import React, { useState, useCallback } from "react";
 import useSWR from "swr";
 import {
@@ -11,6 +11,7 @@ import {
   LogOut,
   User,
   Info,
+  Clock,
 } from "lucide-react";
 import useMeditLinkAuth from "../../components/Config/useMeditLinkAuth";
 import "./MeditLinkDashboard.css";
@@ -46,17 +47,22 @@ const MeditLinkDashboard = () => {
   } = useMeditLinkAuth();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(null);
 
   // SWR pour les données utilisateur et statut
   const { data: authData, mutate: mutateAuth } = useSWR(
     isAuthenticated ? `${API_BASE_URL}/meditlink/auth/status` : null,
     fetcher,
-    { refreshInterval: 30000 }
+    {
+      refreshInterval: 30000,
+      revalidateOnFocus: true,
+    }
   );
 
   const { data: userData } = useSWR(
     isAuthenticated ? `${API_BASE_URL}/meditlink/user/me` : null,
-    fetcher
+    fetcher,
+    { revalidateOnFocus: false }
   );
 
   const mergedAuthStatus = authData || authStatus;
@@ -79,6 +85,7 @@ const MeditLinkDashboard = () => {
       try {
         await logout();
         mutateAuth(undefined, { revalidate: false });
+        setLastRefresh(null);
       } catch (err) {
         console.error("Erreur déconnexion:", err);
       }
@@ -88,8 +95,41 @@ const MeditLinkDashboard = () => {
   const handleRefresh = useCallback(async () => {
     try {
       setIsRefreshing(true);
-      await refresh();
-      mutateAuth();
+
+      // Appel direct à l'API de rafraîchissement
+      const response = await fetch(`${API_BASE_URL}/meditlink/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Rafraîchir les données locales
+        await refresh();
+        mutateAuth();
+        setLastRefresh(new Date().toISOString());
+        console.log("✅ Token MeditLink rafraîchi avec succès");
+      } else {
+        throw new Error(result.error || "Erreur lors du rafraîchissement");
+      }
+    } catch (err) {
+      console.error("❌ Erreur lors du rafraîchissement:", err);
+      // En cas d'erreur, on essaie de rafraîchir quand même les données
+      try {
+        await refresh();
+        mutateAuth();
+      } catch (fallbackError) {
+        console.error("❌ Erreur de fallback:", fallbackError);
+      }
     } finally {
       setIsRefreshing(false);
     }
@@ -104,6 +144,21 @@ const MeditLinkDashboard = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const getTimeSinceLastRefresh = () => {
+    if (!lastRefresh) return null;
+    const now = new Date();
+    const last = new Date(lastRefresh);
+    const diffInMinutes = Math.floor((now - last) / (1000 * 60));
+
+    if (diffInMinutes < 1) return "À l'instant";
+    if (diffInMinutes === 1) return "Il y a 1 minute";
+    if (diffInMinutes < 60) return `Il y a ${diffInMinutes} minutes`;
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours === 1) return "Il y a 1 heure";
+    return `Il y a ${diffInHours} heures`;
   };
 
   // Composants internes
@@ -129,6 +184,12 @@ const MeditLinkDashboard = () => {
             <span>Connecté à MeditLink</span>
             {isExpiringSoon && (
               <span className="time-remaining">⚠️ Bientôt expiré</span>
+            )}
+            {lastRefresh && (
+              <span className="last-refresh">
+                <Clock size={12} />
+                {getTimeSinceLastRefresh()}
+              </span>
             )}
           </div>
         </div>
@@ -203,6 +264,18 @@ const MeditLinkDashboard = () => {
               <label>Dernière mise à jour :</label>
               <span>{formatDate(new Date().toISOString())}</span>
             </div>
+            {lastRefresh && (
+              <div className="auth-field">
+                <label>Dernier rafraîchissement :</label>
+                <span>{getTimeSinceLastRefresh()}</span>
+              </div>
+            )}
+            {isExpiringSoon && isAuthenticated && (
+              <div className="auth-field warning">
+                <label>Attention :</label>
+                <span className="warning-text">Le token expire bientôt</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -232,17 +305,19 @@ const MeditLinkDashboard = () => {
                 onClick={handleRefresh}
                 disabled={isRefreshing}
                 className="meditlink-btn secondary"
+                title="Rafraîchir manuellement le token"
               >
                 <RefreshCw
                   size={18}
                   className={isRefreshing ? "animate-spin" : ""}
                 />
-                {isRefreshing ? "Rafraîchissement..." : "Rafraîchir"}
+                {isRefreshing ? "Rafraîchissement..." : "Rafraîchir le token"}
               </button>
 
               <button
                 onClick={handleDisconnect}
                 className="meditlink-btn danger"
+                title="Se déconnecter de MeditLink"
               >
                 <LogOut size={18} />
                 Déconnexion
@@ -250,6 +325,16 @@ const MeditLinkDashboard = () => {
             </>
           )}
         </div>
+
+        {isAuthenticated && (
+          <div className="refresh-info">
+            <Info size={14} />
+            <span>
+              Le token est automatiquement rafraîchi avant expiration. Utilisez
+              le bouton pour un rafraîchissement manuel.
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -292,8 +377,10 @@ const MeditLinkDashboard = () => {
           <div className="footer-info">
             <Info size={16} />
             <span>
-              Connexion sécurisée OAuth 2.0 - Les tokens sont automatiquement
-              rafraîchis avant expiration
+              Connexion sécurisée OAuth 2.0 -
+              {isExpiringSoon
+                ? " Token bientôt expiré - rafraîchissement recommandé"
+                : " Token valide - rafraîchissement automatique activé"}
             </span>
           </div>
         </div>

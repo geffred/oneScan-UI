@@ -353,6 +353,62 @@
   }
 }
 
+/* MeditLinkDashboard.css - Ajouts */
+.last-refresh {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+.auth-field.warning {
+  color: #f59e0b;
+}
+
+.warning-text {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.refresh-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  background-color: #f8fafc;
+  border-radius: 6px;
+  margin-top: 16px;
+  font-size: 0.875rem;
+  color: #64748b;
+  border-left: 3px solid #3b82f6;
+}
+
+.refresh-info svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #3b82f6;
+}
+
+.meditlink-dashboard-status.connected.expiring .status-details .time-remaining {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 480px) {
   .meditlink-dashboard {
     padding: 0.75rem;
