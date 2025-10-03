@@ -74,7 +74,7 @@ export const useThreeShapeAuth = () => {
       const authUrl = urlMatch[1];
 
       // Ouvrir l'URL d'authentification dans un nouvel onglet
-      window.open = authUrl;
+      window.open(authUrl, "_blank");
 
       return authUrl;
     } catch (err) {

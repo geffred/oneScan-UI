@@ -548,6 +548,20 @@ const Platform = () => {
     }
   );
 
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data?.type === "THREESHAPE_AUTH_SUCCESS") {
+        console.log("✅ Auth 3Shape réussie depuis le popup !");
+        // rafraîchir l’état ou rediriger directement
+        refreshThreeshape();
+        navigate("/Dashboard/Platform");
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [navigate]);
+
   // Détecter automatiquement les paramètres OAuth dans l'URL
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);

@@ -96,6 +96,21 @@ const ThreeShapeCallback = () => {
             "Authentification 3Shape réussie ! Connexion établie avec succès."
           );
 
+          // ✅ notifier l’onglet parent si ouvert en popup
+          if (window.opener) {
+            window.opener.postMessage({ type: "THREESHAPE_AUTH_SUCCESS" }, "*");
+            window.close(); // ferme l’onglet actuel
+            return;
+          }
+
+          // ✅ sinon, comportement normal (naviguer dans le même onglet)
+          if (!hasRedirectedRef.current) {
+            hasRedirectedRef.current = true;
+            timeoutRef.current = setTimeout(() => {
+              navigate("/Dashboard/Platform", { replace: true });
+            }, 3000);
+          }
+
           // Vérifier le statut de connexion
           try {
             const statusResponse = await fetch(`${API_BASE_URL}/auth/status`, {
