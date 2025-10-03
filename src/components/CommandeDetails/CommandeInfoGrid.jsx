@@ -11,6 +11,7 @@ import {
   Edit,
   ChevronDown,
   Download,
+  RefreshCw,
 } from "lucide-react";
 import CommentSection from "./CommentSection";
 
@@ -89,72 +90,106 @@ const MeditLinkFileDownloadButton = React.memo(
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Token manquant");
 
-      // Étape 1: Récupérer les informations de téléchargement
-      const infoResponse = await fetch(
-        `${API_BASE_URL}/meditlink/files/${fileUuid}?type=stl`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: "include",
-        }
+      console.log(
+        `📥 Début du téléchargement MeditLink: ${fileName} (UUID: ${fileUuid})`
       );
 
-      if (!infoResponse.ok) {
-        throw new Error(
-          `Erreur ${infoResponse.status}: ${infoResponse.statusText}`
+      try {
+        // Étape 1: Récupérer les informations de téléchargement
+        const infoResponse = await fetch(
+          `${API_BASE_URL}/meditlink/files/${fileUuid}?type=stl`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          }
         );
-      }
 
-      const fileInfo = await infoResponse.json();
+        if (!infoResponse.ok) {
+          const errorText = await infoResponse.text();
+          console.error(
+            `❌ Erreur info fichier: ${infoResponse.status}`,
+            errorText
+          );
+          throw new Error(
+            `Erreur ${infoResponse.status}: ${infoResponse.statusText}`
+          );
+        }
 
-      if (!fileInfo.downloadUrl) {
-        throw new Error("URL de téléchargement non disponible");
-      }
+        const fileInfo = await infoResponse.json();
+        console.log("📄 Infos fichier reçues:", fileInfo);
 
-      // Étape 2: Télécharger le fichier depuis l'URL fournie
-      const downloadResponse = await fetch(fileInfo.downloadUrl);
+        // CORRECTION ICI : Utiliser 'url' au lieu de 'downloadUrl'
+        const downloadUrl = fileInfo.url || fileInfo.downloadUrl;
 
-      if (!downloadResponse.ok) {
-        throw new Error(
-          `Erreur de téléchargement ${downloadResponse.status}: ${downloadResponse.statusText}`
+        if (!downloadUrl) {
+          console.error(
+            "❌ Aucune URL de téléchargement dans la réponse:",
+            fileInfo
+          );
+          throw new Error(
+            "URL de téléchargement non disponible dans la réponse"
+          );
+        }
+
+        console.log(`🔗 Téléchargement depuis: ${downloadUrl}`);
+
+        // Étape 2: Télécharger le fichier depuis l'URL fournie
+        const downloadResponse = await fetch(downloadUrl);
+
+        if (!downloadResponse.ok) {
+          console.error(`❌ Erreur téléchargement: ${downloadResponse.status}`);
+          throw new Error(
+            `Erreur de téléchargement ${downloadResponse.status}: ${downloadResponse.statusText}`
+          );
+        }
+
+        const blob = await downloadResponse.blob();
+        console.log(
+          `✅ Blob créé - Taille: ${blob.size} bytes, Type: ${blob.type}`
         );
+
+        if (blob.size === 0) {
+          throw new Error("Le fichier téléchargé est vide (0 bytes)");
+        }
+
+        // Étape 3: Créer le nom de fichier final
+        let downloadFilename = fileInfo.downloadFileName || fileName;
+
+        // Vérifier l'extension du fichier
+        if (
+          !downloadFilename.toLowerCase().endsWith(".stl") &&
+          !downloadFilename.toLowerCase().endsWith(".7z") &&
+          !downloadFilename.toLowerCase().endsWith(".zip")
+        ) {
+          downloadFilename = downloadFilename.replace(/\.[^/.]+$/, "") + ".stl";
+        }
+
+        console.log(`💾 Nom de fichier final: ${downloadFilename}`);
+
+        // Étape 4: Déclencher le téléchargement
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = downloadFilename;
+
+        document.body.appendChild(a);
+        a.click();
+
+        // Nettoyer
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }, 100);
+
+        console.log("✅ Téléchargement terminé avec succès");
+        return blob;
+      } catch (error) {
+        console.error("❌ Erreur détaillée lors du téléchargement:", error);
+        throw error;
       }
-
-      const blob = await downloadResponse.blob();
-
-      if (blob.size === 0) {
-        throw new Error("Le fichier téléchargé est vide");
-      }
-
-      // Étape 3: Créer le nom de fichier final
-      let downloadFilename = fileInfo.downloadFileName || fileName;
-
-      // Si le fichier téléchargé est un .7z, on garde ce format
-      // Sinon on utilise le nom original avec extension .stl
-      if (
-        !downloadFilename.toLowerCase().endsWith(".7z") &&
-        !downloadFilename.toLowerCase().endsWith(".stl")
-      ) {
-        downloadFilename = downloadFilename.replace(/\.[^/.]+$/, "") + ".stl";
-      }
-
-      // Étape 4: Déclencher le téléchargement
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = url;
-      a.download = downloadFilename;
-
-      document.body.appendChild(a);
-      a.click();
-
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }, 100);
-
-      return blob;
     };
 
     const handleDownload = async () => {
@@ -163,13 +198,12 @@ const MeditLinkFileDownloadButton = React.memo(
       setIsDownloading(true);
       try {
         await downloadMeditLinkFile(file.uuid, file.name, externalId);
-        // toast.success(`Fichier ${file.name} téléchargé avec succès`);
+        console.log(`✅ Fichier ${file.name} téléchargé avec succès`);
       } catch (error) {
         console.error(
-          `Erreur lors du téléchargement du fichier ${file.name}:`,
+          `❌ Erreur lors du téléchargement du fichier ${file.name}:`,
           error
         );
-        // toast.error(`Erreur lors du téléchargement du fichier ${file.name}: ${error.message}`);
       } finally {
         setIsDownloading(false);
       }
@@ -178,16 +212,16 @@ const MeditLinkFileDownloadButton = React.memo(
     const getFileTypeLabel = (fileType) => {
       switch (fileType) {
         case "SCAN_DATA":
-          return "Scan";
+          return "Scan 3D";
         case "ATTACHED_DATA":
-          return "Fichier";
+          return "Fichier attaché";
         default:
           return "Fichier";
       }
     };
 
     const formatFileSize = (bytes) => {
-      if (bytes === 0) return "0 B";
+      if (!bytes || bytes === 0) return "Taille inconnue";
       const k = 1024;
       const sizes = ["B", "KB", "MB", "GB"];
       const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -199,7 +233,9 @@ const MeditLinkFileDownloadButton = React.memo(
         className="details-scan-download-btn meditlink-file-btn"
         onClick={handleDownload}
         disabled={disabled || isLoading || isDownloading}
-        title={`Télécharger ${file.name} (${formatFileSize(file.size)})`}
+        title={`Télécharger ${file.name} (${formatFileSize(
+          file.size
+        )}) - ${getFileTypeLabel(file.fileType)}`}
       >
         <Download size={16} />
         <div className="file-info">
@@ -223,6 +259,10 @@ const ThreeShapeFileDownloadButton = React.memo(
     const downloadThreeShapeFile = async (externalId, hash, filename) => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Token manquant");
+
+      console.log(
+        `📥 Début du téléchargement 3Shape: ${label} (Hash: ${hash})`
+      );
 
       const response = await fetch(
         `${API_BASE_URL}/threeshape/files/${externalId}/${hash}`,
@@ -292,10 +332,12 @@ const ThreeShapeFileDownloadButton = React.memo(
         )}.stl`;
 
         await downloadThreeShapeFile(externalId, hash, filename);
-        // toast.success(`Scan ${label} téléchargé avec succès`);
+        console.log(`✅ Scan ${label} téléchargé avec succès`);
       } catch (error) {
-        console.error(`Erreur lors du téléchargement du scan ${label}:`, error);
-        // toast.error(`Erreur lors du téléchargement du scan ${label}: ${error.message}`);
+        console.error(
+          `❌ Erreur lors du téléchargement du scan ${label}:`,
+          error
+        );
       } finally {
         setIsDownloading(false);
       }
@@ -412,29 +454,10 @@ const CommandeInfoGrid = ({
   const [meditLinkFiles, setMeditLinkFiles] = useState([]);
   const [threeShapeFiles, setThreeShapeFiles] = useState([]);
   const [isLoadingFiles, setIsLoadingFiles] = useState(false);
+  const [fileLoadKey, setFileLoadKey] = useState(0);
 
   const isThreeShape = commande && commande.plateforme === "THREESHAPE";
   const isMeditLink = commande && commande.plateforme === "MEDITLINK";
-
-  // Ajouter une clé de dépendance pour forcer le rechargement
-  const [fileLoadKey, setFileLoadKey] = useState(0);
-
-  // Modifier le useEffect
-  useEffect(() => {
-    if (isMeditLink) {
-      fetchMeditLinkFiles();
-    } else if (isThreeShape) {
-      fetchThreeShapeFiles();
-    }
-  }, [isMeditLink, isThreeShape, commande.externalId, fileLoadKey]); // Ajouter fileLoadKey
-
-  // Exposer une fonction pour forcer le rechargement (via prop)
-  useEffect(() => {
-    if (typeof onFilesReloadNeeded === "function") {
-      // Callback pour notifier le parent qu'on peut recharger
-      onFilesReloadNeeded(() => setFileLoadKey((prev) => prev + 1));
-    }
-  }, []);
 
   // Fonction pour récupérer les fichiers MeditLink
   const fetchMeditLinkFiles = async () => {
@@ -442,25 +465,49 @@ const CommandeInfoGrid = ({
 
     setIsLoadingFiles(true);
     try {
+      console.log(
+        `🔍 Récupération des fichiers MeditLink pour: ${commande.externalId}`
+      );
       const orderData = await fetchMeditLinkOrderData(commande.externalId);
 
+      console.log("📦 Données de commande MeditLink reçues:", orderData);
+
       // Extraire les fichiers du cas
-      if (orderData.case && orderData.case.files) {
-        // Filtrer seulement les fichiers de type SCAN_DATA pour les STL
-        const scanFiles = orderData.case.files.filter(
+      if (
+        orderData.order &&
+        orderData.order.case &&
+        orderData.order.case.files
+      ) {
+        const files = orderData.order.case.files;
+        console.log(
+          `📁 ${files.length} fichier(s) trouvé(s) dans la commande:`,
+          files
+        );
+
+        // Filtrer les fichiers pertinents (SCAN_DATA et ATTACHED_DATA avec STL)
+        const relevantFiles = files.filter(
           (file) =>
             file.fileType === "SCAN_DATA" ||
             (file.fileType === "ATTACHED_DATA" &&
-              file.name.toLowerCase().includes(".stl"))
+              (file.name.toLowerCase().includes(".stl") ||
+                file.name.toLowerCase().includes(".scan")))
         );
-        setMeditLinkFiles(scanFiles);
+
+        console.log(
+          `🔧 ${relevantFiles.length} fichier(s) pertinent(s) après filtrage:`,
+          relevantFiles
+        );
+        setMeditLinkFiles(relevantFiles);
+      } else {
+        console.warn("⚠️ Aucun fichier trouvé dans la commande MeditLink");
+        setMeditLinkFiles([]);
       }
     } catch (error) {
       console.error(
-        "Erreur lors de la récupération des fichiers MeditLink:",
+        "❌ Erreur lors de la récupération des fichiers MeditLink:",
         error
       );
-      // toast.error("Impossible de récupérer les fichiers MeditLink");
+      setMeditLinkFiles([]);
     } finally {
       setIsLoadingFiles(false);
     }
@@ -472,18 +519,30 @@ const CommandeInfoGrid = ({
 
     setIsLoadingFiles(true);
     try {
+      console.log(
+        `🔍 Récupération des fichiers 3Shape pour: ${commande.externalId}`
+      );
       const orderData = await fetchThreeShapeOrderData(commande.externalId);
 
+      console.log("📦 Données de commande 3Shape reçues:", orderData);
+
       // Traiter les fichiers 3Shape selon la structure de l'API
-      if (orderData.files) {
+      if (orderData.files && Array.isArray(orderData.files)) {
+        console.log(
+          `📁 ${orderData.files.length} fichier(s) 3Shape trouvé(s):`,
+          orderData.files
+        );
         setThreeShapeFiles(orderData.files);
+      } else {
+        console.warn("⚠️ Aucun fichier trouvé dans la commande 3Shape");
+        setThreeShapeFiles([]);
       }
     } catch (error) {
       console.error(
-        "Erreur lors de la récupération des fichiers 3Shape:",
+        "❌ Erreur lors de la récupération des fichiers 3Shape:",
         error
       );
-      // toast.error("Impossible de récupérer les fichiers 3Shape");
+      setThreeShapeFiles([]);
     } finally {
       setIsLoadingFiles(false);
     }
@@ -498,13 +557,11 @@ const CommandeInfoGrid = ({
     }
   }, [isMeditLink, isThreeShape, commande.externalId, fileLoadKey]);
 
-  // Exposer une fonction pour forcer le rechargement (via prop)
-  useEffect(() => {
-    if (typeof onFilesReloadNeeded === "function") {
-      // Callback pour notifier le parent qu'on peut recharger
-      onFilesReloadNeeded(() => setFileLoadKey((prev) => prev + 1));
-    }
-  }, []);
+  // Fonction pour recharger les fichiers
+  const handleReloadFiles = () => {
+    console.log("🔄 Rechargement des fichiers demandé");
+    setFileLoadKey((prev) => prev + 1);
+  };
 
   return (
     <div className="details-info-grid">
@@ -634,8 +691,18 @@ const CommandeInfoGrid = ({
       {/* Informations techniques */}
       <div className="details-info-card">
         <div className="details-card-header">
-          <FileText size={20} />
-          <h3>Informations Techniques</h3>
+          <div className="details-card-header-title">
+            <FileText size={20} />
+            <h3>Informations Techniques</h3>
+          </div>
+          <button
+            className="details-reload-files-btn"
+            onClick={handleReloadFiles}
+            disabled={isLoadingFiles}
+            title="Recharger les fichiers"
+          >
+            <RefreshCw size={16} className={isLoadingFiles ? "spinning" : ""} />
+          </button>
         </div>
         <div className="details-card-content">
           <div className="details-item">
@@ -666,7 +733,7 @@ const CommandeInfoGrid = ({
           {isThreeShape && (
             <div className="details-item">
               <span className="details-item-label">
-                Fichiers disponibles :
+                Fichiers 3D disponibles :
                 {isLoadingFiles && (
                   <span className="loading-text"> (Chargement...)</span>
                 )}
@@ -677,8 +744,8 @@ const CommandeInfoGrid = ({
                     hash={commande.hash_upper}
                     label="Upper"
                     externalId={commande.externalId}
-                    disabled={actionStates.downloadUpper}
-                    isLoading={actionStates.downloadUpper}
+                    disabled={actionStates.downloadUpper || isLoadingFiles}
+                    isLoading={actionStates.downloadUpper || isLoadingFiles}
                   />
                 )}
                 {commande.hash_lower && (
@@ -686,8 +753,8 @@ const CommandeInfoGrid = ({
                     hash={commande.hash_lower}
                     label="Lower"
                     externalId={commande.externalId}
-                    disabled={actionStates.downloadLower}
-                    isLoading={actionStates.downloadLower}
+                    disabled={actionStates.downloadLower || isLoadingFiles}
+                    isLoading={actionStates.downloadLower || isLoadingFiles}
                   />
                 )}
                 {threeShapeFiles.length > 0 &&
@@ -701,6 +768,14 @@ const CommandeInfoGrid = ({
                       isLoading={isLoadingFiles}
                     />
                   ))}
+                {!commande.hash_upper &&
+                  !commande.hash_lower &&
+                  threeShapeFiles.length === 0 &&
+                  !isLoadingFiles && (
+                    <span className="no-files-message">
+                      Aucun fichier 3D disponible
+                    </span>
+                  )}
               </div>
             </div>
           )}
@@ -709,7 +784,7 @@ const CommandeInfoGrid = ({
           {isMeditLink && (
             <div className="details-item">
               <span className="details-item-label">
-                Fichiers disponibles :
+                Fichiers 3D disponibles :
                 {isLoadingFiles && (
                   <span className="loading-text"> (Chargement...)</span>
                 )}
@@ -727,7 +802,7 @@ const CommandeInfoGrid = ({
                     ))
                   : !isLoadingFiles && (
                       <span className="no-files-message">
-                        Aucun fichier disponible
+                        Aucun fichier 3D disponible
                       </span>
                     )}
               </div>
