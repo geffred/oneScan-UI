@@ -488,7 +488,7 @@ const Commandes = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(endpoint, {
-        method: "POST",
+        method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
