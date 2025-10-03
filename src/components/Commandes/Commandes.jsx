@@ -34,7 +34,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const platformEndpoints = {
   MEDITLINK: `${API_BASE_URL}/meditlink/cases/save`,
   ITERO: `${API_BASE_URL}/itero/commandes`,
-  THREESHAPE: `${API_BASE_URL}/cases/save`,
+  THREESHAPE: `${API_BASE_URL}/threeshape/cases/save`,
   DEXIS: `${API_BASE_URL}/dexis/commandes`,
 };
 
@@ -136,7 +136,7 @@ const CommandeRow = React.memo(({ commande, onViewDetails }) => {
     >
       <div className="commandes-table-cell" data-label="ID">
         <span className="commandes-external-id">
-          #{commande.externalId ? commande.externalId.substring(0, 4) : "N/A"}
+          #{commande.externalId ? commande.externalId.substring(0, 8) : "N/A"}
         </span>
       </div>
 
@@ -159,7 +159,9 @@ const CommandeRow = React.memo(({ commande, onViewDetails }) => {
         <span
           className={`commandes-plateforme-badge commandes-plateforme-${plateformeColor}`}
         >
-          {commande.plateforme}
+          {commande.plateforme === "THREESHAPE"
+            ? "3Shape"
+            : commande.plateforme}
         </span>
       </div>
 
@@ -192,7 +194,7 @@ const CommandeRow = React.memo(({ commande, onViewDetails }) => {
       <div className="commandes-table-cell" data-label="Actions">
         <div className="commandes-actions">
           <button
-            className={`commandes-action-btn  ${
+            className={`commandes-action-btn ${
               !commande.vu ? "commandes-action-view" : ""
             }`}
             title="Voir les détails"
@@ -218,7 +220,7 @@ const PlatformCard = React.memo(
 
       switch (syncStatus.status) {
         case "loading":
-          return <div className="commandes-sync-spinner"></div>;
+          return <Loader2 size={14} className="commandes-sync-loading" />;
         case "success":
           return <CheckCircle size={14} className="commandes-sync-success" />;
         case "error":
@@ -246,7 +248,11 @@ const PlatformCard = React.memo(
             <Link2 size={16} className="commandes-connection-error" />
           );
         default:
-          return <Wifi size={16} className="commandes-connection-unknown" />;
+          return connectionStatus.authenticated ? (
+            <Wifi size={16} className="commandes-connection-success" />
+          ) : (
+            <WifiOff size={16} className="commandes-connection-error" />
+          );
       }
     };
 
@@ -263,7 +269,7 @@ const PlatformCard = React.memo(
             ? "Connecté OAuth"
             : "Non connecté";
         default:
-          return "Configuration requise";
+          return connectionStatus.authenticated ? "Connecté" : "Non connecté";
       }
     };
 
@@ -293,7 +299,8 @@ const PlatformCard = React.memo(
           {isConnected && connectionStatus.userInfo && (
             <div className="commandes-user-info">
               <span className="commandes-user-name">
-                {connectionStatus.userInfo.name}
+                {connectionStatus.userInfo.name ||
+                  connectionStatus.userInfo.email}
               </span>
             </div>
           )}
@@ -326,8 +333,8 @@ const PlatformCard = React.memo(
               </>
             ) : (
               <>
-                <Plus size={14} />
-                {isConnected ? "Récupérer" : "Non connecté"}
+                <RefreshCw size={14} />
+                {isConnected ? "Synchroniser" : "Non connecté"}
               </>
             )}
           </button>
@@ -389,6 +396,7 @@ const Commandes = () => {
 
   const {
     authStatus: threeshapeAuthStatus,
+    userInfo: threeshapeUserInfo,
     isAuthenticated: threeshapeAuthenticated,
     hasToken: threeshapeHasToken,
   } = useThreeShapeAuth();
@@ -447,7 +455,7 @@ const Commandes = () => {
         case "THREESHAPE":
           return {
             authenticated: threeshapeAuthenticated,
-            hasToken: threeshapeHasToken,
+            userInfo: threeshapeUserInfo,
             ...threeshapeAuthStatus,
           };
         default:
@@ -459,38 +467,15 @@ const Commandes = () => {
       meditlinkUserInfo,
       meditlinkAuthStatus,
       threeshapeAuthenticated,
-      threeshapeHasToken,
+      threeshapeUserInfo,
       threeshapeAuthStatus,
     ]
   );
 
-  // Fonction pour calculer les dates des 30 derniers jours en millisecondes
-  const getLast30DaysTimestamps = useCallback(() => {
-    const now = new Date();
-    const endDate = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      23,
-      59,
-      59,
-      999
-    );
-
-    const startDate = new Date(endDate);
-    startDate.setDate(startDate.getDate() - 30);
-    startDate.setHours(0, 0, 0, 0);
-
-    return {
-      start: startDate.getTime(),
-      end: endDate.getTime(),
-    };
-  }, []);
-
-  // Fonction pour synchroniser les commandes MeditLink avec les 30 derniers jours
+  // Fonction pour synchroniser MeditLink
   const syncMeditLinkCommandes = useCallback(async () => {
-    const timestamps = getLast30DaysTimestamps();
-    const endpoint = `${API_BASE_URL}/meditlink/cases/save?page=0&size=20&start=${timestamps.start}&end=${timestamps.end}`;
+    // Utiliser l'endpoint de sauvegarde qui gère les dates par défaut
+    const endpoint = `${API_BASE_URL}/meditlink/cases/save?page=0&size=20`;
 
     setSyncStatus((prev) => ({
       ...prev,
@@ -503,8 +488,10 @@ const Commandes = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(endpoint, {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
         credentials: "include",
       });
@@ -519,16 +506,20 @@ const Commandes = () => {
           ...prev,
           MEDITLINK: {
             status: "success",
-            message: "Synchronisation MeditLink réussie",
+            message: `Synchronisation réussie: ${
+              result.savedCount || 0
+            } nouvelles commandes`,
           },
         }));
 
         // Notification Toastify pour succès
         toast.success(
-          "MeditLink synchronisée avec succès (30 derniers jours)",
+          `MeditLink synchronisée: ${
+            result.savedCount || 0
+          } nouvelles commandes`,
           {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 5000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -537,6 +528,8 @@ const Commandes = () => {
         );
       } else {
         const errorText = await response.text();
+        console.error("Erreur MeditLink:", errorText);
+
         setSyncStatus((prev) => ({
           ...prev,
           MEDITLINK: {
@@ -548,7 +541,7 @@ const Commandes = () => {
         // Notification Toastify pour erreur
         toast.error("❌ Erreur lors de la synchronisation MeditLink", {
           position: "top-right",
-          autoClose: 3000,
+          autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
@@ -568,7 +561,7 @@ const Commandes = () => {
       // Notification Toastify pour erreur de connexion
       toast.error(" Erreur de connexion avec MeditLink", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -576,15 +569,15 @@ const Commandes = () => {
       });
     }
 
-    // Effacer le statut après 3 secondes
+    // Effacer le statut après 5 secondes
     setTimeout(() => {
       setSyncStatus((prev) => {
         const newStatus = { ...prev };
         delete newStatus.MEDITLINK;
         return newStatus;
       });
-    }, 3000);
-  }, [getLast30DaysTimestamps, mutateCommandes]);
+    }, 5000);
+  }, [mutateCommandes]);
 
   // Fonction pour synchroniser les autres plateformes (3Shape, Itero, Dexis)
   const syncOtherPlatform = useCallback(
@@ -607,9 +600,13 @@ const Commandes = () => {
 
       try {
         const token = localStorage.getItem("token");
+        const method = platformName === "MEDITLINK" ? "GET" : "POST";
+
         const response = await fetch(endpoint, {
+          method: method,
           headers: {
             Authorization: `Bearer ${token}`,
+            ...(method === "POST" && { "Content-Type": "application/json" }),
           },
           credentials: "include",
         });
@@ -631,7 +628,7 @@ const Commandes = () => {
           // Notification Toastify pour succès
           toast.success(`${platformName} synchronisée avec succès`, {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 5000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -639,6 +636,8 @@ const Commandes = () => {
           });
         } else {
           const errorText = await response.text();
+          console.error(`Erreur ${platformName}:`, errorText);
+
           setSyncStatus((prev) => ({
             ...prev,
             [platformName]: {
@@ -650,7 +649,7 @@ const Commandes = () => {
           // Notification Toastify pour erreur
           toast.error(`❌ Erreur lors de la synchronisation ${platformName}`, {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 5000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -673,7 +672,7 @@ const Commandes = () => {
         // Notification Toastify pour erreur de connexion
         toast.error(` Erreur de connexion avec ${platformName}`, {
           position: "top-right",
-          autoClose: 3000,
+          autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
@@ -681,14 +680,14 @@ const Commandes = () => {
         });
       }
 
-      // Effacer le statut après 3 secondes
+      // Effacer le statut après 5 secondes
       setTimeout(() => {
         setSyncStatus((prev) => {
           const newStatus = { ...prev };
           delete newStatus[platformName];
           return newStatus;
         });
-      }, 3000);
+      }, 5000);
     },
     [mutateCommandes]
   );
@@ -708,7 +707,7 @@ const Commandes = () => {
     if (connectedPlatforms.length === 0) {
       toast.warning("Aucune plateforme connectée à synchroniser", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 5000,
       });
       setIsSyncing(false);
       return;
@@ -722,18 +721,26 @@ const Commandes = () => {
       }
     });
 
-    await Promise.all(syncPromises);
-    setIsSyncing(false);
+    try {
+      await Promise.all(syncPromises);
 
-    // Notification pour synchronisation globale
-    toast.success(`${connectedPlatforms.length} plateformes synchronisées`, {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
+      // Notification pour synchronisation globale
+      toast.success(
+        `${connectedPlatforms.length} plateforme(s) synchronisée(s)`,
+        {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
+    } catch (error) {
+      console.error("Erreur lors de la synchronisation globale:", error);
+    } finally {
+      setIsSyncing(false);
+    }
   }, [
     userPlatforms,
     syncMeditLinkCommandes,
@@ -751,7 +758,7 @@ const Commandes = () => {
           `${platformName} n'est pas connectée. Veuillez d'abord vous connecter.`,
           {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 5000,
           }
         );
         return;
@@ -789,6 +796,7 @@ const Commandes = () => {
             ? new Date(customDateFrom)
             : new Date(0);
           const toDate = customDateTo ? new Date(customDateTo) : new Date();
+          toDate.setHours(23, 59, 59, 999); // Inclure toute la journée
           return receptionDate >= fromDate && receptionDate <= toDate;
         default:
           return true;
@@ -945,7 +953,7 @@ const Commandes = () => {
             >
               {isSyncing ? (
                 <>
-                  <div className="commandes-loading-spinner commandes-btn-spinner"></div>
+                  <Loader2 size={16} className="commandes-btn-spinner" />
                   Synchronisation...
                 </>
               ) : (
@@ -1003,10 +1011,20 @@ const Commandes = () => {
             onChange={handleSearchChange}
             className="commandes-search-input"
           />
+          {searchTerm && (
+            <button
+              className="commandes-search-clear"
+              onClick={() => setSearchTerm("")}
+              title="Effacer la recherche"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
 
         <div className="commandes-filters">
           <div className="commandes-filter-group">
+            <Filter size={16} />
             <select
               value={selectedPlateforme}
               onChange={handlePlateformeChange}
@@ -1075,9 +1093,18 @@ const Commandes = () => {
             <h3 className="commandes-empty-title">Aucune commande trouvée</h3>
             <p className="commandes-empty-message">
               {commandes?.length === 0
-                ? "Aucune commande n'a été créée pour le moment. Connectez vos plateformes et utilisez les boutons ci-dessus pour synchroniser."
-                : "Aucune commande ne correspond à vos filtres."}
+                ? "Aucune commande n'a été créée pour le moment. Connectez vos plateformes et synchronisez pour récupérer vos commandes."
+                : "Aucune commande ne correspond à vos critères de recherche."}
             </p>
+            {commandes?.length === 0 && stats.connectedPlatformsCount > 0 && (
+              <button
+                className="commandes-btn commandes-btn-primary"
+                onClick={syncAllPlatforms}
+              >
+                <RefreshCw size={16} />
+                Synchroniser maintenant
+              </button>
+            )}
           </div>
         ) : (
           <div className="commandes-table">
