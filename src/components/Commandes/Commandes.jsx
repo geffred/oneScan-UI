@@ -488,7 +488,7 @@ const Commandes = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(endpoint, {
-        method: "GET",
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -600,10 +600,7 @@ const Commandes = () => {
 
       try {
         const token = localStorage.getItem("token");
-        const method =
-          platformName === "MEDITLINK" || platformName === "THREESHAPE"
-            ? "GET"
-            : "POST";
+        const method = platformName === "MEDITLINK" ? "GET" : "POST";
 
         const response = await fetch(endpoint, {
           method: method,
