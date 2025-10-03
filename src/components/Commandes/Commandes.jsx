@@ -602,7 +602,7 @@ const Commandes = () => {
         const token = localStorage.getItem("token");
         const method = platformName === "MEDITLINK" ? "GET" : "POST";
 
-        const response = await fetch(endpoint, {
+        const response = await fetch("/api/cases/save", {
           method: method,
           headers: {
             Authorization: `Bearer ${token}`,
