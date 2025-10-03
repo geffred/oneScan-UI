@@ -34,7 +34,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const platformEndpoints = {
   MEDITLINK: `${API_BASE_URL}/meditlink/cases/save`,
   ITERO: `${API_BASE_URL}/itero/commandes`,
-  THREESHAPE: `${API_BASE_URL}/cases/save`,
+  THREESHAPE: `${API_BASE_URL}/threeshape/cases/save`,
   DEXIS: `${API_BASE_URL}/dexis/commandes`,
 };
 
@@ -602,7 +602,7 @@ const Commandes = () => {
         const token = localStorage.getItem("token");
         const method = platformName === "MEDITLINK" ? "GET" : "POST";
 
-        const response = await fetch("/api/cases/save", {
+        const response = await fetch(endpoint, {
           method: method,
           headers: {
             Authorization: `Bearer ${token}`,
