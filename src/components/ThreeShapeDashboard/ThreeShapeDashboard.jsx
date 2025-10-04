@@ -1,5 +1,5 @@
 // ThreeShapeDashboard.js - Nouveau composant
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import useSWR from "swr";
 import {
   Link2,
@@ -14,11 +14,16 @@ import {
   Download,
   Server,
   Info,
+  Clock,
 } from "lucide-react";
 import useThreeShapeAuth from "../../components/Config/useThreeShapeAuth";
 import "./ThreeShapeDashboard.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// Configuration du rafraîchissement automatique
+const AUTO_REFRESH_INTERVAL = 15 * 60 * 1000; // 15 minutes
+const STATUS_CHECK_INTERVAL = 30000; // 30 secondes
 
 const fetcher = (url) => {
   const token = localStorage.getItem("token");
@@ -50,21 +55,75 @@ const ThreeShapeDashboard = () => {
 
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
+  const [lastRefresh, setLastRefresh] = useState(null);
+  const [nextRefresh, setNextRefresh] = useState(null);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const refreshIntervalRef = useRef(null);
 
   // SWR pour les données de statut
   const { data: authData, mutate: mutateAuth } = useSWR(
     `${API_BASE_URL}/threeshape/auth/status`,
     fetcher,
-    { refreshInterval: 30000 }
+    {
+      refreshInterval: STATUS_CHECK_INTERVAL,
+      revalidateOnFocus: true,
+    }
   );
 
   const mergedAuthStatus = authData || authStatus;
+
+  // Gestion du rafraîchissement automatique
+  const scheduleAutoRefresh = useCallback(() => {
+    if (refreshIntervalRef.current) {
+      clearTimeout(refreshIntervalRef.current);
+    }
+
+    if (autoRefreshEnabled && isAuthenticated) {
+      refreshIntervalRef.current = setTimeout(async () => {
+        try {
+          console.log("🔄 Rafraîchissement automatique du token...");
+          await handleRefresh();
+        } catch (err) {
+          console.error("❌ Erreur lors du rafraîchissement automatique:", err);
+        }
+      }, AUTO_REFRESH_INTERVAL);
+
+      // Calcul des dates pour l'affichage
+      setLastRefresh(new Date());
+      setNextRefresh(new Date(Date.now() + AUTO_REFRESH_INTERVAL));
+    }
+  }, [autoRefreshEnabled, isAuthenticated]);
+
+  // Effet pour gérer le rafraîchissement automatique
+  useEffect(() => {
+    if (isAuthenticated && autoRefreshEnabled) {
+      scheduleAutoRefresh();
+    }
+
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearTimeout(refreshIntervalRef.current);
+      }
+    };
+  }, [isAuthenticated, autoRefreshEnabled, scheduleAutoRefresh]);
+
+  // Réinitialiser le timer quand l'authentification change
+  useEffect(() => {
+    if (!isAuthenticated) {
+      if (refreshIntervalRef.current) {
+        clearTimeout(refreshIntervalRef.current);
+      }
+      setLastRefresh(null);
+      setNextRefresh(null);
+    }
+  }, [isAuthenticated]);
 
   // Handlers
   const handleConnect = useCallback(async () => {
     try {
       await initiateAuth();
       mutateAuth();
+      setAutoRefreshEnabled(true);
     } catch (err) {
       console.error("Erreur connexion:", err);
     }
@@ -75,9 +134,14 @@ const ThreeShapeDashboard = () => {
       window.confirm("Êtes-vous sûr de vouloir vous déconnecter de 3Shape ?")
     ) {
       try {
+        if (refreshIntervalRef.current) {
+          clearTimeout(refreshIntervalRef.current);
+        }
         await logout();
         mutateAuth(undefined, { revalidate: false });
         setTestResult(null);
+        setLastRefresh(null);
+        setNextRefresh(null);
       } catch (err) {
         console.error("Erreur déconnexion:", err);
       }
@@ -86,12 +150,23 @@ const ThreeShapeDashboard = () => {
 
   const handleRefresh = useCallback(async () => {
     try {
+      console.log("🔄 Lancement du rafraîchissement manuel...");
       await refresh();
       mutateAuth();
+      setLastRefresh(new Date());
+
+      // Rescheduler le prochain rafraîchissement automatique
+      if (autoRefreshEnabled) {
+        scheduleAutoRefresh();
+      }
+
+      console.log("✅ Token rafraîchi avec succès");
     } catch (err) {
-      console.error("Erreur rafraîchissement:", err);
+      console.error("❌ Erreur rafraîchissement:", err);
+      // En cas d'erreur, on désactive le rafraîchissement auto
+      setAutoRefreshEnabled(false);
     }
-  }, [refresh, mutateAuth]);
+  }, [refresh, mutateAuth, autoRefreshEnabled, scheduleAutoRefresh]);
 
   const handleTestConnection = useCallback(async () => {
     try {
@@ -106,6 +181,17 @@ const ThreeShapeDashboard = () => {
     }
   }, [testConnection]);
 
+  const toggleAutoRefresh = useCallback(() => {
+    const newState = !autoRefreshEnabled;
+    setAutoRefreshEnabled(newState);
+
+    if (newState && isAuthenticated) {
+      scheduleAutoRefresh();
+    } else if (refreshIntervalRef.current) {
+      clearTimeout(refreshIntervalRef.current);
+    }
+  }, [autoRefreshEnabled, isAuthenticated, scheduleAutoRefresh]);
+
   const formatDate = (dateString) => {
     if (!dateString) return "Non disponible";
     return new Date(dateString).toLocaleString("fr-FR", {
@@ -114,7 +200,22 @@ const ThreeShapeDashboard = () => {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      second: "2-digit",
     });
+  };
+
+  const formatTimeRemaining = (dateString) => {
+    if (!dateString) return "N/A";
+    const now = new Date();
+    const target = new Date(dateString);
+    const diff = target - now;
+
+    if (diff <= 0) return "Maintenant";
+
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    return `${minutes}m ${seconds}s`;
   };
 
   // Composants internes
@@ -135,6 +236,11 @@ const ThreeShapeDashboard = () => {
           <div className="status-details">
             <span>Connecté à 3Shape</span>
             {hasToken && <span className="token-status">Token actif</span>}
+            {lastRefresh && (
+              <span className="refresh-info">
+                Rafraîchi: {formatDate(lastRefresh)}
+              </span>
+            )}
           </div>
         </div>
       );
@@ -144,6 +250,75 @@ const ThreeShapeDashboard = () => {
       <div className="threeshape-dashboard-status disconnected">
         <AlertCircle size={20} />
         <span>Non connecté à 3Shape</span>
+      </div>
+    );
+  };
+
+  const AutoRefreshCard = () => {
+    if (!isAuthenticated) return null;
+
+    return (
+      <div className="threeshape-dashboard-card">
+        <div className="card-header">
+          <Clock size={20} />
+          <h3>Rafraîchissement Automatique</h3>
+        </div>
+        <div className="card-content">
+          <div className="auto-refresh-section">
+            <div className="auto-refresh-toggle">
+              <label className="toggle-label">
+                <input
+                  type="checkbox"
+                  checked={autoRefreshEnabled}
+                  onChange={toggleAutoRefresh}
+                  className="toggle-input"
+                />
+                <span className="toggle-slider"></span>
+                <span className="toggle-text">
+                  Rafraîchissement automatique
+                </span>
+              </label>
+              <span
+                className={`toggle-status ${
+                  autoRefreshEnabled ? "enabled" : "disabled"
+                }`}
+              >
+                {autoRefreshEnabled ? "Activé" : "Désactivé"}
+              </span>
+            </div>
+
+            {autoRefreshEnabled && (
+              <div className="refresh-timers">
+                <div className="timer-item">
+                  <span className="timer-label">Dernier rafraîchissement:</span>
+                  <span className="timer-value">
+                    {lastRefresh ? formatDate(lastRefresh) : "En attente..."}
+                  </span>
+                </div>
+                <div className="timer-item">
+                  <span className="timer-label">
+                    Prochain rafraîchissement:
+                  </span>
+                  <span className="timer-value countdown">
+                    {nextRefresh
+                      ? formatTimeRemaining(nextRefresh)
+                      : "Calcul..."}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="refresh-actions">
+              <button
+                onClick={handleRefresh}
+                className="threeshape-btn secondary small"
+              >
+                <RefreshCw size={16} />
+                Rafraîchir maintenant
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -178,8 +353,14 @@ const ThreeShapeDashboard = () => {
               </span>
             </div>
             <div className="auth-field">
-              <label>Dernière mise à jour :</label>
-              <span>{formatDate(new Date().toISOString())}</span>
+              <label>Rafraîchissement auto :</label>
+              <span
+                className={`status-badge ${
+                  autoRefreshEnabled ? "auto-enabled" : "auto-disabled"
+                }`}
+              >
+                {autoRefreshEnabled ? "Activé" : "Désactivé"}
+              </span>
             </div>
           </div>
         </div>
@@ -262,29 +443,15 @@ const ThreeShapeDashboard = () => {
                 className="threeshape-btn secondary"
               >
                 <RefreshCw size={18} />
-                Rafraîchir
+                Rafraîchir maintenant
               </button>
-
-              {/* <button
-                onClick={() =>
-                  window.open(
-                    `${API_BASE_URL}/threeshape/cases?page=0`,
-                    "_blank"
-                  )
-                }
-                className="threeshape-btn info"
-              >
-                <Download size={18} />
-                Voir les cas
-              </button>
-
               <button
                 onClick={handleDisconnect}
                 className="threeshape-btn danger"
               >
                 <LogOut size={18} />
                 Déconnexion
-              </button> */}
+              </button>
             </>
           )}
         </div>
@@ -316,6 +483,10 @@ const ThreeShapeDashboard = () => {
                 {testResult?.success ? "✓" : "..."}
               </div>
               <div className="stat-label">API</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-value">{autoRefreshEnabled ? "✓" : "✗"}</div>
+              <div className="stat-label">Auto Refresh</div>
             </div>
           </div>
         </div>
@@ -351,6 +522,7 @@ const ThreeShapeDashboard = () => {
       <div className="dashboard-content">
         <div className="dashboard-grid">
           <AuthStatusCard />
+          <AutoRefreshCard />
           <TestConnectionCard />
           <StatsCard />
           <ActionsCard />
@@ -362,7 +534,8 @@ const ThreeShapeDashboard = () => {
           <div className="footer-info">
             <Info size={16} />
             <span>
-              Connexion OAuth 2.0 sécurisée - Accès aux cas et fichiers 3Shape
+              Connexion OAuth 2.0 sécurisée - Rafraîchissement automatique
+              toutes les 15 minutes
             </span>
           </div>
         </div>

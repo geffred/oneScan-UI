@@ -368,3 +368,139 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Styles pour le rafraîchissement automatique */
+.auto-refresh-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auto-refresh-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.toggle-input {
+  display: none;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 50px;
+  height: 24px;
+  background: #ccc;
+  border-radius: 24px;
+  transition: background 0.3s;
+}
+
+.toggle-slider:before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.toggle-input:checked + .toggle-slider {
+  background: #10b981;
+}
+
+.toggle-input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+.toggle-status {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.toggle-status.enabled {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.toggle-status.disabled {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.refresh-timers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.timer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.timer-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.timer-value {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-weight: 600;
+}
+
+.timer-value.countdown {
+  color: #10b981;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.refresh-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.threeshape-btn.small {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.status-badge.auto-enabled {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.auto-disabled {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.refresh-info {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
