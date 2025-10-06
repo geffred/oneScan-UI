@@ -22,7 +22,7 @@ import "./ThreeShapeDashboard.css";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Configuration du rafraîchissement automatique
-const AUTO_REFRESH_INTERVAL = 15 * 60 * 1000; // 15 minutes
+const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const STATUS_CHECK_INTERVAL = 30000; // 30 secondes
 
 const fetcher = (url) => {

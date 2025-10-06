@@ -318,15 +318,7 @@
   font-size: 0.875rem;
 }
 
-/* ANIMATIONS */
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
 
 /* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
@@ -471,13 +463,9 @@
 
 .timer-value.countdown {
   color: #10b981;
-  animation: pulse 2s infinite;
+
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
 
 .refresh-actions {
   display: flex;
