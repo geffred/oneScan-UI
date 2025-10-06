@@ -1,16 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import {
-  FileText,
-  Edit3,
-  Save,
-  X,
-  MessageSquare,
-  User,
-  Calendar,
-} from "lucide-react";
+import { FileText, Edit3, Save, X } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 const CommentSection = ({
   commentaire,
   isLoading,
@@ -32,36 +23,6 @@ const CommentSection = ({
       textareaRef.current.setSelectionRange(length, length);
     }
   }, [isEditing]);
-
-  // Fonction pour parser les commentaires formatés
-  const parseComments = (commentText) => {
-    if (!commentText) return [];
-
-    return commentText
-      .split("\n")
-      .filter((comment) => comment.trim() !== "")
-      .map((comment) => {
-        // Format attendu: "[2024-01-01] Auteur: Texte du commentaire"
-        const match = comment.match(/^\[([^\]]+)\]\s*([^:]+):\s*(.+)$/);
-        if (match) {
-          return {
-            date: match[1],
-            author: match[2].trim(),
-            text: match[3].trim(),
-            raw: comment,
-          };
-        }
-        // Fallback pour les commentaires non formatés
-        return {
-          date: "Date inconnue",
-          author: "Auteur inconnu",
-          text: comment.trim(),
-          raw: comment,
-        };
-      });
-  };
-
-  const comments = parseComments(commentaire);
 
   const handleEdit = () => {
     const currentComment = commentaire || "";
@@ -121,12 +82,12 @@ const CommentSection = ({
     <div className="details-info-card">
       <div className="details-card-header">
         <FileText size={20} />
-        <h3>Commentaires ({comments.length})</h3>
+        <h3>Commentaire</h3>
         {!isLoading && !isEditing && (
           <button
             className="details-comment-edit-btn"
             onClick={handleEdit}
-            title="Modifier les commentaires"
+            title="Modifier le commentaire"
           >
             <Edit3 size={16} />
           </button>
@@ -138,7 +99,7 @@ const CommentSection = ({
             <div className="comment-loading-state">
               <div className="comment-loading-spinner"></div>
               <span className="comment-loading-text">
-                Chargement des commentaires...
+                Chargement du commentaire...
               </span>
             </div>
           ) : isEditing ? (
@@ -149,9 +110,9 @@ const CommentSection = ({
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Saisissez vos commentaires... (Un par ligne, format: [Date] Auteur: Commentaire)"
-                rows={6}
-                maxLength={2000}
+                placeholder="Saisissez votre commentaire..."
+                rows={4}
+                maxLength={1000}
               />
               <div className="comment-edit-actions">
                 <button
@@ -181,34 +142,17 @@ const CommentSection = ({
                 </button>
               </div>
               <div className="comment-char-count">
-                {editValue.length}/2000 caractères
+                {editValue.length}/1000 caractères
               </div>
             </div>
-          ) : comments.length === 0 ? (
-            <div className="comment-empty-state">
-              <MessageSquare size={32} className="comment-empty-icon" />
-              <span className="comment-empty-text">Aucun commentaire</span>
-            </div>
           ) : (
-            <div className="comments-list">
-              {comments.map((comment, index) => (
-                <div key={index} className="comment-item">
-                  <div className="comment-header">
-                    <div className="comment-author">
-                      <User size={14} />
-                      <span className="comment-author-name">
-                        {comment.author}
-                      </span>
-                    </div>
-                    <div className="comment-date">
-                      <Calendar size={14} />
-                      <span className="comment-date-text">{comment.date}</span>
-                    </div>
-                  </div>
-                  <div className="comment-text">{comment.text}</div>
-                </div>
-              ))}
-            </div>
+            <span className="details-comment-value">
+              {!commentaire ? (
+                <span className="comment-empty-state">Aucun commentaire</span>
+              ) : (
+                <span className="comment-content">{commentaire}</span>
+              )}
+            </span>
           )}
         </div>
       </div>
