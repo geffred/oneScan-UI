@@ -26,6 +26,7 @@ import {
 import { AuthContext } from "../../components/Config/AuthContext";
 import useMeditLinkAuth from "../Config/useMeditLinkAuth";
 import useThreeShapeAuth from "../Config/useThreeShapeAuth";
+import useIteroAuth from "../Config/useIteroAuth";
 import "./Commandes.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -247,6 +248,12 @@ const PlatformCard = React.memo(
           ) : (
             <Link2 size={16} className="commandes-connection-error" />
           );
+        case "ITERO":
+          return connectionStatus.authenticated ? (
+            <Wifi size={16} className="commandes-connection-success" />
+          ) : (
+            <WifiOff size={16} className="commandes-connection-error" />
+          );
         default:
           return connectionStatus.authenticated ? (
             <Wifi size={16} className="commandes-connection-success" />
@@ -268,6 +275,8 @@ const PlatformCard = React.memo(
           return connectionStatus.authenticated
             ? "Connecté OAuth"
             : "Non connecté";
+        case "ITERO":
+          return connectionStatus.authenticated ? "Connecté" : "Non connecté";
         default:
           return connectionStatus.authenticated ? "Connecté" : "Non connecté";
       }
@@ -294,16 +303,6 @@ const PlatformCard = React.memo(
             </div>
           </div>
           <p className="commandes-platform-email">{platform.email}</p>
-
-          {/* Affichage des informations utilisateur si connecté */}
-          {isConnected && connectionStatus.userInfo && (
-            <div className="commandes-user-info">
-              <span className="commandes-user-name">
-                {connectionStatus.userInfo.name ||
-                  connectionStatus.userInfo.email}
-              </span>
-            </div>
-          )}
         </div>
 
         <div className="commandes-platform-actions">
@@ -322,9 +321,7 @@ const PlatformCard = React.memo(
             }`}
             onClick={() => onSync(platform.name)}
             disabled={syncStatus?.status === "loading" || !isConnected}
-            title={
-              !isConnected ? "Connexion OAuth requise" : "Récupérer les données"
-            }
+            title={!isConnected ? "Connexion requise" : "Récupérer les données"}
           >
             {syncStatus?.status === "loading" ? (
               <>
@@ -383,23 +380,34 @@ const Commandes = () => {
   const [syncStatus, setSyncStatus] = useState({});
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Hooks d'authentification pour les plateformes
-  const {
-    authStatus: meditlinkAuthStatus,
-    userInfo: meditlinkUserInfo,
-    isAuthenticated: meditlinkAuthenticated,
-  } = useMeditLinkAuth({
+  // Hooks d'authentification pour les plateformes - CORRECTION ICI
+  const meditlinkAuth = useMeditLinkAuth({
     autoRefresh: false,
     refreshInterval: 0,
     fetchOnMount: true,
   });
 
+  const threeshapeAuth = useThreeShapeAuth();
+  const iteroAuth = useIteroAuth();
+
+  // Extraction des propriétés depuis les hooks
+  const {
+    authStatus: meditlinkAuthStatus,
+    userInfo: meditlinkUserInfo,
+    isAuthenticated: meditlinkAuthenticated,
+  } = meditlinkAuth;
+
   const {
     authStatus: threeshapeAuthStatus,
     userInfo: threeshapeUserInfo,
     isAuthenticated: threeshapeAuthenticated,
-    hasToken: threeshapeHasToken,
-  } = useThreeShapeAuth();
+  } = threeshapeAuth;
+
+  const {
+    authStatus: iteroAuthStatus,
+    userInfo: iteroUserInfo,
+    isAuthenticated: iteroAuthenticated,
+  } = iteroAuth;
 
   // SWR hooks pour les données
   const {
@@ -458,6 +466,12 @@ const Commandes = () => {
             userInfo: threeshapeUserInfo,
             ...threeshapeAuthStatus,
           };
+        case "ITERO":
+          return {
+            authenticated: iteroAuthenticated,
+            userInfo: iteroUserInfo,
+            ...iteroAuthStatus,
+          };
         default:
           return { authenticated: false };
       }
@@ -469,12 +483,14 @@ const Commandes = () => {
       threeshapeAuthenticated,
       threeshapeUserInfo,
       threeshapeAuthStatus,
+      iteroAuthenticated,
+      iteroUserInfo,
+      iteroAuthStatus,
     ]
   );
 
   // Fonction pour synchroniser MeditLink
   const syncMeditLinkCommandes = useCallback(async () => {
-    // Utiliser l'endpoint de sauvegarde qui gère les dates par défaut
     const endpoint = `${API_BASE_URL}/meditlink/cases/save?page=0&size=20`;
 
     setSyncStatus((prev) => ({
@@ -498,8 +514,6 @@ const Commandes = () => {
 
       if (response.ok) {
         const result = await response.json();
-
-        // Actualiser les données après synchronisation
         mutateCommandes();
 
         setSyncStatus((prev) => ({
@@ -512,7 +526,6 @@ const Commandes = () => {
           },
         }));
 
-        // Notification Toastify pour succès
         toast.success(
           `MeditLink synchronisée: ${
             result.savedCount || 0
@@ -520,10 +533,6 @@ const Commandes = () => {
           {
             position: "top-right",
             autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
           }
         );
       } else {
@@ -538,14 +547,9 @@ const Commandes = () => {
           },
         }));
 
-        // Notification Toastify pour erreur
         toast.error("❌ Erreur lors de la synchronisation MeditLink", {
           position: "top-right",
           autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
         });
       }
     } catch (err) {
@@ -558,18 +562,12 @@ const Commandes = () => {
         },
       }));
 
-      // Notification Toastify pour erreur de connexion
       toast.error(" Erreur de connexion avec MeditLink", {
         position: "top-right",
         autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     }
 
-    // Effacer le statut après 5 secondes
     setTimeout(() => {
       setSyncStatus((prev) => {
         const newStatus = { ...prev };
@@ -579,10 +577,101 @@ const Commandes = () => {
     }, 5000);
   }, [mutateCommandes]);
 
-  // Fonction pour synchroniser les autres plateformes (3Shape, Itero, Dexis)
+  // Fonction pour synchroniser Itero
+  const syncIteroCommandes = useCallback(async () => {
+    setSyncStatus((prev) => ({
+      ...prev,
+      ITERO: {
+        status: "loading",
+        message: "Synchronisation Itero en cours...",
+      },
+    }));
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/itero/commandes`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        mutateCommandes();
+
+        setSyncStatus((prev) => ({
+          ...prev,
+          ITERO: {
+            status: "success",
+            message: `Synchronisation réussie: ${
+              result.length || 0
+            } commandes récupérées`,
+          },
+        }));
+
+        toast.success(
+          `Itero synchronisée: ${result.length || 0} commandes récupérées`,
+          {
+            position: "top-right",
+            autoClose: 5000,
+          }
+        );
+      } else {
+        const errorText = await response.text();
+        console.error("Erreur Itero:", errorText);
+
+        setSyncStatus((prev) => ({
+          ...prev,
+          ITERO: {
+            status: "error",
+            message: "Erreur de synchronisation Itero",
+          },
+        }));
+
+        toast.error("❌ Erreur lors de la synchronisation Itero", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      }
+    } catch (err) {
+      console.error("Erreur lors de la synchronisation Itero:", err);
+      setSyncStatus((prev) => ({
+        ...prev,
+        ITERO: {
+          status: "error",
+          message: "Erreur de connexion Itero",
+        },
+      }));
+
+      toast.error(" Erreur de connexion avec Itero", {
+        position: "top-right",
+        autoClose: 5000,
+      });
+    }
+
+    setTimeout(() => {
+      setSyncStatus((prev) => {
+        const newStatus = { ...prev };
+        delete newStatus.ITERO;
+        return newStatus;
+      });
+    }, 5000);
+  }, [mutateCommandes]);
+
+  // Fonction pour synchroniser les autres plateformes
   const syncOtherPlatform = useCallback(
     async (platformName) => {
       const endpoint = platformEndpoints[platformName];
+      let method = "GET";
+
+      if (platformName === "THREESHAPE") {
+        method = "GET";
+      } else if (platformName === "DEXIS") {
+        method = "POST";
+      }
+
       if (!endpoint) {
         console.error(
           `Endpoint non trouvé pour la plateforme: ${platformName}`
@@ -600,10 +689,6 @@ const Commandes = () => {
 
       try {
         const token = localStorage.getItem("token");
-        const method =
-          platformName === "MEDITLINK" || platformName === "THREESHAPE"
-            ? "GET"
-            : "POST";
 
         const response = await fetch(endpoint, {
           method: method,
@@ -616,8 +701,6 @@ const Commandes = () => {
 
         if (response.ok) {
           const result = await response.json();
-
-          // Actualiser les données après synchronisation
           mutateCommandes();
 
           setSyncStatus((prev) => ({
@@ -628,14 +711,9 @@ const Commandes = () => {
             },
           }));
 
-          // Notification Toastify pour succès
           toast.success(`${platformName} synchronisée avec succès`, {
             position: "top-right",
             autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
           });
         } else {
           const errorText = await response.text();
@@ -649,14 +727,9 @@ const Commandes = () => {
             },
           }));
 
-          // Notification Toastify pour erreur
           toast.error(`❌ Erreur lors de la synchronisation ${platformName}`, {
             position: "top-right",
             autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
           });
         }
       } catch (err) {
@@ -672,18 +745,12 @@ const Commandes = () => {
           },
         }));
 
-        // Notification Toastify pour erreur de connexion
         toast.error(` Erreur de connexion avec ${platformName}`, {
           position: "top-right",
           autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
         });
       }
 
-      // Effacer le statut après 5 secondes
       setTimeout(() => {
         setSyncStatus((prev) => {
           const newStatus = { ...prev };
@@ -701,7 +768,6 @@ const Commandes = () => {
 
     setIsSyncing(true);
 
-    // Filtrer seulement les plateformes connectées
     const connectedPlatforms = userPlatforms.filter((platform) => {
       const connectionStatus = getConnectionStatus(platform.name);
       return connectionStatus.authenticated;
@@ -719,6 +785,8 @@ const Commandes = () => {
     const syncPromises = connectedPlatforms.map((platform) => {
       if (platform.name === "MEDITLINK") {
         return syncMeditLinkCommandes();
+      } else if (platform.name === "ITERO") {
+        return syncIteroCommandes();
       } else {
         return syncOtherPlatform(platform.name);
       }
@@ -727,16 +795,11 @@ const Commandes = () => {
     try {
       await Promise.all(syncPromises);
 
-      // Notification pour synchronisation globale
       toast.success(
         `${connectedPlatforms.length} plateforme(s) synchronisée(s)`,
         {
           position: "top-right",
           autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
         }
       );
     } catch (error) {
@@ -747,6 +810,7 @@ const Commandes = () => {
   }, [
     userPlatforms,
     syncMeditLinkCommandes,
+    syncIteroCommandes,
     syncOtherPlatform,
     getConnectionStatus,
   ]);
@@ -754,7 +818,6 @@ const Commandes = () => {
   // Fonction pour synchroniser une plateforme spécifique
   const syncPlatformCommandes = useCallback(
     (platformName) => {
-      // Vérifier si la plateforme est connectée
       const connectionStatus = getConnectionStatus(platformName);
       if (!connectionStatus.authenticated) {
         toast.warning(
@@ -769,11 +832,18 @@ const Commandes = () => {
 
       if (platformName === "MEDITLINK") {
         return syncMeditLinkCommandes();
+      } else if (platformName === "ITERO") {
+        return syncIteroCommandes();
       } else {
         return syncOtherPlatform(platformName);
       }
     },
-    [syncMeditLinkCommandes, syncOtherPlatform, getConnectionStatus]
+    [
+      syncMeditLinkCommandes,
+      syncIteroCommandes,
+      syncOtherPlatform,
+      getConnectionStatus,
+    ]
   );
 
   // Fonction pour filtrer par date
@@ -799,7 +869,7 @@ const Commandes = () => {
             ? new Date(customDateFrom)
             : new Date(0);
           const toDate = customDateTo ? new Date(customDateTo) : new Date();
-          toDate.setHours(23, 59, 59, 999); // Inclure toute la journée
+          toDate.setHours(23, 59, 59, 999);
           return receptionDate >= fromDate && receptionDate <= toDate;
         default:
           return true;
@@ -995,8 +1065,7 @@ const Commandes = () => {
               <AlertCircle size={20} />
               <p>
                 Aucune plateforme n'est connectée. Rendez-vous dans la section
-                <strong> Plateformes</strong> pour configurer vos connexions
-                OAuth.
+                <strong> Plateformes</strong> pour configurer vos connexions.
               </p>
             </div>
           )}

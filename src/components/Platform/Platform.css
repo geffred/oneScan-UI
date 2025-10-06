@@ -622,7 +622,6 @@
   padding: 3rem;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   text-align: center;
-  animation: slideIn 0.5s ease-out;
 }
 
 .platform-3shape-modal .platform-modal-header {
@@ -801,17 +800,7 @@
   border-color: transparent;
 }
 
-/* Animation */
-@keyframes slideIn {
-  from { 
-    opacity: 0; 
-    transform: translateY(30px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
+
 
 /* Responsive pour le modal 3Shape */
 @media (max-width: 640px) {
@@ -862,7 +851,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
   border: 1px solid;
@@ -935,7 +924,7 @@
   border: 1px solid #dc2626;
   background-color: #fef2f2;
   color: #dc2626;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -994,7 +983,7 @@
   text-align: left;
   background-color: #f8fafc;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .platform-meditlink-features h4 {
@@ -1273,4 +1262,343 @@
   .platform-search-icon {
     left: 0.75rem;
   }
+}
+
+
+
+
+/* Itero OAuth Modal Styles */
+.platform-itero-modal {
+  max-width: 500px;
+  width: 90%;
+  background: white;
+  border-radius: 16px;
+  padding: 3rem;
+  text-align: center;
+}
+
+.platform-itero-modal .platform-modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 0;
+  border-bottom: none;
+  position: relative;
+}
+
+.platform-itero-modal .platform-modal-close {
+  position: absolute;
+  top: -1rem;
+  right: -1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.platform-itero-modal .platform-modal-close:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.platform-itero-modal .platform-modal-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  order: 2;
+}
+
+.platform-itero-auth-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.platform-itero-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.platform-itero-info svg {
+  color: #10b981;
+  margin-bottom: 0.5rem;
+}
+
+.platform-itero-info h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.platform-itero-info p {
+  margin: 0;
+  color: #6b7280;
+  line-height: 1.6;
+  font-size: 1.125rem;
+}
+
+.platform-itero-features {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: left;
+}
+
+.platform-itero-features h4 {
+  margin: 0 0 1rem 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.platform-itero-features ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.platform-itero-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.platform-itero-features li svg {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.platform-itero-security {
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: left;
+}
+
+.platform-itero-security p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #065f46;
+}
+
+.platform-itero-security strong {
+  color: #065f46;
+  font-weight: 600;
+}
+
+.platform-itero-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.platform-itero-connect-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 200px;
+  justify-content: center;
+}
+
+.platform-itero-connect-btn:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.platform-itero-connect-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.platform-itero-disconnect-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 200px;
+  justify-content: center;
+}
+
+.platform-itero-disconnect-btn:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
+.platform-itero-disconnect-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.platform-itero-connected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.platform-itero-status-connected {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: #ecfdf5;
+  color: #065f46;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 1px solid #d1fae5;
+}
+
+.platform-itero-status-connected svg {
+  color: #10b981;
+}
+
+.platform-itero-modal .platform-modal-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: 0;
+  border-top: none;
+  margin-top: 0;
+}
+
+.platform-itero-modal .platform-cancel-btn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  min-width: 120px;
+  padding: 0.75rem 1.5rem;
+}
+
+.platform-itero-modal .platform-cancel-btn:hover {
+  background: #4b5563;
+  border-color: transparent;
+}
+
+/* Itero Status in Platform Card */
+.platform-itero-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.platform-itero-status.connected {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.platform-itero-status.disconnected {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Itero Actions Group in Platform Card */
+.itero-actions-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Responsive Design for Itero Modal */
+@media (max-width: 640px) {
+  .platform-itero-modal {
+    width: 95%;
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  .platform-itero-modal .platform-modal-header h2 {
+    font-size: 20px;
+  }
+  
+  .platform-itero-info p {
+    font-size: 1rem;
+  }
+  
+  .platform-itero-connect-btn,
+  .platform-itero-disconnect-btn {
+    min-width: 100%;
+    padding: 0.875rem 1.5rem;
+  }
+  
+  .platform-itero-modal .platform-cancel-btn {
+    min-width: 100%;
+    margin-top: 0.5rem;
+  }
+  
+  .platform-itero-features {
+    padding: 1rem;
+  }
+  
+  .platform-itero-security {
+    padding: 0.875rem;
+  }
+  
+  .platform-itero-connected {
+    gap: 0.75rem;
+  }
+  
+  .platform-itero-status-connected {
+    padding: 0.75rem 1rem;
+    font-size: 14px;
+  }
+}
+
+
+
+/* Itero Info Banner in Form */
+.platform-info-banner.itero {
+  background-color: #ecfdf5;
+  border: 1px solid #d1fae5;
+}
+
+.platform-info-banner.itero svg {
+  color: #10b981;
+}
+
+.platform-info-banner.itero strong {
+  color: #065f46;
+}
+
+.platform-info-banner.itero p {
+  color: #065f46;
 }

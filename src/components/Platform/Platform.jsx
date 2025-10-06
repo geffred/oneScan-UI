@@ -27,12 +27,14 @@ import {
   RefreshCw,
   Shield,
   Activity,
+  Wifi,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import CryptoJS from "crypto-js";
 import useMeditLinkAuth from "../Config/useMeditLinkAuth";
 import useThreeShapeAuth from "../Config/useThreeShapeAuth";
+import useIteroAuth from "../Config/useIteroAuth";
 import MeditLinkDashboard from "../MeditLinkDashboard/MeditLinkDashboard";
 import ThreeShapeDashboard from "../ThreeShapeDashboard/ThreeShapeDashboard";
 import "./Platform.css";
@@ -44,6 +46,7 @@ const SECRET_KEY = "MaCleSecrete12345";
 const platformTypes = [
   { value: "THREESHAPE", label: "3Shape" },
   { value: "MEDITLINK", label: "MeditLink" },
+  { value: "ITERO", label: "Itero" },
 ];
 
 // Schema de validation mis en cache
@@ -115,14 +118,18 @@ const PlatformCard = React.memo(
     onDelete,
     onConnect3Shape,
     onConnectMeditLink,
+    onConnectItero,
     onDisconnectMeditLink,
+    onDisconnectItero,
     onShowMeditLinkDashboard,
     onShowThreeShapeDashboard,
     threeshapeStatus,
     meditlinkStatus,
+    iteroStatus,
   }) => {
     const is3Shape = platform.name === "THREESHAPE";
     const isMeditLink = platform.name === "MEDITLINK";
+    const isItero = platform.name === "ITERO";
 
     return (
       <div className="platform-card">
@@ -169,6 +176,26 @@ const PlatformCard = React.memo(
               )}
             </div>
           )}
+
+          {isItero && (
+            <div
+              className={`platform-itero-status ${
+                iteroStatus?.authenticated ? "connected" : "disconnected"
+              }`}
+            >
+              {iteroStatus?.authenticated ? (
+                <>
+                  <CheckCircle size={16} />
+                  <span>Connecté à Itero</span>
+                </>
+              ) : (
+                <>
+                  <AlertCircle size={16} />
+                  <span>Non connecté à Itero</span>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="platform-card-content">
@@ -199,6 +226,14 @@ const PlatformCard = React.memo(
                 <span>Token 3Shape actif</span>
               </div>
             )}
+
+          {/* Affichage des infos de connexion Itero si connecté */}
+          {isItero && iteroStatus?.authenticated && (
+            <div className="platform-user-info">
+              <Wifi size={14} />
+              <span>Session Itero active</span>
+            </div>
+          )}
         </div>
 
         <div className="platform-card-actions">
@@ -262,6 +297,34 @@ const PlatformCard = React.memo(
                   {meditlinkStatus?.loading
                     ? "Connexion..."
                     : "Connecter OAuth"}
+                </button>
+              )}
+            </>
+          )}
+
+          {isItero && (
+            <>
+              {iteroStatus?.authenticated ? (
+                <div className="itero-actions-group">
+                  <button
+                    onClick={() => onDisconnectItero(platform)}
+                    className="platform-disconnect-btn"
+                    disabled={iteroStatus?.loading}
+                    aria-label="Déconnecter d'Itero"
+                  >
+                    <X size={16} />
+                    {iteroStatus?.loading ? "Déconnexion..." : "Déconnecter"}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => onConnectItero(platform)}
+                  className="platform-connect-btn"
+                  disabled={iteroStatus?.loading}
+                  aria-label="Connecter à Itero"
+                >
+                  <Wifi size={16} />
+                  {iteroStatus?.loading ? "Connexion..." : "Connecter"}
                 </button>
               )}
             </>
@@ -485,6 +548,117 @@ const MeditLinkOAuthModal = React.memo(
 
 MeditLinkOAuthModal.displayName = "MeditLinkOAuthModal";
 
+// Composant modal pour Itero
+const IteroAuthModal = React.memo(
+  ({ isOpen, onClose, onLogin, onLogout, isLoading, isAuthenticated }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="platform-modal-overlay">
+        <div className="platform-modal platform-itero-modal">
+          <div className="platform-modal-header">
+            <h2>Connexion Itero</h2>
+            <button onClick={onClose} className="platform-modal-close">
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="platform-itero-auth-content">
+            <div className="platform-itero-info">
+              <Wifi size={48} />
+              <h3>Connexion à Itero</h3>
+              <p>
+                Connectez-vous à votre compte Itero pour synchroniser vos
+                commandes et accéder à vos données.
+              </p>
+            </div>
+
+            <div className="platform-itero-features">
+              <h4>Accès aux fonctionnalités :</h4>
+              <ul>
+                <li>
+                  <CheckCircle size={16} /> Synchronisation des commandes
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Consultation des scans 3D
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Téléchargement des fichiers
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Gestion des commentaires
+                </li>
+              </ul>
+            </div>
+
+            <div className="platform-itero-security">
+              <p>
+                <strong>Note :</strong> La connexion à Itero utilise vos
+                identifiants de plateforme. Assurez-vous que l'email et le mot
+                de passe sont corrects.
+              </p>
+            </div>
+
+            <div className="platform-itero-actions">
+              {isAuthenticated ? (
+                <div className="platform-itero-connected">
+                  <div className="platform-itero-status-connected">
+                    <CheckCircle size={20} />
+                    <span>Connecté à Itero</span>
+                  </div>
+                  <button
+                    onClick={onLogout}
+                    disabled={isLoading}
+                    className="platform-itero-disconnect-btn"
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="platform-loading-spinner"></div>
+                        Déconnexion...
+                      </>
+                    ) : (
+                      <>
+                        <X size={18} />
+                        Se déconnecter
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={onLogin}
+                  disabled={isLoading}
+                  className="platform-itero-connect-btn"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="platform-loading-spinner"></div>
+                      Connexion...
+                    </>
+                  ) : (
+                    <>
+                      <Wifi size={18} />
+                      Se connecter à Itero
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="platform-modal-actions">
+            <button onClick={onClose} className="platform-cancel-btn">
+              Fermer
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+IteroAuthModal.displayName = "IteroAuthModal";
+
 const Platform = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -497,6 +671,7 @@ const Platform = () => {
   const [showMeditLinkDashboard, setShowMeditLinkDashboard] = useState(false);
   const [is3ShapeModalOpen, setIs3ShapeModalOpen] = useState(false);
   const [isMeditLinkModalOpen, setIsMeditLinkModalOpen] = useState(false);
+  const [isIteroModalOpen, setIsIteroModalOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -530,6 +705,17 @@ const Platform = () => {
     testConnection: testThreeshapeConnection,
     clearError: clearThreeshapeError,
   } = useThreeShapeAuth();
+
+  // Hook Itero Auth
+  const {
+    authStatus: iteroAuthStatus,
+    userInfo: iteroUserInfo,
+    login: iteroLogin,
+    logout: iteroLogout,
+    checkAuthStatus: checkIteroStatus,
+    isAuthenticated: iteroAuthenticated,
+    isLoading: iteroLoading,
+  } = useIteroAuth();
 
   // SWR hooks pour les données
   const {
@@ -663,6 +849,16 @@ const Platform = () => {
     threeshapeError,
     threeshapeAuthStatus,
   ]);
+
+  // Combiné Itero Status
+  const combinedIteroStatus = useMemo(() => {
+    return {
+      authenticated: iteroAuthenticated,
+      userInfo: iteroUserInfo,
+      loading: iteroLoading,
+      ...iteroAuthStatus,
+    };
+  }, [iteroAuthenticated, iteroUserInfo, iteroLoading, iteroAuthStatus]);
 
   // Filtrage mémorisé
   const filteredPlatforms = useMemo(() => {
@@ -829,6 +1025,50 @@ const Platform = () => {
     [meditlinkLogout]
   );
 
+  // Handlers pour Itero
+  const handleIteroConnect = useCallback(async (platform) => {
+    setIsIteroModalOpen(true);
+  }, []);
+
+  const handleIteroLogin = useCallback(async () => {
+    try {
+      const result = await iteroLogin();
+      if (result.success) {
+        setSuccess("Connexion Itero réussie");
+        setTimeout(() => setSuccess(null), 3000);
+        setIsIteroModalOpen(false);
+      } else {
+        setError("Erreur lors de la connexion Itero: " + result.message);
+        setTimeout(() => setError(null), 5000);
+      }
+    } catch (err) {
+      setError("Erreur lors de la connexion Itero: " + err.message);
+      setTimeout(() => setError(null), 5000);
+    }
+  }, [iteroLogin]);
+
+  const handleIteroDisconnect = useCallback(
+    async (platform) => {
+      if (!window.confirm("Êtes-vous sûr de vouloir déconnecter Itero ?")) {
+        return;
+      }
+
+      try {
+        await iteroLogout();
+        setSuccess("Déconnexion Itero réussie");
+        setTimeout(() => setSuccess(null), 3000);
+      } catch (err) {
+        setError("Erreur lors de la déconnexion Itero: " + err.message);
+        setTimeout(() => setError(null), 5000);
+      }
+    },
+    [iteroLogout]
+  );
+
+  const closeIteroModal = useCallback(() => {
+    setIsIteroModalOpen(false);
+  }, []);
+
   const closeMeditLinkModal = useCallback(() => {
     setIsMeditLinkModalOpen(false);
   }, []);
@@ -965,7 +1205,8 @@ const Platform = () => {
   const refreshAllStatuses = useCallback(() => {
     refreshThreeshape();
     refreshMeditlink();
-  }, [refreshThreeshape, refreshMeditlink]);
+    checkIteroStatus();
+  }, [refreshThreeshape, refreshMeditlink, checkIteroStatus]);
 
   // Affichage immédiat de l'interface même si les données utilisateur chargent encore
   if (!isAuthenticated) {
@@ -1032,11 +1273,14 @@ const Platform = () => {
                     onDelete={handleDelete}
                     onConnect3Shape={handle3ShapeConnect}
                     onConnectMeditLink={handleMeditLinkConnect}
+                    onConnectItero={handleIteroConnect}
                     onDisconnectMeditLink={handleMeditLinkDisconnect}
+                    onDisconnectItero={handleIteroDisconnect}
                     onShowMeditLinkDashboard={handleShowMeditLinkDashboard}
                     onShowThreeShapeDashboard={handleShowThreeShapeDashboard}
                     threeshapeStatus={combinedThreeshapeStatus}
                     meditlinkStatus={combinedMeditlinkStatus}
+                    iteroStatus={combinedIteroStatus}
                   />
                 ))}
               </div>
@@ -1145,6 +1389,21 @@ const Platform = () => {
                       </div>
                     )}
 
+                    {/* Info spéciale pour Itero */}
+                    {values.name === "ITERO" && (
+                      <div className="platform-info-banner">
+                        <Wifi size={16} />
+                        <div>
+                          <strong>Plateforme Itero :</strong>
+                          <p>
+                            Après création, utilisez le bouton "Connecter" pour
+                            vous authentifier avec vos identifiants Itero et
+                            synchroniser vos commandes.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="platform-input-group">
                       <label className="platform-field-label">Email</label>
                       <div className="platform-input-wrapper">
@@ -1211,6 +1470,16 @@ const Platform = () => {
         onClose={closeMeditLinkModal}
         onStartAuth={handleStartMeditLinkAuth}
         isLoading={meditlinkLoading}
+      />
+
+      {/* Modal Itero */}
+      <IteroAuthModal
+        isOpen={isIteroModalOpen}
+        onClose={closeIteroModal}
+        onLogin={handleIteroLogin}
+        onLogout={handleIteroDisconnect}
+        isLoading={iteroLoading}
+        isAuthenticated={iteroAuthenticated}
       />
 
       {/* Modal Dashboard MeditLink */}

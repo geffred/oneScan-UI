@@ -83,8 +83,6 @@ const Compte = () => {
       } catch (err) {
         setError(err.message);
         console.error("Erreur fetchUserData:", err);
-        logout();
-        navigate("/login");
       }
     };
 
