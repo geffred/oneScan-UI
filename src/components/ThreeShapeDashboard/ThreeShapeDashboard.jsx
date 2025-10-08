@@ -94,9 +94,9 @@ const ThreeShapeDashboard = () => {
       console.log("🔄 Lancement du rafraîchissement manuel...");
       await refresh();
       setLastRefresh(new Date());
-      console.log("✅ Statut rafraîchi avec succès");
+      console.log("Statut rafraîchi avec succès");
     } catch (err) {
-      console.error("❌ Erreur rafraîchissement:", err);
+      console.error(" Erreur rafraîchissement:", err);
     }
   }, [refresh]);
 
@@ -106,7 +106,7 @@ const ThreeShapeDashboard = () => {
       await refreshToken();
       setLastRefresh(new Date());
     } catch (err) {
-      console.error("❌ Erreur rafraîchissement token:", err);
+      console.error(" Erreur rafraîchissement token:", err);
     } finally {
       setIsRefreshingToken(false);
     }
@@ -201,7 +201,7 @@ const ThreeShapeDashboard = () => {
                   hasToken ? "has-token" : "no-token"
                 }`}
               >
-                {hasToken ? "✅ Présent" : "❌ Absent"}
+                {hasToken ? "✅ Présent" : " Absent"}
               </span>
             </div>
             <div className="token-field">
@@ -211,7 +211,7 @@ const ThreeShapeDashboard = () => {
                   hasRefreshToken ? "has-token" : "no-token"
                 }`}
               >
-                {hasRefreshToken ? "✅ Présent" : "❌ Absent"}
+                {hasRefreshToken ? "✅ Présent" : " Absent"}
               </span>
             </div>
             <div className="token-field">
@@ -231,7 +231,7 @@ const ThreeShapeDashboard = () => {
                   autoRefreshEnabled ? "auto-enabled" : "auto-disabled"
                 }`}
               >
-                {autoRefreshEnabled ? "✅ Activé" : "❌ Désactivé"}
+                {autoRefreshEnabled ? "✅ Activé" : " Désactivé"}
               </span>
             </div>
           </div>
@@ -286,7 +286,7 @@ const ThreeShapeDashboard = () => {
                   isAuthenticated ? "authenticated" : "not-authenticated"
                 }`}
               >
-                {isAuthenticated ? "✅ Authentifié" : "❌ Non authentifié"}
+                {isAuthenticated ? " Authentifié" : " Non authentifié"}
               </span>
             </div>
             <div className="auth-field">
@@ -302,7 +302,7 @@ const ThreeShapeDashboard = () => {
                   hasRefreshToken ? "has-token" : "no-token"
                 }`}
               >
-                {hasRefreshToken ? "✅ Disponible" : "❌ Indisponible"}
+                {hasRefreshToken ? " Disponible" : " Indisponible"}
               </span>
             </div>
           </div>
@@ -426,20 +426,20 @@ const ThreeShapeDashboard = () => {
         <div className="card-content">
           <div className="stats-grid">
             <div className="stat-item">
-              <div className="stat-value">{isAuthenticated ? "✅" : "❌"}</div>
+              <div className="stat-value">{isAuthenticated ? "ok" : "x"}</div>
               <div className="stat-label">Authentifié</div>
             </div>
             <div className="stat-item">
-              <div className="stat-value">{hasToken ? "✅" : "❌"}</div>
+              <div className="stat-value">{hasToken ? "ok" : "x"}</div>
               <div className="stat-label">Token</div>
             </div>
             <div className="stat-item">
-              <div className="stat-value">{hasRefreshToken ? "✅" : "❌"}</div>
+              <div className="stat-value">{hasRefreshToken ? "ok" : "x"}</div>
               <div className="stat-label">Refresh</div>
             </div>
             <div className="stat-item">
               <div className="stat-value">
-                {autoRefreshEnabled ? "✅" : "❌"}
+                {autoRefreshEnabled ? "ok" : "x"}
               </div>
               <div className="stat-label">Auto Refresh</div>
             </div>

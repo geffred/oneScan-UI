@@ -16,6 +16,7 @@ import CompteCabinet from "./CompteCabinet/CompteCabinet";
 import MeditLinkCallback from "./MeditLinkCallback/MeditLinkCallback";
 import ThreeShapeCallback from "./ThreeShapeCallback/ThreeShapeCallback";
 import CabinetRegisterPage from "./CabinetRegisterPage/CabinetRegisterPage";
+import GuideCommande from "./GuideCommande/GuideCommande";
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           {/* <Route path="/register" element={<RegisterPage />} /> */}
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/guide" element={<GuideCommande />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/compte" element={<Compte />} />
           <Route path="/suivi-commandes" element={<SuiviCommandesPage />} />
