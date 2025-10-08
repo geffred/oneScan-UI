@@ -312,7 +312,18 @@ const PlatformCard = React.memo(
               className={`commandes-sync-status commandes-sync-${syncStatus.status}`}
             >
               {getSyncStatusIcon()}
-              <span>{syncStatus.message}</span>
+              <div className="commandes-sync-details">
+                <span className="commandes-sync-message">
+                  {syncStatus.message}
+                </span>
+                {/* Afficher le nombre de commandes récupérées */}
+                {syncStatus.status === "success" &&
+                  syncStatus.count !== undefined && (
+                    <div className="commandes-sync-count">
+                      <strong>{syncStatus.count}</strong> commande(s)
+                    </div>
+                  )}
+              </div>
             </div>
           )}
 
@@ -502,30 +513,42 @@ const Commandes = () => {
         // Actualiser les données après synchronisation
         mutateCommandes();
 
+        // Récupérer le nombre de commandes sauvegardées
+        const savedCount = result.savedCount || result.count || 0;
+        const message =
+          savedCount > 0
+            ? `${savedCount} nouvelle(s) commande(s) récupérée(s)`
+            : "Aucune nouvelle commande";
+
         setSyncStatus((prev) => ({
           ...prev,
           MEDITLINK: {
             status: "success",
-            message: `Synchronisation réussie: ${
-              result.savedCount || 0
-            } nouvelles commandes`,
+            message: message,
+            count: savedCount, // Stocker le nombre pour l'affichage
           },
         }));
 
         // Notification Toastify pour succès
-        toast.success(
-          `MeditLink synchronisée: ${
-            result.savedCount || 0
-          } nouvelles commandes`,
-          {
+        if (savedCount > 0) {
+          toast.success(`MeditLink: ${savedCount} nouvelle(s) commande(s)`, {
             position: "top-right",
             autoClose: 5000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
             draggable: true,
-          }
-        );
+          });
+        } else {
+          toast.info(`MeditLink: Aucune nouvelle commande`, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        }
       } else {
         const errorText = await response.text();
         console.error("Erreur MeditLink:", errorText);
@@ -620,23 +643,45 @@ const Commandes = () => {
           // Actualiser les données après synchronisation
           mutateCommandes();
 
+          // Récupérer le nombre de commandes sauvegardées
+          const savedCount = result.savedCount || result.count || 0;
+          const message =
+            savedCount > 0
+              ? `${savedCount} nouvelle(s) commande(s) récupérée(s)`
+              : "Aucune nouvelle commande";
+
           setSyncStatus((prev) => ({
             ...prev,
             [platformName]: {
               status: "success",
-              message: `Synchronisation ${platformName} réussie`,
+              message: message,
+              count: savedCount, // Stocker le nombre pour l'affichage
             },
           }));
 
           // Notification Toastify pour succès
-          toast.success(`${platformName} synchronisée avec succès`, {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          });
+          if (savedCount > 0) {
+            toast.success(
+              `${platformName}: ${savedCount} nouvelle(s) commande(s)`,
+              {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+              }
+            );
+          } else {
+            toast.info(`${platformName}: Aucune nouvelle commande`, {
+              position: "top-right",
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+            });
+          }
         } else {
           const errorText = await response.text();
           console.error(`Erreur ${platformName}:`, errorText);
@@ -694,7 +739,6 @@ const Commandes = () => {
     },
     [mutateCommandes]
   );
-
   // Fonction pour synchroniser toutes les plateformes connectées
   const syncAllPlatforms = useCallback(async () => {
     if (userPlatforms.length === 0) return;
