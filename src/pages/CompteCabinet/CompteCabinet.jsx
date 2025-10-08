@@ -78,7 +78,7 @@ const CompteCabinet = () => {
 
   useEffect(() => {
     // Vérifier l'authentification
-    if (!isAuthenticated || userType !== "cabinet") {
+    if (userType !== "cabinet") {
       navigate("/");
       return;
     }
