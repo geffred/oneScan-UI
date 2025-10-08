@@ -10,7 +10,8 @@ import { jwtDecode } from "jwt-decode";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const APP_VERSION = import.meta.env.VITE_APP_VERSION;
+  // 🆕 version de l'app — change-la à chaque déploiement sur Railway
+  const APP_VERSION = "v1.0.0";
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userType, setUserType] = useState(null);
@@ -73,19 +74,18 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false);
   }, [restoreSession]);
 
+  // 🧩 Vérifie la version de l'application (Railway update)
   useEffect(() => {
-    // 👉 Désactiver ce comportement en mode développement
-    if (import.meta.env.MODE === "development") return;
-
     const storedVersion = localStorage.getItem("app_version");
 
+    // Si aucune version ou version différente => déconnexion
     if (storedVersion !== APP_VERSION) {
-      console.log("🚀 Nouvelle version détectée — déconnexion automatique");
-      localStorage.removeItem("token");
-      localStorage.removeItem("userType");
+      console.log("Nouvelle version détectée — déconnexion automatique");
+      localStorage.clear();
       localStorage.setItem("app_version", APP_VERSION);
-      window.location.replace("/");
+      window.location.href = "/";
     } else {
+      // Si même version => rien à faire
       localStorage.setItem("app_version", APP_VERSION);
     }
   }, [APP_VERSION]);
@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }) => {
           setIsAuthenticated(false);
           setUserType(null);
           setUserData(null);
-          window.location.replace("/");
+          window.location.href = "/";
         } else {
           restoreSession();
         }
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = (type, cabinetData = null, token) => {
     if (!token) {
-      console.error("Token manquant lors de la connexion ");
+      console.error("Token manquant lors de la connexion");
       return;
     }
 
@@ -170,8 +170,8 @@ export const AuthProvider = ({ children }) => {
     if (isAuthenticated) {
       const timer = setTimeout(() => {
         logout();
-        window.location.replace("/");
-      }, 86400000); // 24h = 86 400 000 ms
+        window.location.href = "/";
+      }, 86400000);
       return () => clearTimeout(timer);
     }
   }, [isAuthenticated, logout]);
@@ -183,9 +183,9 @@ export const AuthProvider = ({ children }) => {
       if (!token && isAuthenticated) {
         console.warn("Token manquant — déconnexion forcée");
         logout();
-        window.location.replace("/");
+        window.location.href = "/";
       }
-    }, 2000); // vérifie toutes les 2 secondes
+    }, 2000);
     return () => clearInterval(interval);
   }, [isAuthenticated, logout]);
 
