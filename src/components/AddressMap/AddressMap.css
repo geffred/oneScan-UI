@@ -6,7 +6,7 @@
 
 .map-header {
   padding: 1.5rem;
-  background: #007AFF;
+background: #000000 ;
   color: white;
   text-align: center;
 }
@@ -35,7 +35,7 @@
 }
 
 .map-actions {
-  padding: 1.5rem;
+
   text-align: center;
   background: #f8fafc;
 }
@@ -43,16 +43,20 @@
 .action-btn {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background: #007AFF;
-  color: white;
+  background: white;
+  color: #1e293b ;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: 600;
   transition: all 0.3s ease;
+  margin-top: 25px;
+  border: 1px solid white;
 }
 
 .action-btn:hover {
-  background: #0056CC;
+  background: #1e293b ;
+  color: white ;
+  border-color: white;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }

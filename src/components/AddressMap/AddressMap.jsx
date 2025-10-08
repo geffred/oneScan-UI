@@ -7,11 +7,6 @@ const AddressMap = () => {
 
   return (
     <div className="simple-map-container">
-      <div className="map-header">
-        <h2>Notre localisation</h2>
-        <p>Boulevard Roosevelt 23, 7060 Soignies</p>
-      </div>
-
       <div className="map-wrapper">
         <iframe
           className="google-map-iframe"
@@ -23,7 +18,11 @@ const AddressMap = () => {
         ></iframe>
       </div>
 
-      <div className="map-actions">
+      <div className="map-actions"></div>
+      <div className="map-header">
+        <h2>Notre localisation</h2>
+        <p>Boulevard Roosevelt 23, 7060 Soignies</p>
+
         <a
           href={`https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`}
           target="_blank"
