@@ -39,7 +39,7 @@ export const useThreeShapeAuth = () => {
     data: authStatus,
     mutate: mutateAuth,
     isValidating: isValidatingAuth,
-  } = useSWR(`${API_BASE_URL}/api/threeshape/auth/status`, fetcher, {
+  } = useSWR(`${API_BASE_URL}/threeshape/auth/status`, fetcher, {
     refreshInterval: REFRESH_INTERVAL,
     revalidateOnFocus: true,
     revalidateOnReconnect: true,
@@ -151,7 +151,7 @@ export const useThreeShapeAuth = () => {
 
       console.log("🔗 Initialisation de l'authentification 3Shape...");
 
-      const response = await fetch(`${API_BASE_URL}/api/login`, {
+      const response = await fetch(`${API_BASE_URL}/login`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -216,9 +216,9 @@ export const useThreeShapeAuth = () => {
           code?.substring(0, 10) + "..."
         );
 
-        const url = `${API_BASE_URL}/api/callback?code=${encodeURIComponent(
-          code
-        )}${state ? `&state=${encodeURIComponent(state)}` : ""}`;
+        const url = `${API_BASE_URL}/callback?code=${encodeURIComponent(code)}${
+          state ? `&state=${encodeURIComponent(state)}` : ""
+        }`;
 
         const response = await fetch(url, {
           method: "GET",
@@ -296,17 +296,14 @@ export const useThreeShapeAuth = () => {
 
       console.log("🔄 Début du rafraîchissement manuel du token...");
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/threeshape/auth/refresh`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/threeshape/auth/refresh`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -349,17 +346,14 @@ export const useThreeShapeAuth = () => {
 
       console.log("🚪 Déconnexion de 3Shape...");
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/threeshape/auth/logout`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/threeshape/auth/logout`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
 
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`);
@@ -439,7 +433,7 @@ export const useThreeShapeAuth = () => {
 
         console.log(`📋 Récupération des cas 3Shape (page ${page})...`);
 
-        const response = await fetch(`${API_BASE_URL}/api/cases?page=${page}`, {
+        const response = await fetch(`${API_BASE_URL}/cases?page=${page}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -490,7 +484,7 @@ export const useThreeShapeAuth = () => {
 
       console.log("🔗 Récupération des connexions 3Shape...");
 
-      const response = await fetch(`${API_BASE_URL}/api/connections`, {
+      const response = await fetch(`${API_BASE_URL}/connections`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -543,7 +537,7 @@ export const useThreeShapeAuth = () => {
         );
 
         const response = await fetch(
-          `${API_BASE_URL}/api/cases/save?startPage=${startPage}&endPage=${endPage}`,
+          `${API_BASE_URL}/cases/save?startPage=${startPage}&endPage=${endPage}`,
           {
             method: "GET",
             headers: {
@@ -600,7 +594,7 @@ export const useThreeShapeAuth = () => {
         );
 
         const response = await fetch(
-          `${API_BASE_URL}/api/threeshape/files/${caseId}/${attachmentHash}`,
+          `${API_BASE_URL}/threeshape/files/${caseId}/${attachmentHash}`,
           {
             method: "GET",
             headers: {
@@ -679,7 +673,7 @@ export const useThreeShapeAuth = () => {
 
       console.log("🧪 Test de connexion 3Shape en cours...");
 
-      const response = await fetch(`${API_BASE_URL}/api/connections`, {
+      const response = await fetch(`${API_BASE_URL}/connections`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
