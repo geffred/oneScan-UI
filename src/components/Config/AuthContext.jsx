@@ -11,7 +11,7 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   // 🆕 version de l'app — change-la à chaque déploiement sur Railway
-  const APP_VERSION = "v1.0.0";
+  const APP_VERSION = "v1.0.0.1";
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userType, setUserType] = useState(null);
