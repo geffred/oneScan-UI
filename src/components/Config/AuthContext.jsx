@@ -10,6 +10,8 @@ import { jwtDecode } from "jwt-decode";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const APP_VERSION = import.meta.env.VITE_APP_VERSION;
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userType, setUserType] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -71,7 +73,24 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false);
   }, [restoreSession]);
 
-  //  Synchronisation entre onglets
+  useEffect(() => {
+    // 👉 Désactiver ce comportement en mode développement
+    if (import.meta.env.MODE === "development") return;
+
+    const storedVersion = localStorage.getItem("app_version");
+
+    if (storedVersion !== APP_VERSION) {
+      console.log("🚀 Nouvelle version détectée — déconnexion automatique");
+      localStorage.removeItem("token");
+      localStorage.removeItem("userType");
+      localStorage.setItem("app_version", APP_VERSION);
+      window.location.replace("/");
+    } else {
+      localStorage.setItem("app_version", APP_VERSION);
+    }
+  }, [APP_VERSION]);
+
+  // 🔄 Synchronisation entre onglets
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === "token" || e.key === "userType") {
@@ -79,7 +98,7 @@ export const AuthProvider = ({ children }) => {
           setIsAuthenticated(false);
           setUserType(null);
           setUserData(null);
-          window.location.href = "/"; // redirection immédiate si déconnecté dans un autre onglet
+          window.location.replace("/");
         } else {
           restoreSession();
         }
@@ -146,29 +165,27 @@ export const AuthProvider = ({ children }) => {
     return restoreSession();
   }, [restoreSession]);
 
-  //  Auto-déconnexion après 24 heures (24h = 86 400 000 ms)
+  // ⏰ Auto-déconnexion après 24h
   useEffect(() => {
     if (isAuthenticated) {
       const timer = setTimeout(() => {
         logout();
-        window.location.href = "/";
-      }, 86400000);
-
+        window.location.replace("/");
+      }, 86400000); // 24h = 86 400 000 ms
       return () => clearTimeout(timer);
     }
   }, [isAuthenticated, logout]);
 
-  // Vérification régulière si le token existe encore dans le localStorage
+  // 🚨 Vérifie régulièrement la présence du token
   useEffect(() => {
     const interval = setInterval(() => {
       const token = localStorage.getItem("token");
       if (!token && isAuthenticated) {
         console.warn("Token manquant — déconnexion forcée");
         logout();
-        window.location.href = "/";
+        window.location.replace("/");
       }
     }, 2000); // vérifie toutes les 2 secondes
-
     return () => clearInterval(interval);
   }, [isAuthenticated, logout]);
 
