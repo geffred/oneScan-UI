@@ -69,11 +69,7 @@ const Footer = () => (
                 Intégrations
               </a>
             </li>
-            <li>
-              <a href="#" className="footer-link">
-                API
-              </a>
-            </li>
+
             <li>
               <a href="#" className="footer-link">
                 Sécurité
@@ -112,6 +108,15 @@ const Footer = () => (
         <div className="footer-section">
           <h4>Support</h4>
           <ul className="footer-links">
+            <li>
+              <a
+                href="/guide"
+                className="footer-link"
+                style={{ cursor: "pointer" }}
+              >
+                Guide
+              </a>
+            </li>
             <li>
               <a href="#" className="footer-link">
                 Centre d'aide

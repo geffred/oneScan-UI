@@ -23,7 +23,6 @@ export const AuthProvider = ({ children }) => {
       try {
         const decoded = jwtDecode(token);
 
-        // Vérifier si le token n'est pas expiré
         if (decoded.exp * 1000 > Date.now()) {
           setIsAuthenticated(true);
           setUserType(storedUserType);
@@ -43,12 +42,7 @@ export const AuthProvider = ({ children }) => {
           }
           return true;
         } else {
-          // Token expiré - NE PAS nettoyer immédiatement
-          // Laisser l'utilisateur continuer à naviguer
-          // Le backend gérera l'expiration lors des requêtes
           console.warn("Token expiré mais session maintenue");
-
-          // Garder les données de base pour l'UI
           setIsAuthenticated(true);
           setUserType(storedUserType);
 
@@ -64,7 +58,6 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         console.error("Erreur lors du décodage du token:", error);
-        // En cas d'erreur de décodage, nettoyer
         localStorage.removeItem("token");
         localStorage.removeItem("userType");
         return false;
@@ -78,7 +71,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false);
   }, [restoreSession]);
 
-  // Synchronisation entre onglets
+  //  Synchronisation entre onglets
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === "token" || e.key === "userType") {
@@ -86,6 +79,7 @@ export const AuthProvider = ({ children }) => {
           setIsAuthenticated(false);
           setUserType(null);
           setUserData(null);
+          window.location.href = "/"; // redirection immédiate si déconnecté dans un autre onglet
         } else {
           restoreSession();
         }
@@ -128,13 +122,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setIsAuthenticated(false);
     setUserType(null);
     setUserData(null);
     localStorage.removeItem("token");
     localStorage.removeItem("userType");
-  };
+  }, []);
 
   const checkTokenValidity = useCallback(() => {
     const token = localStorage.getItem("token");
@@ -151,6 +145,32 @@ export const AuthProvider = ({ children }) => {
   const refreshSession = useCallback(() => {
     return restoreSession();
   }, [restoreSession]);
+
+  //  Auto-déconnexion après 24 heures (24h = 86 400 000 ms)
+  useEffect(() => {
+    if (isAuthenticated) {
+      const timer = setTimeout(() => {
+        logout();
+        window.location.href = "/";
+      }, 86400000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, logout]);
+
+  // Vérification régulière si le token existe encore dans le localStorage
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const token = localStorage.getItem("token");
+      if (!token && isAuthenticated) {
+        console.warn("Token manquant — déconnexion forcée");
+        logout();
+        window.location.href = "/";
+      }
+    }, 2000); // vérifie toutes les 2 secondes
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, logout]);
 
   const value = {
     isAuthenticated,

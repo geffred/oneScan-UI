@@ -193,7 +193,20 @@ Adresse de facturation : Même adresse`,
       <div className="msl-guide-header">
         <div className="msl-guide-header-content">
           <div className="msl-guide-header-text">
-            <h1 className="msl-guide-title">GUIDE COMPLET MYSMILELAB</h1>
+            <h1 className="msl-guide-title">
+              GUIDE COMPLET{" "}
+              <HashLink
+                smooth
+                to={"/#header"}
+                style={{
+                  textDecoration: "none",
+                  color: "white",
+                  color: "#007AFF",
+                }}
+              >
+                MYSMILELAB
+              </HashLink>
+            </h1>
             <p className="msl-guide-subtitle">Comment passer une commande ?</p>
           </div>
           <div className="msl-guide-header-actions">
