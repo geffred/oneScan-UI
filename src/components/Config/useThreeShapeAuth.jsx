@@ -1,5 +1,5 @@
 // useThreeShapeAuth.js
-import { useState, useCallback, useContext } from "react";
+import { useState, useCallback, useContext, useEffect } from "react";
 import useSWR from "swr";
 import { AuthContext } from "./AuthContext";
 
@@ -23,20 +23,41 @@ export const useThreeShapeAuth = () => {
   const [error, setError] = useState(null);
   const { setAuthData } = useContext(AuthContext);
 
-  // SWR pour le statut d'authentification 3Shape
+  // SWR pour le statut d'authentification 3Shape avec intervalle réduit
   const { data: authStatus, mutate: mutateAuth } = useSWR(
-    `${API_BASE_URL}/auth/status`,
+    `${API_BASE_URL}/threeshape/auth/status`,
     fetcher,
     {
-      refreshInterval: 60000, // Vérifier toutes les minutes
-      onError: (err) => setError(err.message),
-      errorRetryCount: 1,
-      onErrorRetry: () => {}, // Désactiver le retry automatique
+      refreshInterval: 30000, // Vérifier toutes les 30 secondes
+      onError: (err) => {
+        console.error("Erreur SWR:", err);
+        setError(err.message);
+      },
+      errorRetryCount: 3,
+      errorRetryInterval: 5000,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
     }
   );
 
   const isAuthenticated = authStatus?.authenticated || false;
   const hasToken = authStatus?.hasToken || false;
+  const hasRefreshToken = authStatus?.hasRefreshToken || false;
+  const secondsUntilExpiry = authStatus?.secondsUntilExpiry || 0;
+  const autoRefreshEnabled = authStatus?.autoRefreshEnabled !== false;
+
+  // Rafraîchissement automatique quand le token approche de l'expiration
+  useEffect(() => {
+    if (
+      autoRefreshEnabled &&
+      secondsUntilExpiry > 0 &&
+      secondsUntilExpiry < 300
+    ) {
+      // 5 minutes
+      console.log("🔄 Token expire bientôt, rafraîchissement automatique...");
+      refreshToken();
+    }
+  }, [secondsUntilExpiry, autoRefreshEnabled]);
 
   /**
    * Initie le processus d'authentification 3Shape
@@ -158,14 +179,111 @@ export const useThreeShapeAuth = () => {
   );
 
   /**
+   * Rafraîchit le token manuellement
+   */
+  const refreshToken = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token d'authentification manquant");
+      }
+
+      const response = await fetch(`${API_BASE_URL}/threeshape/auth/refresh`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        await mutateAuth();
+        console.log("✅ Token rafraîchi avec succès");
+        return result;
+      } else {
+        throw new Error(result.message || "Erreur lors du rafraîchissement");
+      }
+    } catch (err) {
+      console.error("❌ Erreur rafraîchissement token:", err);
+      setError(err.message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [mutateAuth]);
+
+  /**
+   * Déconnexion de 3Shape
+   */
+  const logout = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token d'authentification manquant");
+      }
+
+      const response = await fetch(`${API_BASE_URL}/threeshape/auth/logout`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        await mutateAuth();
+
+        // Mettre à jour le contexte
+        if (setAuthData) {
+          setAuthData((prev) => ({
+            ...prev,
+            threeshapeAuthenticated: false,
+            threeshapeConnectedAt: null,
+          }));
+        }
+
+        console.log("✅ Déconnexion 3Shape réussie");
+        return result;
+      } else {
+        throw new Error(result.message || "Erreur lors de la déconnexion");
+      }
+    } catch (err) {
+      console.error("❌ Erreur déconnexion:", err);
+      setError(err.message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [mutateAuth, setAuthData]);
+
+  /**
    * Rafraîchit le statut d'authentification
    */
   const refresh = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      // Revalider les données SWR
       await mutateAuth();
     } catch (err) {
       setError(err.message);
@@ -306,7 +424,7 @@ export const useThreeShapeAuth = () => {
       }
 
       const response = await fetch(
-        `${API_BASE_URL}/cases/${caseId}/attachments/${attachmentHash}`,
+        `${API_BASE_URL}/threeshape/files/${caseId}/${attachmentHash}`,
         {
           method: "GET",
           headers: {
@@ -363,22 +481,65 @@ export const useThreeShapeAuth = () => {
       setIsLoading(true);
       setError(null);
 
+      // Vérifier d'abord le statut d'authentification
       await mutateAuth();
 
-      const currentStatus = await mutateAuth();
+      // Tester une requête API simple
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token d'authentification manquant");
+      }
 
-      if (currentStatus?.authenticated && currentStatus?.hasToken) {
-        return { success: true, message: "Connexion 3Shape active" };
+      const response = await fetch(`${API_BASE_URL}/connections`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        return {
+          success: true,
+          message: "Connexion 3Shape active et fonctionnelle",
+        };
       } else {
-        return { success: false, message: "Connexion 3Shape inactive" };
+        throw new Error(`Erreur API: ${response.status}`);
       }
     } catch (err) {
       setError(err.message);
-      return { success: false, message: err.message };
+      return {
+        success: false,
+        message: err.message,
+        error: err.message,
+      };
     } finally {
       setIsLoading(false);
     }
   }, [mutateAuth]);
+
+  /**
+   * Vérifie si le token est sur le point d'expirer
+   */
+  const isTokenExpiringSoon = useCallback(() => {
+    return secondsUntilExpiry > 0 && secondsUntilExpiry < 600; // 10 minutes
+  }, [secondsUntilExpiry]);
+
+  /**
+   * Formatte le temps restant avant expiration
+   */
+  const formatTimeUntilExpiry = useCallback(() => {
+    if (secondsUntilExpiry <= 0) return "Expiré";
+
+    const minutes = Math.floor(secondsUntilExpiry / 60);
+    const seconds = secondsUntilExpiry % 60;
+
+    if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  }, [secondsUntilExpiry]);
 
   /**
    * Efface les erreurs
@@ -394,11 +555,20 @@ export const useThreeShapeAuth = () => {
     error,
     isAuthenticated,
     hasToken,
+    hasRefreshToken,
+    secondsUntilExpiry,
+    autoRefreshEnabled,
+
+    // États calculés
+    isTokenExpiringSoon: isTokenExpiringSoon(),
+    timeUntilExpiryFormatted: formatTimeUntilExpiry(),
 
     // Méthodes d'authentification
     initiateAuth,
     handleCallback,
     refresh,
+    refreshToken,
+    logout,
     testConnection,
 
     // Méthodes API
@@ -409,6 +579,8 @@ export const useThreeShapeAuth = () => {
 
     // Utilitaires
     clearError,
+    formatTimeUntilExpiry,
+    isTokenExpiringSoon,
   };
 };
 
