@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = (type, cabinetData = null, token) => {
     if (!token) {
-      console.error("Token manquant lors de la connexion");
+      console.error("Token manquant lors de la connexion ");
       return;
     }
 
