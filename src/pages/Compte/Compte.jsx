@@ -49,7 +49,7 @@ const Compte = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate("/login");
+      navigate("/");
       return;
     }
 

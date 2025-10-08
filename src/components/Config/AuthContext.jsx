@@ -176,7 +176,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [isAuthenticated, logout]);
 
-  // 🚨 Vérifie régulièrement la présence du token
+  //  Vérifie régulièrement la présence du token
   useEffect(() => {
     const interval = setInterval(() => {
       const token = localStorage.getItem("token");
