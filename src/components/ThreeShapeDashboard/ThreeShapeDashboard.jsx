@@ -1,4 +1,4 @@
-// ThreeShapeDashboard.js
+// ThreeShapeDashboard.js - Nouveau composant
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import useSWR from "swr";
 import {
@@ -15,8 +15,6 @@ import {
   Server,
   Info,
   Clock,
-  Shield,
-  Zap,
 } from "lucide-react";
 import useThreeShapeAuth from "../../components/Config/useThreeShapeAuth";
 import "./ThreeShapeDashboard.css";
@@ -48,15 +46,9 @@ const ThreeShapeDashboard = () => {
     error,
     isAuthenticated,
     hasToken,
-    hasRefreshToken,
-    secondsUntilExpiry,
-    autoRefreshEnabled,
-    isTokenExpiringSoon,
-    timeUntilExpiryFormatted,
     initiateAuth,
     logout,
     refresh,
-    refreshToken,
     clearError,
     testConnection,
   } = useThreeShapeAuth();
@@ -64,53 +56,117 @@ const ThreeShapeDashboard = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
-  const [isRefreshingToken, setIsRefreshingToken] = useState(false);
+  const [nextRefresh, setNextRefresh] = useState(null);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const refreshIntervalRef = useRef(null);
+
+  // SWR pour les données de statut
+  const { data: authData, mutate: mutateAuth } = useSWR(
+    `${API_BASE_URL}/threeshape/auth/status`,
+    fetcher,
+    {
+      refreshInterval: STATUS_CHECK_INTERVAL,
+      revalidateOnFocus: true,
+    }
+  );
+
+  const mergedAuthStatus = authData || authStatus;
+
+  // Gestion du rafraîchissement automatique
+  const scheduleAutoRefresh = useCallback(() => {
+    if (refreshIntervalRef.current) {
+      clearTimeout(refreshIntervalRef.current);
+    }
+
+    if (autoRefreshEnabled && isAuthenticated) {
+      refreshIntervalRef.current = setTimeout(async () => {
+        try {
+          console.log("🔄 Rafraîchissement automatique du token...");
+          await handleRefresh();
+        } catch (err) {
+          console.error("❌ Erreur lors du rafraîchissement automatique:", err);
+        }
+      }, AUTO_REFRESH_INTERVAL);
+
+      // Calcul des dates pour l'affichage
+      setLastRefresh(new Date());
+      setNextRefresh(new Date(Date.now() + AUTO_REFRESH_INTERVAL));
+    }
+  }, [autoRefreshEnabled, isAuthenticated]);
+
+  // Effet pour gérer le rafraîchissement automatique
+  useEffect(() => {
+    if (isAuthenticated && autoRefreshEnabled) {
+      scheduleAutoRefresh();
+    }
+
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearTimeout(refreshIntervalRef.current);
+      }
+    };
+  }, [isAuthenticated, autoRefreshEnabled, scheduleAutoRefresh]);
+
+  // Réinitialiser le timer quand l'authentification change
+  useEffect(() => {
+    if (!isAuthenticated) {
+      if (refreshIntervalRef.current) {
+        clearTimeout(refreshIntervalRef.current);
+      }
+      setLastRefresh(null);
+      setNextRefresh(null);
+    }
+  }, [isAuthenticated]);
 
   // Handlers
   const handleConnect = useCallback(async () => {
     try {
       await initiateAuth();
+      mutateAuth();
+      setAutoRefreshEnabled(true);
     } catch (err) {
       console.error("Erreur connexion:", err);
     }
-  }, [initiateAuth]);
+  }, [initiateAuth, mutateAuth]);
 
   const handleDisconnect = useCallback(async () => {
     if (
       window.confirm("Êtes-vous sûr de vouloir vous déconnecter de 3Shape ?")
     ) {
       try {
+        if (refreshIntervalRef.current) {
+          clearTimeout(refreshIntervalRef.current);
+        }
         await logout();
+        mutateAuth(undefined, { revalidate: false });
         setTestResult(null);
         setLastRefresh(null);
+        setNextRefresh(null);
       } catch (err) {
         console.error("Erreur déconnexion:", err);
       }
     }
-  }, [logout]);
+  }, [logout, mutateAuth]);
 
   const handleRefresh = useCallback(async () => {
     try {
       console.log("🔄 Lancement du rafraîchissement manuel...");
       await refresh();
+      mutateAuth();
       setLastRefresh(new Date());
-      console.log("Statut rafraîchi avec succès");
-    } catch (err) {
-      console.error(" Erreur rafraîchissement:", err);
-    }
-  }, [refresh]);
 
-  const handleRefreshToken = useCallback(async () => {
-    try {
-      setIsRefreshingToken(true);
-      await refreshToken();
-      setLastRefresh(new Date());
+      // Rescheduler le prochain rafraîchissement automatique
+      if (autoRefreshEnabled) {
+        scheduleAutoRefresh();
+      }
+
+      console.log("✅ Token rafraîchi avec succès");
     } catch (err) {
-      console.error(" Erreur rafraîchissement token:", err);
-    } finally {
-      setIsRefreshingToken(false);
+      console.error("❌ Erreur rafraîchissement:", err);
+      // En cas d'erreur, on désactive le rafraîchissement auto
+      setAutoRefreshEnabled(false);
     }
-  }, [refreshToken]);
+  }, [refresh, mutateAuth, autoRefreshEnabled, scheduleAutoRefresh]);
 
   const handleTestConnection = useCallback(async () => {
     try {
@@ -125,6 +181,17 @@ const ThreeShapeDashboard = () => {
     }
   }, [testConnection]);
 
+  const toggleAutoRefresh = useCallback(() => {
+    const newState = !autoRefreshEnabled;
+    setAutoRefreshEnabled(newState);
+
+    if (newState && isAuthenticated) {
+      scheduleAutoRefresh();
+    } else if (refreshIntervalRef.current) {
+      clearTimeout(refreshIntervalRef.current);
+    }
+  }, [autoRefreshEnabled, isAuthenticated, scheduleAutoRefresh]);
+
   const formatDate = (dateString) => {
     if (!dateString) return "Non disponible";
     return new Date(dateString).toLocaleString("fr-FR", {
@@ -133,7 +200,22 @@ const ThreeShapeDashboard = () => {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      second: "2-digit",
     });
+  };
+
+  const formatTimeRemaining = (dateString) => {
+    if (!dateString) return "N/A";
+    const now = new Date();
+    const target = new Date(dateString);
+    const diff = target - now;
+
+    if (diff <= 0) return "Maintenant";
+
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    return `${minutes}m ${seconds}s`;
   };
 
   // Composants internes
@@ -153,23 +235,12 @@ const ThreeShapeDashboard = () => {
           <CheckCircle size={20} />
           <div className="status-details">
             <span>Connecté à 3Shape</span>
-            <div className="status-subdetails">
-              {hasToken && <span className="token-status">Token actif</span>}
-              {secondsUntilExpiry > 0 && (
-                <span
-                  className={`expiry-status ${
-                    isTokenExpiringSoon ? "warning" : "normal"
-                  }`}
-                >
-                  Expire dans: {timeUntilExpiryFormatted}
-                </span>
-              )}
-              {lastRefresh && (
-                <span className="refresh-info">
-                  Rafraîchi: {formatDate(lastRefresh)}
-                </span>
-              )}
-            </div>
+            {hasToken && <span className="token-status">Token actif</span>}
+            {lastRefresh && (
+              <span className="refresh-info">
+                Rafraîchi: {formatDate(lastRefresh)}
+              </span>
+            )}
           </div>
         </div>
       );
@@ -183,87 +254,69 @@ const ThreeShapeDashboard = () => {
     );
   };
 
-  const TokenStatusCard = () => {
+  const AutoRefreshCard = () => {
     if (!isAuthenticated) return null;
 
     return (
       <div className="threeshape-dashboard-card">
         <div className="card-header">
-          <Shield size={20} />
-          <h3>Statut du Token</h3>
+          <Clock size={20} />
+          <h3>Rafraîchissement Automatique</h3>
         </div>
         <div className="card-content">
-          <div className="token-details">
-            <div className="token-field">
-              <label>Token d'accès :</label>
+          <div className="auto-refresh-section">
+            <div className="auto-refresh-toggle">
+              <label className="toggle-label">
+                <input
+                  type="checkbox"
+                  checked={autoRefreshEnabled}
+                  onChange={toggleAutoRefresh}
+                  className="toggle-input"
+                />
+                <span className="toggle-slider"></span>
+                <span className="toggle-text">
+                  Rafraîchissement automatique
+                </span>
+              </label>
               <span
-                className={`status-badge ${
-                  hasToken ? "has-token" : "no-token"
+                className={`toggle-status ${
+                  autoRefreshEnabled ? "enabled" : "disabled"
                 }`}
               >
-                {hasToken ? "✅ Présent" : " Absent"}
+                {autoRefreshEnabled ? "Activé" : "Désactivé"}
               </span>
             </div>
-            <div className="token-field">
-              <label>Refresh Token :</label>
-              <span
-                className={`status-badge ${
-                  hasRefreshToken ? "has-token" : "no-token"
-                }`}
-              >
-                {hasRefreshToken ? "✅ Présent" : " Absent"}
-              </span>
-            </div>
-            <div className="token-field">
-              <label>Temps restant :</label>
-              <span
-                className={`status-badge ${
-                  isTokenExpiringSoon ? "expiring" : "valid"
-                }`}
-              >
-                {timeUntilExpiryFormatted}
-              </span>
-            </div>
-            <div className="token-field">
-              <label>Rafraîchissement auto :</label>
-              <span
-                className={`status-badge ${
-                  autoRefreshEnabled ? "auto-enabled" : "auto-disabled"
-                }`}
-              >
-                {autoRefreshEnabled ? "✅ Activé" : " Désactivé"}
-              </span>
-            </div>
-          </div>
 
-          {isTokenExpiringSoon && (
-            <div className="token-warning">
-              <AlertCircle size={16} />
-              <span>
-                Le token expire bientôt. Rafraîchissement automatique en
-                cours...
-              </span>
-            </div>
-          )}
+            {autoRefreshEnabled && (
+              <div className="refresh-timers">
+                <div className="timer-item">
+                  <span className="timer-label">Dernier rafraîchissement:</span>
+                  <span className="timer-value">
+                    {lastRefresh ? formatDate(lastRefresh) : "En attente..."}
+                  </span>
+                </div>
+                <div className="timer-item">
+                  <span className="timer-label">
+                    Prochain rafraîchissement:
+                  </span>
+                  <span className="timer-value countdown">
+                    {nextRefresh
+                      ? formatTimeRemaining(nextRefresh)
+                      : "Calcul..."}
+                  </span>
+                </div>
+              </div>
+            )}
 
-          <div className="token-actions">
-            <button
-              onClick={handleRefreshToken}
-              disabled={isRefreshingToken || !hasRefreshToken}
-              className="threeshape-btn secondary small"
-            >
-              {isRefreshingToken ? (
-                <>
-                  <RefreshCw className="animate-spin" size={16} />
-                  Rafraîchissement...
-                </>
-              ) : (
-                <>
-                  <Zap size={16} />
-                  Rafraîchir le token
-                </>
-              )}
-            </button>
+            <div className="refresh-actions">
+              <button
+                onClick={handleRefresh}
+                className="threeshape-btn secondary small"
+              >
+                <RefreshCw size={16} />
+                Rafraîchir maintenant
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -280,29 +333,33 @@ const ThreeShapeDashboard = () => {
         <div className="card-content">
           <div className="auth-details">
             <div className="auth-field">
-              <label>Authentification :</label>
+              <label>État :</label>
               <span
                 className={`status-badge ${
                   isAuthenticated ? "authenticated" : "not-authenticated"
                 }`}
               >
-                {isAuthenticated ? " Authentifié" : " Non authentifié"}
+                {isAuthenticated ? "Authentifié" : "Non authentifié"}
               </span>
             </div>
             <div className="auth-field">
-              <label>Dernière vérification :</label>
-              <span className="status-value">
-                {lastRefresh ? formatDate(lastRefresh) : "Jamais"}
-              </span>
-            </div>
-            <div className="auth-field">
-              <label>Refresh Token :</label>
+              <label>Token :</label>
               <span
                 className={`status-badge ${
-                  hasRefreshToken ? "has-token" : "no-token"
+                  hasToken ? "has-token" : "no-token"
                 }`}
               >
-                {hasRefreshToken ? " Disponible" : " Indisponible"}
+                {hasToken ? "Présent" : "Absent"}
+              </span>
+            </div>
+            <div className="auth-field">
+              <label>Rafraîchissement auto :</label>
+              <span
+                className={`status-badge ${
+                  autoRefreshEnabled ? "auto-enabled" : "auto-disabled"
+                }`}
+              >
+                {autoRefreshEnabled ? "Activé" : "Désactivé"}
               </span>
             </div>
           </div>
@@ -351,8 +408,8 @@ const ThreeShapeDashboard = () => {
                 )}
                 <span>
                   {testResult.success
-                    ? testResult.message || "Connexion API réussie"
-                    : `Erreur: ${testResult.error || testResult.message}`}
+                    ? "Connexion API réussie"
+                    : `Erreur: ${testResult.error}`}
                 </span>
               </div>
             )}
@@ -380,25 +437,13 @@ const ThreeShapeDashboard = () => {
               Se connecter à 3Shape
             </button>
           ) : (
-            <div className="action-buttons-grid">
+            <>
               <button
                 onClick={handleRefresh}
                 className="threeshape-btn secondary"
               >
                 <RefreshCw size={18} />
-                Actualiser le statut
-              </button>
-              <button
-                onClick={handleRefreshToken}
-                disabled={isRefreshingToken || !hasRefreshToken}
-                className="threeshape-btn secondary"
-              >
-                {isRefreshingToken ? (
-                  <RefreshCw className="animate-spin" size={18} />
-                ) : (
-                  <Zap size={18} />
-                )}
-                Rafraîchir le token
+                Rafraîchir maintenant
               </button>
               <button
                 onClick={handleDisconnect}
@@ -407,7 +452,7 @@ const ThreeShapeDashboard = () => {
                 <LogOut size={18} />
                 Déconnexion
               </button>
-            </div>
+            </>
           )}
         </div>
       </div>
@@ -426,21 +471,21 @@ const ThreeShapeDashboard = () => {
         <div className="card-content">
           <div className="stats-grid">
             <div className="stat-item">
-              <div className="stat-value">{isAuthenticated ? "ok" : "x"}</div>
-              <div className="stat-label">Authentifié</div>
+              <div className="stat-value">✓</div>
+              <div className="stat-label">Connecté</div>
             </div>
             <div className="stat-item">
-              <div className="stat-value">{hasToken ? "ok" : "x"}</div>
+              <div className="stat-value">{hasToken ? "✓" : "✗"}</div>
               <div className="stat-label">Token</div>
             </div>
             <div className="stat-item">
-              <div className="stat-value">{hasRefreshToken ? "ok" : "x"}</div>
-              <div className="stat-label">Refresh</div>
+              <div className="stat-value">
+                {testResult?.success ? "✓" : "..."}
+              </div>
+              <div className="stat-label">API</div>
             </div>
             <div className="stat-item">
-              <div className="stat-value">
-                {autoRefreshEnabled ? "ok" : "x"}
-              </div>
+              <div className="stat-value">{autoRefreshEnabled ? "✓" : "✗"}</div>
               <div className="stat-label">Auto Refresh</div>
             </div>
           </div>
@@ -457,8 +502,7 @@ const ThreeShapeDashboard = () => {
           <div>
             <h1>Tableau de bord 3Shape</h1>
             <p className="header-subtitle">
-              Gestion de la connexion OAuth et prévention des déconnexions
-              automatiques
+              Gestion de la connexion OAuth et des données
             </p>
           </div>
         </div>
@@ -478,7 +522,7 @@ const ThreeShapeDashboard = () => {
       <div className="dashboard-content">
         <div className="dashboard-grid">
           <AuthStatusCard />
-          <TokenStatusCard />
+          <AutoRefreshCard />
           <TestConnectionCard />
           <StatsCard />
           <ActionsCard />
@@ -490,8 +534,8 @@ const ThreeShapeDashboard = () => {
           <div className="footer-info">
             <Info size={16} />
             <span>
-              Système de rafraîchissement automatique activé - Le token sera
-              rafraîchi automatiquement avant expiration
+              Connexion OAuth 2.0 sécurisée - Rafraîchissement automatique
+              toutes les 15 minutes
             </span>
           </div>
         </div>
