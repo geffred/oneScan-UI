@@ -21,18 +21,6 @@ import GuideCommande from "./GuideCommande/GuideCommande";
 function App() {
   return (
     <div className="app">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Homepage />}>

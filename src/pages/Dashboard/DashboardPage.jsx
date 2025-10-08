@@ -78,6 +78,18 @@ const DashboardPage = () => {
     <>
       <div className="dashboardpage-app-container">
         {/* Container Toastify pour les notifications */}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
 
         <Navbar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 

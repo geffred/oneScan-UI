@@ -1,5 +1,7 @@
+/* GuideCommande.css - Classes uniques MSL Guide */
+
 /* Container Principal */
-.guide-container {
+.msl-guide-container {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
   background: #f8fafc;
@@ -7,7 +9,7 @@
 }
 
 /* Header */
-.guide-header {
+.msl-guide-header {
   background: #1e293b;
   color: white;
   padding: 60px 20px;
@@ -15,7 +17,7 @@
   overflow: hidden;
 }
 
-.header-content {
+.msl-guide-header-content {
   max-width: 900px;
   margin: 0 auto;
   display: flex;
@@ -25,32 +27,32 @@
   gap: 20px;
 }
 
-.header-text {
+.msl-guide-header-text {
   flex: 1;
   min-width: 300px;
 }
 
-.guide-title {
+.msl-guide-title {
   font-size: 2.5rem;
   font-weight: 800;
   margin: 0 0 10px 0;
   color: white;
 }
 
-.guide-subtitle {
+.msl-guide-subtitle {
   font-size: 1.1rem;
   opacity: 0.9;
   margin: 0;
   font-weight: 400;
 }
 
-.header-actions {
+.msl-guide-header-actions {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
 }
 
-.pdf-button, .print-button {
+.msl-guide-pdf-button, .msl-guide-print-button {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -64,35 +66,35 @@
   transition: all 0.2s ease;
 }
 
-.pdf-button:hover, .print-button:hover {
+.msl-guide-pdf-button:hover, .msl-guide-print-button:hover {
   background: #4b5563;
   border-color: #6b7280;
 }
 
-.decoration {
+.msl-guide-decoration {
   display: flex;
   justify-content: center;
   gap: 8px;
   margin-top: 30px;
 }
 
-.dot {
+.msl-guide-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: #94a3b8;
 }
 
-.dot:nth-child(2) {
+.msl-guide-dot:nth-child(2) {
   opacity: 0.7;
 }
 
-.dot:nth-child(3) {
+.msl-guide-dot:nth-child(3) {
   opacity: 0.4;
 }
 
 /* Content */
-.guide-content {
+.msl-guide-content {
   max-width: 900px;
   margin: 0 auto;
   padding: 60px 20px;
@@ -101,7 +103,7 @@
 
 
 /* Introduction */
-.guide-intro {
+.msl-guide-intro {
   background: white;
   border-radius: 12px;
   padding: 40px;
@@ -109,14 +111,14 @@
   border: 1px solid #e2e8f0;
 }
 
-.intro-content h2 {
+.msl-guide-intro-content h2 {
   font-size: 1.6rem;
   color: #1e293b;
   margin: 0 0 15px 0;
   font-weight: 700;
 }
 
-.intro-content > p {
+.msl-guide-intro-content > p {
   color: #64748b;
   font-size: 1.05rem;
   margin: 0 0 25px 0;
@@ -124,9 +126,30 @@
 }
 
 
+/* Container des étapes */
+.msl-guide-steps-container {
+  margin-bottom: 60px;
+}
+
+.msl-guide-steps-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.msl-guide-steps-title {
+  font-size: 2.2rem;
+  color: #1e293b;
+  margin: 0 0 10px 0;
+}
+
+.msl-guide-steps-subtitle {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin: 0;
+}
 
 /* Step Card */
-.step-card {
+.msl-guide-step-card {
   background: white;
   border-radius: 12px;
   padding: 35px;
@@ -135,17 +158,17 @@
   transition: box-shadow 0.2s ease;
 }
 
-.step-card:hover {
+.msl-guide-step-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.step-header {
+.msl-guide-step-header {
   display: flex;
   align-items: flex-start;
   gap: 20px;
 }
 
-.step-number-container {
+.msl-guide-step-number-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -153,7 +176,7 @@
   flex-shrink: 0;
 }
 
-.steps-container .step-number {
+.msl-guide-step-number {
   width: 45px;
   height: 45px;
   border-radius: 50%;
@@ -167,22 +190,22 @@
   box-shadow: none;
 }
 
-.step-icon {
+.msl-guide-step-icon {
   color: #64748b;
 }
 
-.step-header-content {
+.msl-guide-step-header-content {
   flex: 1;
 }
 
-.step-title {
+.msl-guide-step-title {
   font-size: 1.4rem;
   font-weight: 700;
   color: #1e293b;
   margin: 0 0 8px 0;
 }
 
-.step-summary {
+.msl-guide-step-summary {
   color: #64748b;
   font-size: 1rem;
   margin: 0;
@@ -190,19 +213,19 @@
 }
 
 /* Step Details */
-.step-details {
+.msl-guide-step-details {
   margin-top: 25px;
   padding-left: 65px;
 }
 
-.step-description {
+.msl-guide-step-description {
   color: #475569;
   margin-bottom: 20px;
   font-size: 1.05rem;
   line-height: 1.7;
 }
 
-.step-important {
+.msl-guide-step-important {
   color: #1e293b;
   font-weight: 600;
   font-size: 1.1rem;
@@ -210,11 +233,11 @@
 }
 
 /* Main Points */
-.main-points {
+.msl-guide-main-points {
   margin-bottom: 25px;
 }
 
-.main-point-card {
+.msl-guide-main-point-card {
   background: #f8fafc;
   padding: 20px;
   border-radius: 8px;
@@ -222,7 +245,7 @@
   border: 1px solid #e2e8f0;
 }
 
-.main-point-header {
+.msl-guide-main-point-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -231,12 +254,12 @@
   gap: 10px;
 }
 
-.main-point-header strong {
+.msl-guide-main-point-header strong {
   color: #1e293b;
   font-size: 1.1rem;
 }
 
-.priority-badge {
+.msl-guide-priority-badge {
   background: #1e293b;
   color: white;
   padding: 6px 12px;
@@ -247,26 +270,26 @@
   letter-spacing: 0.5px;
 }
 
-.main-point-card p {
+.msl-guide-main-point-card p {
   color: #475569;
   margin: 0;
   line-height: 1.6;
 }
 
 /* Secondary Points */
-.secondary-points-title {
+.msl-guide-secondary-points-title {
   color: #64748b;
   font-size: 0.95rem;
   margin: 20px 0 12px 0;
   font-style: italic;
 }
 
-.secondary-points-list {
+.msl-guide-secondary-points-list {
   margin: 15px 0;
   padding-left: 20px;
 }
 
-.secondary-points-list li {
+.msl-guide-secondary-points-list li {
   margin-bottom: 8px;
   color: #475569;
   font-size: 1rem;
@@ -274,7 +297,7 @@
 }
 
 /* Delivery Note */
-.delivery-note {
+.msl-guide-delivery-note {
   background: #fefce8;
   border: 1px solid #fef08a;
   border-radius: 8px;
@@ -285,17 +308,17 @@
   line-height: 1.5;
 }
 
-.delivery-note strong {
+.msl-guide-delivery-note strong {
   color: #854d0e;
 }
 
 /* Points List */
-.points-list {
+.msl-guide-points-list {
   margin: 20px 0;
   padding-left: 20px;
 }
 
-.points-list li {
+.msl-guide-points-list li {
   margin-bottom: 12px;
   color: #475569;
   font-size: 1.05rem;
@@ -303,7 +326,7 @@
 }
 
 /* Example Box */
-.example-box {
+.msl-guide-example-box {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -311,70 +334,81 @@
   margin-top: 25px;
 }
 
+.msl-guide-example-title {
+  color: #007AFF;
+  font-size: 1.1rem;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
 
-
+.msl-guide-example-text {
+  color: #475569;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+  font-family: inherit;
+  line-height: 1.7;
+  margin: 0;
+}
 
 /* Process Info */
-.process-info {
+.msl-guide-process-info {
   color: #475569;
   font-size: 1rem;
-  margin-top: 20px;
-  padding: 15px;
+  margin-top: 15px;
+  padding: 12px;
   background: #f8fafc;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  line-height: 1.6;
 }
 
 /* Note Boxes */
-.note-box {
+.msl-guide-note-box {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 18px;
+  padding: 16px;
   border-radius: 8px;
-  margin-top: 25px;
+  margin-top: 20px;
   font-size: 0.95rem;
   line-height: 1.5;
-  border: 1px solid;
 }
 
-.note-info {
+.msl-guide-note-info {
   background: #eff6ff;
-  border-color: #bfdbfe;
+  border: 2px solid #93c5fd;
   color: #1e40af;
 }
 
-.note-warning {
+.msl-guide-note-warning {
   background: #fffbeb;
-  border-color: #fed7aa;
+  border: 2px solid #fcd34d;
   color: #92400e;
 }
 
-.note-error {
+.msl-guide-note-error {
   background: #fef2f2;
-  border-color: #fecaca;
-  color: #991b1b;
+  border: 2px solid #fecaca;
+  color: #b91c1c;
 }
 
-.note-success {
+.msl-guide-note-success {
   background: #f0fdf4;
-  border-color: #bbf7d0;
+  border: 2px solid #86efac;
   color: #166534;
 }
 
-.note-box svg {
+.msl-guide-note-box svg {
   flex-shrink: 0;
   margin-top: 2px;
 }
 
-.note-box span {
+.msl-guide-note-box span {
   flex: 1;
 }
 
 
-/* Reminder Section */
-.reminder-section {
+
+/* Section de rappel */
+.msl-guide-reminder-section {
   background: white;
   border-radius: 12px;
   padding: 35px;
@@ -382,7 +416,7 @@
   border: 1px solid #e2e8f0;
 }
 
-.reminder-section h4 {
+.msl-guide-reminder-title {
   font-size: 1.3rem;
   color: #1e293b;
   margin: 0 0 25px 0;
@@ -390,13 +424,13 @@
   text-align: center;
 }
 
-.reminder-grid {
+.msl-guide-reminder-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
 }
 
-.reminder-item {
+.msl-guide-reminder-item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -404,18 +438,18 @@
   font-size: 0.95rem;
 }
 
-.reminder-item span {
+.msl-guide-reminder-item span {
   line-height: 1.5;
 }
 
 /* Footer */
-.guide-footer {
+.msl-guide-footer {
   background: #1e293b;
   padding: 40px 20px;
   color: #cbd5e1;
 }
 
-.footer-content {
+.msl-guide-footer-content {
   max-width: 900px;
   margin: 0 auto;
   display: flex;
@@ -425,120 +459,120 @@
   gap: 20px;
 }
 
-.footer-logo {
+.msl-guide-footer-logo {
   display: flex;
   flex-direction: column;
 }
 
-.footer-logo strong {
+.msl-guide-footer-logo strong {
   color: white;
   font-size: 1.2rem;
   margin-bottom: 5px;
 }
 
-.footer-logo span {
+.msl-guide-footer-logo span {
   font-size: 0.9rem;
   color: #94a3b8;
 }
 
-.footer-info {
+.msl-guide-footer-info {
   text-align: right;
 }
 
-.footer-info p {
+.msl-guide-footer-info p {
   margin: 0 0 5px 0;
   font-size: 0.9rem;
 }
 
-.footer-info p:last-child {
+.msl-guide-footer-info p:last-child {
   margin-bottom: 0;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .guide-header {
+  .msl-guide-header {
     padding: 40px 20px;
   }
   
-  .guide-title {
+  .msl-guide-title {
     font-size: 2rem;
   }
   
-  .header-content {
+  .msl-guide-header-content {
     flex-direction: column;
     text-align: center;
   }
   
-  .header-actions {
+  .msl-guide-header-actions {
     justify-content: center;
   }
   
-  .guide-content {
+  .msl-guide-content {
     padding: 40px 15px;
   }
   
-  .step-card {
+  .msl-guide-step-card {
     padding: 25px 20px;
   }
   
-  .step-details {
+  .msl-guide-step-details {
     padding-left: 0;
     margin-top: 20px;
   }
   
-  .step-header {
+  .msl-guide-step-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
   }
   
-  .step-number-container {
+  .msl-guide-step-number-container {
     flex-direction: row;
     gap: 15px;
   }
   
-  .main-point-header {
+  .msl-guide-main-point-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
   }
   
-  .contact-grid {
+  .msl-guide-contact-grid {
     grid-template-columns: 1fr;
   }
   
-  .footer-content {
+  .msl-guide-footer-content {
     flex-direction: column;
     text-align: center;
   }
   
-  .footer-info {
+  .msl-guide-footer-info {
     text-align: center;
   }
   
-  .intro-features {
+  .msl-guide-intro-features {
     flex-direction: column;
     gap: 15px;
   }
 }
 
 @media print {
-  .guide-container {
+  .msl-guide-container {
     background: white;
   }
   
-  .guide-header {
+  .msl-guide-header {
     background: #1e293b !important;
     -webkit-print-color-adjust: exact;
   }
   
-  .step-card {
+  .msl-guide-step-card {
     box-shadow: none;
     border: 1px solid #e2e8f0;
     page-break-inside: avoid;
   }
   
-  .header-actions {
+  .msl-guide-header-actions {
     display: none;
   }
 }
