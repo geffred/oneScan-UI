@@ -78,7 +78,7 @@ const CompteCabinet = () => {
 
   useEffect(() => {
     // Vérifier l'authentification
-    if (userType !== "cabinet") {
+    if (!isAuthenticated || userType !== "cabinet") {
       navigate("/");
       return;
     }
@@ -219,7 +219,7 @@ const CompteCabinet = () => {
   // Gestion de la déconnexion
   const handleLogout = () => {
     logout();
-    navigate("/");
+    navigate("/login");
   };
 
   // Composant pour l'affichage d'une commande
