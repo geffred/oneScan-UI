@@ -21,6 +21,7 @@ import CommandeHeader from "./CommandeHeader";
 import CommandeInfoGrid from "./CommandeInfoGrid";
 import CommandeActions from "./CommandeActions";
 import { EmailService } from "./EmailService";
+import { ToastContainer } from "react-toastify";
 
 import "./CommandeDetails.css";
 
@@ -628,6 +629,18 @@ const CommandeDetails = () => {
 
   return (
     <LayoutWrapper>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <div className="details-main-container">
         <CommandeHeader
           commande={commande}
