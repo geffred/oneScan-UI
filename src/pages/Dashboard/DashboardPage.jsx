@@ -89,6 +89,7 @@ const DashboardPage = () => {
           draggable
           pauseOnHover
           theme="light"
+          style={{ zIndex: "100 !important" }}
         />
 
         <Navbar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
