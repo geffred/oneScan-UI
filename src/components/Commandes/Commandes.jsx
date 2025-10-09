@@ -562,7 +562,7 @@ const Commandes = () => {
         }));
 
         // Notification Toastify pour erreur
-        toast.error("❌ Erreur lors de la synchronisation MeditLink", {
+        toast.error(" Erreur lors de la synchronisation MeditLink", {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -695,7 +695,7 @@ const Commandes = () => {
           }));
 
           // Notification Toastify pour erreur
-          toast.error(`❌ Erreur lors de la synchronisation ${platformName}`, {
+          toast.error(`Erreur lors de la synchronisation ${platformName}`, {
             position: "top-right",
             autoClose: 5000,
             hideProgressBar: false,

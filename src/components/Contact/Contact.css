@@ -206,13 +206,6 @@
   font-weight: 500;
 }
 
-.contact-input:focus,
-.contact-select:focus {
-  outline: none;
-  border-color: #007AFF;
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-  background: #fafbfc;
-}
 
 .contact-textarea {
   width: 100%;
@@ -228,12 +221,6 @@
   font-family: inherit;
 }
 
-.contact-textarea:focus {
-  outline: none;
-  border-color: #007AFF;
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-  background: #fafbfc;
-}
 
 .contact-error {
   color: #ef4444;
@@ -246,7 +233,7 @@
 .contact-submit-btn {
   width: 100%;
   padding: 1.25rem 2rem;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF ;
   color: white;
   border: none;
   border-radius: 12px;
@@ -375,30 +362,8 @@
   }
 }
 
-/* Focus states pour l'accessibilité */
-.contact-input:focus,
-.contact-select:focus,
-.contact-textarea:focus,
-.contact-submit-btn:focus {
-  outline: 2px solid #007AFF;
-  outline-offset: 2px;
-}
 
-/* Animation d'entrée */
-.contact-section {
-  animation: fadeInUp 0.8s ease-out;
-}
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 
 

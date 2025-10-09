@@ -18,6 +18,10 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
 
+  const EMAILJS_SERVICE_ID = "service_ag5llz9";
+  const EMAILJS_TEMPLATE_ID = "template_3qv5owv";
+  const EMAILJS_PUBLIC_KEY = "rfexuIcDBNIIdOsf2";
+
   const validationSchema = Yup.object({
     firstName: Yup.string()
       .min(2, "Le prénom doit contenir au moins 2 caractères")
@@ -55,14 +59,14 @@ const Contact = () => {
         phone: values.phone || "Non spécifié",
         subject: values.subject,
         message: values.message,
-        to_email: "contact@mysmilelab.com", // Remplacez par votre email
+        to_email: "contact@smilelabortho.be", // Remplacez par votre email
       };
 
       await emailjs.send(
-        "YOUR_SERVICE_ID", // Remplacez par votre Service ID
-        "YOUR_TEMPLATE_ID", // Remplacez par votre Template ID
+        EMAILJS_SERVICE_ID, // Remplacez par votre Service ID
+        "template_iivosnl", // Remplacez par votre Template ID
         templateParams,
-        "YOUR_PUBLIC_KEY" // Remplacez par votre Public Key
+        EMAILJS_PUBLIC_KEY // Remplacez par votre Public Key
       );
 
       setSubmitStatus("success");
@@ -106,7 +110,7 @@ const Contact = () => {
                     <Mail className="contact-detail-icon" />
                     <div>
                       <strong>Email</strong>
-                      <p>contact@mysmilelab.com</p>
+                      <p>contact@smilelabortho.be</p>
                     </div>
                   </div>
 
@@ -287,6 +291,7 @@ const Contact = () => {
                               Demande d'information{" "}
                             </option>
                             <option value="partnership">Partenariat</option>
+                            <option value="partnership">Stage/Job</option>
                             <option value="other">Autre</option>
                           </Field>
                         </div>

@@ -1,13 +1,13 @@
 .simple-map-container {
   background: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(22, 22, 22, 0.1);
   overflow: hidden;
 }
 
 .map-header {
   padding: 1.5rem;
-background: #000000 ;
-  color: white;
+  background: #ffffff ;
+  color: rgb(0, 0, 0);
   text-align: center;
 }
 
@@ -50,7 +50,7 @@ background: #000000 ;
   font-weight: 600;
   transition: all 0.3s ease;
   margin-top: 25px;
-  border: 1px solid white;
+  border: 1px solid rgb(0, 0, 0);
 }
 
 .action-btn:hover {
@@ -58,14 +58,11 @@ background: #000000 ;
   color: white ;
   border-color: white;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .simple-map-container {
-    margin: 1rem 0;
-  }
+
   
   .map-wrapper {
     height: 300px;

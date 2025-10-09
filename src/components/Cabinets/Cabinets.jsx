@@ -22,6 +22,9 @@ import { useNavigate } from "react-router-dom";
 import "./Cabinets.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const EMAILJS_PUBLIC_KEY = "rfexuIcDBNIIdOsf2";
+
+emailjs.init(EMAILJS_PUBLIC_KEY);
 
 // Schema de validation
 const validationSchema = Yup.object({
@@ -48,8 +51,8 @@ const validationSchema = Yup.object({
 });
 
 // Configuration EmailJS
-const EMAILJS_SERVICE_ID = "service_4vb03zc";
-const EMAILJS_TEMPLATE_ID = "template_mrp5omy";
+const EMAILJS_SERVICE_ID = "service_ag5llz9";
+const EMAILJS_TEMPLATE_ID = "template_7846xp8";
 
 // Fonction de fetch pour SWR
 const fetchWithAuth = async (url) => {
