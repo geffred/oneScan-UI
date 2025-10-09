@@ -707,12 +707,12 @@ const CommandeInfoGrid = ({
         <div className="details-card-content">
           <div className="details-item">
             <span className="details-item-label">ID externe :</span>
-            <span className="details-external-id">#{commande.externalId}</span>
+            <span className="details-external-id">{commande.externalId}</span>
           </div>
 
           <div className="details-item">
             <span className="details-item-label">Numéro de suivi :</span>
-            <span className="details-external-id">#{commande.numeroSuivi}</span>
+            <span className="details-external-id">{commande.numeroSuivi}</span>
           </div>
 
           <div className="details-item">
