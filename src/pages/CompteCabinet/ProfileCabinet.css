@@ -1,0 +1,264 @@
+/* ProfileCabinet.css - Styles pour le composant de profil */
+
+/* Actions des onglets */
+.profile-cabinet-tab-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.profile-cabinet-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #007AFF;
+  color: var(--white);
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.profile-cabinet-edit-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Form Styling */
+.profile-cabinet-form {
+  width: 100%;
+}
+
+.profile-cabinet-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.profile-cabinet-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profile-cabinet-label {
+  font-weight: 600;
+  color: var(--gray-600);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.profile-cabinet-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.profile-cabinet-input-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--gray-400);
+  z-index: 1;
+}
+
+.profile-cabinet-input {
+  width: 100%;
+  padding: 1.25rem 1rem 1.25rem 3rem;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: var(--white);
+  font-weight: 500;
+}
+
+.profile-cabinet-input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  background: #fafbfc;
+}
+
+.profile-cabinet-input:disabled {
+  background: var(--gray-50);
+  color: var(--gray-500);
+  cursor: not-allowed;
+  border-color: var(--gray-200);
+}
+
+.profile-cabinet-disabled {
+  background: var(--gray-100) !important;
+  border-color: var(--gray-300) !important;
+}
+
+.profile-cabinet-error {
+  color: var(--danger-red);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+.profile-cabinet-info {
+  color: var(--gray-500);
+  font-size: 0.875rem;
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+/* Password Fields */
+.profile-cabinet-password-toggle {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--gray-400);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.profile-cabinet-password-toggle:hover {
+  color: var(--primary-blue);
+  background: rgba(0, 122, 255, 0.1);
+}
+
+/* Laboratory Info Section */
+.profile-cabinet-lab-info {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, rgba(0, 86, 204, 0.02) 100%);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 122, 255, 0.1);
+  margin-top: 1rem;
+}
+
+.profile-cabinet-lab-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--secondary-blue);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-cabinet-lab-details {
+  color: #003d82;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.profile-cabinet-lab-note {
+  color: var(--primary-blue);
+  font-size: 0.9rem;
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+}
+
+/* Form Actions */
+.profile-cabinet-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.profile-cabinet-cancel-btn {
+  padding: 1rem 2rem;
+  background: var(--gray-50);
+  color: var(--gray-500);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.profile-cabinet-cancel-btn:hover {
+  background: var(--gray-200);
+  border-color: var(--gray-300);
+}
+
+.profile-cabinet-save-btn {
+  padding: 1rem 2rem;
+  background:#007AFF;
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-cabinet-save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.profile-cabinet-save-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Loading States */
+.profile-cabinet-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profile-cabinet-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid var(--white);
+  border-radius: 50%;
+  animation: profile-cabinet-spinner-rotation 1s linear infinite;
+}
+
+@keyframes profile-cabinet-spinner-rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-cabinet-form-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .profile-cabinet-actions {
+    flex-direction: column;
+  }
+
+  .profile-cabinet-cancel-btn,
+  .profile-cabinet-save-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-cabinet-input {
+    padding: 1rem 1rem 1rem 2.5rem;
+  }
+
+  .profile-cabinet-input-icon {
+    left: 0.75rem;
+  }
+
+  .profile-cabinet-lab-info {
+    padding: 1.5rem;
+  }
+}

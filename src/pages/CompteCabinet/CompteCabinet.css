@@ -1,4 +1,4 @@
-/* CompteCabinet.css - Styles uniformisés pour les cabinets dentaires */
+/* CompteCabinet.css - Styles pour le composant principal */
 
 /* Variables CSS pour la cohérence */
 :root {
@@ -48,7 +48,6 @@
   left: 0;
   right: 0;
   bottom: 0;
-
 }
 
 .compte-cabinet-content-container {
@@ -106,24 +105,6 @@
 }
 
 /* Buttons */
-.compte-cabinet-edit-profile-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #007AFF;
-  color: var(--white);
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.compte-cabinet-edit-profile-btn:hover {
-  transform: translateY(-2px);
-}
-
 .compte-cabinet-logout-btn {
   display: flex;
   align-items: center;
@@ -192,27 +173,10 @@
   background: rgba(255, 255, 255, 0.95);
   color: var(--primary-blue);
   border: 1px solid rgba(0, 122, 255, 0.3);
-  
 }
 
 .compte-cabinet-tab.active::before {
   opacity: 0;
-}
-
-.compte-cabinet-tab .badge {
-  background: rgba(239, 68, 68, 0.9);
-  color: white;
-  font-size: 0.75rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: 12px;
-  margin-left: 0.25rem;
-}
-
-/* Actions des onglets */
-.compte-cabinet-tab-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1.5rem;
 }
 
 /* Messages de notification */
@@ -236,203 +200,7 @@
   border-left: 4px solid var(--primary-blue);
 }
 
-/* Form Styling */
-.compte-cabinet-profile-form {
-  width: 100%;
-}
-
-.compte-cabinet-form-fields-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
-.compte-cabinet-input-field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.compte-cabinet-field-label {
-  font-weight: 600;
-  color: var(--gray-600);
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.compte-cabinet-input-field-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.compte-cabinet-input-field-icon {
-  position: absolute;
-  left: 1rem;
-  color: var(--gray-400);
-  z-index: 1;
-}
-
-.compte-cabinet-text-input-field {
-  width: 100%;
-  padding: 1.25rem 1rem 1.25rem 3rem;
-  border: 2px solid var(--gray-200);
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background: var(--white);
-  font-weight: 500;
-}
-
-.compte-cabinet-text-input-field:focus {
-  outline: none;
-  border-color: var(--primary-blue);
-
-  background: #fafbfc;
-}
-
-.compte-cabinet-text-input-field:disabled {
-  background: var(--gray-50);
-  color: var(--gray-500);
-  cursor: not-allowed;
-  border-color: var(--gray-200);
-}
-
-.compte-cabinet-disabled-field {
-  background: var(--gray-100) !important;
-  border-color: var(--gray-300) !important;
-}
-
-.compte-cabinet-field-error-message {
-  color: var(--danger-red);
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-top: 0.25rem;
-}
-
-.compte-cabinet-field-info {
-  color: var(--gray-500);
-  font-size: 0.875rem;
-  font-style: italic;
-  margin-top: 0.25rem;
-}
-
-/* Password Fields */
-.compte-cabinet-password-visibility-toggle {
-  position: absolute;
-  right: 1rem;
-  background: none;
-  border: none;
-  color: var(--gray-400);
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: var(--radius-sm);
-  transition: all 0.3s ease;
-  z-index: 1;
-}
-
-.compte-cabinet-password-visibility-toggle:hover {
-  color: var(--primary-blue);
-  background: rgba(0, 122, 255, 0.1);
-}
-
-/* Laboratory Info Section */
-.compte-cabinet-lab-info {
-  grid-column: 1 / -1;
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, rgba(0, 86, 204, 0.02) 100%);
-  padding: 2rem;
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(0, 122, 255, 0.1);
-  margin-top: 1rem;
-}
-
-.compte-cabinet-lab-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--secondary-blue);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.compte-cabinet-lab-details {
-  color: #003d82;
-  font-size: 0.95rem;
-  margin-bottom: 0.5rem;
-}
-
-.compte-cabinet-lab-note {
-  color: var(--primary-blue);
-  font-size: 0.9rem;
-  font-style: italic;
-  background: rgba(255, 255, 255, 0.7);
-  padding: 0.75rem;
-  border-radius: var(--radius-sm);
-
-}
-
-/* Form Actions */
-.compte-cabinet-form-action-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--gray-200);
-}
-
-.compte-cabinet-cancel-changes-btn {
-  padding: 1rem 2rem;
-  background: var(--gray-50);
-  color: var(--gray-500);
-  border: 2px solid var(--gray-200);
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.compte-cabinet-cancel-changes-btn:hover {
-  background: var(--gray-200);
-  border-color: var(--gray-300);
-}
-
-.compte-cabinet-save-changes-btn {
-  padding: 1rem 2rem;
-  background:#007AFF;
-  color: var(--white);
-  border: none;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  
-}
-
-.compte-cabinet-save-changes-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-
-}
-
-.compte-cabinet-save-changes-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
-
 /* Loading States */
-.compte-cabinet-loading-spinner-container {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
 .compte-cabinet-loading-spinner {
   width: 20px;
   height: 20px;
@@ -471,273 +239,6 @@
   font-weight: 500;
 }
 
-/* Section Commandes */
-.compte-cabinet-commandes-section {
-  width: 100%;
-}
-
-.compte-cabinet-commandes-header {
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.compte-cabinet-commandes-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--primary-blue);
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.compte-cabinet-commandes-subtitle {
-  color: var(--gray-500);
-  font-size: 1.1rem;
-  font-weight: 500;
-}
-
-/* État de chargement */
-.compte-cabinet-commandes-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
-  gap: 1rem;
-}
-
-.compte-cabinet-commandes-loading p {
-  color: var(--gray-500);
-  font-size: 1.1rem;
-  font-weight: 500;
-}
-
-.compte-cabinet-commandes-loading .compte-cabinet-loading-spinner {
-  border: 2px solid rgba(0, 122, 255, 0.3);
-  border-top: 2px solid var(--primary-blue);
-  width: 30px;
-  height: 30px;
-}
-
-/* État vide */
-.compte-cabinet-commandes-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
-  gap: 1rem;
-  background: linear-gradient(135deg, rgba(148, 163, 184, 0.05) 0%, rgba(148, 163, 184, 0.02) 100%);
-  border-radius: var(--radius-lg);
-  border: 2px dashed var(--gray-300);
-}
-
-.compte-cabinet-commandes-empty h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--gray-600);
-  margin: 0;
-}
-
-.compte-cabinet-commandes-empty p {
-  color: var(--gray-500);
-  font-size: 1rem;
-  max-width: 400px;
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* Grille des commandes */
-.compte-cabinet-commandes-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Carte de commande */
-.compte-cabinet-commande-card {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-
-  border: 1px solid var(--gray-200);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-
-.compte-cabinet-commande-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(0, 122, 255, 0.2);
-}
-
-/* En-tête de la commande */
-.compte-cabinet-commande-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
-  gap: 1rem;
-}
-
-.compte-cabinet-commande-info {
-  flex: 1;
-}
-
-.compte-cabinet-commande-ref {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--gray-800);
-  margin: 0 0 0.25rem 0;
-  line-height: 1.2;
-}
-
-.compte-cabinet-commande-plateforme {
-  color: var(--primary-blue);
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Statut de la commande */
-.compte-cabinet-commande-statut {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  border: 1px solid transparent;
-  transition: all 0.3s ease;
-}
-
-/* Classes de statut */
-.compte-cabinet-commande-statut.en-attente {
-  background: #fffbeb;
-  color: var(--warning-orange);
-  border-color: #fcd34d;
-}
-
-.compte-cabinet-commande-statut.en-cours {
-  background: var(--light-blue);
-  color: #1d4ed8;
-  border-color: #93c5fd;
-}
-
-.compte-cabinet-commande-statut.termine {
-  background: #f0fdf4;
-  color: var(--success-green);
-  border-color: #86efac;
-}
-
-.compte-cabinet-commande-statut.livre {
-  background: #faf5ff;
-  color: var(--purple);
-  border-color: #c4b5fd;
-}
-
-.compte-cabinet-commande-statut.annule {
-  background: #fef2f2;
-  color: var(--danger-red);
-  border-color: #fca5a5;
-}
-
-/* Détails de la commande */
-.compte-cabinet-commande-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.compte-cabinet-commande-detail {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--gray-500);
-  font-size: 0.9rem;
-  font-weight: 500;
-  min-width: 0;
-}
-
-.compte-cabinet-commande-detail svg {
-  flex-shrink: 0;
-  color: var(--gray-400);
-}
-
-.compte-cabinet-commande-detail span {
-  min-width: 0;
-}
-
-/* Description et commentaires */
-.compte-cabinet-commande-description {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, rgba(0, 122, 255, 0.02) 100%);
-  border-radius: var(--radius-md);
-}
-
-.compte-cabinet-commande-description p {
-  margin: 0;
-  color: var(--gray-600);
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.compte-cabinet-commande-commentaire {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: linear-gradient(135deg, rgba(255, 159, 10, 0.05) 0%, rgba(255, 159, 10, 0.02) 100%);
-  border-radius: var(--radius-md);
-  
-}
-
-.compte-cabinet-commande-commentaire p {
-  margin: 0;
-  color: var(--gray-600);
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.compte-cabinet-commande-commentaire strong {
-  color: var(--warning-orange);
-  font-weight: 600;
-}
-
-/* Footer */
-.compte-cabinet-footer {
-  margin-top: 2rem;
-  padding: 2rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.compte-cabinet-footer-content {
-  text-align: center;
-}
-
-.compte-cabinet-footer-text {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
-}
-
-.compte-cabinet-footer-text label {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .compte-cabinet-main-wrapper {
@@ -763,20 +264,6 @@
     font-size: 2rem;
   }
 
-  .compte-cabinet-form-fields-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .compte-cabinet-form-action-buttons {
-    flex-direction: column;
-  }
-
-  .compte-cabinet-cancel-changes-btn,
-  .compte-cabinet-save-changes-btn {
-    width: 100%;
-  }
-
   .compte-cabinet-tabs {
     flex-direction: column;
     gap: 0.5rem;
@@ -785,31 +272,6 @@
   .compte-cabinet-tab {
     justify-content: center;
     text-align: center;
-  }
-
-  .compte-cabinet-commande-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .compte-cabinet-commande-statut {
-    align-self: flex-start;
-  }
-
-  .compte-cabinet-commande-details {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .compte-cabinet-commandes-title {
-    font-size: 1.75rem;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .compte-cabinet-commandes-subtitle {
-    font-size: 1rem;
   }
 }
 
@@ -823,51 +285,9 @@
     font-size: 1.75rem;
   }
 
-  .compte-cabinet-text-input-field {
-    padding: 1rem 1rem 1rem 2.5rem;
-  }
-
-  .compte-cabinet-input-field-icon {
-    left: 0.75rem;
-  }
-
   .compte-cabinet-header-actions {
     flex-direction: column;
     gap: 0.5rem;
-  }
-
-  .compte-cabinet-lab-info {
-    padding: 1.5rem;
-  }
-
-  .compte-cabinet-commande-card {
-    padding: 1rem;
-    border-radius: var(--radius-md);
-  }
-
-  .compte-cabinet-commande-ref {
-    font-size: 1.1rem;
-  }
-
-  .compte-cabinet-commande-statut {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-  }
-
-  .compte-cabinet-commande-detail {
-    font-size: 0.85rem;
-  }
-
-  .compte-cabinet-commandes-empty {
-    padding: 3rem 1rem;
-  }
-
-  .compte-cabinet-commandes-empty h3 {
-    font-size: 1.25rem;
-  }
-
-  .compte-cabinet-commandes-loading {
-    padding: 3rem 1rem;
   }
 
   .compte-cabinet-tab {
@@ -878,30 +298,5 @@
   .compte-cabinet-tab svg {
     width: 16px;
     height: 16px;
-  }
-}
-
-/* États de focus pour l'accessibilité */
-.compte-cabinet-commande-card:focus-within {
-  outline: 2px solid var(--primary-blue);
-  outline-offset: 2px;
-}
-
-.compte-cabinet-tab:focus-visible {
-  outline: 2px solid var(--primary-blue);
-  outline-offset: 2px;
-}
-
-/* Réduction des animations pour les préférences utilisateur */
-@media (prefers-reduced-motion: reduce) {
-  .compte-cabinet-commande-card,
-  .compte-cabinet-edit-profile-btn,
-  .compte-cabinet-save-changes-btn,
-  .compte-cabinet-tab {
-    transition: none;
-  }
-  
-  .compte-cabinet-loading-spinner {
-    animation-duration: 2s;
   }
 }
