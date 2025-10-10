@@ -71,22 +71,36 @@ const LoginPage = () => {
       }
 
       const data = await response.json();
+      console.log("✅ Connexion réussie, données:", data);
 
       // Vérifier la présence du token
       if (!data.token) {
         throw new Error("Token manquant dans la réponse du serveur");
       }
 
+      let loginSuccess = false;
       if (loginType === "laboratoire") {
-        login("laboratoire", null, data.token);
-        navigate("/dashboard/platform");
+        loginSuccess = login("laboratoire", null, data.token);
+        if (loginSuccess) {
+          setTimeout(() => {
+            navigate("/dashboard/platform");
+          }, 100);
+        }
       } else {
         // Pour les cabinets, passer aussi les données cabinet
-        login("cabinet", data.cabinet, data.token);
-        navigate("/compte/cabinet");
+        loginSuccess = login("cabinet", data.cabinet, data.token);
+        if (loginSuccess) {
+          setTimeout(() => {
+            navigate("/compte/cabinet");
+          }, 100);
+        }
+      }
+
+      if (!loginSuccess) {
+        throw new Error("Erreur lors de l'initialisation de la session");
       }
     } catch (error) {
-      console.error("Erreur lors de la connexion:", error);
+      console.error("❌ Erreur lors de la connexion:", error);
       setFieldError("email", error.message);
     } finally {
       setIsLoading(false);

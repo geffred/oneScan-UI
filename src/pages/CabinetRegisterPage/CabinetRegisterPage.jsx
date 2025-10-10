@@ -104,12 +104,26 @@ const CabinetRegisterPage = () => {
       }
 
       const data = await response.json();
+      console.log("✅ Inscription réussie, données:", data);
+
+      // Vérifier que le token est présent
+      if (!data.token) {
+        throw new Error("Token manquant dans la réponse du serveur");
+      }
 
       // Connecter automatiquement le cabinet après l'inscription
-      login("cabinet", data.cabinet);
+      const loginSuccess = login("cabinet", data.cabinet, data.token);
 
-      navigate("/compte/cabinet");
+      if (loginSuccess) {
+        // Petit délai pour laisser le contexte se mettre à jour
+        setTimeout(() => {
+          navigate("/compte/cabinet");
+        }, 100);
+      } else {
+        throw new Error("Erreur lors de la connexion automatique");
+      }
     } catch (error) {
+      console.error("❌ Erreur inscription:", error);
       if (error.message.includes("email")) {
         setFieldError("email", "Cette adresse email est déjà utilisée");
       } else {
@@ -120,7 +134,6 @@ const CabinetRegisterPage = () => {
       setSubmitting(false);
     }
   };
-
   return (
     <>
       <Header />
