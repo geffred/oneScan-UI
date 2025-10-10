@@ -72,7 +72,7 @@ const getAppareils = async () => fetchPublic("/appareils");
 const AppareilCard = React.memo(({ appareil, onViewDetails }) => {
   const thumbnailImage =
     appareil.images && appareil.images.length > 0
-      ? `${API_BASE_URL}/images/${appareil.images[0].imagePath}`
+      ? appareil.images[0].imagePath
       : null;
 
   const categoryLabel =
@@ -260,7 +260,7 @@ const ImageViewer = React.memo(
               }}
             >
               <img
-                src={`${API_BASE_URL}/images/${currentImage.imagePath}`}
+                src={currentImage.imagePath}
                 alt={`${currentImageIndex + 1}`}
                 loading="eager"
                 style={{
@@ -341,7 +341,7 @@ const ImageViewer = React.memo(
             {images.map((image, index) => (
               <img
                 key={image.id}
-                src={`${API_BASE_URL}/images/${image.imagePath}`}
+                src={image.imagePath}
                 alt={`Thumbnail ${index + 1}`}
                 loading="lazy"
                 className={`appareil-detail-thumbnail ${

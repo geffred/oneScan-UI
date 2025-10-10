@@ -270,15 +270,22 @@ const ImageManagementModal = React.memo(
     };
 
     const handleUpload = async () => {
-      if (selectedFiles.length === 0) return;
+      if (selectedFiles.length === 0) {
+        toast.warning("Veuillez sélectionner au moins une image");
+        return;
+      }
 
       setIsUploading(true);
       try {
         const token = localStorage.getItem("token");
-        const formData = new FormData();
 
         if (selectedFiles.length === 1) {
+          // Upload d'une seule image
+          const formData = new FormData();
           formData.append("file", selectedFiles[0]);
+
+          console.log("📤 Upload d'une seule image:", selectedFiles[0].name);
+
           const response = await fetch(
             `${API_BASE_URL}/images/upload/${appareil.id}`,
             {
@@ -290,11 +297,26 @@ const ImageManagementModal = React.memo(
             }
           );
 
-          if (!response.ok) throw new Error("Erreur lors de l'upload");
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "Erreur lors de l'upload");
+          }
+
+          const result = await response.json();
+          console.log("✅ Image uploadée:", result);
+          toast.success("Image uploadée avec succès sur Cloudinary");
         } else {
-          selectedFiles.forEach((file) => {
+          // Upload de plusieurs images
+          const formData = new FormData();
+
+          // ✅ FIX: Utiliser "files" (pluriel) comme nom de paramètre
+          selectedFiles.forEach((file, index) => {
             formData.append("files", file);
+            console.log(`📤 Ajout fichier ${index + 1}:`, file.name);
           });
+
+          console.log("📤 Upload de", selectedFiles.length, "images");
+
           const response = await fetch(
             `${API_BASE_URL}/images/upload-multiple/${appareil.id}`,
             {
@@ -306,32 +328,62 @@ const ImageManagementModal = React.memo(
             }
           );
 
-          if (!response.ok) throw new Error("Erreur lors de l'upload multiple");
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("❌ Erreur upload multiple:", errorText);
+            throw new Error(errorText || "Erreur lors de l'upload multiple");
+          }
+
+          const result = await response.json();
+          console.log("✅ Images uploadées:", result);
+          toast.success(
+            `${selectedFiles.length} images uploadées avec succès sur Cloudinary`
+          );
         }
 
-        toast.success("Images uploadées avec succès");
+        // Réinitialiser et recharger
         setSelectedFiles([]);
-        loadImages(); // Recharger les images
+        await loadImages(); // Recharger les images
         onImagesUpdate(); // Notifier le parent
       } catch (error) {
-        toast.error("Erreur lors de l'upload des images");
+        console.error("❌ Erreur upload:", error);
+        toast.error(error.message || "Erreur lors de l'upload des images");
       } finally {
         setIsUploading(false);
       }
     };
 
-    const handleDeleteImage = async (imageId, imagePath) => {
-      if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette image ?")) {
+    const handleDeleteImage = async (imageId, imageUrl) => {
+      if (
+        !window.confirm(
+          "Êtes-vous sûr de vouloir supprimer cette image de Cloudinary ?"
+        )
+      ) {
         return;
       }
 
       try {
-        await deleteImage(imageId);
-        toast.success("Image supprimée avec succès");
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${API_BASE_URL}/images/${imageId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || "Erreur lors de la suppression");
+        }
+
+        toast.success("Image supprimée de Cloudinary avec succès");
         setImages(images.filter((img) => img.id !== imageId)); // Mettre à jour l'état local
         onImagesUpdate(); // Notifier le parent
       } catch (error) {
-        toast.error("Erreur lors de la suppression de l'image");
+        console.error("Erreur suppression:", error);
+        toast.error(
+          error.message || "Erreur lors de la suppression de l'image"
+        );
       }
     };
 
@@ -360,13 +412,16 @@ const ImageManagementModal = React.memo(
                 />
                 <Upload size={32} />
                 <p>Sélectionnez une ou plusieurs images</p>
+                <small style={{ color: "#666", marginTop: "8px" }}>
+                  Les images seront uploadées sur Cloudinary
+                </small>
               </div>
               {selectedFiles.length > 0 && (
                 <div className="appareil-selected-files">
                   <h4>Fichiers sélectionnés :</h4>
                   {selectedFiles.map((file, index) => (
                     <div key={index} className="appareil-selected-file">
-                      {file.name}
+                      {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
                     </div>
                   ))}
                 </div>
@@ -378,7 +433,9 @@ const ImageManagementModal = React.memo(
                     disabled={isUploading}
                     className="appareil-save-btn"
                   >
-                    {isUploading ? "Upload en cours..." : "Uploader les images"}
+                    {isUploading
+                      ? "Upload en cours..."
+                      : "Uploader sur Cloudinary"}
                   </button>
                 </div>
               )}
@@ -386,7 +443,7 @@ const ImageManagementModal = React.memo(
 
             {/* Section Images existantes */}
             <div className="appareil-existing-images-section">
-              <h3>Images existantes ({images.length})</h3>
+              <h3>Images existantes sur Cloudinary ({images.length})</h3>
 
               {isLoadingImages ? (
                 <div className="appareil-images-loading">
@@ -403,12 +460,18 @@ const ImageManagementModal = React.memo(
                   {images.map((image) => (
                     <div key={image.id} className="appareil-image-item">
                       <div className="appareil-image-container">
+                        {/* ✅ FIX: Utiliser directement imagePath (URL Cloudinary) */}
                         <img
-                          src={`${API_BASE_URL}/images/${image.imagePath}`}
+                          src={image.imagePath}
                           alt={`Image de ${appareil?.nom}`}
                           className="appareil-image-preview"
                           onError={(e) => {
-                            e.target.src = "/placeholder-image.jpg";
+                            console.error(
+                              "Erreur chargement image:",
+                              image.imagePath
+                            );
+                            e.target.src =
+                              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23ddd' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999'%3EErreur%3C/text%3E%3C/svg%3E";
                           }}
                         />
                         <button
@@ -416,15 +479,21 @@ const ImageManagementModal = React.memo(
                             handleDeleteImage(image.id, image.imagePath)
                           }
                           className="appareil-image-delete-btn"
-                          title="Supprimer l'image"
+                          title="Supprimer de Cloudinary"
                         >
                           <Trash2 size={16} />
                         </button>
                       </div>
                       <div className="appareil-image-info">
-                        <span className="appareil-image-name">
-                          {image.imagePath}
+                        <span
+                          className="appareil-image-name"
+                          title={image.imagePath}
+                        >
+                          {image.imagePath.split("/").pop().substring(0, 30)}...
                         </span>
+                        <small style={{ color: "#666", fontSize: "11px" }}>
+                          ID: {image.id}
+                        </small>
                       </div>
                     </div>
                   ))}
