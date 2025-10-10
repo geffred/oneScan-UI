@@ -1,4 +1,4 @@
-import { Users, Package, LogOut } from "lucide-react";
+import { Users, Package, LogOut, PlusCircle } from "lucide-react";
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../components/Config/AuthContext";
@@ -7,6 +7,7 @@ import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import ProfileCabinet from "./ProfileCabinet";
 import CommandesCabinet from "./CommandesCabinet";
+import PasserCommande from "./PasserCommande";
 import { cabinetApi, apiGet } from "../../components/Config/apiUtils";
 import "./CompteCabinet.css";
 
@@ -44,6 +45,7 @@ const CompteCabinet = () => {
     data: commandes,
     error: commandesError,
     isLoading: loadingCommandes,
+    mutate: mutateCommandes,
   } = useSWR(cabinetData?.id ? `/public/commandes` : null, fetcher, {
     revalidateOnFocus: false,
     revalidateInterval: 30000,
@@ -91,6 +93,19 @@ const CompteCabinet = () => {
   const handleSuccess = (successMessage) => {
     setSuccess(successMessage);
     setTimeout(() => setSuccess(null), 3000);
+  };
+
+  // Callback après création d'une commande
+  const handleCommandeCreated = () => {
+    // Recharger les commandes
+    mutateCommandes();
+    // Afficher un message de succès
+    setSuccess("Commande créée avec succès !");
+    setTimeout(() => setSuccess(null), 3000);
+    // Changer d'onglet pour voir les commandes
+    setTimeout(() => {
+      setActiveTab("commandes");
+    }, 1500);
   };
 
   if (loadingProfile || !cabinetData) {
@@ -150,6 +165,15 @@ const CompteCabinet = () => {
               </button>
               <button
                 className={`compte-cabinet-tab ${
+                  activeTab === "nouvelle-commande" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("nouvelle-commande")}
+              >
+                <PlusCircle size={18} />
+                Nouvelle Commande
+              </button>
+              <button
+                className={`compte-cabinet-tab ${
                   activeTab === "commandes" ? "active" : ""
                 }`}
                 onClick={() => setActiveTab("commandes")}
@@ -164,6 +188,15 @@ const CompteCabinet = () => {
               <ProfileCabinet
                 cabinetData={cabinetData}
                 onUpdate={handleProfileUpdate}
+                onError={handleError}
+                onSuccess={handleSuccess}
+              />
+            )}
+
+            {activeTab === "nouvelle-commande" && (
+              <PasserCommande
+                cabinetData={cabinetData}
+                onCommandeCreated={handleCommandeCreated}
                 onError={handleError}
                 onSuccess={handleSuccess}
               />

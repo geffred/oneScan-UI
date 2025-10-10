@@ -82,6 +82,126 @@ const fetchThreeShapeOrderData = async (externalId) => {
   return response.json();
 };
 
+// Composant pour télécharger les fichiers MySmileLab
+const MySmileLabFileDownloadButton = React.memo(
+  ({ fileUrl, fileName, publicId, disabled, isLoading }) => {
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    const downloadMySmileLabFile = async (fileUrl, fileName) => {
+      console.log(`📥 Début du téléchargement MySmileLab: ${fileName}`);
+
+      try {
+        const response = await fetch(fileUrl);
+
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+
+        if (blob.size === 0) {
+          throw new Error("Le fichier téléchargé est vide (0 bytes)");
+        }
+
+        // Déterminer le nom de fichier final
+        let downloadFilename = fileName;
+
+        // Vérifier l'extension du fichier
+        if (
+          !downloadFilename.toLowerCase().endsWith(".stl") &&
+          !downloadFilename.toLowerCase().endsWith(".zip")
+        ) {
+          // Essayer d'extraire l'extension de l'URL ou utiliser .stl par défaut
+          const urlExtension = fileUrl.split(".").pop().toLowerCase();
+          if (urlExtension === "stl" || urlExtension === "zip") {
+            downloadFilename =
+              downloadFilename.replace(/\.[^/.]+$/, "") + "." + urlExtension;
+          } else {
+            downloadFilename =
+              downloadFilename.replace(/\.[^/.]+$/, "") + ".stl";
+          }
+        }
+
+        console.log(`💾 Nom de fichier final: ${downloadFilename}`);
+
+        // Déclencher le téléchargement
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = downloadFilename;
+
+        document.body.appendChild(a);
+        a.click();
+
+        // Nettoyer
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }, 100);
+
+        console.log("✅ Téléchargement MySmileLab terminé avec succès");
+        return blob;
+      } catch (error) {
+        console.error(
+          "❌ Erreur détaillée lors du téléchargement MySmileLab:",
+          error
+        );
+        throw error;
+      }
+    };
+
+    const handleDownload = async () => {
+      if (!fileUrl || disabled) return;
+
+      setIsDownloading(true);
+      try {
+        await downloadMySmileLabFile(fileUrl, fileName);
+        console.log(`✅ Fichier MySmileLab ${fileName} téléchargé avec succès`);
+      } catch (error) {
+        console.error(
+          `❌ Erreur lors du téléchargement du fichier MySmileLab ${fileName}:`,
+          error
+        );
+      } finally {
+        setIsDownloading(false);
+      }
+    };
+
+    const getFileTypeFromName = (filename) => {
+      if (filename.toLowerCase().endsWith(".stl")) return "Fichier STL";
+      if (filename.toLowerCase().endsWith(".zip")) return "Archive ZIP";
+      return "Fichier 3D";
+    };
+
+    const formatFileSize = (bytes) => {
+      if (!bytes || bytes === 0) return "Taille inconnue";
+      const k = 1024;
+      const sizes = ["B", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    };
+
+    return (
+      <button
+        className="details-scan-download-btn mysmilelab-file-btn"
+        onClick={handleDownload}
+        disabled={disabled || isLoading || isDownloading}
+        title={`Télécharger ${fileName} - ${getFileTypeFromName(fileName)}`}
+      >
+        <Download size={16} />
+        <div className="file-info">
+          <span className="file-name">{fileName}</span>
+          <span className="file-details">{getFileTypeFromName(fileName)}</span>
+        </div>
+        {isDownloading && (
+          <div className="details-download-spinner-small"></div>
+        )}
+      </button>
+    );
+  }
+);
+
 const MeditLinkFileDownloadButton = React.memo(
   ({ file, externalId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -458,6 +578,7 @@ const CommandeInfoGrid = ({
 
   const isThreeShape = commande && commande.plateforme === "THREESHAPE";
   const isMeditLink = commande && commande.plateforme === "MEDITLINK";
+  const isMySmileLab = commande && commande.plateforme === "MYSMILELAB";
 
   // Fonction pour récupérer les fichiers MeditLink
   const fetchMeditLinkFiles = async () => {
@@ -562,6 +683,48 @@ const CommandeInfoGrid = ({
     console.log("🔄 Rechargement des fichiers demandé");
     setFileLoadKey((prev) => prev + 1);
   };
+
+  // Fonction pour extraire les fichiers MySmileLab de la commande
+  const getMySmileLabFiles = () => {
+    if (
+      !isMySmileLab ||
+      !commande.fichierUrls ||
+      !Array.isArray(commande.fichierUrls)
+    ) {
+      return [];
+    }
+
+    return commande.fichierUrls.map((fileUrl, index) => {
+      // Extraire le nom de fichier de l'URL ou utiliser un nom par défaut
+      let fileName = `fichier-${index + 1}`;
+      try {
+        const urlParts = fileUrl.split("/");
+        fileName = urlParts[urlParts.length - 1];
+        // Nettoyer le nom de fichier (supprimer les paramètres d'URL)
+        fileName = fileName.split("?")[0];
+      } catch (error) {
+        console.warn(
+          "Impossible d'extraire le nom de fichier de l'URL:",
+          fileUrl
+        );
+      }
+
+      // Récupérer le publicId correspondant s'il existe
+      const publicId =
+        commande.fichierPublicIds && Array.isArray(commande.fichierPublicIds)
+          ? commande.fichierPublicIds[index]
+          : null;
+
+      return {
+        url: fileUrl,
+        name: fileName,
+        publicId: publicId,
+        index: index,
+      };
+    });
+  };
+
+  const mySmileLabFiles = getMySmileLabFiles();
 
   return (
     <div className="details-info-grid">
@@ -805,6 +968,35 @@ const CommandeInfoGrid = ({
                         Aucun fichier 3D disponible
                       </span>
                     )}
+              </div>
+            </div>
+          )}
+
+          {/* Affichage des fichiers MySmileLab */}
+          {isMySmileLab && (
+            <div className="details-item">
+              <span className="details-item-label">
+                Fichiers 3D disponibles :
+                {mySmileLabFiles.length > 0 &&
+                  ` (${mySmileLabFiles.length} fichier(s))`}
+              </span>
+              <div className="details-scans-container mysmilelab-files-container">
+                {mySmileLabFiles.length > 0 ? (
+                  mySmileLabFiles.map((file) => (
+                    <MySmileLabFileDownloadButton
+                      key={file.index}
+                      fileUrl={file.url}
+                      fileName={file.name}
+                      publicId={file.publicId}
+                      disabled={false}
+                      isLoading={false}
+                    />
+                  ))
+                ) : (
+                  <span className="no-files-message">
+                    Aucun fichier 3D disponible pour cette commande
+                  </span>
+                )}
               </div>
             </div>
           )}
