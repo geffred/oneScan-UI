@@ -22,56 +22,57 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     const storedUserType = localStorage.getItem("userType");
 
+    console.log(
+      "🔍 Restauration session - Token:",
+      token,
+      "UserType:",
+      storedUserType
+    );
+
     if (token && storedUserType) {
       try {
         const decoded = jwtDecode(token);
+        console.log("🔍 Token décodé:", decoded);
 
-        if (decoded.exp * 1000 > Date.now()) {
-          setIsAuthenticated(true);
-          setUserType(storedUserType);
+        // Même si le token est expiré, on maintient la session pour l'UX
+        // La vérification de validité se fera au niveau des appels API
+        setIsAuthenticated(true);
+        setUserType(storedUserType);
 
-          if (storedUserType === "laboratoire") {
-            setUserData({
-              email: decoded.sub,
-              role: "laboratoire",
-            });
-          } else if (storedUserType === "cabinet") {
-            setUserData({
-              id: decoded.cabinetId,
-              email: decoded.sub,
-              nom: decoded.cabinetNom,
-              role: "cabinet",
-            });
-          }
-          return true;
-        } else {
-          console.warn("Token expiré mais session maintenue");
-          setIsAuthenticated(true);
-          setUserType(storedUserType);
-
-          if (storedUserType === "cabinet") {
-            setUserData({
-              id: decoded.cabinetId,
-              email: decoded.sub,
-              nom: decoded.cabinetNom,
-              role: "cabinet",
-            });
-          }
-          return true;
+        if (storedUserType === "laboratoire") {
+          setUserData({
+            email: decoded.sub,
+            role: "laboratoire",
+          });
+        } else if (storedUserType === "cabinet") {
+          setUserData({
+            id: decoded.cabinetId,
+            email: decoded.sub,
+            nom: decoded.cabinetNom,
+            role: "cabinet",
+          });
         }
+
+        console.log("✅ Session restaurée avec succès");
+        return true;
       } catch (error) {
-        console.error("Erreur lors du décodage du token:", error);
+        console.error("❌ Erreur lors du décodage du token:", error);
         localStorage.removeItem("token");
         localStorage.removeItem("userType");
         return false;
       }
+    } else {
+      console.log("❌ Aucune session à restaurer");
+      return false;
     }
-    return false;
   }, []);
 
   useEffect(() => {
-    restoreSession();
-    setIsLoading(false);
+    const initAuth = async () => {
+      await restoreSession();
+      setIsLoading(false);
+    };
+    initAuth();
   }, [restoreSession]);
 
   // 🧩 Vérifie la version de l'application (Railway update)
@@ -109,19 +110,32 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [restoreSession]);
 
-  const login = (type, cabinetData = null, token) => {
-    if (!token) {
-      console.error("Token manquant lors de la connexion");
-      return;
-    }
+  const login = useCallback((type, cabinetData = null, token) => {
+    console.log(
+      "🔐 Connexion - Type:",
+      type,
+      "Token présent:",
+      !!token,
+      "CabinetData:",
+      cabinetData
+    );
 
-    setIsAuthenticated(true);
-    setUserType(type);
-    localStorage.setItem("userType", type);
-    localStorage.setItem("token", token);
+    if (!token) {
+      console.error("❌ Token manquant lors de la connexion");
+      return false;
+    }
 
     try {
       const decoded = jwtDecode(token);
+      console.log("🔐 Token décodé lors du login:", decoded);
+
+      // Stockage immédiat dans localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("userType", type);
+
+      // Mise à jour du state
+      setIsAuthenticated(true);
+      setUserType(type);
 
       if (type === "laboratoire") {
         setUserData({
@@ -129,19 +143,26 @@ export const AuthProvider = ({ children }) => {
           role: "laboratoire",
         });
       } else if (type === "cabinet") {
-        setUserData({
+        const userDataToSet = {
           id: decoded.cabinetId || cabinetData?.id,
           email: decoded.sub,
           nom: decoded.cabinetNom || cabinetData?.nom,
           role: "cabinet",
-        });
+        };
+        console.log("🔐 Données cabinet définies:", userDataToSet);
+        setUserData(userDataToSet);
       }
+
+      console.log("✅ Connexion réussie");
+      return true;
     } catch (error) {
-      console.error("Erreur lors du décodage du token:", error);
+      console.error("❌ Erreur lors du décodage du token:", error);
+      return false;
     }
-  };
+  }, []);
 
   const logout = useCallback(() => {
+    console.log("🚪 Déconnexion");
     setIsAuthenticated(false);
     setUserType(null);
     setUserData(null);
@@ -169,6 +190,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (isAuthenticated) {
       const timer = setTimeout(() => {
+        console.log("⏰ Auto-déconnexion après 24h");
         logout();
         window.location.href = "/";
       }, 86400000);
@@ -176,16 +198,16 @@ export const AuthProvider = ({ children }) => {
     }
   }, [isAuthenticated, logout]);
 
-  //  Vérifie régulièrement la présence du token
+  // Vérifie régulièrement la présence du token
   useEffect(() => {
     const interval = setInterval(() => {
       const token = localStorage.getItem("token");
       if (!token && isAuthenticated) {
-        console.warn("Token manquant — déconnexion forcée");
+        console.warn("⚠️ Token manquant — déconnexion forcée");
         logout();
-        window.location.href = "/";
+        window.location.href = "/login";
       }
-    }, 2000);
+    }, 30000); // Vérifie toutes les 30 secondes au lieu de 2 secondes
     return () => clearInterval(interval);
   }, [isAuthenticated, logout]);
 
