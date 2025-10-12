@@ -1,3 +1,6 @@
+/* eslint-disable react/display-name */
+/* eslint-disable react/prop-types */
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import {
   User,
@@ -12,6 +15,7 @@ import {
   ChevronDown,
   Download,
   RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 import CommentSection from "./CommentSection";
 
@@ -83,6 +87,7 @@ const fetchThreeShapeOrderData = async (externalId) => {
 };
 
 // Composant pour télécharger les fichiers MySmileLab
+// eslint-disable-next-line react/display-name
 const MySmileLabFileDownloadButton = React.memo(
   ({ fileUrl, fileName, publicId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -202,6 +207,159 @@ const MySmileLabFileDownloadButton = React.memo(
   }
 );
 
+// eslint-disable-next-line react/display-name
+const GoogleDriveFileDownloadButton = React.memo(
+  ({ fileUrl, fileName, fileId, disabled, isLoading }) => {
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    const downloadGoogleDriveFile = async (fileId, fileName) => {
+      console.log(
+        `📥 Début du téléchargement Google Drive via proxy: ${fileName}`
+      );
+
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          `${API_BASE_URL}/files/download-drive/${fileId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+
+        if (blob.size === 0) {
+          throw new Error("Le fichier téléchargé est vide (0 bytes)");
+        }
+
+        // Déterminer le nom de fichier final
+        let downloadFilename = fileName;
+
+        // Vérifier l'extension du fichier
+        if (
+          !downloadFilename.toLowerCase().endsWith(".stl") &&
+          !downloadFilename.toLowerCase().endsWith(".zip")
+        ) {
+          // Essayer d'extraire l'extension du Content-Disposition header
+          const contentDisposition = response.headers.get(
+            "content-disposition"
+          );
+          if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(
+              /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+            );
+            if (filenameMatch && filenameMatch[1]) {
+              downloadFilename = filenameMatch[1].replace(/['"]/g, "");
+            }
+          } else {
+            // Fallback: utiliser .stl par défaut
+            downloadFilename =
+              downloadFilename.replace(/\.[^/.]+$/, "") + ".stl";
+          }
+        }
+
+        console.log(`💾 Nom de fichier final: ${downloadFilename}`);
+
+        // Déclencher le téléchargement
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = downloadFilename;
+
+        document.body.appendChild(a);
+        a.click();
+
+        // Nettoyer
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }, 100);
+
+        console.log("✅ Téléchargement Google Drive terminé avec succès");
+        return blob;
+      } catch (error) {
+        console.error("❌ Erreur détaillée lors du téléchargement:", error);
+        throw error;
+      }
+    };
+
+    const handleDownload = async () => {
+      if (!fileId || disabled) return;
+
+      setIsDownloading(true);
+      try {
+        await downloadGoogleDriveFile(fileId, fileName);
+        console.log(
+          `✅ Fichier Google Drive ${fileName} téléchargé avec succès`
+        );
+      } catch (error) {
+        console.error(
+          `❌ Erreur lors du téléchargement du fichier Google Drive ${fileName}:`,
+          error
+        );
+        // Fallback: ouvrir dans un nouvel onglet
+        if (fileUrl) {
+          window.open(fileUrl, "_blank");
+        }
+      } finally {
+        setIsDownloading(false);
+      }
+    };
+
+    const handleViewInDrive = () => {
+      if (fileId) {
+        window.open(`https://drive.google.com/file/d/${fileId}/view`, "_blank");
+      }
+    };
+
+    const getFileTypeFromName = (filename) => {
+      if (filename.toLowerCase().endsWith(".stl")) return "Fichier STL";
+      if (filename.toLowerCase().endsWith(".zip")) return "Archive ZIP";
+      return "Fichier 3D";
+    };
+
+    return (
+      <div className="google-drive-file-item">
+        <button
+          className="details-scan-download-btn google-drive-download-btn"
+          onClick={handleDownload}
+          disabled={disabled || isLoading || isDownloading}
+          title={`Télécharger ${fileName}`}
+        >
+          <Download size={16} />
+          <div className="file-info">
+            <span className="file-name">{fileName}</span>
+            <span className="file-details">
+              {getFileTypeFromName(fileName)}
+            </span>
+          </div>
+          {isDownloading && (
+            <div className="details-download-spinner-small"></div>
+          )}
+        </button>
+
+        {fileId && (
+          <button
+            className="google-drive-view-btn"
+            onClick={handleViewInDrive}
+            title="Voir dans Google Drive"
+          >
+            <ExternalLink size={14} />
+          </button>
+        )}
+      </div>
+    );
+  }
+);
+// eslint-disable-next-line react/display-name
 const MeditLinkFileDownloadButton = React.memo(
   ({ file, externalId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -976,18 +1134,18 @@ const CommandeInfoGrid = ({
           {isMySmileLab && (
             <div className="details-item">
               <span className="details-item-label">
-                Fichiers 3D disponibles :
+                Fichiers 3D disponibles sur Google Drive :
                 {mySmileLabFiles.length > 0 &&
                   ` (${mySmileLabFiles.length} fichier(s))`}
               </span>
-              <div className="details-scans-container mysmilelab-files-container">
+              <div className="details-scans-container google-drive-files-container">
                 {mySmileLabFiles.length > 0 ? (
-                  mySmileLabFiles.map((file) => (
-                    <MySmileLabFileDownloadButton
-                      key={file.index}
+                  mySmileLabFiles.map((file, index) => (
+                    <GoogleDriveFileDownloadButton
+                      key={index}
                       fileUrl={file.url}
                       fileName={file.name}
-                      publicId={file.publicId}
+                      fileId={file.publicId} // Ici publicId contient l'ID Google Drive
                       disabled={false}
                       isLoading={false}
                     />

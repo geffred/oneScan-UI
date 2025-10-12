@@ -1274,3 +1274,154 @@
     left: 0.75rem;
   }
 }
+
+/* Styles pour Google Drive */
+.platform-googledrive-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.platform-googledrive-status.connected {
+  background: #e6f4ea;
+  color: #137333;
+  border: 1px solid #34a853;
+}
+
+.platform-googledrive-status.disconnected {
+  background: #fce8e6;
+  color: #c5221f;
+  border: 1px solid #ea4335;
+}
+
+.platform-googledrive-modal {
+  max-width: 500px;
+}
+
+.platform-googledrive-auth-content {
+  padding: 20px;
+}
+
+.platform-googledrive-info {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.platform-googledrive-info h3 {
+  margin: 12px 0 8px 0;
+  color: #1a73e8;
+}
+
+.platform-googledrive-features {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.platform-googledrive-features h4 {
+  margin-bottom: 12px;
+  color: #3c4043;
+}
+
+.platform-googledrive-features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.platform-googledrive-features li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #5f6368;
+}
+
+.platform-googledrive-security {
+  background: #e8f0fe;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  border-left: 4px solid #1a73e8;
+}
+
+.platform-googledrive-actions {
+  margin-bottom: 20px;
+}
+
+.platform-googledrive-connect-btn {
+  width: 100%;
+  padding: 12px 20px;
+  background: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.platform-googledrive-connect-btn:hover:not(:disabled) {
+  background: #1669d6;
+}
+
+.platform-googledrive-connect-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.googledrive-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.platform-connected-badge {
+  background: #34a853;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Styles pour les informations Google Drive dans le modal */
+.platform-info-banner {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.platform-info-banner svg {
+  color: #6c757d;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.platform-info-banner strong {
+  color: #495057;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.platform-info-banner p {
+  color: #6c757d;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}

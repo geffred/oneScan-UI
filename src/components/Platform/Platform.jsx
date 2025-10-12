@@ -27,6 +27,8 @@ import {
   RefreshCw,
   Shield,
   Activity,
+  Cloud,
+  HardDrive,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -44,6 +46,7 @@ const SECRET_KEY = "MaCleSecrete12345";
 const platformTypes = [
   { value: "THREESHAPE", label: "3Shape" },
   { value: "MEDITLINK", label: "MeditLink" },
+  { value: "GOOGLE_DRIVE", label: "Google Drive" },
 ];
 
 // Schema de validation mis en cache
@@ -115,20 +118,27 @@ const PlatformCard = React.memo(
     onDelete,
     onConnect3Shape,
     onConnectMeditLink,
+    onConnectGoogleDrive,
     onDisconnectMeditLink,
     onShowMeditLinkDashboard,
     onShowThreeShapeDashboard,
     threeshapeStatus,
     meditlinkStatus,
+    googledriveStatus,
   }) => {
     const is3Shape = platform.name === "THREESHAPE";
     const isMeditLink = platform.name === "MEDITLINK";
+    const isGoogleDrive = platform.name === "GOOGLE_DRIVE";
 
     return (
       <div className="platform-card">
         <div className="platform-card-header">
           <h3 className="platform-card-title">
-            {platform.name === "THREESHAPE" ? "3Shape" : platform.name}
+            {platform.name === "THREESHAPE"
+              ? "3Shape"
+              : platform.name === "GOOGLE_DRIVE"
+              ? "Google Drive"
+              : platform.name}
           </h3>
 
           {is3Shape && (
@@ -169,6 +179,26 @@ const PlatformCard = React.memo(
               )}
             </div>
           )}
+
+          {isGoogleDrive && (
+            <div
+              className={`platform-googledrive-status ${
+                googledriveStatus?.authenticated ? "connected" : "disconnected"
+              }`}
+            >
+              {googledriveStatus?.authenticated ? (
+                <>
+                  <CheckCircle size={16} />
+                  <span>Connecté à Google Drive</span>
+                </>
+              ) : (
+                <>
+                  <AlertCircle size={16} />
+                  <span>Non connecté à Google Drive</span>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="platform-card-content">
@@ -199,6 +229,14 @@ const PlatformCard = React.memo(
                 <span>Token 3Shape actif</span>
               </div>
             )}
+
+          {/* Affichage des infos Google Drive si connecté */}
+          {isGoogleDrive && googledriveStatus?.authenticated && (
+            <div className="platform-user-info">
+              <Cloud size={14} />
+              <span>Accès Drive activé</span>
+            </div>
+          )}
         </div>
 
         <div className="platform-card-actions">
@@ -260,6 +298,37 @@ const PlatformCard = React.memo(
                 >
                   <Shield size={16} />
                   {meditlinkStatus?.loading
+                    ? "Connexion..."
+                    : "Connecter OAuth"}
+                </button>
+              )}
+            </>
+          )}
+
+          {/* Actions pour Google Drive */}
+          {isGoogleDrive && (
+            <>
+              {googledriveStatus?.authenticated ? (
+                <div className="googledrive-actions-group">
+                  <button
+                    onClick={() => onConnectGoogleDrive(platform)}
+                    className="platform-connect-btn connected"
+                    aria-label="Reconnecter à Google Drive"
+                  >
+                    <Cloud size={16} />
+                    Reconnecter
+                  </button>
+                  <span className="platform-connected-badge">✓ Connecté</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => onConnectGoogleDrive(platform)}
+                  className="platform-connect-btn"
+                  disabled={googledriveStatus?.loading}
+                  aria-label="Connecter à Google Drive"
+                >
+                  <Cloud size={16} />
+                  {googledriveStatus?.loading
                     ? "Connexion..."
                     : "Connecter OAuth"}
                 </button>
@@ -485,6 +554,91 @@ const MeditLinkOAuthModal = React.memo(
 
 MeditLinkOAuthModal.displayName = "MeditLinkOAuthModal";
 
+// Composant modal pour Google Drive OAuth
+const GoogleDriveOAuthModal = React.memo(
+  ({ isOpen, onClose, onStartAuth, isLoading }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="platform-modal-overlay">
+        <div className="platform-modal platform-googledrive-modal">
+          <div className="platform-modal-header">
+            <h2>Connexion Google Drive</h2>
+            <button onClick={onClose} className="platform-modal-close">
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="platform-googledrive-auth-content">
+            <div className="platform-googledrive-info">
+              <Cloud size={48} />
+              <h3>Authentification Google Drive</h3>
+              <p>
+                Connectez-vous à votre compte Google pour accéder à Google Drive
+                et stocker vos fichiers de commandes.
+              </p>
+            </div>
+
+            <div className="platform-googledrive-features">
+              <h4>Fonctionnalités activées :</h4>
+              <ul>
+                <li>
+                  <CheckCircle size={16} /> Stockage sécurisé des fichiers STL
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Organisation automatique par cabinet
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Téléchargement direct des fichiers
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Sauvegarde automatique en cloud
+                </li>
+              </ul>
+            </div>
+
+            <div className="platform-googledrive-security">
+              <p>
+                <strong>Sécurité :</strong> Cette connexion utilise le protocole
+                OAuth 2.0 sécurisé de Google. Vos fichiers seront stockés dans
+                votre propre compte Google Drive.
+              </p>
+            </div>
+
+            <div className="platform-googledrive-actions">
+              <button
+                onClick={onStartAuth}
+                disabled={isLoading}
+                className="platform-googledrive-connect-btn"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="platform-loading-spinner"></div>
+                    Connexion...
+                  </>
+                ) : (
+                  <>
+                    <Cloud size={18} />
+                    Se connecter avec Google Drive
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="platform-modal-actions">
+            <button onClick={onClose} className="platform-cancel-btn">
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+GoogleDriveOAuthModal.displayName = "GoogleDriveOAuthModal";
+
 const Platform = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -497,6 +651,12 @@ const Platform = () => {
   const [showMeditLinkDashboard, setShowMeditLinkDashboard] = useState(false);
   const [is3ShapeModalOpen, setIs3ShapeModalOpen] = useState(false);
   const [isMeditLinkModalOpen, setIsMeditLinkModalOpen] = useState(false);
+  const [isGoogleDriveModalOpen, setIsGoogleDriveModalOpen] = useState(false);
+  const [googleDriveStatus, setGoogleDriveStatus] = useState({
+    authenticated: false,
+    loading: false,
+    error: null,
+  });
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -559,6 +719,56 @@ const Platform = () => {
     }
   );
 
+  // Fonction pour vérifier le statut Google Drive
+  const checkGoogleDriveStatus = useCallback(async () => {
+    try {
+      setGoogleDriveStatus((prev) => ({ ...prev, loading: true }));
+      const response = await fetch(`${API_BASE_URL}/drive/status`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGoogleDriveStatus({
+          authenticated: data.authenticated || false,
+          loading: false,
+          error: null,
+        });
+      } else {
+        setGoogleDriveStatus({
+          authenticated: false,
+          loading: false,
+          error: "Non connecté",
+        });
+      }
+    } catch (error) {
+      setGoogleDriveStatus({
+        authenticated: false,
+        loading: false,
+        error: error.message,
+      });
+    }
+  }, []);
+
+  // Fonction pour initier l'authentification Google Drive
+  const startGoogleDriveAuth = useCallback(async () => {
+    try {
+      setGoogleDriveStatus((prev) => ({ ...prev, loading: true }));
+
+      // Ouvrir la fenêtre d'authentification Google
+      const authUrl = `${API_BASE_URL}/drive/auth`;
+      window.open(authUrl, "google-drive-auth", "width=600,height=600");
+    } catch (error) {
+      setError(
+        "Erreur lors de l'authentification Google Drive: " + error.message
+      );
+      setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
+      setTimeout(() => setError(null), 5000);
+    }
+  }, []);
+
   // Handlers pour ThreeShape Dashboard
   const handleShowThreeShapeDashboard = useCallback((platform) => {
     setShowThreeShapeDashboard(true);
@@ -583,12 +793,17 @@ const Platform = () => {
         console.log("✅ Auth 3Shape réussie depuis le popup !");
         refreshThreeshape();
         navigate("/Dashboard/Platform");
+      } else if (event.data?.type === "GOOGLE_DRIVE_AUTH_SUCCESS") {
+        console.log("✅ Auth Google Drive réussie !");
+        checkGoogleDriveStatus();
+        setSuccess("Connexion Google Drive établie avec succès !");
+        setTimeout(() => setSuccess(null), 5000);
       }
     };
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [navigate, refreshThreeshape]);
+  }, [navigate, refreshThreeshape, checkGoogleDriveStatus]);
 
   // Détecter automatiquement les paramètres OAuth dans l'URL
   useEffect(() => {
@@ -615,6 +830,15 @@ const Platform = () => {
         console.log("Callback 3Shape détecté - redirection");
         navigate(`/3shape/callback${location.search}`, { replace: true });
         return;
+      }
+      // Vérifier si c'est un callback Google Drive
+      else if (
+        location.pathname.includes("/drive/callback") ||
+        (state && state.includes("googledrive")) ||
+        urlParams.get("source") === "googledrive"
+      ) {
+        console.log("Callback Google Drive détecté");
+        handleGoogleDriveCallback(code, state);
       }
       // Par défaut, rediriger vers 3Shape si pas d'indication spécifique
       else {
@@ -728,6 +952,13 @@ const Platform = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  // Vérifier le statut Google Drive au chargement
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkGoogleDriveStatus();
+    }
+  }, [isAuthenticated, checkGoogleDriveStatus]);
+
   // Handlers pour 3Shape OAuth
   const handle3ShapeConnect = useCallback(async (platform) => {
     setIs3ShapeModalOpen(true);
@@ -831,6 +1062,68 @@ const Platform = () => {
 
   const closeMeditLinkModal = useCallback(() => {
     setIsMeditLinkModalOpen(false);
+  }, []);
+
+  // Handlers pour Google Drive OAuth
+  const handleGoogleDriveConnect = useCallback(async (platform) => {
+    setIsGoogleDriveModalOpen(true);
+  }, []);
+
+  const handleStartGoogleDriveAuth = useCallback(async () => {
+    try {
+      setIsGoogleDriveModalOpen(false);
+      await startGoogleDriveAuth();
+    } catch (err) {
+      setError("Erreur lors de la connexion Google Drive: " + err.message);
+      setTimeout(() => setError(null), 5000);
+    }
+  }, [startGoogleDriveAuth]);
+
+  const handleGoogleDriveCallback = useCallback(
+    async (code, state) => {
+      try {
+        console.log("Traitement du callback Google Drive...");
+
+        const params = new URLSearchParams();
+        params.append("code", code);
+
+        if (state && state.trim() !== "") {
+          params.append("state", state);
+        }
+
+        const response = await fetch(`${API_BASE_URL}/drive/auth/callback`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: params.toString(),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Authentification Google Drive réussie");
+
+          checkGoogleDriveStatus();
+
+          setSuccess("Connexion Google Drive établie avec succès !");
+          setTimeout(() => setSuccess(null), 5000);
+        } else {
+          const errorData = await response.json();
+          throw new Error(
+            errorData.error || "Erreur lors du callback Google Drive"
+          );
+        }
+      } catch (err) {
+        setError("Erreur lors du callback Google Drive: " + err.message);
+        setTimeout(() => setError(null), 5000);
+      }
+    },
+    [checkGoogleDriveStatus]
+  );
+
+  const closeGoogleDriveModal = useCallback(() => {
+    setIsGoogleDriveModalOpen(false);
   }, []);
 
   // Handlers existants optimisés
@@ -965,7 +1258,8 @@ const Platform = () => {
   const refreshAllStatuses = useCallback(() => {
     refreshThreeshape();
     refreshMeditlink();
-  }, [refreshThreeshape, refreshMeditlink]);
+    checkGoogleDriveStatus();
+  }, [refreshThreeshape, refreshMeditlink, checkGoogleDriveStatus]);
 
   // Affichage immédiat de l'interface même si les données utilisateur chargent encore
   if (!isAuthenticated) {
@@ -1032,11 +1326,13 @@ const Platform = () => {
                     onDelete={handleDelete}
                     onConnect3Shape={handle3ShapeConnect}
                     onConnectMeditLink={handleMeditLinkConnect}
+                    onConnectGoogleDrive={handleGoogleDriveConnect}
                     onDisconnectMeditLink={handleMeditLinkDisconnect}
                     onShowMeditLinkDashboard={handleShowMeditLinkDashboard}
                     onShowThreeShapeDashboard={handleShowThreeShapeDashboard}
                     threeshapeStatus={combinedThreeshapeStatus}
                     meditlinkStatus={combinedMeditlinkStatus}
+                    googledriveStatus={googleDriveStatus}
                   />
                 ))}
               </div>
@@ -1145,6 +1441,21 @@ const Platform = () => {
                       </div>
                     )}
 
+                    {/* Info spéciale pour Google Drive */}
+                    {values.name === "GOOGLE_DRIVE" && (
+                      <div className="platform-info-banner">
+                        <Cloud size={16} />
+                        <div>
+                          <strong>Plateforme Google Drive :</strong>
+                          <p>
+                            Après création, utilisez le bouton "Connecter OAuth"
+                            pour vous authentifier avec votre compte Google et
+                            activer le stockage des fichiers.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="platform-input-group">
                       <label className="platform-field-label">Email</label>
                       <div className="platform-input-wrapper">
@@ -1211,6 +1522,14 @@ const Platform = () => {
         onClose={closeMeditLinkModal}
         onStartAuth={handleStartMeditLinkAuth}
         isLoading={meditlinkLoading}
+      />
+
+      {/* Modal Google Drive OAuth */}
+      <GoogleDriveOAuthModal
+        isOpen={isGoogleDriveModalOpen}
+        onClose={closeGoogleDriveModal}
+        onStartAuth={handleStartGoogleDriveAuth}
+        isLoading={googleDriveStatus.loading}
       />
 
       {/* Modal Dashboard MeditLink */}

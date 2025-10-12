@@ -61,7 +61,7 @@ const getCommentaire = async (plateforme, externalId) => {
   if (!plateforme || !externalId) return null;
 
   try {
-    const endpoint = `${API_BASE_URL}/${plateforme.toLowerCase()}/commentaire/${externalId}`;
+    const endpoint = `${API_BASE_URL}/public/commandes/${externalId}`;
     const data = await fetchWithAuth(endpoint);
     return data.commentaire || data.comments || null;
   } catch (error) {

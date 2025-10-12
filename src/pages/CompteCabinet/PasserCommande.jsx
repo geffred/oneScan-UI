@@ -3,6 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import useSWR from "swr";
 import { toast } from "react-toastify";
+import JSZip from "jszip";
 import {
   Upload,
   FileText,
@@ -16,6 +17,8 @@ import {
   Tag,
   Wrench,
   Trash2,
+  Archive,
+  ExternalLink,
 } from "lucide-react";
 import { apiGet } from "../../components/Config/apiUtils";
 import { AuthContext } from "../../components/Config/AuthContext";
@@ -70,6 +73,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
   const { userData } = useContext(AuthContext);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedCategorie, setSelectedCategorie] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
@@ -91,12 +95,40 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
     });
   }, [appareils, selectedCategorie, selectedOption]);
 
+  // Compresser les fichiers en ZIP
+  const compressFilesToZip = async (files) => {
+    const zip = new JSZip();
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const zipFileName = `commande_${timestamp}.zip`;
+
+    // Ajouter chaque fichier au ZIP
+    files.forEach((file) => {
+      zip.file(file.name, file);
+    });
+
+    // Générer le fichier ZIP
+    const zipContent = await zip.generateAsync({
+      type: "blob",
+      compression: "DEFLATE",
+      compressionOptions: {
+        level: 6, // Niveau de compression moyen (1-9)
+      },
+    });
+
+    return new File([zipContent], zipFileName, {
+      type: "application/zip",
+      lastModified: new Date().getTime(),
+    });
+  };
+
   // Gérer la sélection de fichiers
   const handleFileSelect = useCallback((e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter((file) => {
       const extension = file.name.split(".").pop().toLowerCase();
-      const isValidExtension = ["stl", "zip"].includes(extension);
+      const isValidExtension = ["stl", "zip", "obj", "3mf", "ply"].includes(
+        extension
+      );
       const isValidSize = file.size <= 100 * 1024 * 1024; // 100MB max
 
       return isValidExtension && isValidSize;
@@ -104,14 +136,14 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
 
     if (validFiles.length !== files.length) {
       toast.warning(
-        "Seuls les fichiers .stl et .zip (max 100MB) sont acceptés"
+        "Seuls les fichiers .stl, .zip, .obj, .3mf, .ply (max 100MB) sont acceptés"
       );
     }
 
     setSelectedFiles(validFiles);
   }, []);
 
-  // Upload des fichiers sur Cloudinary
+  // Upload des fichiers compressés sur Google Drive
   const handleUploadFiles = useCallback(async () => {
     if (selectedFiles.length === 0) {
       toast.warning("Veuillez sélectionner au moins un fichier");
@@ -124,9 +156,42 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
     }
 
     setIsUploading(true);
+    setIsCompressing(true);
+
     try {
+      // Compresser les fichiers en ZIP
+      let filesToUpload = selectedFiles;
+
+      // Si plusieurs fichiers STL ou autres formats 3D, les compresser
+      const stlFiles = selectedFiles.filter(
+        (file) =>
+          file.name.toLowerCase().endsWith(".stl") ||
+          file.name.toLowerCase().endsWith(".obj") ||
+          file.name.toLowerCase().endsWith(".3mf") ||
+          file.name.toLowerCase().endsWith(".ply")
+      );
+
+      const zipFiles = selectedFiles.filter((file) =>
+        file.name.toLowerCase().endsWith(".zip")
+      );
+
+      if (stlFiles.length > 1 || (stlFiles.length > 0 && zipFiles.length > 0)) {
+        // Compresser tous les fichiers 3D dans un seul ZIP
+        const zipFile = await compressFilesToZip(selectedFiles);
+        filesToUpload = [zipFile];
+        toast.info("Compression des fichiers en cours...");
+      } else if (stlFiles.length === 1 && zipFiles.length === 0) {
+        // Un seul fichier STL - le compresser quand même pour uniformité
+        const zipFile = await compressFilesToZip(selectedFiles);
+        filesToUpload = [zipFile];
+        toast.info("Compression du fichier en cours...");
+      }
+      // Si déjà des fichiers ZIP, les uploader tels quels
+
+      setIsCompressing(false);
+
       const token = localStorage.getItem("token");
-      const uploadPromises = selectedFiles.map(async (file) => {
+      const uploadPromises = filesToUpload.map(async (file) => {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("cabinetName", userData.nom);
@@ -150,32 +215,45 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
 
       const newFiles = results.map((result) => ({
         fileName: result.fileName,
-        fileUrl: result.fileUrl,
-        publicId: result.publicId,
+        fileUrl: result.fileUrl, // URL de téléchargement Google Drive
+        fileViewUrl: result.fileViewUrl, // URL de visualisation Google Drive
+        fileId: result.fileId, // ID Google Drive
         fileSize: result.fileSize,
+        mimeType: result.mimeType,
+        isCompressed: filesToUpload.length < selectedFiles.length, // Indique si compression a eu lieu
       }));
 
       setUploadedFiles((prev) => [...prev, ...newFiles]);
       setSelectedFiles([]);
-      toast.success(`${results.length} fichier(s) uploadé(s) avec succès`);
+
+      if (filesToUpload.length < selectedFiles.length) {
+        toast.success(
+          `${selectedFiles.length} fichier(s) compressés et uploadés avec succès sur Google Drive`
+        );
+      } else {
+        toast.success(
+          `${results.length} fichier(s) uploadé(s) avec succès sur Google Drive`
+        );
+      }
     } catch (error) {
       console.error("Erreur upload:", error);
       const errorMessage =
-        error.message || "Erreur lors de l'upload des fichiers";
+        error.message ||
+        "Erreur lors de l'upload des fichiers sur Google Drive";
       toast.error(errorMessage);
       if (onError) onError(errorMessage);
     } finally {
       setIsUploading(false);
+      setIsCompressing(false);
     }
   }, [selectedFiles, userData, onError]);
 
   // Supprimer un fichier uploadé
-  const handleRemoveFile = useCallback(async (index, publicId) => {
+  const handleRemoveFile = useCallback(async (index, fileId) => {
     try {
       const token = localStorage.getItem("token");
-      const encodedPublicId = encodeURIComponent(publicId);
 
-      const response = await fetch(`${API_BASE_URL}/files/${encodedPublicId}`, {
+      const response = await fetch(`${API_BASE_URL}/files/${fileId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -185,17 +263,27 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       }
 
       setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
-      toast.success("Fichier supprimé avec succès");
+      toast.success("Fichier supprimé avec succès de Google Drive");
     } catch (error) {
       console.error("Erreur suppression:", error);
       toast.error("Erreur lors de la suppression du fichier");
     }
   }, []);
 
+  // Visualiser un fichier dans Google Drive
+  const handleViewFile = useCallback((fileViewUrl, fileId) => {
+    if (fileViewUrl) {
+      window.open(fileViewUrl, "_blank");
+    } else if (fileId) {
+      // Fallback: construire l'URL de visualisation à partir de l'ID
+      window.open(`https://drive.google.com/file/d/${fileId}/view`, "_blank");
+    }
+  }, []);
+
   // Soumettre la commande
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     if (uploadedFiles.length === 0) {
-      toast.error("Veuillez uploader au moins un fichier STL ou ZIP");
+      toast.error("Veuillez uploader au moins un fichier");
       setSubmitting(false);
       return;
     }
@@ -224,8 +312,8 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
           : `${values.categorie} - ${values.option}`,
         commentaire: values.commentaire?.trim() || "",
         details: selectedAppareil?.description || "",
-        fichierUrls: uploadedFiles.map((f) => f.fileUrl),
-        fichierPublicIds: uploadedFiles.map((f) => f.publicId),
+        fichierUrls: uploadedFiles.map((f) => f.fileUrl), // URLs Google Drive
+        fichierPublicIds: uploadedFiles.map((f) => f.fileId), // IDs Google Drive
         adresseDeLivraison: userData.adresseDeLivraison || "",
         adresseDeFacturation: userData.adresseDeFacturation || "",
       };
@@ -278,6 +366,15 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
     setSelectedFiles([]);
   }, []);
 
+  // Formater la taille du fichier
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
   if (!userData) {
     return (
       <div className="passer-commande-loading">
@@ -294,7 +391,10 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
           <Package size={32} />
           Passer une Nouvelle Commande
         </h1>
-        <p>Remplissez le formulaire et uploadez vos fichiers STL ou ZIP</p>
+        <p>
+          Remplissez le formulaire et uploadez vos fichiers 3D (automatiquement
+          compressés et stockés sur Google Drive)
+        </p>
       </div>
 
       <Formik
@@ -442,15 +542,15 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
             {/* Section 3: Upload Fichiers */}
             <div className="form-section">
               <h2>
-                <Upload size={20} />
-                Fichiers 3D (STL ou ZIP)
+                <Archive size={20} />
+                Fichiers 3D (Stockés sur Google Drive)
               </h2>
 
               <div className="upload-area">
                 <input
                   type="file"
                   multiple
-                  accept=".stl,.zip"
+                  accept=".stl,.zip,.obj,.3mf,.ply"
                   onChange={handleFileSelect}
                   className="file-input"
                   id="file-upload"
@@ -459,7 +559,12 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                   <Upload size={32} />
                   <p>Cliquez ou glissez vos fichiers ici</p>
                   <small>
-                    Formats acceptés : .stl, .zip (max 100MB par fichier)
+                    Formats acceptés : .stl, .zip, .obj, .3mf, .ply (max 100MB
+                    par fichier)
+                  </small>
+                  <small className="compression-info">
+                    Les fichiers seront automatiquement compressés en ZIP et
+                    stockés sur Google Drive
                   </small>
                 </label>
               </div>
@@ -474,7 +579,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                         <FileText size={16} />
                         <span className="file-name">{file.name}</span>
                         <span className="file-size">
-                          ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                          ({formatFileSize(file.size)})
                         </span>
                       </div>
                     ))}
@@ -483,18 +588,23 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                     <button
                       type="button"
                       onClick={handleUploadFiles}
-                      disabled={isUploading}
+                      disabled={isUploading || isCompressing}
                       className="upload-btn primary"
                     >
-                      {isUploading ? (
+                      {isCompressing ? (
                         <>
                           <Loader size={16} className="spinner" />
-                          Upload en cours...
+                          Compression en cours...
+                        </>
+                      ) : isUploading ? (
+                        <>
+                          <Loader size={16} className="spinner" />
+                          Upload sur Google Drive...
                         </>
                       ) : (
                         <>
-                          <Upload size={16} />
-                          Uploader les fichiers
+                          <Archive size={16} />
+                          Compresser et Uploader sur Drive
                         </>
                       )}
                     </button>
@@ -514,7 +624,10 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                 <div className="uploaded-files">
                   <h4>
                     <CheckCircle size={16} className="success-icon" />
-                    Fichiers uploadés ({uploadedFiles.length})
+                    Fichiers uploadés sur Google Drive ({uploadedFiles.length})
+                    {uploadedFiles.some((f) => f.isCompressed) && (
+                      <span className="compression-badge">(Compressés)</span>
+                    )}
                   </h4>
                   <div className="files-list">
                     {uploadedFiles.map((file, index) => (
@@ -522,21 +635,34 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                         key={`uploaded-${index}`}
                         className="uploaded-file-item"
                       >
-                        <FileText size={16} />
+                        <Archive size={16} />
                         <div className="file-info">
                           <strong>{file.fileName}</strong>
                           <small>
-                            {(file.fileSize / 1024 / 1024).toFixed(2)} MB
+                            {formatFileSize(file.fileSize)}
+                            {file.isCompressed && " (Compressé)"}
                           </small>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFile(index, file.publicId)}
-                          className="remove-btn"
-                          title="Supprimer le fichier"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="file-actions">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleViewFile(file.fileViewUrl, file.fileId)
+                            }
+                            className="view-btn"
+                            title="Voir dans Google Drive"
+                          >
+                            <ExternalLink size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFile(index, file.fileId)}
+                            className="remove-btn"
+                            title="Supprimer le fichier"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
