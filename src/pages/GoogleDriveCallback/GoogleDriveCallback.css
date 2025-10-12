@@ -1,0 +1,201 @@
+.google-drive-callback-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.callback-content {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+}
+
+.callback-header {
+  margin-bottom: 30px;
+}
+
+.callback-icon {
+  margin-bottom: 20px;
+}
+
+.callback-spinner {
+  animation: spin 1s linear infinite;
+  color: #667eea;
+}
+
+.callback-success {
+  color: #10b981;
+}
+
+.callback-error {
+  color: #ef4444;
+}
+
+.callback-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.callback-message {
+  margin-bottom: 30px;
+}
+
+.callback-message p {
+  font-size: 16px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.callback-loading-details,
+.callback-success-details,
+.callback-error-details {
+  margin-top: 20px;
+}
+
+.callback-note {
+  font-size: 14px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.callback-error-actions {
+  margin-top: 25px;
+}
+
+.callback-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.callback-primary-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.callback-primary-btn:hover {
+  background: #2563eb;
+}
+
+.callback-secondary-btn {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.callback-secondary-btn:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* Informations de débogage */
+.callback-debug-info {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.callback-debug-info h4 {
+  margin: 0 0 15px 0;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.callback-debug-info pre {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 15px;
+  border-radius: 6px;
+  font-size: 12px;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.callback-error-details {
+  margin-top: 15px;
+}
+
+.callback-error-details pre {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* Pied de page */
+.callback-footer {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.callback-security-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.callback-security-info svg {
+  color: #10b981;
+}
+
+/* Animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .google-drive-callback-container {
+    padding: 10px;
+  }
+  
+  .callback-content {
+    padding: 30px 20px;
+  }
+  
+  .callback-buttons {
+    flex-direction: column;
+  }
+  
+  .callback-primary-btn,
+  .callback-secondary-btn {
+    width: 100%;
+  }
+}

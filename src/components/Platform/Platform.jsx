@@ -806,53 +806,32 @@ const Platform = () => {
   }, [navigate, refreshThreeshape, checkGoogleDriveStatus]);
 
   // Détecter automatiquement les paramètres OAuth dans l'URL
+
+  // Détecter les paramètres d'authentification Google Drive
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    const code = urlParams.get("code");
-    const state = urlParams.get("state");
+    const driveAuth = urlParams.get("driveAuth");
 
-    if (code) {
-      // Vérifier si c'est un callback MeditLink
-      if (
-        location.pathname.includes("/meditLink/callback") ||
-        (state && state.includes("meditlink")) ||
-        urlParams.get("source") === "meditlink"
-      ) {
-        console.log("Callback MeditLink détecté");
-        handleMeditLinkCallback(code, state);
-      }
-      // Vérifier si c'est un callback 3Shape
-      else if (
-        location.pathname.includes("/3shape/callback") ||
-        (state && state.includes("3shape")) ||
-        urlParams.get("source") === "3shape"
-      ) {
-        console.log("Callback 3Shape détecté - redirection");
-        navigate(`/3shape/callback${location.search}`, { replace: true });
-        return;
-      }
-      // Vérifier si c'est un callback Google Drive
-      else if (
-        location.pathname.includes("/drive/callback") ||
-        (state && state.includes("googledrive")) ||
-        urlParams.get("source") === "googledrive"
-      ) {
-        console.log("Callback Google Drive détecté");
-        handleGoogleDriveCallback(code, state);
-      }
-      // Par défaut, rediriger vers 3Shape si pas d'indication spécifique
-      else {
-        console.log("Code OAuth détecté - redirection vers 3Shape callback");
-        navigate(`/3shape/callback${location.search}`, { replace: true });
-        return;
-      }
+    if (driveAuth === "success") {
+      setSuccess("✅ Connexion Google Drive réussie !");
+      checkGoogleDriveStatus();
 
-      // Nettoyer l'URL après traitement (seulement si pas de redirection)
-      if (!location.pathname.includes("/callback")) {
-        navigate(location.pathname, { replace: true });
-      }
+      // Nettoyer l'URL
+      navigate("/platform", { replace: true });
+
+      setTimeout(() => setSuccess(null), 5000);
+    } else if (driveAuth === "error") {
+      const errorMessage =
+        urlParams.get("message") ||
+        "Erreur lors de l'authentification Google Drive";
+      setError(`❌ ${errorMessage}`);
+
+      // Nettoyer l'URL
+      navigate("/platform", { replace: true });
+
+      setTimeout(() => setError(null), 5000);
     }
-  }, [location, navigate]);
+  }, [location, navigate, checkGoogleDriveStatus]);
 
   // Combiné MeditLink Status avec les infos utilisateur
   const combinedMeditlinkStatus = useMemo(() => {
@@ -1069,58 +1048,63 @@ const Platform = () => {
     setIsGoogleDriveModalOpen(true);
   }, []);
 
+  // Dans votre composant Platform.jsx
   const handleStartGoogleDriveAuth = useCallback(async () => {
     try {
       setIsGoogleDriveModalOpen(false);
-      await startGoogleDriveAuth();
+
+      // Récupérer l'URL d'authentification
+      const response = await fetch(`${API_BASE_URL}/drive/auth`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          "Erreur lors de la récupération de l'URL d'authentification"
+        );
+      }
+
+      const data = await response.json();
+
+      if (data.authenticated) {
+        setSuccess("Déjà connecté à Google Drive");
+        setTimeout(() => setSuccess(null), 3000);
+        return;
+      }
+
+      // Ouvrir l'URL d'authentification dans une nouvelle fenêtre
+      const authWindow = window.open(
+        data.authUrl,
+        "google-drive-auth",
+        "width=600,height=700,scrollbars=yes,resizable=yes"
+      );
+
+      if (!authWindow) {
+        setError(
+          "Veuillez autoriser les popups pour l'authentification Google Drive"
+        );
+        setTimeout(() => setError(null), 5000);
+        return;
+      }
+
+      // Vérifier périodiquement si l'authentification est terminée
+      const checkAuthStatus = setInterval(async () => {
+        if (authWindow.closed) {
+          clearInterval(checkAuthStatus);
+
+          // Vérifier le statut après la fermeture de la fenêtre
+          setTimeout(() => {
+            checkGoogleDriveStatus();
+          }, 2000);
+        }
+      }, 1000);
     } catch (err) {
       setError("Erreur lors de la connexion Google Drive: " + err.message);
       setTimeout(() => setError(null), 5000);
     }
-  }, [startGoogleDriveAuth]);
-
-  const handleGoogleDriveCallback = useCallback(
-    async (code, state) => {
-      try {
-        console.log("Traitement du callback Google Drive...");
-
-        const params = new URLSearchParams();
-        params.append("code", code);
-
-        if (state && state.trim() !== "") {
-          params.append("state", state);
-        }
-
-        const response = await fetch(`${API_BASE_URL}/drive/auth/callback`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: params.toString(),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Authentification Google Drive réussie");
-
-          checkGoogleDriveStatus();
-
-          setSuccess("Connexion Google Drive établie avec succès !");
-          setTimeout(() => setSuccess(null), 5000);
-        } else {
-          const errorData = await response.json();
-          throw new Error(
-            errorData.error || "Erreur lors du callback Google Drive"
-          );
-        }
-      } catch (err) {
-        setError("Erreur lors du callback Google Drive: " + err.message);
-        setTimeout(() => setError(null), 5000);
-      }
-    },
-    [checkGoogleDriveStatus]
-  );
+  }, [checkGoogleDriveStatus]);
 
   const closeGoogleDriveModal = useCallback(() => {
     setIsGoogleDriveModalOpen(false);
