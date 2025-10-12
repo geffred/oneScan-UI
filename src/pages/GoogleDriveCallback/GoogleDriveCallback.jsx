@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle, XCircle, Loader, ExternalLink } from "lucide-react";
-import "./GoogleDriveCallback.css";
+import { CheckCircle, XCircle, Loader, ExternalLink, Home } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -10,6 +9,7 @@ const GoogleDriveCallback = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("");
+  const [debugInfo, setDebugInfo] = useState("");
 
   useEffect(() => {
     const processCallback = async () => {
@@ -17,37 +17,23 @@ const GoogleDriveCallback = () => {
         const code = searchParams.get("code");
         const error = searchParams.get("error");
         const errorDescription = searchParams.get("error_description");
-        const success = searchParams.get("success");
 
-        console.log("🔍 Paramètres du callback Google Drive:", {
-          code: code ? `${code.substring(0, 20)}...` : null,
-          error,
-          errorDescription,
-          success,
-          allParams: Object.fromEntries(searchParams.entries()),
-        });
+        const debugData = {
+          url: window.location.href,
+          params: {
+            code: code ? `${code.substring(0, 25)}...` : "null",
+            error: error || "null",
+            errorDescription: errorDescription || "null",
+          },
+          timestamp: new Date().toISOString(),
+        };
 
-        // Si c'est une redirection depuis le backend après succès
-        if (success === "true") {
-          console.log("✅ Authentification Google Drive réussie (via backend)");
-          setStatus("success");
-          setMessage("Authentification Google Drive réussie !");
+        setDebugInfo(JSON.stringify(debugData, null, 2));
+        console.log("🔍 GoogleDriveCallback - Debug:", debugData);
 
-          setTimeout(() => {
-            navigate("/platform", {
-              replace: true,
-              state: {
-                driveAuth: "success",
-                message: "Connexion Google Drive établie avec succès",
-              },
-            });
-          }, 2000);
-          return;
-        }
-
-        // Si c'est une erreur depuis le backend
+        // Gestion des erreurs OAuth
         if (error) {
-          console.error("❌ Erreur Google Drive:", error, errorDescription);
+          console.error("❌ Erreur OAuth:", error, errorDescription);
           setStatus("error");
           setMessage(`Erreur d'authentification: ${errorDescription || error}`);
 
@@ -63,74 +49,82 @@ const GoogleDriveCallback = () => {
           return;
         }
 
-        // Si nous avons un code directement de Google (premier appel)
+        // Traitement du code
         if (code) {
-          console.log("🔄 Traitement du code d'autorisation Google Drive...");
+          console.log("🔄 Échange du code...");
+          setMessage("Échange du code d'autorisation...");
 
-          try {
-            const token = localStorage.getItem("token");
-            const response = await fetch(
-              `${API_BASE_URL}/drive/callback?code=${encodeURIComponent(code)}`,
-              {
-                method: "GET",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
+          const token = localStorage.getItem("token");
+          if (!token) {
+            throw new Error("Token d'authentification manquant");
+          }
 
-            if (response.ok) {
-              console.log(
-                "✅ Authentification Google Drive réussie via callback"
+          // Échanger le code via le backend
+          const response = await fetch(`${API_BASE_URL}/drive/exchange-code`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ code }),
+          });
+
+          if (response.ok) {
+            console.log("✅ Authentification réussie");
+            setStatus("success");
+            setMessage("Authentification réussie !");
+
+            // Notifier la fenêtre parent si elle existe
+            if (window.opener && !window.opener.closed) {
+              window.opener.postMessage(
+                { type: "GOOGLE_DRIVE_AUTH_SUCCESS" },
+                window.location.origin
               );
-              setStatus("success");
-              setMessage("Authentification Google Drive réussie !");
 
-              // Rediriger vers la page des plateformes
+              // Fermer la popup
+              setTimeout(() => window.close(), 1500);
+            } else {
+              // Rediriger si ce n'est pas une popup
               setTimeout(() => {
                 navigate("/platform", {
                   replace: true,
                   state: {
                     driveAuth: "success",
-                    message: "Connexion Google Drive établie avec succès",
+                    message: "Connexion Google Drive établie",
                   },
                 });
               }, 2000);
-            } else {
-              throw new Error(
-                `Erreur ${response.status}: ${response.statusText}`
-              );
             }
-          } catch (fetchError) {
-            console.error("❌ Erreur lors de l'échange du code:", fetchError);
-            setStatus("error");
-            setMessage("Erreur lors de la connexion à Google Drive");
-
-            setTimeout(() => {
-              navigate("/platform", {
-                replace: true,
-                state: {
-                  driveAuth: "error",
-                  errorMessage: fetchError.message,
-                },
-              });
-            }, 3000);
+          } else {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Erreur lors de l'échange");
           }
           return;
         }
 
-        // Si aucun paramètre n'est présent
-        console.log("ℹ️ Aucun paramètre de callback détecté");
+        // Aucun paramètre valide
+        console.warn("⚠️ Paramètres manquants");
         setStatus("error");
-        setMessage("URL de callback invalide");
+        setMessage("Paramètres d'authentification manquants");
 
         setTimeout(() => {
           navigate("/platform", { replace: true });
         }, 2000);
       } catch (error) {
-        console.error("❌ Erreur inattendue lors du callback:", error);
+        console.error("💥 Erreur:", error);
         setStatus("error");
-        setMessage("Erreur inattendue lors de l'authentification");
+        setMessage("Erreur lors du traitement");
+
+        // Notifier la fenêtre parent de l'erreur
+        if (window.opener && !window.opener.closed) {
+          window.opener.postMessage(
+            {
+              type: "GOOGLE_DRIVE_AUTH_ERROR",
+              error: error.message,
+            },
+            window.location.origin
+          );
+        }
 
         setTimeout(() => {
           navigate("/platform", {
@@ -147,82 +141,154 @@ const GoogleDriveCallback = () => {
     processCallback();
   }, [searchParams, navigate]);
 
+  const handleManualRedirect = () => {
+    navigate("/platform", { replace: true });
+  };
+
+  const handleRetry = () => {
+    window.location.reload();
+  };
+
   return (
-    <div className="google-drive-callback-container">
-      <div className="callback-content">
-        <div className="callback-header">
-          <div className="callback-icon">
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        padding: "20px",
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      }}
+    >
+      <div
+        style={{
+          background: "white",
+          borderRadius: "16px",
+          padding: "40px",
+          boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
+          maxWidth: "600px",
+          width: "100%",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ marginBottom: "30px" }}>
+          <div style={{ marginBottom: "20px" }}>
             {status === "loading" && (
-              <Loader size={48} className="callback-spinner" />
+              <Loader
+                size={48}
+                style={{
+                  animation: "spin 1.5s linear infinite",
+                  color: "#667eea",
+                }}
+              />
             )}
             {status === "success" && (
-              <CheckCircle size={48} className="callback-success" />
+              <CheckCircle size={48} style={{ color: "#10b981" }} />
             )}
             {status === "error" && (
-              <XCircle size={48} className="callback-error" />
+              <XCircle size={48} style={{ color: "#ef4444" }} />
             )}
           </div>
 
-          <h1 className="callback-title">
-            {status === "loading" && "Connexion à Google Drive..."}
+          <h1
+            style={{
+              fontSize: "28px",
+              fontWeight: "700",
+              color: "#1f2937",
+              margin: 0,
+              background: "linear-gradient(135deg, #667eea, #764ba2)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            {status === "loading" && "Connexion à Google Drive"}
             {status === "success" && "Connexion réussie !"}
             {status === "error" && "Erreur de connexion"}
           </h1>
         </div>
 
-        <div className="callback-message">
-          <p>{message}</p>
-
-          {status === "loading" && (
-            <div className="callback-loading-details">
-              <p>Traitement de l'authentification en cours...</p>
-              <p className="callback-note">
-                Cette opération peut prendre quelques secondes.
-              </p>
-            </div>
-          )}
-
-          {status === "success" && (
-            <div className="callback-success-details">
-              <p>Votre compte Google Drive a été connecté avec succès.</p>
-              <p>Vous allez être redirigé vers la page des plateformes.</p>
-            </div>
-          )}
+        <div style={{ marginBottom: "30px" }}>
+          <p style={{ fontSize: "18px", color: "#4b5563", lineHeight: "1.6" }}>
+            {message}
+          </p>
 
           {status === "error" && (
-            <div className="callback-error-actions">
-              <div className="callback-buttons">
-                <button
-                  onClick={() => navigate("/platform")}
-                  className="callback-primary-btn"
-                >
-                  Retour aux plateformes
-                </button>
-              </div>
+            <div
+              style={{
+                marginTop: "25px",
+                display: "flex",
+                gap: "12px",
+                justifyContent: "center",
+              }}
+            >
+              <button
+                onClick={handleManualRedirect}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "#3b82f6",
+                  color: "white",
+                  border: "none",
+                  padding: "12px 24px",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                }}
+              >
+                <Home size={18} />
+                Retour aux plateformes
+              </button>
+              <button
+                onClick={handleRetry}
+                style={{
+                  background: "#f8fafc",
+                  color: "#374151",
+                  border: "1px solid #d1d5db",
+                  padding: "12px 24px",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                }}
+              >
+                🔄 Réessayer
+              </button>
             </div>
           )}
         </div>
 
-        {/* Informations de débogage */}
-        {import.meta.env.MODE === "development" && (
-          <div className="callback-debug-info">
-            <h4>Informations de débogage :</h4>
-            <pre>
-              {JSON.stringify(
-                Object.fromEntries(searchParams.entries()),
-                null,
-                2
-              )}
-            </pre>
-          </div>
-        )}
-
-        <div className="callback-footer">
-          <div className="callback-security-info">
-            <ExternalLink size={16} />
-            <span>Authentification sécurisée via OAuth 2.0</span>
-          </div>
-        </div>
+        <details style={{ marginTop: "30px", textAlign: "left" }}>
+          <summary
+            style={{
+              cursor: "pointer",
+              padding: "10px",
+              background: "#f8fafc",
+              borderRadius: "6px",
+              color: "#6b7280",
+              fontSize: "14px",
+            }}
+          >
+            Informations techniques
+          </summary>
+          <pre
+            style={{
+              marginTop: "15px",
+              background: "#1e293b",
+              color: "#e2e8f0",
+              padding: "15px",
+              borderRadius: "8px",
+              fontSize: "12px",
+              overflow: "auto",
+            }}
+          >
+            {debugInfo}
+          </pre>
+        </details>
       </div>
     </div>
   );

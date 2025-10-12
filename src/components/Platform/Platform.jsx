@@ -787,6 +787,33 @@ const Platform = () => {
     setShowMeditLinkDashboard(false);
   }, []);
 
+  // Dans Platform.jsx - Ajouter cet useEffect
+  useEffect(() => {
+    const handleMessage = (event) => {
+      // Vérifier l'origine du message pour la sécurité
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data?.type === "GOOGLE_DRIVE_AUTH_SUCCESS") {
+        console.log("✅ Auth Google Drive réussie depuis le popup !");
+        checkGoogleDriveStatus();
+        setSuccess("Connexion Google Drive établie avec succès !");
+        setTimeout(() => setSuccess(null), 5000);
+      } else if (event.data?.type === "GOOGLE_DRIVE_AUTH_ERROR") {
+        console.error(
+          "❌ Erreur Google Drive depuis le popup:",
+          event.data.error
+        );
+        setError(
+          "Erreur lors de l'authentification Google Drive: " + event.data.error
+        );
+        setTimeout(() => setError(null), 5000);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [checkGoogleDriveStatus]);
+
   useEffect(() => {
     const handleMessage = (event) => {
       if (event.data?.type === "THREESHAPE_AUTH_SUCCESS") {
@@ -1048,10 +1075,11 @@ const Platform = () => {
     setIsGoogleDriveModalOpen(true);
   }, []);
 
-  // Dans votre composant Platform.jsx
+  // Dans handleStartGoogleDriveAuth - CORRIGÉ
   const handleStartGoogleDriveAuth = useCallback(async () => {
     try {
       setIsGoogleDriveModalOpen(false);
+      setGoogleDriveStatus((prev) => ({ ...prev, loading: true }));
 
       // Récupérer l'URL d'authentification
       const response = await fetch(`${API_BASE_URL}/drive/auth`, {
@@ -1061,47 +1089,70 @@ const Platform = () => {
       });
 
       if (!response.ok) {
-        throw new Error(
-          "Erreur lors de la récupération de l'URL d'authentification"
-        );
+        throw new Error("Erreur lors de la récupération de l'URL");
       }
 
       const data = await response.json();
 
       if (data.authenticated) {
         setSuccess("Déjà connecté à Google Drive");
+        setGoogleDriveStatus({
+          authenticated: true,
+          loading: false,
+          error: null,
+        });
         setTimeout(() => setSuccess(null), 3000);
         return;
       }
 
-      // Ouvrir l'URL d'authentification dans une nouvelle fenêtre
+      // Ouvrir la popup
+      const width = 600;
+      const height = 700;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2;
+
       const authWindow = window.open(
         data.authUrl,
         "google-drive-auth",
-        "width=600,height=700,scrollbars=yes,resizable=yes"
+        `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
       );
 
       if (!authWindow) {
-        setError(
-          "Veuillez autoriser les popups pour l'authentification Google Drive"
-        );
+        setError("Veuillez autoriser les popups");
+        setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
         setTimeout(() => setError(null), 5000);
         return;
       }
 
-      // Vérifier périodiquement si l'authentification est terminée
-      const checkAuthStatus = setInterval(async () => {
-        if (authWindow.closed) {
-          clearInterval(checkAuthStatus);
+      // Attendre le message de succès
+      const handleMessage = (event) => {
+        if (event.origin !== window.location.origin) return;
 
-          // Vérifier le statut après la fermeture de la fenêtre
-          setTimeout(() => {
-            checkGoogleDriveStatus();
-          }, 2000);
+        if (event.data?.type === "GOOGLE_DRIVE_AUTH_SUCCESS") {
+          console.log("✅ Auth réussie !");
+          checkGoogleDriveStatus();
+          setSuccess("Connexion Google Drive établie !");
+          setTimeout(() => setSuccess(null), 5000);
+          window.removeEventListener("message", handleMessage);
+        } else if (event.data?.type === "GOOGLE_DRIVE_AUTH_ERROR") {
+          console.error("❌ Erreur:", event.data.error);
+          setError("Erreur: " + event.data.error);
+          setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
+          setTimeout(() => setError(null), 5000);
+          window.removeEventListener("message", handleMessage);
         }
-      }, 1000);
+      };
+
+      window.addEventListener("message", handleMessage);
+
+      // Cleanup après 5 minutes
+      setTimeout(() => {
+        window.removeEventListener("message", handleMessage);
+        setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
+      }, 300000);
     } catch (err) {
-      setError("Erreur lors de la connexion Google Drive: " + err.message);
+      setError("Erreur: " + err.message);
+      setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
       setTimeout(() => setError(null), 5000);
     }
   }, [checkGoogleDriveStatus]);
