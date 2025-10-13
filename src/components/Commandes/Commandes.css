@@ -986,3 +986,142 @@
 }
 
 
+/* ========================================
+   STYLES ADDITIONNELS POUR GOOGLE DRIVE
+   Ajoutez ces styles à votre Commandes.css
+   ======================================== */
+
+/* Badge plateforme Google Drive */
+.commandes-plateforme-red {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* Icône de connexion Google Drive */
+.commandes-connection-status .lucide-cloud {
+  color: inherit;
+}
+
+/* Note pour Google Drive (pas de sync) */
+.commandes-platform-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: #f3f4f6;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.commandes-note-text {
+  font-size: 0.813rem;
+  font-weight: 500;
+}
+
+/* Style spécifique pour le statut Google Drive connecté */
+.commandes-connection-status.connected .lucide-cloud {
+  color: #10b981;
+}
+
+.commandes-connection-status.disconnected .lucide-cloud {
+  color: #ef4444;
+}
+
+/* Animation de chargement pour le statut Google Drive */
+.commandes-connection-status .commandes-connection-unknown {
+  color: #9ca3af;
+  opacity: 0.5;
+}
+
+/* Badge plateforme dans le tableau */
+.commandes-table-cell .commandes-plateforme-badge.commandes-plateforme-red {
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+/* Responsive pour les petits écrans */
+@media (max-width: 768px) {
+  .commandes-platform-note {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .commandes-note-text {
+    font-size: 0.75rem;
+  }
+}
+
+/* Style pour la carte de plateforme Google Drive */
+.commandes-platform-card:has(.commandes-platform-name:contains("Google Drive")) {
+  border-left: 3px solid #dc2626;
+}
+
+/* Highlight pour Google Drive dans les filtres */
+.commandes-filter-select option[value="GOOGLE_DRIVE"] {
+  font-weight: 600;
+  color: #dc2626;
+}
+
+/* Animation pour l'icône HardDrive */
+@keyframes pulse-drive {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.commandes-platform-note .lucide-hard-drive {
+  animation: pulse-drive 2s ease-in-out infinite;
+  color: #6b7280;
+}
+
+/* Style pour les tooltips Google Drive */
+.commandes-platform-card[data-platform="GOOGLE_DRIVE"] .commandes-connection-status {
+  position: relative;
+}
+
+.commandes-platform-card[data-platform="GOOGLE_DRIVE"] .commandes-connection-status::after {
+  content: "Stockage cloud pour vos fichiers STL/ZIP";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem 0.75rem;
+  background-color: #1f2937;
+  color: white;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  margin-bottom: 0.5rem;
+}
+
+.commandes-platform-card[data-platform="GOOGLE_DRIVE"] .commandes-connection-status:hover::after {
+  opacity: 1;
+}
+
+/* Style pour distinguer visuellement Google Drive */
+.commandes-platform-card .commandes-platform-name:contains("Google Drive") {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* Badge de statut connecté pour Google Drive */
+.commandes-connection-status.connected .lucide-cloud {
+  filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.5));
+}
+
+/* Style pour l'email de la plateforme Google Drive */
+.commandes-platform-card:has(.commandes-platform-name:contains("Google Drive")) .commandes-platform-email {
+  font-style: italic;
+  color: #6b7280;
+}
+

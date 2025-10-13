@@ -1,4 +1,10 @@
-import React, { useState, useContext, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useContext,
+  useMemo,
+  useCallback,
+  useEffect,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import useSWR, { mutate } from "swr";
 import { toast } from "react-toastify";
@@ -22,6 +28,8 @@ import {
   Link2,
   Wifi,
   WifiOff,
+  Cloud,
+  HardDrive,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import useMeditLinkAuth from "../Config/useMeditLinkAuth";
@@ -119,6 +127,7 @@ const CommandeRow = React.memo(({ commande, onViewDetails }) => {
       ITERO: "green",
       THREESHAPE: "purple",
       DEXIS: "orange",
+      GOOGLE_DRIVE: "red",
     };
     return colors[plateforme] || "gray";
   };
@@ -161,6 +170,8 @@ const CommandeRow = React.memo(({ commande, onViewDetails }) => {
         >
           {commande.plateforme === "THREESHAPE"
             ? "3Shape"
+            : commande.plateforme === "GOOGLE_DRIVE"
+            ? "Google Drive"
             : commande.plateforme}
         </span>
       </div>
@@ -247,6 +258,12 @@ const PlatformCard = React.memo(
           ) : (
             <Link2 size={16} className="commandes-connection-error" />
           );
+        case "GOOGLE_DRIVE":
+          return connectionStatus.authenticated ? (
+            <Cloud size={16} className="commandes-connection-success" />
+          ) : (
+            <Cloud size={16} className="commandes-connection-error" />
+          );
         default:
           return connectionStatus.authenticated ? (
             <Wifi size={16} className="commandes-connection-success" />
@@ -268,8 +285,23 @@ const PlatformCard = React.memo(
           return connectionStatus.authenticated
             ? "Connecté OAuth"
             : "Non connecté";
+        case "GOOGLE_DRIVE":
+          return connectionStatus.authenticated
+            ? "Drive activé"
+            : "Non connecté";
         default:
           return connectionStatus.authenticated ? "Connecté" : "Non connecté";
+      }
+    };
+
+    const getPlatformDisplayName = (name) => {
+      switch (name) {
+        case "THREESHAPE":
+          return "3Shape";
+        case "GOOGLE_DRIVE":
+          return "Google Drive";
+        default:
+          return name;
       }
     };
 
@@ -280,7 +312,7 @@ const PlatformCard = React.memo(
         <div className="commandes-platform-info">
           <div className="commandes-platform-header">
             <h4 className="commandes-platform-name">
-              {platform.name === "THREESHAPE" ? "3Shape" : platform.name}
+              {getPlatformDisplayName(platform.name)}
             </h4>
             <div
               className={`commandes-connection-status ${
@@ -316,7 +348,6 @@ const PlatformCard = React.memo(
                 <span className="commandes-sync-message">
                   {syncStatus.message}
                 </span>
-                {/* Afficher le nombre de commandes récupérées */}
                 {syncStatus.status === "success" &&
                   syncStatus.count !== undefined && (
                     <div className="commandes-sync-count">
@@ -327,28 +358,38 @@ const PlatformCard = React.memo(
             </div>
           )}
 
-          <button
-            className={`commandes-btn ${
-              isConnected ? "commandes-btn-primary" : "commandes-btn-disabled"
-            }`}
-            onClick={() => onSync(platform.name)}
-            disabled={syncStatus?.status === "loading" || !isConnected}
-            title={
-              !isConnected ? "Connexion OAuth requise" : "Récupérer les données"
-            }
-          >
-            {syncStatus?.status === "loading" ? (
-              <>
-                <Loader2 size={14} className="commandes-sync-loading" />
-                Sync...
-              </>
-            ) : (
-              <>
-                <RefreshCw size={14} />
-                {isConnected ? "Synchroniser" : "Non connecté"}
-              </>
-            )}
-          </button>
+          {/* Désactiver le bouton de sync pour Google Drive */}
+          {platform.name === "GOOGLE_DRIVE" ? (
+            <div className="commandes-platform-note">
+              <HardDrive size={14} />
+              <span className="commandes-note-text">Stockage fichiers</span>
+            </div>
+          ) : (
+            <button
+              className={`commandes-btn ${
+                isConnected ? "commandes-btn-primary" : "commandes-btn-disabled"
+              }`}
+              onClick={() => onSync(platform.name)}
+              disabled={syncStatus?.status === "loading" || !isConnected}
+              title={
+                !isConnected
+                  ? "Connexion OAuth requise"
+                  : "Récupérer les données"
+              }
+            >
+              {syncStatus?.status === "loading" ? (
+                <>
+                  <Loader2 size={14} className="commandes-sync-loading" />
+                  Sync...
+                </>
+              ) : (
+                <>
+                  <RefreshCw size={14} />
+                  {isConnected ? "Synchroniser" : "Non connecté"}
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     );
@@ -394,6 +435,13 @@ const Commandes = () => {
   const [syncStatus, setSyncStatus] = useState({});
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // État pour Google Drive
+  const [googleDriveStatus, setGoogleDriveStatus] = useState({
+    authenticated: false,
+    loading: false,
+    error: null,
+  });
+
   // Hooks d'authentification pour les plateformes
   const {
     authStatus: meditlinkAuthStatus,
@@ -411,6 +459,64 @@ const Commandes = () => {
     isAuthenticated: threeshapeAuthenticated,
     hasToken: threeshapeHasToken,
   } = useThreeShapeAuth();
+
+  // Fonction pour vérifier le statut Google Drive
+  const checkGoogleDriveStatus = useCallback(async () => {
+    try {
+      setGoogleDriveStatus((prev) => ({ ...prev, loading: true, error: null }));
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setGoogleDriveStatus({
+          authenticated: false,
+          loading: false,
+          error: null,
+        });
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/drive/status`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGoogleDriveStatus({
+          authenticated: data.authenticated || false,
+          loading: false,
+          error: null,
+        });
+      } else if (response.status === 401) {
+        setGoogleDriveStatus({
+          authenticated: false,
+          loading: false,
+          error: null,
+        });
+      } else {
+        setGoogleDriveStatus({
+          authenticated: false,
+          loading: false,
+          error: "Erreur de vérification",
+        });
+      }
+    } catch (error) {
+      setGoogleDriveStatus({
+        authenticated: false,
+        loading: false,
+        error: error.message,
+      });
+    }
+  }, []);
+
+  // Vérifier le statut Google Drive au chargement
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkGoogleDriveStatus();
+    }
+  }, [isAuthenticated, checkGoogleDriveStatus]);
 
   // SWR hooks pour les données
   const {
@@ -448,7 +554,7 @@ const Commandes = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
-      refreshInterval: 60000, // Rafraîchir toutes les minutes
+      refreshInterval: 60000,
       errorRetryCount: 3,
     }
   );
@@ -469,6 +575,12 @@ const Commandes = () => {
             userInfo: threeshapeUserInfo,
             ...threeshapeAuthStatus,
           };
+        case "GOOGLE_DRIVE":
+          return {
+            authenticated: googleDriveStatus.authenticated,
+            loading: googleDriveStatus.loading,
+            error: googleDriveStatus.error,
+          };
         default:
           return { authenticated: false };
       }
@@ -480,12 +592,12 @@ const Commandes = () => {
       threeshapeAuthenticated,
       threeshapeUserInfo,
       threeshapeAuthStatus,
+      googleDriveStatus,
     ]
   );
 
   // Fonction pour synchroniser MeditLink
   const syncMeditLinkCommandes = useCallback(async () => {
-    // Utiliser l'endpoint de sauvegarde qui gère les dates par défaut
     const endpoint = `${API_BASE_URL}/meditlink/cases/save?page=0&size=20`;
 
     setSyncStatus((prev) => ({
@@ -509,11 +621,8 @@ const Commandes = () => {
 
       if (response.ok) {
         const result = await response.json();
-
-        // Actualiser les données après synchronisation
         mutateCommandes();
 
-        // Récupérer le nombre de commandes sauvegardées
         const savedCount = result.savedCount || result.count || 0;
         const message =
           savedCount > 0
@@ -525,28 +634,19 @@ const Commandes = () => {
           MEDITLINK: {
             status: "success",
             message: message,
-            count: savedCount, // Stocker le nombre pour l'affichage
+            count: savedCount,
           },
         }));
 
-        // Notification Toastify pour succès
         if (savedCount > 0) {
           toast.success(`MeditLink: ${savedCount} nouvelle(s) commande(s)`, {
             position: "top-right",
             autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
           });
         } else {
           toast.info(`MeditLink: Aucune nouvelle commande`, {
             position: "top-right",
             autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
           });
         }
       } else {
@@ -561,14 +661,9 @@ const Commandes = () => {
           },
         }));
 
-        // Notification Toastify pour erreur
-        toast.error(" Erreur lors de la synchronisation MeditLink", {
+        toast.error("Erreur lors de la synchronisation MeditLink", {
           position: "top-right",
           autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
         });
       }
     } catch (err) {
@@ -581,18 +676,12 @@ const Commandes = () => {
         },
       }));
 
-      // Notification Toastify pour erreur de connexion
-      toast.error(" Erreur de connexion avec MeditLink", {
+      toast.error("Erreur de connexion avec MeditLink", {
         position: "top-right",
         autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     }
 
-    // Effacer le statut après 5 secondes
     setTimeout(() => {
       setSyncStatus((prev) => {
         const newStatus = { ...prev };
@@ -602,7 +691,7 @@ const Commandes = () => {
     }, 5000);
   }, [mutateCommandes]);
 
-  // Fonction pour synchroniser les autres plateformes (3Shape, Itero, Dexis)
+  // Fonction pour synchroniser les autres plateformes
   const syncOtherPlatform = useCallback(
     async (platformName) => {
       const endpoint = platformEndpoints[platformName];
@@ -639,11 +728,8 @@ const Commandes = () => {
 
         if (response.ok) {
           const result = await response.json();
-
-          // Actualiser les données après synchronisation
           mutateCommandes();
 
-          // Récupérer le nombre de commandes sauvegardées
           const savedCount = result.savedCount || result.count || 0;
           const message =
             savedCount > 0
@@ -655,31 +741,22 @@ const Commandes = () => {
             [platformName]: {
               status: "success",
               message: message,
-              count: savedCount, // Stocker le nombre pour l'affichage
+              count: savedCount,
             },
           }));
 
-          // Notification Toastify pour succès
           if (savedCount > 0) {
             toast.success(
               `${platformName}: ${savedCount} nouvelle(s) commande(s)`,
               {
                 position: "top-right",
                 autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
               }
             );
           } else {
             toast.info(`${platformName}: Aucune nouvelle commande`, {
               position: "top-right",
               autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
             });
           }
         } else {
@@ -694,14 +771,9 @@ const Commandes = () => {
             },
           }));
 
-          // Notification Toastify pour erreur
           toast.error(`Erreur lors de la synchronisation ${platformName}`, {
             position: "top-right",
             autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
           });
         }
       } catch (err) {
@@ -717,18 +789,12 @@ const Commandes = () => {
           },
         }));
 
-        // Notification Toastify pour erreur de connexion
-        toast.error(` Erreur de connexion avec ${platformName}`, {
+        toast.error(`Erreur de connexion avec ${platformName}`, {
           position: "top-right",
           autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
         });
       }
 
-      // Effacer le statut après 5 secondes
       setTimeout(() => {
         setSyncStatus((prev) => {
           const newStatus = { ...prev };
@@ -739,14 +805,18 @@ const Commandes = () => {
     },
     [mutateCommandes]
   );
+
   // Fonction pour synchroniser toutes les plateformes connectées
   const syncAllPlatforms = useCallback(async () => {
     if (userPlatforms.length === 0) return;
 
     setIsSyncing(true);
 
-    // Filtrer seulement les plateformes connectées
+    // Filtrer seulement les plateformes connectées (exclure Google Drive)
     const connectedPlatforms = userPlatforms.filter((platform) => {
+      // Exclure Google Drive de la synchronisation
+      if (platform.name === "GOOGLE_DRIVE") return false;
+
       const connectionStatus = getConnectionStatus(platform.name);
       return connectionStatus.authenticated;
     });
@@ -771,16 +841,11 @@ const Commandes = () => {
     try {
       await Promise.all(syncPromises);
 
-      // Notification pour synchronisation globale
       toast.success(
         `${connectedPlatforms.length} plateforme(s) synchronisée(s)`,
         {
           position: "top-right",
           autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
         }
       );
     } catch (error) {
@@ -798,7 +863,11 @@ const Commandes = () => {
   // Fonction pour synchroniser une plateforme spécifique
   const syncPlatformCommandes = useCallback(
     (platformName) => {
-      // Vérifier si la plateforme est connectée
+      // Ignorer Google Drive
+      if (platformName === "GOOGLE_DRIVE") {
+        return;
+      }
+
       const connectionStatus = getConnectionStatus(platformName);
       if (!connectionStatus.authenticated) {
         toast.warning(
@@ -843,7 +912,7 @@ const Commandes = () => {
             ? new Date(customDateFrom)
             : new Date(0);
           const toDate = customDateTo ? new Date(customDateTo) : new Date();
-          toDate.setHours(23, 59, 59, 999); // Inclure toute la journée
+          toDate.setHours(23, 59, 59, 999);
           return receptionDate >= fromDate && receptionDate <= toDate;
         default:
           return true;
@@ -891,6 +960,7 @@ const Commandes = () => {
         return echeance < today;
       }).length || 0;
 
+    // Compter les plateformes connectées (inclure Google Drive)
     const connectedPlatformsCount = userPlatforms.filter((platform) => {
       const connectionStatus = getConnectionStatus(platform.name);
       return connectionStatus.authenticated;
@@ -1082,6 +1152,7 @@ const Commandes = () => {
               <option value="ITERO">Itero</option>
               <option value="THREESHAPE">3Shape</option>
               <option value="DEXIS">Dexis</option>
+              <option value="GOOGLE_DRIVE">Google Drive</option>
             </select>
           </div>
 

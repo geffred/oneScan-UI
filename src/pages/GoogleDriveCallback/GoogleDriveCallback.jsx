@@ -10,6 +10,14 @@ import {
 } from "lucide-react";
 import "./GoogleDriveCallback.css";
 
+// ⏱️ CONFIGURATION DES DÉLAIS (en millisecondes)
+const DELAYS = {
+  POPUP_SUCCESS_CLOSE: 2000, // 2 secondes - fermeture popup succès
+  POPUP_ERROR_CLOSE: 3000, // 3 secondes - fermeture popup erreur
+  WINDOW_SUCCESS_REDIRECT: 3000, // 3 secondes - redirection fenêtre succès
+  WINDOW_ERROR_REDIRECT: 4000, // 4 secondes - redirection fenêtre erreur
+};
+
 const GoogleDriveCallback = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,12 +26,33 @@ const GoogleDriveCallback = () => {
     "Traitement de votre authentification Google Drive..."
   );
   const [retryCount, setRetryCount] = useState(0);
+  const [countdown, setCountdown] = useState(null);
 
   // Références pour éviter les appels multiples
   const isProcessingRef = useRef(false);
   const hasSucceededRef = useRef(false);
   const hasRedirectedRef = useRef(false);
   const timeoutRef = useRef(null);
+  const countdownIntervalRef = useRef(null);
+
+  // Fonction pour démarrer le compte à rebours
+  const startCountdown = (seconds) => {
+    setCountdown(seconds);
+
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+    }
+
+    countdownIntervalRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownIntervalRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const handleCallback = async (success, error, errorDescription) => {
     // Éviter les appels multiples
@@ -55,16 +84,24 @@ const GoogleDriveCallback = () => {
             window.location.origin
           );
 
+          // Démarrer le compte à rebours
+          const delay = DELAYS.POPUP_SUCCESS_CLOSE / 1000;
+          startCountdown(delay);
+
           // Fermer la popup après délai
           timeoutRef.current = setTimeout(() => {
             window.close();
-          }, 2000);
+          }, DELAYS.POPUP_SUCCESS_CLOSE);
         } else {
           // Redirection dans la fenêtre principale
           hasRedirectedRef.current = true;
+
+          const delay = DELAYS.WINDOW_SUCCESS_REDIRECT / 1000;
+          startCountdown(delay);
+
           timeoutRef.current = setTimeout(() => {
             navigate("/Dashboard/Platform", { replace: true });
-          }, 3000);
+          }, DELAYS.WINDOW_SUCCESS_REDIRECT);
         }
       }
       // Si erreur OAuth
@@ -84,9 +121,19 @@ const GoogleDriveCallback = () => {
             window.location.origin
           );
 
+          const delay = DELAYS.POPUP_ERROR_CLOSE / 1000;
+          startCountdown(delay);
+
           timeoutRef.current = setTimeout(() => {
             window.close();
-          }, 3000);
+          }, DELAYS.POPUP_ERROR_CLOSE);
+        } else {
+          const delay = DELAYS.WINDOW_ERROR_REDIRECT / 1000;
+          startCountdown(delay);
+
+          timeoutRef.current = setTimeout(() => {
+            navigate("/Dashboard/Platform", { replace: true });
+          }, DELAYS.WINDOW_ERROR_REDIRECT);
         }
       }
       // Paramètres manquants
@@ -138,6 +185,9 @@ const GoogleDriveCallback = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+    }
 
     if (window.opener) {
       window.close();
@@ -168,6 +218,9 @@ const GoogleDriveCallback = () => {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
       }
     };
   }, [location.search]);
@@ -236,18 +289,29 @@ const GoogleDriveCallback = () => {
             <div className="success-actions">
               <p>
                 {window.opener
-                  ? "Cette fenêtre se fermera automatiquement..."
+                  ? countdown !== null
+                    ? `Fermeture automatique dans ${countdown}s...`
+                    : "Cette fenêtre se fermera automatiquement..."
+                  : countdown !== null
+                  ? `Redirection dans ${countdown}s...`
                   : "Redirection automatique vers les plateformes..."}
               </p>
               <button onClick={handleGoHome} className="btn primary">
                 <Home size={18} />
-                {window.opener ? "Fermer" : "Accéder aux plateformes"}
+                {window.opener ? "Fermer maintenant" : "Accéder maintenant"}
               </button>
             </div>
           )}
 
           {status === "error" && (
             <div className="error-actions">
+              {countdown !== null && (
+                <p className="countdown-text">
+                  {window.opener
+                    ? `Fermeture dans ${countdown}s...`
+                    : `Redirection dans ${countdown}s...`}
+                </p>
+              )}
               {retryCount < 3 && (
                 <button onClick={handleRetry} className="btn retry">
                   <RefreshCw size={18} />
@@ -256,7 +320,7 @@ const GoogleDriveCallback = () => {
               )}
               <button onClick={handleGoHome} className="btn secondary">
                 <Home size={18} />
-                {window.opener ? "Fermer" : "Retour aux plateformes"}
+                {window.opener ? "Fermer maintenant" : "Retour maintenant"}
               </button>
             </div>
           )}
