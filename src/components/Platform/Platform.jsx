@@ -38,7 +38,7 @@ import useThreeShapeAuth from "../Config/useThreeShapeAuth";
 import MeditLinkDashboard from "../MeditLinkDashboard/MeditLinkDashboard";
 import ThreeShapeDashboard from "../ThreeShapeDashboard/ThreeShapeDashboard";
 import "./Platform.css";
-import GoogleDriveAuthButton from "./GoogleDriveAuthButton";
+import GoogleDriveAuthSystem from "./GoogleDriveAuthSystem";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -1305,7 +1305,7 @@ const Platform = () => {
   return (
     <div className="platform-main-wrapper">
       <div className="platform-content-container">
-        <GoogleDriveAuthButton />
+        <GoogleDriveAuthSystem />
         <div className="platform-management-card">
           {/* Header */}
           <div className="platform-management-header">

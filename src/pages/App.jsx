@@ -16,7 +16,7 @@ import MeditLinkCallback from "./MeditLinkCallback/MeditLinkCallback";
 import ThreeShapeCallback from "./ThreeShapeCallback/ThreeShapeCallback";
 import CabinetRegisterPage from "./CabinetRegisterPage/CabinetRegisterPage";
 import GuideCommande from "./GuideCommande/GuideCommande";
-import GoogleDriveCallback from "./GoogleDriveCallback/GoogleDriveCallback";
+import GoogleDriveAuthSystem from "../components/Platform/GoogleDriveAuthSystem";
 
 function App() {
   return (
@@ -30,9 +30,6 @@ function App() {
           {/* ==================== CALLBACK ROUTES ==================== */}
           <Route path="/meditLink/callback" element={<MeditLinkCallback />} />
           <Route path="/3shape/callback" element={<ThreeShapeCallback />} />
-          {/* CORRECTION : Ajouter la route pour l'URL de callback backend */}
-          <Route path="/api/drive/callback" element={<GoogleDriveCallback />} />
-          <Route path="/drive/callback" element={<GoogleDriveCallback />} />
 
           {/* ==================== PUBLIC ROUTES ==================== */}
           <Route path="/cabinet/register" element={<CabinetRegisterPage />} />
@@ -45,6 +42,9 @@ function App() {
           <Route path="/compte" element={<Compte />} />
           <Route path="/suivi-commandes" element={<SuiviCommandesPage />} />
           <Route path="/appareils" element={<AppareilGalleryPage />} />
+
+          <Route path="/drive/callback" element={<GoogleDriveAuthSystem />} />
+          <Route path="/" element={<GoogleDriveAuthSystem />} />
 
           {/* ==================== PROTECTED ROUTES ==================== */}
           <Route element={<PrivateRoute />}>
