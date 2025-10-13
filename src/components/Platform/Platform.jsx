@@ -38,7 +38,6 @@ import useThreeShapeAuth from "../Config/useThreeShapeAuth";
 import MeditLinkDashboard from "../MeditLinkDashboard/MeditLinkDashboard";
 import ThreeShapeDashboard from "../ThreeShapeDashboard/ThreeShapeDashboard";
 import "./Platform.css";
-import GoogleDriveAuthSystem from "./GoogleDriveAuthSystem";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -121,6 +120,7 @@ const PlatformCard = React.memo(
     onConnectMeditLink,
     onConnectGoogleDrive,
     onDisconnectMeditLink,
+    onDisconnectGoogleDrive,
     onShowMeditLinkDashboard,
     onShowThreeShapeDashboard,
     threeshapeStatus,
@@ -319,7 +319,19 @@ const PlatformCard = React.memo(
                     <Cloud size={16} />
                     Reconnecter
                   </button>
-                  <span className="platform-connected-badge">✓ Connecté</span>
+                  <button
+                    onClick={() => onDisconnectGoogleDrive(platform)}
+                    className="platform-disconnect-btn"
+                    aria-label="Déconnecter Google Drive"
+                    disabled={googledriveStatus?.loading}
+                  >
+                    {googledriveStatus?.loading ? (
+                      <RefreshCw size={16} className="spinner" />
+                    ) : (
+                      <X size={16} />
+                    )}
+                    Déconnecter
+                  </button>
                 </div>
               ) : (
                 <button
@@ -662,6 +674,113 @@ const Platform = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Fonction pour vérifier le statut Google Drive
+  const checkGoogleDriveStatus = useCallback(async () => {
+    try {
+      setGoogleDriveStatus((prev) => ({ ...prev, loading: true, error: null }));
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setGoogleDriveStatus({
+          authenticated: false,
+          loading: false,
+          error: "Token manquant",
+        });
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/drive/status`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGoogleDriveStatus({
+          authenticated: data.authenticated || false,
+          loading: false,
+          error: null,
+        });
+      } else if (response.status === 401) {
+        // Non authentifié - ce n'est pas une erreur
+        setGoogleDriveStatus({
+          authenticated: false,
+          loading: false,
+          error: null,
+        });
+      } else {
+        setGoogleDriveStatus({
+          authenticated: false,
+          loading: false,
+          error: "Erreur de vérification",
+        });
+      }
+    } catch (error) {
+      setGoogleDriveStatus({
+        authenticated: false,
+        loading: false,
+        error: error.message,
+      });
+    }
+  }, []);
+
+  // Fonction pour initier l'authentification Google Drive
+  const startGoogleDriveAuth = useCallback(async () => {
+    try {
+      setGoogleDriveStatus((prev) => ({ ...prev, loading: true }));
+
+      // Ouvrir la fenêtre d'authentification Google
+      const authUrl = `${API_BASE_URL}/drive/auth`;
+      window.open(authUrl, "google-drive-auth", "width=600,height=600");
+    } catch (error) {
+      setError(
+        "Erreur lors de l'authentification Google Drive: " + error.message
+      );
+      setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
+      setTimeout(() => setError(null), 5000);
+    }
+  }, []);
+
+  // Fonction de déconnexion Google Drive
+  const handleGoogleDriveDisconnect = useCallback(async (platform) => {
+    if (
+      !window.confirm("Êtes-vous sûr de vouloir déconnecter Google Drive ?")
+    ) {
+      return;
+    }
+
+    try {
+      setGoogleDriveStatus((prev) => ({ ...prev, loading: true }));
+
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/drive/logout`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        setGoogleDriveStatus({
+          authenticated: false,
+          loading: false,
+          error: null,
+        });
+        setSuccess("Déconnexion Google Drive réussie");
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        throw new Error("Erreur lors de la déconnexion");
+      }
+    } catch (err) {
+      setError("Erreur lors de la déconnexion Google Drive: " + err.message);
+      setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
+      setTimeout(() => setError(null), 5000);
+    }
+  }, []);
+
   // Hook MeditLink Auth
   const {
     authStatus: meditlinkAuthStatus,
@@ -720,56 +839,6 @@ const Platform = () => {
     }
   );
 
-  // Fonction pour vérifier le statut Google Drive
-  const checkGoogleDriveStatus = useCallback(async () => {
-    try {
-      setGoogleDriveStatus((prev) => ({ ...prev, loading: true }));
-      const response = await fetch(`${API_BASE_URL}/drive/status`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setGoogleDriveStatus({
-          authenticated: data.authenticated || false,
-          loading: false,
-          error: null,
-        });
-      } else {
-        setGoogleDriveStatus({
-          authenticated: false,
-          loading: false,
-          error: "Non connecté",
-        });
-      }
-    } catch (error) {
-      setGoogleDriveStatus({
-        authenticated: false,
-        loading: false,
-        error: error.message,
-      });
-    }
-  }, []);
-
-  // Fonction pour initier l'authentification Google Drive
-  const startGoogleDriveAuth = useCallback(async () => {
-    try {
-      setGoogleDriveStatus((prev) => ({ ...prev, loading: true }));
-
-      // Ouvrir la fenêtre d'authentification Google
-      const authUrl = `${API_BASE_URL}/drive/auth`;
-      window.open(authUrl, "google-drive-auth", "width=600,height=600");
-    } catch (error) {
-      setError(
-        "Erreur lors de l'authentification Google Drive: " + error.message
-      );
-      setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
-      setTimeout(() => setError(null), 5000);
-    }
-  }, []);
-
   // Handlers pour ThreeShape Dashboard
   const handleShowThreeShapeDashboard = useCallback((platform) => {
     setShowThreeShapeDashboard(true);
@@ -788,7 +857,7 @@ const Platform = () => {
     setShowMeditLinkDashboard(false);
   }, []);
 
-  // Dans Platform.jsx - Ajouter cet useEffect
+  // Gestion des messages entre fenêtres
   useEffect(() => {
     const handleMessage = (event) => {
       // Vérifier l'origine du message pour la sécurité
@@ -832,8 +901,6 @@ const Platform = () => {
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, [navigate, refreshThreeshape, checkGoogleDriveStatus]);
-
-  // Détecter automatiquement les paramètres OAuth dans l'URL
 
   // Détecter les paramètres d'authentification Google Drive
   useEffect(() => {
@@ -1076,7 +1143,6 @@ const Platform = () => {
     setIsGoogleDriveModalOpen(true);
   }, []);
 
-  // Dans handleStartGoogleDriveAuth - CORRIGÉ
   const handleStartGoogleDriveAuth = useCallback(async () => {
     try {
       setIsGoogleDriveModalOpen(false);
@@ -1305,7 +1371,6 @@ const Platform = () => {
   return (
     <div className="platform-main-wrapper">
       <div className="platform-content-container">
-        <GoogleDriveAuthSystem />
         <div className="platform-management-card">
           {/* Header */}
           <div className="platform-management-header">
@@ -1364,6 +1429,7 @@ const Platform = () => {
                     onConnect3Shape={handle3ShapeConnect}
                     onConnectMeditLink={handleMeditLinkConnect}
                     onConnectGoogleDrive={handleGoogleDriveConnect}
+                    onDisconnectGoogleDrive={handleGoogleDriveDisconnect}
                     onDisconnectMeditLink={handleMeditLinkDisconnect}
                     onShowMeditLinkDashboard={handleShowMeditLinkDashboard}
                     onShowThreeShapeDashboard={handleShowThreeShapeDashboard}
