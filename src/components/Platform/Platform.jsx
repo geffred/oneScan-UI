@@ -860,8 +860,23 @@ const Platform = () => {
   // Gestion des messages entre fenêtres
   useEffect(() => {
     const handleMessage = (event) => {
-      // Vérifier l'origine du message pour la sécurité
-      if (event.origin !== window.location.origin) return;
+      // ✅ Liste des origines autorisées (avec et sans www)
+      const allowedOrigins = [
+        "https://mysmilelab.be",
+        "https://www.mysmilelab.be",
+        "http://localhost:5173",
+      ];
+
+      // Vérifier si l'origine est autorisée
+      if (!allowedOrigins.includes(event.origin)) {
+        console.warn(
+          "⚠️ Message reçu d'une origine non autorisée:",
+          event.origin
+        );
+        return;
+      }
+
+      console.log("✅ Message reçu d'une origine autorisée:", event.origin);
 
       if (event.data?.type === "GOOGLE_DRIVE_AUTH_SUCCESS") {
         console.log("✅ Auth Google Drive réussie depuis le popup !");
