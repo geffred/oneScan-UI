@@ -26,15 +26,18 @@ import { ToastContainer } from "react-toastify";
 import "./CommandeDetails.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // API Services
-const fetchWithAuth = async (url) => {
+const fetchWithAuth = async (url, options = {}) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
 
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,
+      ...options.headers,
     },
+    ...options,
   });
 
   if (!response.ok) {
@@ -57,10 +60,26 @@ const getCabinets = async () => {
   return fetchWithAuth(`${API_BASE_URL}/cabinet`);
 };
 
+// CORRECTION : Fonction mise à jour pour récupérer les commentaires Itero
 const getCommentaire = async (plateforme, externalId) => {
+  const token = localStorage.getItem("token");
   if (!plateforme || !externalId) return null;
 
   try {
+    // Pour Itero, utiliser l'endpoint POST spécifique
+    if (plateforme.toUpperCase() === "ITERO") {
+      const endpoint = `${API_BASE_URL}/itero/commandes/${externalId}/comments`;
+      const data = await fetchWithAuth(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      return data.comments || data.commentaire || null;
+    }
+
+    // Pour les autres plateformes, utiliser l'endpoint public
     const endpoint = `${API_BASE_URL}/public/commandes/${externalId}`;
     const data = await fetchWithAuth(endpoint);
     return data.commentaire || data.comments || null;
@@ -231,15 +250,28 @@ const CommandeDetails = () => {
     }
   );
 
+  // CORRECTION : Logique spécifique pour Itero
+  const shouldFetchCommentaire = useMemo(() => {
+    if (!commande) return false;
+
+    // Pour Itero, toujours récupérer le commentaire via l'API spécifique
+    if (commande.plateforme?.toUpperCase() === "ITERO") {
+      return `commentaire-itero-${commande.externalId}`;
+    }
+
+    // Pour les autres plateformes, seulement si pas déjà dans la commande
+    return !commande.commentaire
+      ? `commentaire-${commande.plateforme}-${commande.externalId}`
+      : null;
+  }, [commande]);
+
   const {
     data: commentaire,
     error: commentaireError,
     isLoading: commentaireLoading,
     mutate: mutateCommentaire,
   } = useSWR(
-    commande && !commande.commentaire
-      ? `commentaire-${commande.plateforme}-${commande.externalId}`
-      : null,
+    shouldFetchCommentaire,
     () => getCommentaire(commande.plateforme, commande.externalId),
     {
       revalidateOnFocus: false,
@@ -539,9 +571,21 @@ const CommandeDetails = () => {
     [commande, getPlateformeColor]
   );
 
-  const isCommentLoading =
-    commentaireLoading ||
-    (commande && !commande.commentaire && commentaire === undefined);
+  // CORRECTION : Logique de chargement spécifique pour Itero
+  const isCommentLoading = useMemo(() => {
+    if (!commande) return false;
+
+    // Pour Itero, on affiche le chargement seulement si les données sont en cours de chargement
+    if (commande.plateforme?.toUpperCase() === "ITERO") {
+      return commentaireLoading;
+    }
+
+    // Pour les autres plateformes, logique originale
+    return (
+      commentaireLoading ||
+      (commande && !commande.commentaire && commentaire === undefined)
+    );
+  }, [commande, commentaireLoading, commentaire]);
 
   const canDownloadBonCommande = useMemo(() => {
     return commande && commande.typeAppareil && commande.typeAppareil !== null;
@@ -556,7 +600,18 @@ const CommandeDetails = () => {
     );
   }, [commande]);
 
-  const finalCommentaire = commentaire || commande.commentaire;
+  // CORRECTION : Priorité des commentaires pour Itero
+  const finalCommentaire = useMemo(() => {
+    if (!commande) return null;
+
+    // Pour Itero, priorité au commentaire de l'API spécifique
+    if (commande.plateforme?.toUpperCase() === "ITERO") {
+      return commentaire || commande.commentaire;
+    }
+
+    // Pour les autres plateformes, logique originale
+    return commande.commentaire || commentaire;
+  }, [commande, commentaire]);
 
   // Effects
   useEffect(() => {
