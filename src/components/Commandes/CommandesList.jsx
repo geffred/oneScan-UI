@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from "react";
-import { FileText, RefreshCw } from "lucide-react";
+import { FileText, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import CommandeRow from "./CommandeRow";
 import "./CommandesList.css";
 
@@ -10,7 +10,46 @@ const CommandesList = ({
   onViewDetails,
   onSyncAll,
   connectedPlatformsCount,
+  currentPage,
+  totalPages,
+  onPageChange,
+  itemsPerPage = 25,
 }) => {
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, commandes.length);
+  const totalFilteredCommandes = commandes.length;
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      onPageChange(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      onPageChange(currentPage + 1);
+    }
+  };
+
+  const getVisiblePages = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    // Ajuster si on est proche de la fin
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
+
   return (
     <div className="commandes-list-section">
       {commandes.length === 0 ? (
@@ -47,7 +86,7 @@ const CommandesList = ({
             </div>
 
             <div className="commandes-table-body">
-              {commandes.map((commande) => (
+              {commandes.slice(startIndex - 1, endIndex).map((commande) => (
                 <CommandeRow
                   key={commande.id}
                   commande={commande}
@@ -57,15 +96,59 @@ const CommandesList = ({
             </div>
           </div>
 
-          {/* Footer avec le compte des résultats */}
-          <div className="commandes-footer">
-            <p className="commandes-results-count">
-              {commandes.length} commande
-              {commandes.length > 1 ? "s" : ""} affichée
-              {commandes.length > 1 ? "s" : ""}
-              {commandes.length !== totalCommandes &&
-                ` sur ${totalCommandes} au total`}
-            </p>
+          {/* Pagination */}
+          <div className="commandes-pagination">
+            <div className="commandes-pagination-info">
+              <span className="commandes-pagination-text">
+                Affichage de {startIndex} à {endIndex} sur{" "}
+                {totalFilteredCommandes} commande
+                {totalFilteredCommandes > 1 ? "s" : ""} filtrée
+                {totalFilteredCommandes > 1 ? "s" : ""}
+                {totalFilteredCommandes !== totalCommandes &&
+                  ` (${totalCommandes} au total)`}
+              </span>
+            </div>
+
+            <div className="commandes-pagination-controls">
+              <button
+                className="commandes-pagination-btn"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft size={16} />
+                Précédent
+              </button>
+
+              <div className="commandes-pagination-pages">
+                {getVisiblePages().map((page) => (
+                  <button
+                    key={page}
+                    className={`commandes-pagination-page ${
+                      page === currentPage
+                        ? "commandes-pagination-page-active"
+                        : ""
+                    }`}
+                    onClick={() => onPageChange(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                {totalPages >
+                  getVisiblePages()[getVisiblePages().length - 1] && (
+                  <span className="commandes-pagination-ellipsis">...</span>
+                )}
+              </div>
+
+              <button
+                className="commandes-pagination-btn"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                Suivant
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
         </>
       )}

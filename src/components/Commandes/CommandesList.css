@@ -285,3 +285,122 @@
     font-size: var(--commandes-font-sm);
   }
 }
+
+/* Pagination Styles */
+.commandes-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--commandes-border-light);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.commandes-pagination-info {
+  flex: 1;
+}
+
+.commandes-pagination-text {
+  color: var(--commandes-text-secondary);
+  font-size: var(--commandes-font-sm);
+}
+
+.commandes-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.commandes-pagination-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--commandes-border);
+  background: var(--commandes-background);
+  color: var(--commandes-text-primary);
+  border-radius: var(--commandes-radius);
+  cursor: pointer;
+  transition: var(--commandes-transition);
+  font-size: var(--commandes-font-sm);
+}
+
+.commandes-pagination-btn:hover:not(:disabled) {
+  background: var(--commandes-background-muted);
+  border-color: var(--commandes-primary);
+}
+
+.commandes-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.commandes-pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.commandes-pagination-page {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--commandes-border);
+  background: var(--commandes-background);
+  color: var(--commandes-text-primary);
+  border-radius: var(--commandes-radius);
+  cursor: pointer;
+  transition: var(--commandes-transition);
+  font-size: var(--commandes-font-sm);
+  min-width: 2.5rem;
+  text-align: center;
+}
+
+.commandes-pagination-page:hover:not(.commandes-pagination-page-active) {
+  background: var(--commandes-background-muted);
+  border-color: var(--commandes-primary);
+}
+
+.commandes-pagination-page-active {
+  background: var(--commandes-primary);
+  color: white;
+  border-color: var(--commandes-primary);
+}
+
+.commandes-pagination-ellipsis {
+  padding: 0.5rem 0.25rem;
+  color: var(--commandes-text-muted);
+  font-size: var(--commandes-font-sm);
+}
+
+/* Responsive Pagination */
+@media (max-width: 768px) {
+  .commandes-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .commandes-pagination-controls {
+    justify-content: center;
+  }
+
+  .commandes-pagination-pages {
+    display: none;
+  }
+
+  .commandes-pagination-info {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .commandes-pagination-btn {
+    padding: 0.5rem;
+    font-size: var(--commandes-font-xs);
+  }
+
+  .commandes-pagination-btn span {
+    display: none;
+  }
+}

@@ -43,6 +43,8 @@ const Commandes = () => {
   const [customDateTo, setCustomDateTo] = useState("");
   const [syncStatus, setSyncStatus] = useState({});
   const [isSyncing, setIsSyncing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(25);
 
   // Hooks d'authentification
   const googleDriveStatus = useGoogleDriveStatus(isAuthenticated);
@@ -113,16 +115,35 @@ const Commandes = () => {
   // Raccourcis pour les handlers
   const handlers = useMemo(
     () => ({
-      search: (e) => setSearchTerm(e.target.value),
-      plateforme: (e) => setSelectedPlateforme(e.target.value),
-      dateFilter: (e) => setDateFilter(e.target.value),
-      unread: (e) => setShowOnlyUnread(e.target.checked),
-      customDateFrom: (e) => setCustomDateFrom(e.target.value),
-      customDateTo: (e) => setCustomDateTo(e.target.value),
+      search: (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1); // Reset à la première page lors de la recherche
+      },
+      plateforme: (e) => {
+        setSelectedPlateforme(e.target.value);
+        setCurrentPage(1);
+      },
+      dateFilter: (e) => {
+        setDateFilter(e.target.value);
+        setCurrentPage(1);
+      },
+      unread: (e) => {
+        setShowOnlyUnread(e.target.checked);
+        setCurrentPage(1);
+      },
+      customDateFrom: (e) => {
+        setCustomDateFrom(e.target.value);
+        setCurrentPage(1);
+      },
+      customDateTo: (e) => {
+        setCustomDateTo(e.target.value);
+        setCurrentPage(1);
+      },
       viewDetails: (commande) =>
         navigate(`/dashboard/commande/${commande.externalId}`, {
           state: { commande },
         }),
+      pageChange: (page) => setCurrentPage(page),
     }),
     [navigate]
   );
@@ -141,6 +162,16 @@ const Commandes = () => {
     threeshapeAuth,
     googleDriveStatus,
   });
+
+  // Calcul de la pagination
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredCommandes.length / itemsPerPage);
+  }, [filteredCommandes.length, itemsPerPage]);
+
+  // Reset à la première page quand les données changent
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredCommandes.length]);
 
   // Handler pour synchroniser une plateforme spécifique
   const handleSyncPlatform = useCallback(
@@ -218,6 +249,10 @@ const Commandes = () => {
         onViewDetails={handlers.viewDetails}
         onSyncAll={handleSyncAllPlatforms}
         connectedPlatformsCount={stats.connectedPlatformsCount}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlers.pageChange}
+        itemsPerPage={itemsPerPage}
       />
     </div>
   );
