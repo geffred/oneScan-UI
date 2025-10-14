@@ -29,6 +29,7 @@ import {
   Activity,
   Cloud,
   HardDrive,
+  Cpu,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -46,6 +47,7 @@ const SECRET_KEY = "MaCleSecrete12345";
 const platformTypes = [
   { value: "THREESHAPE", label: "3Shape" },
   { value: "MEDITLINK", label: "MeditLink" },
+  { value: "ITERO", label: "Itero" },
   { value: "GOOGLE_DRIVE", label: "Google Drive" },
 ];
 
@@ -118,6 +120,7 @@ const PlatformCard = React.memo(
     onDelete,
     onConnect3Shape,
     onConnectMeditLink,
+    onConnectItero,
     onConnectGoogleDrive,
     onDisconnectMeditLink,
     onDisconnectGoogleDrive,
@@ -125,10 +128,12 @@ const PlatformCard = React.memo(
     onShowThreeShapeDashboard,
     threeshapeStatus,
     meditlinkStatus,
+    iteroStatus,
     googledriveStatus,
   }) => {
     const is3Shape = platform.name === "THREESHAPE";
     const isMeditLink = platform.name === "MEDITLINK";
+    const isItero = platform.name === "ITERO";
     const isGoogleDrive = platform.name === "GOOGLE_DRIVE";
 
     return (
@@ -176,6 +181,26 @@ const PlatformCard = React.memo(
                 <>
                   <AlertCircle size={16} />
                   <span>Non connecté à MeditLink</span>
+                </>
+              )}
+            </div>
+          )}
+
+          {isItero && (
+            <div
+              className={`platform-meditlink-status ${
+                iteroStatus?.authenticated ? "connected" : "disconnected"
+              }`}
+            >
+              {iteroStatus?.authenticated ? (
+                <>
+                  <CheckCircle size={16} />
+                  <span>Connecté à Itero</span>
+                </>
+              ) : (
+                <>
+                  <AlertCircle size={16} />
+                  <span>Non connecté à Itero</span>
                 </>
               )}
             </div>
@@ -230,6 +255,14 @@ const PlatformCard = React.memo(
                 <span>Token 3Shape actif</span>
               </div>
             )}
+
+          {/* Affichage des infos Itero si connecté */}
+          {isItero && iteroStatus?.authenticated && (
+            <div className="platform-user-info">
+              <Link2 size={14} />
+              <span>Connecté à l'API Itero</span>
+            </div>
+          )}
 
           {/* Affichage des infos Google Drive si connecté */}
           {isGoogleDrive && googledriveStatus?.authenticated && (
@@ -304,6 +337,27 @@ const PlatformCard = React.memo(
                 </button>
               )}
             </>
+          )}
+
+          {/* Actions pour Itero */}
+          {isItero && (
+            <div className="itero-actions-group">
+              <button
+                onClick={() => onConnectItero(platform)}
+                className={`platform-connect-btn ${
+                  iteroStatus?.authenticated ? "connected" : ""
+                }`}
+                disabled={iteroStatus?.loading}
+                aria-label="Connecter à Itero"
+              >
+                <Shield size={16} />
+                {iteroStatus?.loading
+                  ? "Connexion..."
+                  : iteroStatus?.authenticated
+                  ? "Reconnecter"
+                  : "Connecter"}
+              </button>
+            </div>
           )}
 
           {/* Actions pour Google Drive */}
@@ -395,6 +449,90 @@ const EmptyState = React.memo(({ searchTerm }) => (
 ));
 
 EmptyState.displayName = "EmptyState";
+
+// Composant modal pour Itero
+const IteroOAuthModal = React.memo(
+  ({ isOpen, onClose, onStartAuth, isLoading }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="platform-modal-overlay">
+        <div className="platform-modal platform-itero-modal">
+          <div className="platform-modal-header">
+            <h2>Connexion Itero</h2>
+            <button onClick={onClose} className="platform-modal-close">
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="platform-itero-auth-content">
+            <div className="platform-itero-info">
+              <Cpu size={48} />
+              <h3>Connexion à l'API Itero</h3>
+              <p>
+                Connectez-vous à votre compte Itero pour récupérer vos commandes
+                et synchroniser vos données.
+              </p>
+            </div>
+
+            <div className="platform-itero-features">
+              <h4>Accès aux fonctionnalités :</h4>
+              <ul>
+                <li>
+                  <CheckCircle size={16} /> Récupération des commandes Itero
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Consultation des cas patients
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Téléchargement des scans 3D
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Synchronisation automatique
+                </li>
+              </ul>
+            </div>
+
+            <div className="platform-itero-security">
+              <p>
+                <strong>Note :</strong> La connexion utilise l'API Itero
+                sécurisée pour récupérer vos données.
+              </p>
+            </div>
+
+            <div className="platform-itero-actions">
+              <button
+                onClick={onStartAuth}
+                disabled={isLoading}
+                className="platform-itero-connect-btn"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="platform-loading-spinner"></div>
+                    Connexion...
+                  </>
+                ) : (
+                  <>
+                    <Cpu size={18} />
+                    Se connecter à Itero
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="platform-modal-actions">
+            <button onClick={onClose} className="platform-cancel-btn">
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+IteroOAuthModal.displayName = "IteroOAuthModal";
 
 // Composant modal pour 3Shape OAuth
 const ThreeShapeOAuthModal = React.memo(
@@ -662,10 +800,17 @@ const Platform = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showThreeShapeDashboard, setShowThreeShapeDashboard] = useState(false);
   const [showMeditLinkDashboard, setShowMeditLinkDashboard] = useState(false);
+  const [showIteroDashboard, setShowIteroDashboard] = useState(false);
   const [is3ShapeModalOpen, setIs3ShapeModalOpen] = useState(false);
   const [isMeditLinkModalOpen, setIsMeditLinkModalOpen] = useState(false);
+  const [isIteroModalOpen, setIsIteroModalOpen] = useState(false);
   const [isGoogleDriveModalOpen, setIsGoogleDriveModalOpen] = useState(false);
   const [googleDriveStatus, setGoogleDriveStatus] = useState({
+    authenticated: false,
+    loading: false,
+    error: null,
+  });
+  const [iteroStatus, setIteroStatus] = useState({
     authenticated: false,
     loading: false,
     error: null,
@@ -719,6 +864,51 @@ const Platform = () => {
       }
     } catch (error) {
       setGoogleDriveStatus({
+        authenticated: false,
+        loading: false,
+        error: error.message,
+      });
+    }
+  }, []);
+
+  // Fonction pour vérifier le statut Itero
+  const checkIteroStatus = useCallback(async () => {
+    try {
+      setIteroStatus((prev) => ({ ...prev, loading: true, error: null }));
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setIteroStatus({
+          authenticated: false,
+          loading: false,
+          error: "Token manquant",
+        });
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/itero/status`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIteroStatus({
+          authenticated: data.apiStatus === "Connecté",
+          loading: false,
+          error: null,
+        });
+      } else {
+        setIteroStatus({
+          authenticated: false,
+          loading: false,
+          error: "Erreur de vérification",
+        });
+      }
+    } catch (error) {
+      setIteroStatus({
         authenticated: false,
         loading: false,
         error: error.message,
@@ -855,6 +1045,15 @@ const Platform = () => {
 
   const handleCloseMeditLinkDashboard = useCallback(() => {
     setShowMeditLinkDashboard(false);
+  }, []);
+
+  // Handlers pour Itero Dashboard
+  const handleShowIteroDashboard = useCallback((platform) => {
+    setShowIteroDashboard(true);
+  }, []);
+
+  const handleCloseIteroDashboard = useCallback(() => {
+    setShowIteroDashboard(false);
   }, []);
 
   // Gestion des messages entre fenêtres
@@ -1041,12 +1240,13 @@ const Platform = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Vérifier le statut Google Drive au chargement
+  // Vérifier le statut Google Drive et Itero au chargement
   useEffect(() => {
     if (isAuthenticated) {
       checkGoogleDriveStatus();
+      checkIteroStatus();
     }
-  }, [isAuthenticated, checkGoogleDriveStatus]);
+  }, [isAuthenticated, checkGoogleDriveStatus, checkIteroStatus]);
 
   // Handlers pour 3Shape OAuth
   const handle3ShapeConnect = useCallback(async (platform) => {
@@ -1151,6 +1351,53 @@ const Platform = () => {
 
   const closeMeditLinkModal = useCallback(() => {
     setIsMeditLinkModalOpen(false);
+  }, []);
+
+  // Handlers pour Itero
+  const handleIteroConnect = useCallback(async (platform) => {
+    setIsIteroModalOpen(true);
+  }, []);
+
+  const handleStartIteroAuth = useCallback(async () => {
+    try {
+      setIsIteroModalOpen(false);
+      setIteroStatus((prev) => ({ ...prev, loading: true }));
+
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/itero/login`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la connexion à Itero");
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIteroStatus({
+          authenticated: true,
+          loading: false,
+          error: null,
+        });
+        setSuccess("Connexion Itero réussie !");
+        setTimeout(() => setSuccess(null), 5000);
+      } else {
+        throw new Error(data.error || "Erreur lors de la connexion");
+      }
+    } catch (err) {
+      setError("Erreur lors de la connexion Itero: " + err.message);
+      setIteroStatus((prev) => ({ ...prev, loading: false }));
+      setTimeout(() => setError(null), 5000);
+    }
+  }, []);
+
+  const closeIteroModal = useCallback(() => {
+    setIsIteroModalOpen(false);
   }, []);
 
   // Handlers pour Google Drive OAuth
@@ -1376,7 +1623,13 @@ const Platform = () => {
     refreshThreeshape();
     refreshMeditlink();
     checkGoogleDriveStatus();
-  }, [refreshThreeshape, refreshMeditlink, checkGoogleDriveStatus]);
+    checkIteroStatus();
+  }, [
+    refreshThreeshape,
+    refreshMeditlink,
+    checkGoogleDriveStatus,
+    checkIteroStatus,
+  ]);
 
   // Affichage immédiat de l'interface même si les données utilisateur chargent encore
   if (!isAuthenticated) {
@@ -1443,6 +1696,7 @@ const Platform = () => {
                     onDelete={handleDelete}
                     onConnect3Shape={handle3ShapeConnect}
                     onConnectMeditLink={handleMeditLinkConnect}
+                    onConnectItero={handleIteroConnect}
                     onConnectGoogleDrive={handleGoogleDriveConnect}
                     onDisconnectGoogleDrive={handleGoogleDriveDisconnect}
                     onDisconnectMeditLink={handleMeditLinkDisconnect}
@@ -1450,6 +1704,7 @@ const Platform = () => {
                     onShowThreeShapeDashboard={handleShowThreeShapeDashboard}
                     threeshapeStatus={combinedThreeshapeStatus}
                     meditlinkStatus={combinedMeditlinkStatus}
+                    iteroStatus={iteroStatus}
                     googledriveStatus={googleDriveStatus}
                   />
                 ))}
@@ -1474,6 +1729,49 @@ const Platform = () => {
             </div>
             <div className="platform-modal-content">
               <ThreeShapeDashboard />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Dashboard MeditLink */}
+      {showMeditLinkDashboard && (
+        <div className="platform-modal-overlay">
+          <div className="platform-modal platform-meditlink-dashboard-modal">
+            <div className="platform-modal-header">
+              <h2>Tableau de bord MeditLink</h2>
+              <button
+                onClick={handleCloseMeditLinkDashboard}
+                className="platform-modal-close"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="platform-modal-content">
+              <MeditLinkDashboard />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Dashboard Itero */}
+      {showIteroDashboard && (
+        <div className="platform-modal-overlay">
+          <div className="platform-modal platform-itero-dashboard-modal">
+            <div className="platform-modal-header">
+              <h2>Tableau de bord Itero</h2>
+              <button
+                onClick={handleCloseIteroDashboard}
+                className="platform-modal-close"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="platform-modal-content">
+              <div className="platform-itero-dashboard">
+                <h3>Dashboard Itero</h3>
+                <p>Interface de gestion des commandes Itero à venir...</p>
+              </div>
             </div>
           </div>
         </div>
@@ -1554,6 +1852,21 @@ const Platform = () => {
                             Après création, utilisez le bouton "Connecter" pour
                             vous authentifier avec votre compte 3Shape et
                             accéder à vos cas.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Info spéciale pour Itero */}
+                    {values.name === "ITERO" && (
+                      <div className="platform-info-banner">
+                        <Cpu size={16} />
+                        <div>
+                          <strong>Plateforme Itero :</strong>
+                          <p>
+                            Après création, utilisez le bouton "Connecter" pour
+                            vous connecter à l'API Itero et récupérer vos
+                            commandes.
                           </p>
                         </div>
                       </div>
@@ -1642,6 +1955,14 @@ const Platform = () => {
         isLoading={meditlinkLoading}
       />
 
+      {/* Modal Itero */}
+      <IteroOAuthModal
+        isOpen={isIteroModalOpen}
+        onClose={closeIteroModal}
+        onStartAuth={handleStartIteroAuth}
+        isLoading={iteroStatus.loading}
+      />
+
       {/* Modal Google Drive OAuth */}
       <GoogleDriveOAuthModal
         isOpen={isGoogleDriveModalOpen}
@@ -1649,26 +1970,6 @@ const Platform = () => {
         onStartAuth={handleStartGoogleDriveAuth}
         isLoading={googleDriveStatus.loading}
       />
-
-      {/* Modal Dashboard MeditLink */}
-      {showMeditLinkDashboard && (
-        <div className="platform-modal-overlay">
-          <div className="platform-modal platform-meditlink-dashboard-modal">
-            <div className="platform-modal-header">
-              <h2>Tableau de bord MeditLink</h2>
-              <button
-                onClick={handleCloseMeditLinkDashboard}
-                className="platform-modal-close"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="platform-modal-content">
-              <MeditLinkDashboard />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

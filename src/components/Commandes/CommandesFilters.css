@@ -1,0 +1,125 @@
+/* Commandes Filters Styles */
+.commandes-filters-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--commandes-background-muted);
+  border-radius: var(--commandes-radius-lg);
+  border: 1px solid var(--commandes-border);
+}
+
+.commandes-search-bar {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.commandes-search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--commandes-text-muted);
+}
+
+.commandes-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: var(--commandes-radius);
+  font-size: var(--commandes-font-lg);
+  transition: var(--commandes-transition);
+  background: var(--commandes-background);
+}
+
+.commandes-search-input:focus {
+  outline: none;
+  border-color: var(--commandes-primary);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.commandes-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.commandes-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--commandes-primary);
+}
+
+.commandes-filter-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: var(--commandes-background);
+  font-size: var(--commandes-font-base);
+  cursor: pointer;
+  transition: var(--commandes-transition);
+}
+
+.commandes-filter-select:focus {
+  outline: none;
+  border-color: var(--commandes-primary);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.commandes-date-range {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--commandes-background);
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+
+.commandes-date-input {
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: var(--commandes-font-base);
+  background: var(--commandes-background-muted);
+  transition: var(--commandes-transition);
+}
+
+.commandes-date-input:focus {
+  outline: 1px solid var(--commandes-primary);
+  background: var(--commandes-background);
+}
+
+.commandes-date-separator {
+  font-size: var(--commandes-font-sm);
+  color: var(--commandes-text-secondary);
+  font-weight: 500;
+}
+
+.commandes-checkbox-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: var(--commandes-font-base);
+  color: #374151;
+}
+
+.commandes-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--commandes-primary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .commandes-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .commandes-date-range {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

@@ -548,3 +548,148 @@
     padding: 0.75rem;
   }
 }
+
+
+/* Styles pour la barre de progression */
+.progress-bar-container {
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.progress-bar-container.small {
+  width: 80px;
+  margin: 0;
+}
+
+.progress-bar-container.small.inline {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar-container.small .progress-bar {
+  height: 4px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+
+.progress-bar-fill.indeterminate {
+  width: 100% !important;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
+  background-size: 200% 100%;
+  animation: indeterminate 1.5s infinite linear;
+}
+
+@keyframes indeterminate {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Section de progression d'upload */
+.upload-progress-section {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.progress-text {
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.progress-percentage {
+  font-weight: 600;
+  color: #3b82f6;
+  font-size: 0.95rem;
+}
+
+/* États de chargement */
+.passer-commande-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+  color: #64748b;
+}
+
+.loading-appareils {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+/* Mise à jour des styles existants pour la limite de fichier */
+.upload-label small {
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.compression-info {
+  color: #3b82f6;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+/* Ajustements pour les boutons avec indicateur de progression */
+.upload-btn .progress-bar-container.small.inline {
+  margin-right: 0.5rem;
+}
+
+.submit-btn .progress-bar-container.small.inline {
+  margin-right: 0.5rem;
+}

@@ -1,0 +1,110 @@
+/* Commandes Header Styles */
+.commandes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--commandes-primary);
+}
+
+.commandes-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.commandes-card-title {
+  font-size: var(--commandes-font-3xl);
+  font-weight: 700;
+  color: var(--commandes-primary);
+  margin: 0;
+}
+
+.commandes-stats {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.commandes-stat {
+  text-align: center;
+  padding: 1rem;
+  background: var(--commandes-primary);
+  border-radius: var(--commandes-radius);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 150px;
+}
+
+.commandes-stat-number {
+  font-size: var(--commandes-font-3xl);
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+  background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.commandes-stat-label {
+  font-size: var(--commandes-font-sm);
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.commandes-header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.commandes-btn-spinner {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+  border-width: 2px;
+}
+
+/* Stat pour les plateformes connectées */
+.commandes-stat-platforms {
+  background: #10b981;
+  border-radius: 25px;
+  width: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .commandes-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .commandes-header-content {
+    text-align: center;
+  }
+
+  .commandes-card-title {
+    font-size: var(--commandes-font-2xl);
+  }
+
+  .commandes-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .commandes-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .commandes-stat-number {
+    font-size: var(--commandes-font-2xl);
+  }
+}

@@ -1,0 +1,134 @@
+/* UI States Styles */
+.commandes-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.commandes-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--commandes-border-light);
+  border-top: 3px solid var(--commandes-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.commandes-loading-text {
+  color: var(--commandes-text-secondary);
+  font-size: var(--commandes-font-lg);
+  margin: 0;
+}
+
+/* Error State */
+.commandes-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.commandes-error-icon {
+  color: var(--commandes-error);
+  margin-bottom: 1rem;
+}
+
+.commandes-error-title {
+  font-size: var(--commandes-font-2xl);
+  font-weight: 700;
+  color: var(--commandes-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.commandes-error-message {
+  color: var(--commandes-text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+/* Notifications */
+.commandes-notifications {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 400px;
+}
+
+.commandes-notification {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-radius: var(--commandes-radius);
+  box-shadow: var(--commandes-shadow-lg);
+  animation: slideIn 0.3s ease-out;
+}
+
+.commandes-notification-success {
+  background: #d1fae5;
+  border: 1px solid var(--commandes-success);
+  color: #065f46;
+}
+
+.commandes-notification-error {
+  background: #fee2e2;
+  border: 1px solid var(--commandes-error);
+  color: #dc2626;
+}
+
+.commandes-notification-message {
+  font-weight: 500;
+  flex: 1;
+}
+
+.commandes-notification-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 1rem;
+  transition: var(--commandes-transition);
+}
+
+.commandes-notification-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive Notifications */
+@media (max-width: 768px) {
+  .commandes-notifications {
+    left: 10px;
+    right: 10px;
+    max-width: none;
+  }
+}

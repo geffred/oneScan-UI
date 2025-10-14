@@ -150,7 +150,7 @@ const updateCommandeStatus = async (commandeId, status) => {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(status),
+      body: JSON.stringify({ statut: status }),
     }
   );
 

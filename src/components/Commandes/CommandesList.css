@@ -1,0 +1,287 @@
+/* Commandes List Styles */
+.commandes-list-section {
+  margin-bottom: 2rem;
+}
+
+.commandes-table {
+  border: 1px solid var(--commandes-border);
+  border-radius: var(--commandes-radius);
+  overflow: hidden;
+  background: var(--commandes-background);
+}
+
+.commandes-table-header {
+  display: grid;
+  grid-template-columns: 100px 1fr 1fr 120px 120px 120px 120px 80px;
+  background: var(--commandes-background-muted);
+  border-bottom: 1px solid var(--commandes-border);
+}
+
+.commandes-table-body {
+  min-height: 400px;
+  overflow-y: auto;
+}
+
+.commandes-table-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 1fr 120px 120px 120px 120px 80px;
+  border-bottom: 1px solid var(--commandes-border-light);
+  transition: var(--commandes-transition);
+}
+
+.commandes-table-row:hover {
+  background: var(--commandes-background-alt);
+}
+
+.commandes-row-unread {
+  border-left: 3px solid var(--commandes-primary);
+}
+
+.commandes-table-cell {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  font-size: var(--commandes-font-base);
+  border-right: 1px solid var(--commandes-border-light);
+}
+
+.commandes-table-header .commandes-table-cell {
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: var(--commandes-font-sm);
+}
+
+.commandes-table-cell:last-child {
+  border-right: none;
+}
+
+/* Cell Content Styles */
+.commandes-external-id {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--commandes-primary);
+  background: #dbeafe;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: var(--commandes-font-sm);
+}
+
+.commandes-patient-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.commandes-patient-name {
+  font-weight: 500;
+  color: var(--commandes-text-primary);
+}
+
+.commandes-unread-badge {
+  background: var(--commandes-primary);
+  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+}
+
+.commandes-cabinet-name {
+  color: var(--commandes-text-secondary);
+  font-size: var(--commandes-font-base);
+}
+
+/* Platform Badges */
+.commandes-plateforme-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: var(--commandes-font-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.commandes-plateforme-blue {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.commandes-plateforme-green {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.commandes-plateforme-purple {
+  background: #e9d5ff;
+  color: #7c3aed;
+}
+
+.commandes-plateforme-orange {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.commandes-plateforme-red {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.commandes-plateforme-gray {
+  background: var(--commandes-border-light);
+  color: var(--commandes-text-secondary);
+}
+
+.commandes-date-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--commandes-text-secondary);
+  font-size: var(--commandes-font-base);
+}
+
+/* Status Badges */
+.commandes-status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: var(--commandes-font-sm);
+  font-weight: 500;
+}
+
+.commandes-status-green {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.commandes-status-yellow {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.commandes-status-red {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.commandes-status-gray {
+  background: var(--commandes-border-light);
+  color: var(--commandes-text-secondary);
+}
+
+.commandes-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.commandes-action-btn {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--commandes-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.commandes-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.commandes-action-view {
+  background: var(--commandes-primary);
+  color: white;
+}
+
+.commandes-action-view:hover:not(:disabled) {
+  background: var(--commandes-primary-dark);
+  transform: scale(1.05);
+}
+
+/* Empty State */
+.commandes-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.commandes-empty-icon {
+  color: var(--commandes-text-muted);
+  margin-bottom: 1rem;
+}
+
+.commandes-empty-title {
+  font-size: var(--commandes-font-2xl);
+  font-weight: 700;
+  color: var(--commandes-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.commandes-empty-message {
+  color: var(--commandes-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Footer */
+.commandes-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--commandes-border-light);
+  text-align: center;
+}
+
+.commandes-results-count {
+  color: var(--commandes-text-secondary);
+  font-size: var(--commandes-font-base);
+  margin: 0;
+}
+
+/* Responsive Table */
+@media (max-width: 1200px) {
+  .commandes-table-header,
+  .commandes-table-row {
+    grid-template-columns: 80px 1fr 1fr 100px 100px 100px 80px 70px;
+  }
+}
+
+@media (max-width: 768px) {
+  .commandes-table-header {
+    display: none;
+  }
+
+  .commandes-table-row {
+    display: block;
+    margin-bottom: 1rem;
+    border-radius: var(--commandes-radius);
+    border: 1px solid var(--commandes-border);
+  }
+
+  .commandes-table-cell {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-right: none;
+    border-bottom: 1px solid var(--commandes-border-light);
+  }
+
+  .commandes-table-cell:last-child {
+    border-bottom: none;
+  }
+
+  .commandes-table-cell::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #374151;
+    min-width: 100px;
+    font-size: var(--commandes-font-sm);
+  }
+}

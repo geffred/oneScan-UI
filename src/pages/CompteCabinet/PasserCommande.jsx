@@ -11,7 +11,6 @@ import {
   Package,
   MessageSquare,
   Send,
-  Loader,
   CheckCircle,
   AlertCircle,
   Tag,
@@ -77,6 +76,8 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedCategorie, setSelectedCategorie] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [currentUploadFile, setCurrentUploadFile] = useState("");
 
   // Récupérer les appareils
   const { data: appareils = [], isLoading: loadingAppareils } = useSWR(
@@ -129,14 +130,14 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       const isValidExtension = ["stl", "zip", "obj", "3mf", "ply"].includes(
         extension
       );
-      const isValidSize = file.size <= 100 * 1024 * 1024; // 100MB max
+      const isValidSize = file.size <= 500 * 1024 * 1024; // 500MB max
 
       return isValidExtension && isValidSize;
     });
 
     if (validFiles.length !== files.length) {
       toast.warning(
-        "Seuls les fichiers .stl, .zip, .obj, .3mf, .ply (max 100MB) sont acceptés"
+        "Seuls les fichiers .stl, .zip, .obj, .3mf, .ply (max 500MB) sont acceptés"
       );
     }
 
@@ -157,6 +158,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
 
     setIsUploading(true);
     setIsCompressing(true);
+    setUploadProgress(0);
 
     try {
       // Compresser les fichiers en ZIP
@@ -189,42 +191,80 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       // Si déjà des fichiers ZIP, les uploader tels quels
 
       setIsCompressing(false);
+      setUploadProgress(10); // 10% après compression
 
       const token = localStorage.getItem("token");
-      const uploadPromises = filesToUpload.map(async (file) => {
+      const newFiles = [];
+
+      for (let i = 0; i < filesToUpload.length; i++) {
+        const file = filesToUpload[i];
+        setCurrentUploadFile(file.name);
+
         const formData = new FormData();
         formData.append("file", file);
         formData.append("cabinetName", userData.nom);
         formData.append("commandeRef", `cmd_${Date.now()}`);
 
-        const response = await fetch(`${API_BASE_URL}/files/upload-command`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
+        const xhr = new XMLHttpRequest();
+
+        // Suivre la progression de l'upload
+        xhr.upload.addEventListener("progress", (e) => {
+          if (e.lengthComputable) {
+            const progress = (e.loaded / e.total) * 100;
+            // Calculer le progrès global en fonction du fichier actuel
+            const globalProgress = 10 + (progress * 90) / filesToUpload.length;
+            setUploadProgress(Math.min(globalProgress, 99));
+          }
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Erreur lors de l'upload");
-        }
+        const uploadPromise = new Promise((resolve, reject) => {
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+              if (xhr.status === 200) {
+                try {
+                  const result = JSON.parse(xhr.responseText);
+                  resolve(result);
+                } catch (error) {
+                  reject(new Error("Erreur lors du parsing de la réponse"));
+                }
+              } else {
+                try {
+                  const errorData = JSON.parse(xhr.responseText);
+                  reject(
+                    new Error(errorData.error || "Erreur lors de l'upload")
+                  );
+                } catch {
+                  reject(new Error("Erreur lors de l'upload"));
+                }
+              }
+            }
+          };
 
-        return response.json();
-      });
+          xhr.open("POST", `${API_BASE_URL}/files/upload-command`);
+          xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+          xhr.send(formData);
+        });
 
-      const results = await Promise.all(uploadPromises);
+        const result = await uploadPromise;
 
-      const newFiles = results.map((result) => ({
-        fileName: result.fileName,
-        fileUrl: result.fileUrl, // URL de téléchargement Google Drive
-        fileViewUrl: result.fileViewUrl, // URL de visualisation Google Drive
-        fileId: result.fileId, // ID Google Drive
-        fileSize: result.fileSize,
-        mimeType: result.mimeType,
-        isCompressed: filesToUpload.length < selectedFiles.length, // Indique si compression a eu lieu
-      }));
+        newFiles.push({
+          fileName: result.fileName,
+          fileUrl: result.fileUrl,
+          fileViewUrl: result.fileViewUrl,
+          fileId: result.fileId,
+          fileSize: result.fileSize,
+          mimeType: result.mimeType,
+          isCompressed: filesToUpload.length < selectedFiles.length,
+        });
+
+        // Mettre à jour la progression entre les fichiers
+        setUploadProgress(10 + ((i + 1) * 90) / filesToUpload.length);
+      }
 
       setUploadedFiles((prev) => [...prev, ...newFiles]);
       setSelectedFiles([]);
+      setUploadProgress(100);
+      setCurrentUploadFile("");
 
       if (filesToUpload.length < selectedFiles.length) {
         toast.success(
@@ -232,9 +272,12 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
         );
       } else {
         toast.success(
-          `${results.length} fichier(s) uploadé(s) avec succès sur Google Drive`
+          `${newFiles.length} fichier(s) uploadé(s) avec succès sur Google Drive`
         );
       }
+
+      // Réinitialiser la barre de progression après un délai
+      setTimeout(() => setUploadProgress(0), 2000);
     } catch (error) {
       console.error("Erreur upload:", error);
       const errorMessage =
@@ -242,6 +285,8 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
         "Erreur lors de l'upload des fichiers sur Google Drive";
       toast.error(errorMessage);
       if (onError) onError(errorMessage);
+      setUploadProgress(0);
+      setCurrentUploadFile("");
     } finally {
       setIsUploading(false);
       setIsCompressing(false);
@@ -378,7 +423,11 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
   if (!userData) {
     return (
       <div className="passer-commande-loading">
-        <Loader className="spinner" />
+        <div className="progress-bar-container">
+          <div className="progress-bar">
+            <div className="progress-bar-fill indeterminate"></div>
+          </div>
+        </div>
         <p>Chargement des informations du cabinet...</p>
       </div>
     );
@@ -510,7 +559,11 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                   <h3>Appareils disponibles :</h3>
                   {loadingAppareils ? (
                     <div className="loading-appareils">
-                      <Loader size={16} />
+                      <div className="progress-bar-container small">
+                        <div className="progress-bar">
+                          <div className="progress-bar-fill indeterminate"></div>
+                        </div>
+                      </div>
                       <span>Chargement des appareils...</span>
                     </div>
                   ) : filteredAppareils.length > 0 ? (
@@ -559,7 +612,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                   <Upload size={32} />
                   <p>Cliquez ou glissez vos fichiers ici</p>
                   <small>
-                    Formats acceptés : .stl, .zip, .obj, .3mf, .ply (max 100MB
+                    Formats acceptés : .stl, .zip, .obj, .3mf, .ply (max 500MB
                     par fichier)
                   </small>
                   <small className="compression-info">
@@ -568,6 +621,30 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                   </small>
                 </label>
               </div>
+
+              {/* Barre de progression */}
+              {(isUploading || isCompressing) && (
+                <div className="upload-progress-section">
+                  <div className="progress-info">
+                    <span className="progress-text">
+                      {isCompressing
+                        ? "Compression en cours..."
+                        : `Upload de ${currentUploadFile}...`}
+                    </span>
+                    <span className="progress-percentage">
+                      {Math.round(uploadProgress)}%
+                    </span>
+                  </div>
+                  <div className="progress-bar-container">
+                    <div className="progress-bar">
+                      <div
+                        className="progress-bar-fill"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Fichiers sélectionnés */}
               {selectedFiles.length > 0 && (
@@ -591,15 +668,14 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                       disabled={isUploading || isCompressing}
                       className="upload-btn primary"
                     >
-                      {isCompressing ? (
+                      {isCompressing || isUploading ? (
                         <>
-                          <Loader size={16} className="spinner" />
-                          Compression en cours...
-                        </>
-                      ) : isUploading ? (
-                        <>
-                          <Loader size={16} className="spinner" />
-                          Upload sur Google Drive...
+                          <div className="progress-bar-container small inline">
+                            <div className="progress-bar">
+                              <div className="progress-bar-fill indeterminate"></div>
+                            </div>
+                          </div>
+                          {isCompressing ? "Compression..." : "Upload..."}
                         </>
                       ) : (
                         <>
@@ -718,7 +794,11 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
               >
                 {isSubmitting ? (
                   <>
-                    <Loader size={18} className="spinner" />
+                    <div className="progress-bar-container small inline">
+                      <div className="progress-bar">
+                        <div className="progress-bar-fill indeterminate"></div>
+                      </div>
+                    </div>
                     Création en cours...
                   </>
                 ) : (
