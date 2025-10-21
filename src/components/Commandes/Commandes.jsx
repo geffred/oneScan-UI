@@ -23,7 +23,6 @@ import CommandesList from "./CommandesList";
 // Import des hooks personnalisés
 import useCommandesData from "./hooks/useCommandesData";
 import useSyncPlatforms from "./hooks/useSyncPlatforms";
-import useAutoSync from "./hooks/useAutoSync";
 import useGoogleDriveStatus from "./hooks/useGoogleDriveStatus";
 import "./Commandes.css";
 import "./ui/UIStates.css";
@@ -96,7 +95,7 @@ const Commandes = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
-      refreshInterval: 30000, // Rafraîchissement automatique toutes les 30s
+      refreshInterval: 60000,
       errorRetryCount: 3,
     }
   );
@@ -106,51 +105,19 @@ const Commandes = () => {
     syncMeditLinkCommandes,
     syncOtherPlatform,
     syncPlatformCommandes,
-    syncAllPlatforms: syncAllManual,
+    syncAllPlatforms,
   } = useSyncPlatforms({
     mutateCommandes,
     setSyncStatus,
     setIsSyncing,
   });
 
-  // Hook de synchronisation automatique
-  const {
-    startAutoSync,
-    stopAutoSync,
-    manualSync,
-    isAutoSyncActive,
-    syncInterval,
-    changeSyncInterval,
-  } = useAutoSync({
-    mutateCommandes,
-    setSyncStatus,
-    setIsSyncing,
-  });
-
-  // Démarrer la synchronisation automatique au montage du composant
-  useEffect(() => {
-    if (isAuthenticated) {
-      console.log(
-        "🔐 Utilisateur authentifié, démarrage synchronisation automatique"
-      );
-      startAutoSync(1); // Synchroniser toutes les 1 minute par défaut
-    } else {
-      console.log("🔒 Utilisateur non authentifié, arrêt synchronisation");
-      stopAutoSync();
-    }
-
-    return () => {
-      console.log("🧹 Nettoyage composant Commandes");
-      stopAutoSync();
-    };
-  }, [isAuthenticated, startAutoSync, stopAutoSync]);
-
   // Raccourcis pour les handlers
   const handlers = useMemo(
     () => ({
       search: (e) => {
         setSearchTerm(e.target.value);
-        setCurrentPage(1);
+        setCurrentPage(1); // Reset à la première page lors de la recherche
       },
       plateforme: (e) => {
         setSelectedPlateforme(e.target.value);
@@ -177,28 +144,8 @@ const Commandes = () => {
           state: { commande },
         }),
       pageChange: (page) => setCurrentPage(page),
-      manualSync: () => {
-        manualSync();
-      },
-      toggleAutoSync: () => {
-        if (isAutoSyncActive) {
-          stopAutoSync();
-        } else {
-          startAutoSync();
-        }
-      },
-      changeSyncInterval: (newInterval) => {
-        changeSyncInterval(newInterval);
-      },
     }),
-    [
-      navigate,
-      manualSync,
-      startAutoSync,
-      stopAutoSync,
-      isAutoSyncActive,
-      changeSyncInterval,
-    ]
+    [navigate]
   );
 
   // Calculs mémorisés
@@ -234,10 +181,10 @@ const Commandes = () => {
     [syncPlatformCommandes, connectionStatus.get]
   );
 
-  // Handler pour synchroniser toutes les plateformes (manuel)
+  // Handler pour synchroniser toutes les plateformes
   const handleSyncAllPlatforms = useCallback(() => {
-    syncAllManual(userPlatforms, connectionStatus.get);
-  }, [syncAllManual, userPlatforms, connectionStatus.get]);
+    syncAllPlatforms(userPlatforms, connectionStatus.get);
+  }, [syncAllPlatforms, userPlatforms, connectionStatus.get]);
 
   // Redirection si non authentifié
   useEffect(() => {
@@ -246,53 +193,19 @@ const Commandes = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Affichage du statut de synchronisation automatique dans la console
-  useEffect(() => {
-    if (isAutoSyncActive) {
-      console.log(
-        `🔄 Synchronisation automatique active - Intervalle: ${syncInterval} minutes`
-      );
-    }
-  }, [isAutoSyncActive, syncInterval]);
-
   // Gestion des erreurs
-  if (userLoading || platformsLoading || commandesLoading) {
-    return (
-      <div className="commandes-card">
-        <LoadingState />
-      </div>
-    );
-  }
-
-  if (userError) {
-    return (
-      <div className="commandes-card">
-        <ErrorState
-          message="Erreur lors du chargement des données utilisateur"
-          onRetry={() => window.location.reload()}
-        />
-      </div>
-    );
-  }
-
-  if (platformsError) {
-    return (
-      <div className="commandes-card">
-        <ErrorState
-          message="Erreur lors du chargement des plateformes"
-          onRetry={() => window.location.reload()}
-        />
-      </div>
-    );
-  }
-
   if (commandesError) {
     return (
       <div className="commandes-card">
-        <ErrorState
-          message="Erreur lors du chargement des commandes"
-          onRetry={() => mutateCommandes()}
-        />
+        <ErrorState onRetry={() => mutateCommandes()} />
+      </div>
+    );
+  }
+
+  if (commandesLoading) {
+    return (
+      <div className="commandes-card">
+        <LoadingState />
       </div>
     );
   }
@@ -303,12 +216,7 @@ const Commandes = () => {
         stats={stats}
         userPlatforms={userPlatforms}
         isSyncing={isSyncing}
-        isAutoSyncActive={isAutoSyncActive}
-        syncInterval={syncInterval}
         onSyncAll={handleSyncAllPlatforms}
-        onManualSync={handlers.manualSync}
-        onToggleAutoSync={handlers.toggleAutoSync}
-        onChangeSyncInterval={handlers.changeSyncInterval}
       />
 
       <PlatformsSection
@@ -318,8 +226,6 @@ const Commandes = () => {
         getConnectionStatus={connectionStatus.get}
         connectedPlatformsCount={stats.connectedPlatformsCount}
         totalPlatformsCount={stats.totalPlatformsCount}
-        isAutoSyncActive={isAutoSyncActive}
-        syncInterval={syncInterval}
       />
 
       <CommandesFilters
@@ -335,7 +241,6 @@ const Commandes = () => {
         onCustomDateToChange={handlers.customDateTo}
         showOnlyUnread={showOnlyUnread}
         onUnreadToggle={handlers.unread}
-        platforms={userPlatforms}
       />
 
       <CommandesList
@@ -348,21 +253,7 @@ const Commandes = () => {
         totalPages={totalPages}
         onPageChange={handlers.pageChange}
         itemsPerPage={itemsPerPage}
-        isAutoSyncActive={isAutoSyncActive}
-        syncInterval={syncInterval}
-        isSyncing={isSyncing}
       />
-
-      {/* Indicateur de synchronisation automatique */}
-      {isAutoSyncActive && (
-        <div className="auto-sync-indicator">
-          <div className="auto-sync-pulse"></div>
-          <span>
-            Synchronisation automatique active - Prochaine synchro dans ~
-            {syncInterval} minute(s)
-          </span>
-        </div>
-      )}
     </div>
   );
 };

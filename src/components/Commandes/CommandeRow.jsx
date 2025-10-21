@@ -61,7 +61,7 @@ const CommandeRow = ({ commande, onViewDetails }) => {
     >
       <div className="commandes-table-cell" data-label="ID">
         <span className="commandes-external-id">
-          #{commande.externalId ? commande.externalId.substring(0, 9) : "N/A"}
+          #{commande.externalId ? commande.externalId.substring(0, 8) : "N/A"}
         </span>
       </div>
 

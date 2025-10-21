@@ -6,7 +6,6 @@
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
   border-bottom: 2px solid var(--commandes-primary);
-  position: relative;
 }
 
 .commandes-header-content {
@@ -58,276 +57,31 @@
   letter-spacing: 0.5px;
 }
 
-/* Stat de synchronisation */
-.commandes-stat-sync.active {
-  background: #10b981; /* Vert quand actif */
-}
-
-.commandes-stat-sync.inactive {
-  background: #6b7280; /* Gris quand inactif */
-}
-
-.commandes-stat-sync .commandes-stat-number {
-  font-size: var(--commandes-font-2xl);
-}
-
-/* Groupe de contrôles de synchronisation */
-.sync-controls-group {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
 .commandes-header-actions {
   display: flex;
   gap: 1rem;
   align-items: center;
 }
 
-.commandes-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: var(--commandes-radius);
-  font-size: var(--commandes-font-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  min-width: fit-content;
-}
-
-.commandes-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.commandes-btn-primary {
-  background: var(--commandes-primary);
-  color: white;
-}
-
-.commandes-btn-primary:hover:not(:disabled) {
-  background: var(--commandes-primary-dark);
-  transform: translateY(-1px);
-}
-
-.commandes-btn-secondary {
-  background: #6b7280;
-  color: white;
-}
-
-.commandes-btn-secondary:hover:not(:disabled) {
-  background: #4b5563;
-  transform: translateY(-1px);
-}
-
-.commandes-btn-success {
-  background: #10b981;
-  color: white;
-}
-
-.commandes-btn-success:hover:not(:disabled) {
-  background: #059669;
-  transform: translateY(-1px);
-}
-
-.commandes-btn-danger {
-  background: #ef4444;
-  color: white;
-}
-
-.commandes-btn-danger:hover:not(:disabled) {
-  background: #dc2626;
-  transform: translateY(-1px);
-}
-
-.commandes-btn-outline {
-  background: transparent;
-  color: var(--commandes-primary);
-  border: 2px solid var(--commandes-primary);
-}
-
-.commandes-btn-outline:hover:not(:disabled) {
-  background: var(--commandes-primary);
-  color: white;
-  transform: translateY(-1px);
-}
-
 .commandes-btn-spinner {
-  animation: spin 1s linear infinite;
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+  border-width: 2px;
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Contrôles d'intervalle */
-.interval-controls {
-  position: relative;
-}
-
-.interval-settings-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: var(--commandes-radius);
-  padding: 1rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  min-width: 280px;
-  margin-top: 0.5rem;
-}
-
-.interval-settings-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.interval-settings-header h4 {
-  margin: 0;
-  color: var(--commandes-primary);
-  font-size: var(--commandes-font-sm);
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #6b7280;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.close-btn:hover {
-  color: #374151;
-}
-
-.quick-intervals {
-  margin-bottom: 1rem;
-}
-
-.quick-intervals label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: var(--commandes-font-xs);
-  font-weight: 600;
-  color: #374151;
-}
-
-.quick-intervals-buttons {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-}
-
-.quick-interval-btn {
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: white;
-  font-size: var(--commandes-font-xs);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.quick-interval-btn:hover {
-  border-color: var(--commandes-primary);
-  background: #f8fafc;
-}
-
-.quick-interval-btn.active {
-  background: var(--commandes-primary);
-  color: white;
-  border-color: var(--commandes-primary);
-}
-
-.custom-interval {
-  margin-bottom: 1rem;
-}
-
-.custom-interval label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: var(--commandes-font-xs);
-  font-weight: 600;
-  color: #374151;
-}
-
-.custom-interval-input {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.custom-interval-input input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: var(--commandes-font-sm);
-}
-
-.custom-interval-input span {
-  font-size: var(--commandes-font-xs);
-  color: #6b7280;
-  white-space: nowrap;
-}
-
-.interval-info {
-  padding-top: 0.75rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.interval-info small {
-  color: #6b7280;
-  font-size: 0.75rem;
+/* Stat pour les plateformes connectées */
+.commandes-stat-platforms {
+  background: #10b981;
+  border-radius: 25px;
+  width: 20px;
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
-  .sync-controls-group {
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .commandes-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .interval-settings-dropdown {
-    left: 50%;
-    transform: translateX(-50%);
-    min-width: 250px;
-  }
-}
-
 @media (max-width: 768px) {
   .commandes-header {
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
     align-items: stretch;
   }
 
@@ -340,52 +94,17 @@
   }
 
   .commandes-stats {
-    justify-content: center;
-    gap: 0.75rem;
-  }
-
-  .commandes-stat {
-    min-width: 120px;
-    flex: 1;
-  }
-
-  .commandes-stat-number {
-    font-size: var(--commandes-font-xl);
-  }
-
-  .sync-controls-group {
-    flex-direction: row;
-    justify-content: center;
-  }
-
-  .quick-intervals-buttons {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .commandes-stats {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .commandes-stat-number {
-    font-size: var(--commandes-font-lg);
-  }
-
-  .sync-controls-group {
-    flex-direction: column;
-  }
-  
-  .commandes-btn {
-    width: 100%;
-  }
-
-  .interval-settings-dropdown {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 300px;
+    font-size: var(--commandes-font-2xl);
   }
 }

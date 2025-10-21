@@ -9,7 +9,6 @@ import ProfileCabinet from "./ProfileCabinet";
 import CommandesCabinet from "./CommandesCabinet";
 import PasserCommande from "./PasserCommande";
 import { cabinetApi, apiGet } from "../../components/Config/apiUtils";
-import { ToastContainer } from "react-toastify";
 import "./CompteCabinet.css";
 
 // Fetcher function for SWR avec JWT
@@ -120,17 +119,6 @@ const CompteCabinet = () => {
 
   return (
     <>
-      <ToastContainer
-        position="top-right"
-        autoClose={4000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
       <Navbar path="/compte/cabinet" />
       <div className="compte-cabinet-main-wrapper">
         <div className="compte-cabinet-content-container">
