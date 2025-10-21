@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react/prop-types */
 import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -14,6 +17,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { cabinetApi } from "../../components/Config/apiUtils";
+import { ToastContainer } from "react-toastify";
 import "./ProfileCabinet.css";
 
 const ProfileCabinet = ({ cabinetData, onUpdate, onError, onSuccess }) => {
@@ -93,6 +97,17 @@ const ProfileCabinet = ({ cabinetData, onUpdate, onError, onSuccess }) => {
 
   return (
     <>
+      <ToastContainer
+        position="top-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <div className="profile-cabinet-tab-actions">
         {!isEditing && (
           <button
