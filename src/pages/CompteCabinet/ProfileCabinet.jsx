@@ -17,7 +17,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { cabinetApi } from "../../components/Config/apiUtils";
-import { ToastContainer } from "react-toastify";
+
 import "./ProfileCabinet.css";
 
 const ProfileCabinet = ({ cabinetData, onUpdate, onError, onSuccess }) => {
@@ -97,17 +97,6 @@ const ProfileCabinet = ({ cabinetData, onUpdate, onError, onSuccess }) => {
 
   return (
     <>
-      <ToastContainer
-        position="top-right"
-        autoClose={4000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
       <div className="profile-cabinet-tab-actions">
         {!isEditing && (
           <button
