@@ -37,9 +37,9 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
     switch (platform.name) {
       case "MEDITLINK":
         return connectionStatus.authenticated ? (
-          <Shield size={16} className="commandes-connection-success" />
+          <Link2 size={16} className="commandes-connection-success" />
         ) : (
-          <Shield size={16} className="commandes-connection-error" />
+          <Link2 size={16} className="commandes-connection-error" />
         );
       case "THREESHAPE":
         return connectionStatus.authenticated ? (
@@ -49,9 +49,15 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
         );
       case "ITERO":
         return connectionStatus.authenticated ? (
-          <Shield size={16} className="commandes-connection-success" />
+          <Link2 size={16} className="commandes-connection-success" />
         ) : (
-          <Shield size={16} className="commandes-connection-error" />
+          <Link2 size={16} className="commandes-connection-error" />
+        );
+      case "DEXIS":
+        return connectionStatus.authenticated ? (
+          <Link2 size={16} className="commandes-connection-success" />
+        ) : (
+          <Link2 size={16} className="commandes-connection-error" />
         );
       case "GOOGLE_DRIVE":
         return connectionStatus.authenticated ? (
@@ -61,9 +67,9 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
         );
       default:
         return connectionStatus.authenticated ? (
-          <Wifi size={16} className="commandes-connection-success" />
+          <Link2 size={16} className="commandes-connection-success" />
         ) : (
-          <WifiOff size={16} className="commandes-connection-error" />
+          <Link2 size={16} className="commandes-connection-error" />
         );
     }
   };
@@ -84,6 +90,10 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
         return connectionStatus.authenticated
           ? "Connecté à l'API"
           : "Non connecté";
+      case "DEXIS":
+        return connectionStatus.authenticated
+          ? "Connecté à l'API"
+          : "Non connecté";
       case "GOOGLE_DRIVE":
         return connectionStatus.authenticated ? "Drive activé" : "Non connecté";
       default:
@@ -97,6 +107,8 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
         return "3Shape";
       case "ITERO":
         return "Itero";
+      case "DEXIS":
+        return "Dexis";
       case "GOOGLE_DRIVE":
         return "Google Drive";
       default:

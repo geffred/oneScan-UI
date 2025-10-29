@@ -2,9 +2,9 @@
 .commandes-platforms-section {
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: var(--commandes-background-alt);
+  background: #d5d5d50d;
   border-radius: var(--commandes-radius-lg);
-  border: 1px solid #d1e7ff;
+  border: 1px solid #2c2c2c1f;
 }
 
 .commandes-platforms-title {
@@ -30,6 +30,14 @@
   padding: 1.5rem;
   border: 1px solid var(--commandes-border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.1s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+
+.commandes-platform-card:hover {
+  box-shadow: 0px 0px 8px rgba(26, 26, 26, 0.096);
 }
 
 .commandes-platform-info {
@@ -114,7 +122,7 @@
 
 .commandes-user-name {
   font-size: var(--commandes-font-sm);
-  color: #1e40af;
+  color: #4285f4;
   font-weight: 500;
 }
 
@@ -221,6 +229,350 @@
   color: #6b7280;
 }
 
+/* Modal Styles for Dexis and Itero */
+.platform-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.platform-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modal-appear 0.3s ease-out;
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.platform-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.platform-modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.platform-modal-close {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.platform-modal-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Dexis Modal Specific */
+.platform-dexis-modal .platform-modal-header {
+  background: #4285f4;
+  color: white;
+  border-radius: 10px;
+}
+
+.platform-dexis-modal .platform-modal-header h2 {
+  color: white;
+}
+
+.platform-dexis-modal .platform-modal-close {
+  color: white;
+}
+
+.platform-dexis-modal .platform-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.platform-dexis-auth-content {
+  padding: 1.5rem;
+}
+
+.platform-dexis-info {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.platform-dexis-info .lucide-shield {
+  color: #4399f4;
+  margin-bottom: 1rem;
+}
+
+.platform-dexis-info h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.platform-dexis-info p {
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.platform-dexis-features {
+  margin-bottom: 1.5rem;
+}
+
+.platform-dexis-features h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.platform-dexis-features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.platform-dexis-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  color: #4b5563;
+}
+
+.platform-dexis-features .lucide-check-circle {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.platform-dexis-security {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.platform-dexis-security p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.platform-dexis-actions {
+  text-align: center;
+}
+
+.platform-dexis-connect-btn {
+  background: #4285f4;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.platform-dexis-connect-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.platform-dexis-connect-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Itero Modal Specific */
+.platform-itero-modal .platform-modal-header {
+  background: #4285f4;
+  color: white;
+  border-radius: 10px;
+}
+
+.platform-itero-modal .platform-modal-header h2 {
+  color: white;
+}
+
+.platform-itero-modal .platform-modal-close {
+  color: white;
+}
+
+.platform-itero-modal .platform-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.platform-itero-auth-content {
+  padding: 1.5rem;
+}
+
+.platform-itero-info {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.platform-itero-info .lucide-shield {
+  color: #4285f4;
+  margin-bottom: 1rem;
+}
+
+.platform-itero-info h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.platform-itero-info p {
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.platform-itero-features {
+  margin-bottom: 1.5rem;
+}
+
+.platform-itero-features h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.platform-itero-features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.platform-itero-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  color: #4b5563;
+}
+
+.platform-itero-features .lucide-check-circle {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.platform-itero-security {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.platform-itero-security p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.platform-itero-actions {
+  text-align: center;
+}
+
+.platform-itero-connect-btn {
+  background: #4285f4;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.platform-itero-connect-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.platform-itero-connect-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Modal Actions */
+.platform-modal-actions {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  gap: 1rem;
+}
+
+.platform-cancel-btn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: none;
+}
+
+.platform-cancel-btn:hover {
+  background: #4b5563;
+}
+
+.platform-loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .commandes-platforms-grid {
@@ -261,6 +613,25 @@
   .commandes-note-text {
     font-size: 0.75rem;
   }
+
+  .platform-modal {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+
+  .platform-modal-header {
+    padding: 1rem;
+  }
+
+  .platform-dexis-auth-content,
+  .platform-itero-auth-content {
+    padding: 1rem;
+  }
+
+  .platform-modal-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -271,5 +642,9 @@
 
   .commandes-platform-actions {
     gap: 0.5rem;
+  }
+
+  .platform-modal-header h2 {
+    font-size: 1.25rem;
   }
 }

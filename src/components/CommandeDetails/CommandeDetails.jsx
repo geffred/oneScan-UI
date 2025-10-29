@@ -60,35 +60,6 @@ const getCabinets = async () => {
   return fetchWithAuth(`${API_BASE_URL}/cabinet`);
 };
 
-// CORRECTION : Fonction mise à jour pour récupérer les commentaires Itero
-const getCommentaire = async (plateforme, externalId) => {
-  const token = localStorage.getItem("token");
-  if (!plateforme || !externalId) return null;
-
-  try {
-    // Pour Itero, utiliser l'endpoint POST spécifique
-    if (plateforme.toUpperCase() === "ITERO") {
-      const endpoint = `${API_BASE_URL}/itero/commandes/${externalId}/comments`;
-      const data = await fetchWithAuth(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      return data.comments || data.commentaire || null;
-    }
-
-    // Pour les autres plateformes, utiliser l'endpoint public
-    const endpoint = `${API_BASE_URL}/public/commandes/${externalId}`;
-    const data = await fetchWithAuth(endpoint);
-    return data.commentaire || data.comments || null;
-  } catch (error) {
-    console.error("Erreur lors de la récupération du commentaire:", error);
-    return null;
-  }
-};
-
 const markAsRead = async (commandeId) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
@@ -221,7 +192,7 @@ const CommandeDetails = () => {
 
   const bonDeCommandeRef = useRef();
 
-  // SWR Hooks
+  // SWR Hooks - Récupération de la commande avec tous ses détails
   const {
     data: commande,
     error: commandeError,
@@ -247,36 +218,6 @@ const CommandeDetails = () => {
     {
       revalidateOnMount: false,
       revalidateOnFocus: false,
-    }
-  );
-
-  // CORRECTION : Logique spécifique pour Itero
-  const shouldFetchCommentaire = useMemo(() => {
-    if (!commande) return false;
-
-    // Pour Itero, toujours récupérer le commentaire via l'API spécifique
-    if (commande.plateforme?.toUpperCase() === "ITERO") {
-      return `commentaire-itero-${commande.externalId}`;
-    }
-
-    // Pour les autres plateformes, seulement si pas déjà dans la commande
-    return !commande.commentaire
-      ? `commentaire-${commande.plateforme}-${commande.externalId}`
-      : null;
-  }, [commande]);
-
-  const {
-    data: commentaire,
-    error: commentaireError,
-    isLoading: commentaireLoading,
-    mutate: mutateCommentaire,
-  } = useSWR(
-    shouldFetchCommentaire,
-    () => getCommentaire(commande.plateforme, commande.externalId),
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      errorRetryCount: 2,
     }
   );
 
@@ -384,7 +325,7 @@ const CommandeDetails = () => {
     });
 
     try {
-      const finalCommentaire = commentaire || commande.commentaire || "";
+      const finalCommentaire = commande.commentaire || "";
 
       if (!finalCommentaire.trim()) {
         toast.warning("Aucun commentaire disponible pour l'analyse");
@@ -416,7 +357,7 @@ const CommandeDetails = () => {
     } finally {
       setActionStates((prev) => ({ ...prev, generate: false }));
     }
-  }, [commande, commentaire, mutateCommande, mutateCommandes]);
+  }, [commande, mutateCommande, mutateCommandes]);
 
   const handleOpenBonCommande = useCallback(() => {
     setShowBonDeCommande(true);
@@ -438,12 +379,10 @@ const CommandeDetails = () => {
     toast.info("Envoi de la notification en cours...");
 
     try {
-      const finalCommentaire = commentaire || commande.commentaire;
-
       await EmailService.sendEmailNotification(
         commande,
         cabinet,
-        finalCommentaire
+        commande.commentaire
       );
       await EmailService.markNotificationAsSent(commande.id);
 
@@ -461,7 +400,7 @@ const CommandeDetails = () => {
     } finally {
       setActionStates((prev) => ({ ...prev, sendEmail: false }));
     }
-  }, [commande, cabinets, commentaire, mutateCommande, mutateCommandes]);
+  }, [commande, cabinets, mutateCommande, mutateCommandes]);
 
   const handleStatusChange = useCallback(
     async (newStatus) => {
@@ -571,21 +510,8 @@ const CommandeDetails = () => {
     [commande, getPlateformeColor]
   );
 
-  // CORRECTION : Logique de chargement spécifique pour Itero
-  const isCommentLoading = useMemo(() => {
-    if (!commande) return false;
-
-    // Pour Itero, on affiche le chargement seulement si les données sont en cours de chargement
-    if (commande.plateforme?.toUpperCase() === "ITERO") {
-      return commentaireLoading;
-    }
-
-    // Pour les autres plateformes, logique originale
-    return (
-      commentaireLoading ||
-      (commande && !commande.commentaire && commentaire === undefined)
-    );
-  }, [commande, commentaireLoading, commentaire]);
+  // Plus besoin de logique spécifique pour Itero - le commentaire vient directement de la commande
+  const isCommentLoading = false; // Le commentaire est inclus dans les données de la commande
 
   const canDownloadBonCommande = useMemo(() => {
     return commande && commande.typeAppareil && commande.typeAppareil !== null;
@@ -600,18 +526,10 @@ const CommandeDetails = () => {
     );
   }, [commande]);
 
-  // CORRECTION : Priorité des commentaires pour Itero
+  // Le commentaire final est directement celui de la commande
   const finalCommentaire = useMemo(() => {
-    if (!commande) return null;
-
-    // Pour Itero, priorité au commentaire de l'API spécifique
-    if (commande.plateforme?.toUpperCase() === "ITERO") {
-      return commentaire || commande.commentaire;
-    }
-
-    // Pour les autres plateformes, logique originale
-    return commande.commentaire || commentaire;
-  }, [commande, commentaire]);
+    return commande?.commentaire || null;
+  }, [commande]);
 
   // Effects
   useEffect(() => {
@@ -719,7 +637,6 @@ const CommandeDetails = () => {
           finalCommentaire={finalCommentaire}
           mutateCommande={mutateCommande}
           mutateCommandes={mutateCommandes}
-          mutateCommentaire={mutateCommentaire}
           showNotification={(message, type) => {
             if (type === "success") toast.success(message);
             else if (type === "error") toast.error(message);

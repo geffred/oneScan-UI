@@ -6,8 +6,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const platformEndpoints = {
   MEDITLINK: `${API_BASE_URL}/meditlink/cases/save`,
   ITERO: `${API_BASE_URL}/itero/commandes/save`,
+  DEXIS: `${API_BASE_URL}/dexis/commandes/save`,
   THREESHAPE: `${API_BASE_URL}/threeshape/cases/save`,
-  DEXIS: `${API_BASE_URL}/dexis/commandes`,
 };
 
 export const useSyncPlatforms = ({
@@ -205,6 +205,102 @@ export const useSyncPlatforms = ({
     }, 5000);
   }, [mutateCommandes, setSyncStatus]);
 
+  // Fonction pour synchroniser Dexis
+  const syncDexisCommandes = useCallback(async () => {
+    const endpoint = `${API_BASE_URL}/dexis/commandes`;
+
+    setSyncStatus((prev) => ({
+      ...prev,
+      DEXIS: {
+        status: "loading",
+        message: "Synchronisation Dexis en cours...",
+      },
+    }));
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        mutateCommandes();
+
+        // Dexis retourne directement un tableau de commandes
+        const savedCount = Array.isArray(result) ? result.length : 0;
+        const message =
+          savedCount > 0
+            ? `${savedCount} nouvelle(s) commande(s) récupérée(s)`
+            : "Aucune nouvelle commande";
+
+        setSyncStatus((prev) => ({
+          ...prev,
+          DEXIS: {
+            status: "success",
+            message: message,
+            count: savedCount,
+          },
+        }));
+
+        if (savedCount > 0) {
+          toast.success(`Dexis: ${savedCount} nouvelle(s) commande(s)`, {
+            position: "top-right",
+            autoClose: 5000,
+          });
+        } else {
+          toast.info(`Dexis: Aucune nouvelle commande`, {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        }
+      } else {
+        const errorText = await response.text();
+        console.error("Erreur Dexis:", errorText);
+
+        setSyncStatus((prev) => ({
+          ...prev,
+          DEXIS: {
+            status: "error",
+            message: "Erreur de synchronisation Dexis",
+          },
+        }));
+
+        toast.error("Erreur lors de la synchronisation Dexis", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      }
+    } catch (err) {
+      console.error("Erreur lors de la synchronisation Dexis:", err);
+      setSyncStatus((prev) => ({
+        ...prev,
+        DEXIS: {
+          status: "error",
+          message: "Erreur de connexion Dexis",
+        },
+      }));
+
+      toast.error("Erreur de connexion avec Dexis", {
+        position: "top-right",
+        autoClose: 5000,
+      });
+    }
+
+    setTimeout(() => {
+      setSyncStatus((prev) => {
+        const newStatus = { ...prev };
+        delete newStatus.DEXIS;
+        return newStatus;
+      });
+    }, 5000);
+  }, [mutateCommandes, setSyncStatus]);
+
   // Fonction pour synchroniser les autres plateformes
   const syncOtherPlatform = useCallback(
     async (platformName) => {
@@ -345,11 +441,18 @@ export const useSyncPlatforms = ({
           return syncMeditLinkCommandes();
         case "ITERO":
           return syncIteroCommandes();
+        case "DEXIS":
+          return syncDexisCommandes();
         default:
           return syncOtherPlatform(platformName);
       }
     },
-    [syncMeditLinkCommandes, syncIteroCommandes, syncOtherPlatform]
+    [
+      syncMeditLinkCommandes,
+      syncIteroCommandes,
+      syncDexisCommandes,
+      syncOtherPlatform,
+    ]
   );
 
   // Fonction pour synchroniser toutes les plateformes connectées
@@ -383,6 +486,8 @@ export const useSyncPlatforms = ({
             return syncMeditLinkCommandes();
           case "ITERO":
             return syncIteroCommandes();
+          case "DEXIS":
+            return syncDexisCommandes();
           default:
             return syncOtherPlatform(platform.name);
         }
@@ -407,6 +512,7 @@ export const useSyncPlatforms = ({
     [
       syncMeditLinkCommandes,
       syncIteroCommandes,
+      syncDexisCommandes,
       syncOtherPlatform,
       setIsSyncing,
     ]
@@ -415,6 +521,7 @@ export const useSyncPlatforms = ({
   return {
     syncMeditLinkCommandes,
     syncIteroCommandes,
+    syncDexisCommandes,
     syncOtherPlatform,
     syncPlatformCommandes,
     syncAllPlatforms,

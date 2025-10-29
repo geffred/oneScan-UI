@@ -48,6 +48,7 @@ const platformTypes = [
   { value: "THREESHAPE", label: "3Shape" },
   { value: "MEDITLINK", label: "MeditLink" },
   { value: "ITERO", label: "Itero" },
+  { value: "DEXIS", label: "Dexis" },
   { value: "GOOGLE_DRIVE", label: "Google Drive" },
 ];
 
@@ -121,6 +122,7 @@ const PlatformCard = React.memo(
     onConnect3Shape,
     onConnectMeditLink,
     onConnectItero,
+    onConnectDexis,
     onConnectGoogleDrive,
     onDisconnectMeditLink,
     onDisconnectGoogleDrive,
@@ -129,11 +131,13 @@ const PlatformCard = React.memo(
     threeshapeStatus,
     meditlinkStatus,
     iteroStatus,
+    dexisStatus,
     googledriveStatus,
   }) => {
     const is3Shape = platform.name === "THREESHAPE";
     const isMeditLink = platform.name === "MEDITLINK";
     const isItero = platform.name === "ITERO";
+    const isDexis = platform.name === "DEXIS";
     const isGoogleDrive = platform.name === "GOOGLE_DRIVE";
 
     return (
@@ -188,7 +192,7 @@ const PlatformCard = React.memo(
 
           {isItero && (
             <div
-              className={`platform-meditlink-status ${
+              className={`platform-itero-status ${
                 iteroStatus?.authenticated ? "connected" : "disconnected"
               }`}
             >
@@ -201,6 +205,26 @@ const PlatformCard = React.memo(
                 <>
                   <AlertCircle size={16} />
                   <span>Non connecté à Itero</span>
+                </>
+              )}
+            </div>
+          )}
+
+          {isDexis && (
+            <div
+              className={`platform-dexis-status ${
+                dexisStatus?.authenticated ? "connected" : "disconnected"
+              }`}
+            >
+              {dexisStatus?.authenticated ? (
+                <>
+                  <CheckCircle size={16} />
+                  <span>Connecté à Dexis</span>
+                </>
+              ) : (
+                <>
+                  <AlertCircle size={16} />
+                  <span>Non connecté à Dexis</span>
                 </>
               )}
             </div>
@@ -261,6 +285,14 @@ const PlatformCard = React.memo(
             <div className="platform-user-info">
               <Link2 size={14} />
               <span>Connecté à l'API Itero</span>
+            </div>
+          )}
+
+          {/* Affichage des infos Dexis si connecté */}
+          {isDexis && dexisStatus?.authenticated && (
+            <div className="platform-user-info">
+              <Link2 size={14} />
+              <span>Connecté à l'API Dexis</span>
             </div>
           )}
 
@@ -354,6 +386,27 @@ const PlatformCard = React.memo(
                 {iteroStatus?.loading
                   ? "Connexion..."
                   : iteroStatus?.authenticated
+                  ? "Reconnecter"
+                  : "Connecter"}
+              </button>
+            </div>
+          )}
+
+          {/* Actions pour Dexis */}
+          {isDexis && (
+            <div className="dexis-actions-group">
+              <button
+                onClick={() => onConnectDexis(platform)}
+                className={`platform-connect-btn ${
+                  dexisStatus?.authenticated ? "connected" : ""
+                }`}
+                disabled={dexisStatus?.loading}
+                aria-label="Connecter à Dexis"
+              >
+                <Shield size={16} />
+                {dexisStatus?.loading
+                  ? "Connexion..."
+                  : dexisStatus?.authenticated
                   ? "Reconnecter"
                   : "Connecter"}
               </button>
@@ -467,7 +520,7 @@ const IteroOAuthModal = React.memo(
 
           <div className="platform-itero-auth-content">
             <div className="platform-itero-info">
-              <Cpu size={48} />
+              <Shield size={48} />
               <h3>Connexion à l'API Itero</h3>
               <p>
                 Connectez-vous à votre compte Itero pour récupérer vos commandes
@@ -512,10 +565,7 @@ const IteroOAuthModal = React.memo(
                     Connexion...
                   </>
                 ) : (
-                  <>
-                    <Cpu size={18} />
-                    Se connecter à Itero
-                  </>
+                  <>Se connecter à Itero</>
                 )}
               </button>
             </div>
@@ -533,6 +583,87 @@ const IteroOAuthModal = React.memo(
 );
 
 IteroOAuthModal.displayName = "IteroOAuthModal";
+
+// Composant modal pour Dexis
+const DexisOAuthModal = React.memo(
+  ({ isOpen, onClose, onStartAuth, isLoading }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="platform-modal-overlay">
+        <div className="platform-modal platform-dexis-modal">
+          <div className="platform-modal-header">
+            <h2>Connexion Dexis</h2>
+            <button onClick={onClose} className="platform-modal-close">
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="platform-dexis-auth-content">
+            <div className="platform-dexis-info">
+              <Shield size={48} />
+              <h3>Connexion à l'API Dexis</h3>
+              <p>
+                Connectez-vous à votre compte Dexis pour récupérer vos commandes
+                et synchroniser vos données.
+              </p>
+            </div>
+
+            <div className="platform-dexis-features">
+              <h4>Accès aux fonctionnalités :</h4>
+              <ul>
+                <li>
+                  <CheckCircle size={16} /> Récupération des commandes Dexis
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Consultation des cas patients
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Téléchargement des fichiers
+                </li>
+                <li>
+                  <CheckCircle size={16} /> Synchronisation automatique
+                </li>
+              </ul>
+            </div>
+
+            <div className="platform-dexis-security">
+              <p>
+                <strong>Note :</strong> La connexion utilise l'API Dexis
+                sécurisée pour récupérer vos données.
+              </p>
+            </div>
+
+            <div className="platform-dexis-actions">
+              <button
+                onClick={onStartAuth}
+                disabled={isLoading}
+                className="platform-dexis-connect-btn"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="platform-loading-spinner"></div>
+                    Connexion...
+                  </>
+                ) : (
+                  <>Se connecter à Dexis</>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="platform-modal-actions">
+            <button onClick={onClose} className="platform-cancel-btn">
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+DexisOAuthModal.displayName = "DexisOAuthModal";
 
 // Composant modal pour 3Shape OAuth
 const ThreeShapeOAuthModal = React.memo(
@@ -800,10 +931,10 @@ const Platform = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showThreeShapeDashboard, setShowThreeShapeDashboard] = useState(false);
   const [showMeditLinkDashboard, setShowMeditLinkDashboard] = useState(false);
-  const [showIteroDashboard, setShowIteroDashboard] = useState(false);
   const [is3ShapeModalOpen, setIs3ShapeModalOpen] = useState(false);
   const [isMeditLinkModalOpen, setIsMeditLinkModalOpen] = useState(false);
   const [isIteroModalOpen, setIsIteroModalOpen] = useState(false);
+  const [isDexisModalOpen, setIsDexisModalOpen] = useState(false);
   const [isGoogleDriveModalOpen, setIsGoogleDriveModalOpen] = useState(false);
   const [googleDriveStatus, setGoogleDriveStatus] = useState({
     authenticated: false,
@@ -811,6 +942,11 @@ const Platform = () => {
     error: null,
   });
   const [iteroStatus, setIteroStatus] = useState({
+    authenticated: false,
+    loading: false,
+    error: null,
+  });
+  const [dexisStatus, setDexisStatus] = useState({
     authenticated: false,
     loading: false,
     error: null,
@@ -909,6 +1045,54 @@ const Platform = () => {
       }
     } catch (error) {
       setIteroStatus({
+        authenticated: false,
+        loading: false,
+        error: error.message,
+      });
+    }
+  }, []);
+
+  // Fonction pour vérifier le statut Dexis
+  const checkDexisStatus = useCallback(async () => {
+    try {
+      setDexisStatus((prev) => ({ ...prev, loading: true, error: null }));
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setDexisStatus({
+          authenticated: false,
+          loading: false,
+          error: "Token manquant",
+        });
+        return;
+      }
+
+      const response = await fetch(
+        `https://smilelabdexis-api-production.up.railway.app/api/dexis/status`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setDexisStatus({
+          authenticated: data.apiStatus === "Connecté",
+          loading: false,
+          error: null,
+        });
+      } else {
+        setDexisStatus({
+          authenticated: false,
+          loading: false,
+          error: "Erreur de vérification",
+        });
+      }
+    } catch (error) {
+      setDexisStatus({
         authenticated: false,
         loading: false,
         error: error.message,
@@ -1045,15 +1229,6 @@ const Platform = () => {
 
   const handleCloseMeditLinkDashboard = useCallback(() => {
     setShowMeditLinkDashboard(false);
-  }, []);
-
-  // Handlers pour Itero Dashboard
-  const handleShowIteroDashboard = useCallback((platform) => {
-    setShowIteroDashboard(true);
-  }, []);
-
-  const handleCloseIteroDashboard = useCallback(() => {
-    setShowIteroDashboard(false);
   }, []);
 
   // Gestion des messages entre fenêtres
@@ -1240,13 +1415,19 @@ const Platform = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Vérifier le statut Google Drive et Itero au chargement
+  // Vérifier le statut Google Drive, Itero et Dexis au chargement
   useEffect(() => {
     if (isAuthenticated) {
       checkGoogleDriveStatus();
       checkIteroStatus();
+      checkDexisStatus();
     }
-  }, [isAuthenticated, checkGoogleDriveStatus, checkIteroStatus]);
+  }, [
+    isAuthenticated,
+    checkGoogleDriveStatus,
+    checkIteroStatus,
+    checkDexisStatus,
+  ]);
 
   // Handlers pour 3Shape OAuth
   const handle3ShapeConnect = useCallback(async (platform) => {
@@ -1398,6 +1579,56 @@ const Platform = () => {
 
   const closeIteroModal = useCallback(() => {
     setIsIteroModalOpen(false);
+  }, []);
+
+  // Handlers pour Dexis
+  const handleDexisConnect = useCallback(async (platform) => {
+    setIsDexisModalOpen(true);
+  }, []);
+
+  const handleStartDexisAuth = useCallback(async () => {
+    try {
+      setIsDexisModalOpen(false);
+      setDexisStatus((prev) => ({ ...prev, loading: true }));
+
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `https://smilelabdexis-api-production.up.railway.app/api/dexis/login`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la connexion à Dexis");
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setDexisStatus({
+          authenticated: true,
+          loading: false,
+          error: null,
+        });
+        setSuccess(data.message || "Connexion Dexis réussie !");
+        setTimeout(() => setSuccess(null), 5000);
+      } else {
+        throw new Error(data.error || "Erreur lors de la connexion");
+      }
+    } catch (err) {
+      setError("Erreur lors de la connexion Dexis: " + err.message);
+      setDexisStatus((prev) => ({ ...prev, loading: false }));
+      setTimeout(() => setError(null), 5000);
+    }
+  }, []);
+
+  const closeDexisModal = useCallback(() => {
+    setIsDexisModalOpen(false);
   }, []);
 
   // Handlers pour Google Drive OAuth
@@ -1624,11 +1855,13 @@ const Platform = () => {
     refreshMeditlink();
     checkGoogleDriveStatus();
     checkIteroStatus();
+    checkDexisStatus();
   }, [
     refreshThreeshape,
     refreshMeditlink,
     checkGoogleDriveStatus,
     checkIteroStatus,
+    checkDexisStatus,
   ]);
 
   // Affichage immédiat de l'interface même si les données utilisateur chargent encore
@@ -1697,6 +1930,7 @@ const Platform = () => {
                     onConnect3Shape={handle3ShapeConnect}
                     onConnectMeditLink={handleMeditLinkConnect}
                     onConnectItero={handleIteroConnect}
+                    onConnectDexis={handleDexisConnect}
                     onConnectGoogleDrive={handleGoogleDriveConnect}
                     onDisconnectGoogleDrive={handleGoogleDriveDisconnect}
                     onDisconnectMeditLink={handleMeditLinkDisconnect}
@@ -1705,6 +1939,7 @@ const Platform = () => {
                     threeshapeStatus={combinedThreeshapeStatus}
                     meditlinkStatus={combinedMeditlinkStatus}
                     iteroStatus={iteroStatus}
+                    dexisStatus={dexisStatus}
                     googledriveStatus={googleDriveStatus}
                   />
                 ))}
@@ -1749,29 +1984,6 @@ const Platform = () => {
             </div>
             <div className="platform-modal-content">
               <MeditLinkDashboard />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Dashboard Itero */}
-      {showIteroDashboard && (
-        <div className="platform-modal-overlay">
-          <div className="platform-modal platform-itero-dashboard-modal">
-            <div className="platform-modal-header">
-              <h2>Tableau de bord Itero</h2>
-              <button
-                onClick={handleCloseIteroDashboard}
-                className="platform-modal-close"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="platform-modal-content">
-              <div className="platform-itero-dashboard">
-                <h3>Dashboard Itero</h3>
-                <p>Interface de gestion des commandes Itero à venir...</p>
-              </div>
             </div>
           </div>
         </div>
@@ -1872,6 +2084,21 @@ const Platform = () => {
                       </div>
                     )}
 
+                    {/* Info spéciale pour Dexis */}
+                    {values.name === "DEXIS" && (
+                      <div className="platform-info-banner">
+                        <HardDrive size={16} />
+                        <div>
+                          <strong>Plateforme Dexis :</strong>
+                          <p>
+                            Après création, utilisez le bouton "Connecter" pour
+                            vous connecter à l'API Dexis et récupérer vos
+                            commandes.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Info spéciale pour Google Drive */}
                     {values.name === "GOOGLE_DRIVE" && (
                       <div className="platform-info-banner">
@@ -1961,6 +2188,14 @@ const Platform = () => {
         onClose={closeIteroModal}
         onStartAuth={handleStartIteroAuth}
         isLoading={iteroStatus.loading}
+      />
+
+      {/* Modal Dexis */}
+      <DexisOAuthModal
+        isOpen={isDexisModalOpen}
+        onClose={closeDexisModal}
+        onStartAuth={handleStartDexisAuth}
+        isLoading={dexisStatus.loading}
       />
 
       {/* Modal Google Drive OAuth */}

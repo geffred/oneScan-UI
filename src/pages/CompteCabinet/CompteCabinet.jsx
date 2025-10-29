@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Users, Package, LogOut, PlusCircle } from "lucide-react";
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
