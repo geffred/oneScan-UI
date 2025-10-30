@@ -1,6 +1,6 @@
 import React from "react";
 import { X, Cloud, CheckCircle } from "lucide-react";
-import "./PlatformOAuthModal.css";
+import "../PlatformOAuthModal.css";
 
 const GoogleDriveOAuthModal = ({ isOpen, onClose, onStartAuth, isLoading }) => {
   if (!isOpen) return null;

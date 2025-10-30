@@ -200,7 +200,6 @@ Adresse de facturation : Même adresse`,
                 to={"/#header"}
                 style={{
                   textDecoration: "none",
-                  color: "white",
                   color: "#007AFF",
                 }}
               >

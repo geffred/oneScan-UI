@@ -1,6 +1,6 @@
 import React from "react";
 import { X, Link2, CheckCircle } from "lucide-react";
-import "./PlatformOAuthModal.css";
+import "../PlatformOAuthModal.css";
 
 const ThreeShapeOAuthModal = ({ isOpen, onClose, onStartAuth, isLoading }) => {
   if (!isOpen) return null;
