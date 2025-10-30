@@ -508,7 +508,7 @@
 }
 
 /* 3Shape OAuth */
-.platform-3shape-banner {
+.platform-dashboard-banner {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -518,19 +518,19 @@
   font-weight: 600;
 }
 
-.platform-3shape-banner.connected {
+.platform-dashboard-banner.connected {
   background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
   color: #065f46;
   border: 1px solid #10b981;
 }
 
-.platform-3shape-banner.disconnected {
+.platform-dashboard-banner.disconnected {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   color: #92400e;
   border: 1px solid #f59e0b;
 }
 
-.platform-3shape-status {
+.platform-dashboard-status {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -542,12 +542,12 @@
   letter-spacing: 0.5px;
 }
 
-.platform-3shape-status.connected {
+.platform-dashboard-status.connected {
   background: #d1fae5;
   color: #065f46;
 }
 
-.platform-3shape-status.disconnected {
+.platform-dashboard-status.disconnected {
   background: #fef3c7;
   color: #92400e;
 }
@@ -614,7 +614,7 @@
 }
 
 /* Modal 3Shape - Style épuré comme le callback */
-.platform-3shape-modal {
+.platform-dashboard-modal {
   max-width: 500px;
   width: 90%;
   background: white;
@@ -625,7 +625,7 @@
   animation: slideIn 0.5s ease-out;
 }
 
-.platform-3shape-modal .platform-modal-header {
+.platform-dashboard-modal .platform-modal-header {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -635,7 +635,7 @@
   position: relative;
 }
 
-.platform-3shape-modal .platform-modal-close {
+.platform-dashboard-modal .platform-modal-close {
   position: absolute;
   top: -1rem;
   right: -1rem;
@@ -648,12 +648,12 @@
   transition: all 0.2s ease;
 }
 
-.platform-3shape-modal .platform-modal-close:hover {
+.platform-dashboard-modal .platform-modal-close:hover {
   background: #e2e8f0;
   color: #1e293b;
 }
 
-.platform-3shape-modal .platform-modal-header h2 {
+.platform-dashboard-modal .platform-modal-header h2 {
   font-size: 24px;
   font-weight: 600;
   color: #1e293b;
@@ -661,54 +661,54 @@
   order: 2;
 }
 
-.platform-3shape-auth-content {
+.platform-dashboard-auth-content {
   display: flex;
   flex-direction: column;
   gap: 2rem;
   margin-bottom: 2rem;
 }
 
-.platform-3shape-info {
+.platform-dashboard-info {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
 }
 
-.platform-3shape-info svg {
+.platform-dashboard-info svg {
   color: #3b82f6;
   margin-bottom: 0.5rem;
 }
 
-.platform-3shape-info h3 {
+.platform-dashboard-info h3 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
   color: #1f2937;
 }
 
-.platform-3shape-info p {
+.platform-dashboard-info p {
   margin: 0;
   color: #6b7280;
   line-height: 1.6;
   font-size: 1.125rem;
 }
 
-.platform-3shape-features {
+.platform-dashboard-features {
   background: #f8fafc;
   border-radius: 12px;
   padding: 1.5rem;
   text-align: left;
 }
 
-.platform-3shape-features h4 {
+.platform-dashboard-features h4 {
   margin: 0 0 1rem 0;
   color: #374151;
   font-size: 16px;
   font-weight: 600;
 }
 
-.platform-3shape-features ul {
+.platform-dashboard-features ul {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -717,7 +717,7 @@
   gap: 0.75rem;
 }
 
-.platform-3shape-features li {
+.platform-dashboard-features li {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -725,36 +725,36 @@
   font-size: 14px;
 }
 
-.platform-3shape-features li svg {
+.platform-dashboard-features li svg {
   color: #10b981;
   flex-shrink: 0;
 }
 
-.platform-3shape-security {
+.platform-dashboard-security {
   background: #eff6ff;
   border-radius: 8px;
   padding: 1rem;
   text-align: left;
 }
 
-.platform-3shape-security p {
+.platform-dashboard-security p {
   margin: 0;
   font-size: 14px;
   line-height: 1.5;
   color: #1e40af;
 }
 
-.platform-3shape-security strong {
+.platform-dashboard-security strong {
   color: #1e40af;
   font-weight: 600;
 }
 
-.platform-3shape-actions {
+.platform-dashboard-actions {
   display: flex;
   justify-content: center;
 }
 
-.platform-3shape-connect-btn {
+.platform-dashboard-connect-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
@@ -771,16 +771,16 @@
   justify-content: center;
 }
 
-.platform-3shape-connect-btn:hover:not(:disabled) {
+.platform-dashboard-connect-btn:hover:not(:disabled) {
   background: #2563eb;
 }
 
-.platform-3shape-connect-btn:disabled {
+.platform-dashboard-connect-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-.platform-3shape-modal .platform-modal-actions {
+.platform-dashboard-modal .platform-modal-actions {
   display: flex;
   justify-content: center;
   padding-top: 0;
@@ -788,7 +788,7 @@
   margin-top: 0;
 }
 
-.platform-3shape-modal .platform-cancel-btn {
+.platform-dashboard-modal .platform-cancel-btn {
   background: #6b7280;
   color: white;
   border: none;
@@ -796,7 +796,7 @@
   padding: 0.75rem 1.5rem;
 }
 
-.platform-3shape-modal .platform-cancel-btn:hover {
+.platform-dashboard-modal .platform-cancel-btn:hover {
   background: #4b5563;
   border-color: transparent;
 }
@@ -815,35 +815,35 @@
 
 /* Responsive pour le modal 3Shape */
 @media (max-width: 640px) {
-  .platform-3shape-modal {
+  .platform-dashboard-modal {
     width: 95%;
     padding: 2rem;
     margin: 1rem;
   }
   
-  .platform-3shape-modal .platform-modal-header h2 {
+  .platform-dashboard-modal .platform-modal-header h2 {
     font-size: 20px;
   }
   
-  .platform-3shape-info p {
+  .platform-dashboard-info p {
     font-size: 1rem;
   }
   
-  .platform-3shape-connect-btn {
+  .platform-dashboard-connect-btn {
     min-width: 100%;
     padding: 0.875rem 1.5rem;
   }
   
-  .platform-3shape-modal .platform-cancel-btn {
+  .platform-dashboard-modal .platform-cancel-btn {
     min-width: 100%;
     margin-top: 0.5rem;
   }
   
-  .platform-3shape-features {
+  .platform-dashboard-features {
     padding: 1rem;
   }
   
-  .platform-3shape-security {
+  .platform-dashboard-security {
     padding: 0.875rem;
   }
 }
@@ -1193,7 +1193,7 @@
     gap: 0.75rem;
   }
   
-  .platform-3shape-modal {
+  .platform-dashboard-modal {
     width: 95vw;
     margin: 1rem;
   }

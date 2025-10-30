@@ -153,7 +153,7 @@ const PlatformCard = React.memo(
 
           {is3Shape && (
             <div
-              className={`platform-3shape-status ${
+              className={`platform-dashboard-status ${
                 threeshapeStatus?.authenticated ? "connected" : "disconnected"
               }`}
             >
@@ -172,7 +172,7 @@ const PlatformCard = React.memo(
 
           {isMeditLink && (
             <div
-              className={`platform-meditlink-status ${
+              className={`platform-dashboard-status ${
                 meditlinkStatus?.authenticated ? "connected" : "disconnected"
               }`}
             >
@@ -192,7 +192,7 @@ const PlatformCard = React.memo(
 
           {isItero && (
             <div
-              className={`platform-itero-status ${
+              className={`platform-dashboard-status ${
                 iteroStatus?.authenticated ? "connected" : "disconnected"
               }`}
             >
@@ -212,7 +212,7 @@ const PlatformCard = React.memo(
 
           {isDexis && (
             <div
-              className={`platform-dexis-status ${
+              className={`platform-dashboard-status ${
                 dexisStatus?.authenticated ? "connected" : "disconnected"
               }`}
             >
@@ -672,7 +672,7 @@ const ThreeShapeOAuthModal = React.memo(
 
     return (
       <div className="platform-modal-overlay">
-        <div className="platform-modal platform-3shape-modal">
+        <div className="platform-modal platform-dashboard-modal">
           <div className="platform-modal-header">
             <h2>Connexion 3Shape</h2>
             <button onClick={onClose} className="platform-modal-close">
@@ -680,8 +680,8 @@ const ThreeShapeOAuthModal = React.memo(
             </button>
           </div>
 
-          <div className="platform-3shape-auth-content">
-            <div className="platform-3shape-info">
+          <div className="platform-dashboard-auth-content">
+            <div className="platform-dashboard-info">
               <Link2 size={48} />
               <h3>Authentification 3Shape OAuth</h3>
               <p>
@@ -690,7 +690,7 @@ const ThreeShapeOAuthModal = React.memo(
               </p>
             </div>
 
-            <div className="platform-3shape-features">
+            <div className="platform-dashboard-features">
               <h4>Accès aux fonctionnalités :</h4>
               <ul>
                 <li>
@@ -708,7 +708,7 @@ const ThreeShapeOAuthModal = React.memo(
               </ul>
             </div>
 
-            <div className="platform-3shape-security">
+            <div className="platform-dashboard-security">
               <p>
                 <strong>Note :</strong> Une nouvelle fenêtre s'ouvrira pour
                 l'authentification. Après connexion, vous serez redirigé
@@ -716,11 +716,11 @@ const ThreeShapeOAuthModal = React.memo(
               </p>
             </div>
 
-            <div className="platform-3shape-actions">
+            <div className="platform-dashboard-actions">
               <button
                 onClick={onStartAuth}
                 disabled={isLoading}
-                className="platform-3shape-connect-btn"
+                className="platform-dashboard-connect-btn"
               >
                 {isLoading ? (
                   <>
@@ -1067,15 +1067,12 @@ const Platform = () => {
         return;
       }
 
-      const response = await fetch(
-        `https://smilelabdexis-api-production.up.railway.app/api/dexis/status`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/dexis/status`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -1592,16 +1589,13 @@ const Platform = () => {
       setDexisStatus((prev) => ({ ...prev, loading: true }));
 
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `https://smilelabdexis-api-production.up.railway.app/api/dexis/login`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/dexis/login`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Erreur lors de la connexion à Dexis");
