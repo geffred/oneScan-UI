@@ -1,77 +1,96 @@
 import React from "react";
 import { X, Shield, CheckCircle } from "lucide-react";
-import "./IteroOAuthModal.css";
+import "./PlatformOAuthModal.css";
 
 const IteroOAuthModal = ({ isOpen, onClose, onStartAuth, isLoading }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="platform-modal-overlay">
-      <div className="platform-modal platform-itero-modal">
-        <div className="platform-modal-header">
-          <h2>Connexion Itero</h2>
-          <button onClick={onClose} className="platform-modal-close">
-            <X size={24} />
+    <div className="platform-oauth-modal-overlay">
+      <div className="platform-oauth-modal">
+        <div className="platform-oauth-modal-header">
+          <h2 className="platform-oauth-modal-header__title">
+            Connexion Itero
+          </h2>
+          <button
+            onClick={onClose}
+            className="platform-oauth-modal-header__close"
+          >
+            <X size={20} />
           </button>
         </div>
 
-        <div className="platform-itero-auth-content">
-          <div className="platform-itero-info">
-            <Shield size={48} />
-            <h3>Connexion à l'API Itero</h3>
-            <p>
+        <div className="platform-oauth-modal-content">
+          <div className="platform-oauth-modal-info">
+            <Shield size={40} className="platform-oauth-modal-info__icon" />
+            <h3 className="platform-oauth-modal-info__title">
+              Connexion à l'API Itero
+            </h3>
+            <p className="platform-oauth-modal-info__description">
               Connectez-vous à votre compte Itero pour récupérer vos commandes
               et synchroniser vos données.
             </p>
           </div>
 
-          <div className="platform-itero-features">
-            <h4>Accès aux fonctionnalités :</h4>
-            <ul>
-              <li>
-                <CheckCircle size={16} /> Récupération des commandes Itero
+          <div className="platform-oauth-modal-features">
+            <h4 className="platform-oauth-modal-features__title">
+              Accès aux fonctionnalités :
+            </h4>
+            <ul className="platform-oauth-modal-features__list">
+              <li className="platform-oauth-modal-features__item">
+                <CheckCircle
+                  size={14}
+                  className="platform-oauth-modal-features__item-icon"
+                />
+                Récupération des commandes Itero
               </li>
-              <li>
-                <CheckCircle size={16} /> Consultation des cas patients
+              <li className="platform-oauth-modal-features__item">
+                <CheckCircle
+                  size={14}
+                  className="platform-oauth-modal-features__item-icon"
+                />
+                Consultation des cas patients
               </li>
-              <li>
-                <CheckCircle size={16} /> Téléchargement des scans 3D
+              <li className="platform-oauth-modal-features__item">
+                <CheckCircle
+                  size={14}
+                  className="platform-oauth-modal-features__item-icon"
+                />
+                Téléchargement des scans 3D
               </li>
-              <li>
-                <CheckCircle size={16} /> Synchronisation automatique
+              <li className="platform-oauth-modal-features__item">
+                <CheckCircle
+                  size={14}
+                  className="platform-oauth-modal-features__item-icon"
+                />
+                Synchronisation automatique
               </li>
             </ul>
           </div>
 
-          <div className="platform-itero-security">
-            <p>
+          <div className="platform-oauth-modal-security">
+            <p className="platform-oauth-modal-security__text">
               <strong>Note :</strong> La connexion utilise l'API Itero sécurisée
               pour récupérer vos données.
             </p>
           </div>
 
-          <div className="platform-itero-actions">
+          <div className="platform-oauth-modal-actions">
             <button
               onClick={onStartAuth}
               disabled={isLoading}
-              className="platform-itero-connect-btn"
+              className="platform-oauth-modal-connect-btn"
             >
               {isLoading ? (
                 <>
-                  <div className="platform-loading-spinner"></div>
+                  <div className="platform-oauth-modal-loading-spinner"></div>
                   Connexion...
                 </>
               ) : (
-                <>Se connecter à Itero</>
+                "Se connecter à Itero"
               )}
             </button>
           </div>
-        </div>
-
-        <div className="platform-modal-actions">
-          <button onClick={onClose} className="platform-cancel-btn">
-            Annuler
-          </button>
         </div>
       </div>
     </div>

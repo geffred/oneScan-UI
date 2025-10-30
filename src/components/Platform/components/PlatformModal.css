@@ -158,13 +158,14 @@
 
 .platform-cancel-btn {
   padding: 1rem 2rem;
-  background: #f8fafc;
-  color: #64748b;
+  background: #ffffff;
+  color: #007AFF !important;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-top: 10px;
 }
 
 .platform-cancel-btn:hover {

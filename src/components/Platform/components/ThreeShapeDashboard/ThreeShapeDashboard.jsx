@@ -16,7 +16,7 @@ import {
   Info,
   Clock,
 } from "lucide-react";
-import useThreeShapeAuth from "../../components/Config/useThreeShapeAuth";
+import useThreeShapeAuth from "../../../Config/useThreeShapeAuth";
 import "./ThreeShapeDashboard.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;

@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react/prop-types */
 import React from "react";
 import {
   Mail,
@@ -51,311 +53,282 @@ const PlatformCard = React.memo(
       }
     };
 
+    const getPlatformStatus = () => {
+      if (is3Shape) return threeshapeStatus;
+      if (isMeditLink) return meditlinkStatus;
+      if (isItero) return iteroStatus;
+      if (isDexis) return dexisStatus;
+      if (isGoogleDrive) return googledriveStatus;
+      return null;
+    };
+
+    const status = getPlatformStatus();
+    const isConnected = status?.authenticated;
+    const isLoading = status?.loading;
+
     return (
-      <div className="platform-card">
-        <div className="platform-card-header">
-          <h3 className="platform-card-title">{getPlatformDisplayName()}</h3>
+      <div className="platform-card-component">
+        <div className="platform-card-component__header">
+          <h3 className="platform-card-component__title">
+            {getPlatformDisplayName()}
+          </h3>
 
-          {is3Shape && (
-            <div
-              className={`platform-dashboard-status ${
-                threeshapeStatus?.authenticated ? "connected" : "disconnected"
-              }`}
-            >
-              {threeshapeStatus?.authenticated ? (
-                <CheckCircle size={16} />
-              ) : (
-                <AlertCircle size={16} />
-              )}
-              <span>
-                {threeshapeStatus?.authenticated
-                  ? "Connecté à 3Shape"
-                  : "Non connecté à 3Shape"}
-              </span>
-            </div>
-          )}
-
-          {isMeditLink && (
-            <div
-              className={`platform-dashboard-status ${
-                meditlinkStatus?.authenticated ? "connected" : "disconnected"
-              }`}
-            >
-              {meditlinkStatus?.authenticated ? (
-                <CheckCircle size={16} />
-              ) : (
-                <AlertCircle size={16} />
-              )}
-              <span>
-                {meditlinkStatus?.authenticated
-                  ? "Connecté à MeditLink"
-                  : "Non connecté à MeditLink"}
-              </span>
-            </div>
-          )}
-
-          {isItero && (
-            <div
-              className={`platform-dashboard-status ${
-                iteroStatus?.authenticated ? "connected" : "disconnected"
-              }`}
-            >
-              {iteroStatus?.authenticated ? (
-                <CheckCircle size={16} />
-              ) : (
-                <AlertCircle size={16} />
-              )}
-              <span>
-                {iteroStatus?.authenticated
-                  ? "Connecté à Itero"
-                  : "Non connecté à Itero"}
-              </span>
-            </div>
-          )}
-
-          {isDexis && (
-            <div
-              className={`platform-dashboard-status ${
-                dexisStatus?.authenticated ? "connected" : "disconnected"
-              }`}
-            >
-              {dexisStatus?.authenticated ? (
-                <CheckCircle size={16} />
-              ) : (
-                <AlertCircle size={16} />
-              )}
-              <span>
-                {dexisStatus?.authenticated
-                  ? "Connecté à Dexis"
-                  : "Non connecté à Dexis"}
-              </span>
-            </div>
-          )}
-
-          {isGoogleDrive && (
-            <div
-              className={`platform-googledrive-status ${
-                googledriveStatus?.authenticated ? "connected" : "disconnected"
-              }`}
-            >
-              {googledriveStatus?.authenticated ? (
-                <CheckCircle size={16} />
-              ) : (
-                <AlertCircle size={16} />
-              )}
-              <span>
-                {googledriveStatus?.authenticated
-                  ? "Connecté à Google Drive"
-                  : "Non connecté à Google Drive"}
-              </span>
-            </div>
-          )}
+          <div
+            className={`platform-card-component__status ${
+              isConnected
+                ? "platform-card-component__status--connected"
+                : "platform-card-component__status--disconnected"
+            }`}
+          >
+            {isConnected ? (
+              <CheckCircle
+                size={16}
+                className="platform-card-component__status-icon"
+              />
+            ) : (
+              <AlertCircle
+                size={16}
+                className="platform-card-component__status-icon"
+              />
+            )}
+            <span>
+              {isConnected
+                ? `Connecté à ${getPlatformDisplayName()}`
+                : `Non connecté à ${getPlatformDisplayName()}`}
+            </span>
+          </div>
         </div>
 
-        <div className="platform-card-content">
-          <div className="platform-card-info">
-            <Mail size={16} />
+        <div className="platform-card-component__content">
+          <div className="platform-card-component__info">
+            <Mail size={16} className="platform-card-component__info-icon" />
             <span>{platform.email}</span>
           </div>
-          <div className="platform-card-status">
-            <span className="platform-connected-status">Configuré</span>
+
+          <div className="platform-card-component__config-status">
+            Configuré
           </div>
 
-          {isMeditLink &&
-            meditlinkStatus?.authenticated &&
-            meditlinkStatus.userInfo && (
-              <div className="platform-user-info">
-                <Shield size={14} />
-                <span>{meditlinkStatus.userInfo.name}</span>
-              </div>
-            )}
+          {isMeditLink && isConnected && meditlinkStatus?.userInfo && (
+            <div className="platform-card-component__user-info">
+              <Shield
+                size={14}
+                className="platform-card-component__user-info-icon"
+              />
+              <span>{meditlinkStatus.userInfo.name}</span>
+            </div>
+          )}
 
-          {is3Shape &&
-            threeshapeStatus?.authenticated &&
-            threeshapeStatus.hasToken && (
-              <div className="platform-user-info">
-                <Link2 size={14} />
-                <span>Token 3Shape actif</span>
-              </div>
-            )}
+          {is3Shape && isConnected && threeshapeStatus?.hasToken && (
+            <div className="platform-card-component__user-info">
+              <Link2
+                size={14}
+                className="platform-card-component__user-info-icon"
+              />
+              <span>Token 3Shape actif</span>
+            </div>
+          )}
 
-          {isItero && iteroStatus?.authenticated && (
-            <div className="platform-user-info">
-              <Link2 size={14} />
+          {isItero && isConnected && (
+            <div className="platform-card-component__user-info">
+              <Link2
+                size={14}
+                className="platform-card-component__user-info-icon"
+              />
               <span>Connecté à l'API Itero</span>
             </div>
           )}
 
-          {isDexis && dexisStatus?.authenticated && (
-            <div className="platform-user-info">
-              <Link2 size={14} />
+          {isDexis && isConnected && (
+            <div className="platform-card-component__user-info">
+              <Link2
+                size={14}
+                className="platform-card-component__user-info-icon"
+              />
               <span>Connecté à l'API Dexis</span>
             </div>
           )}
 
-          {isGoogleDrive && googledriveStatus?.authenticated && (
-            <div className="platform-user-info">
-              <Cloud size={14} />
+          {isGoogleDrive && isConnected && (
+            <div className="platform-card-component__user-info">
+              <Cloud
+                size={14}
+                className="platform-card-component__user-info-icon"
+              />
               <span>Accès Drive activé</span>
             </div>
           )}
         </div>
 
-        <div className="platform-card-actions">
-          {is3Shape && (
-            <div className="threeshape-actions-group">
-              <button
-                onClick={() => onConnect3Shape(platform)}
-                className={`platform-connect-btn ${
-                  threeshapeStatus?.authenticated ? "connected" : ""
-                }`}
-                aria-label="Connecter à 3Shape"
-              >
-                <Link2 size={16} />
-                {threeshapeStatus?.authenticated ? "Reconnecter" : "Connecter"}
-              </button>
-              {threeshapeStatus?.authenticated && (
+        <div className="platform-card-component__actions">
+          <div className="platform-card-component__actions-group">
+            {/* 3Shape Actions */}
+            {is3Shape && (
+              <>
                 <button
-                  onClick={() => onShowThreeShapeDashboard(platform)}
-                  className="platform-connect-btn"
-                  aria-label="Tableau de bord 3Shape"
+                  onClick={() => onConnect3Shape(platform)}
+                  className={`platform-card-component__connect-btn ${
+                    isConnected
+                      ? "platform-card-component__connect-btn--connected"
+                      : ""
+                  }`}
+                  aria-label={
+                    isConnected ? "Reconnecter à 3Shape" : "Connecter à 3Shape"
+                  }
                 >
-                  <Activity size={16} />
-                  Dashboard
+                  <Link2 size={16} />
+                  {isConnected ? "Reconnecter" : "Connecter OAuth"}
                 </button>
-              )}
-            </div>
-          )}
-
-          {isMeditLink && (
-            <>
-              {meditlinkStatus?.authenticated ? (
-                <div className="meditlink-actions-group">
+                {isConnected && (
                   <button
-                    onClick={() => onShowMeditLinkDashboard(platform)}
-                    className="platform-connect-btn"
-                    aria-label="Tableau de bord MeditLink"
+                    onClick={() => onShowThreeShapeDashboard(platform)}
+                    className="platform-card-component__dashboard-btn"
+                    aria-label="Tableau de bord 3Shape"
                   >
                     <Activity size={16} />
                     Dashboard
                   </button>
-                  <button
-                    onClick={() => onDisconnectMeditLink(platform)}
-                    className="platform-disconnect-btn"
-                    aria-label="Déconnecter de MeditLink"
-                  >
-                    <X size={16} />
-                    Déconnecter
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => onConnectMeditLink(platform)}
-                  className="platform-connect-btn"
-                  disabled={meditlinkStatus?.loading}
-                  aria-label="Connecter à MeditLink"
-                >
-                  <Shield size={16} />
-                  {meditlinkStatus?.loading
-                    ? "Connexion..."
-                    : "Connecter OAuth"}
-                </button>
-              )}
-            </>
-          )}
+                )}
+              </>
+            )}
 
-          {isItero && (
-            <div className="itero-actions-group">
+            {/* MeditLink Actions */}
+            {isMeditLink && (
+              <>
+                {isConnected ? (
+                  <>
+                    <button
+                      onClick={() => onShowMeditLinkDashboard(platform)}
+                      className="platform-card-component__dashboard-btn"
+                      aria-label="Tableau de bord MeditLink"
+                    >
+                      <Activity size={16} />
+                      Dashboard
+                    </button>
+                    <button
+                      onClick={() => onDisconnectMeditLink(platform)}
+                      className="platform-card-component__disconnect-btn"
+                      aria-label="Déconnecter de MeditLink"
+                    >
+                      <X size={16} />
+                      Déconnecter
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => onConnectMeditLink(platform)}
+                    className="platform-card-component__connect-btn"
+                    disabled={isLoading}
+                    aria-label="Connecter à MeditLink"
+                  >
+                    <Link2 size={16} />
+                    {isLoading ? "Connexion..." : "Connecter OAuth"}
+                  </button>
+                )}
+              </>
+            )}
+
+            {/* Itero Actions */}
+            {isItero && (
               <button
                 onClick={() => onConnectItero(platform)}
-                className={`platform-connect-btn ${
-                  iteroStatus?.authenticated ? "connected" : ""
+                className={`platform-card-component__connect-btn ${
+                  isConnected
+                    ? "platform-card-component__connect-btn--connected"
+                    : ""
                 }`}
-                disabled={iteroStatus?.loading}
-                aria-label="Connecter à Itero"
+                disabled={isLoading}
+                aria-label={
+                  isConnected ? "Reconnecter à Itero" : "Connecter à Itero"
+                }
               >
-                <Shield size={16} />
-                {iteroStatus?.loading
+                <Link2 size={16} />
+                {isLoading
                   ? "Connexion..."
-                  : iteroStatus?.authenticated
+                  : isConnected
                   ? "Reconnecter"
                   : "Connecter"}
               </button>
-            </div>
-          )}
+            )}
 
-          {isDexis && (
-            <div className="dexis-actions-group">
+            {/* Dexis Actions */}
+            {isDexis && (
               <button
                 onClick={() => onConnectDexis(platform)}
-                className={`platform-connect-btn ${
-                  dexisStatus?.authenticated ? "connected" : ""
+                className={`platform-card-component__connect-btn ${
+                  isConnected
+                    ? "platform-card-component__connect-btn--connected"
+                    : ""
                 }`}
-                disabled={dexisStatus?.loading}
-                aria-label="Connecter à Dexis"
+                disabled={isLoading}
+                aria-label={
+                  isConnected ? "Reconnecter à Dexis" : "Connecter à Dexis"
+                }
               >
-                <Shield size={16} />
-                {dexisStatus?.loading
+                <Link2 size={16} />
+                {isLoading
                   ? "Connexion..."
-                  : dexisStatus?.authenticated
+                  : isConnected
                   ? "Reconnecter"
                   : "Connecter"}
               </button>
-            </div>
-          )}
+            )}
 
-          {isGoogleDrive && (
-            <>
-              {googledriveStatus?.authenticated ? (
-                <div className="googledrive-actions-group">
+            {/* Google Drive Actions */}
+            {isGoogleDrive && (
+              <>
+                {isConnected ? (
+                  <>
+                    <button
+                      onClick={() => onConnectGoogleDrive(platform)}
+                      className="platform-card-component__connect-btn platform-card-component__connect-btn--connected"
+                      aria-label="Reconnecter à Google Drive"
+                    >
+                      <Cloud size={16} />
+                      Reconnecter
+                    </button>
+                    <button
+                      onClick={() => onDisconnectGoogleDrive(platform)}
+                      className="platform-card-component__disconnect-btn"
+                      aria-label="Déconnecter Google Drive"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <RefreshCw
+                          size={16}
+                          className="platform-card-component__spinner"
+                        />
+                      ) : (
+                        <X size={16} />
+                      )}
+                      Déconnecter
+                    </button>
+                  </>
+                ) : (
                   <button
                     onClick={() => onConnectGoogleDrive(platform)}
-                    className="platform-connect-btn connected"
-                    aria-label="Reconnecter à Google Drive"
+                    className="platform-card-component__connect-btn"
+                    disabled={isLoading}
+                    aria-label="Connecter à Google Drive"
                   >
                     <Cloud size={16} />
-                    Reconnecter
+                    {isLoading ? "Connexion..." : "Connecter OAuth"}
                   </button>
-                  <button
-                    onClick={() => onDisconnectGoogleDrive(platform)}
-                    className="platform-disconnect-btn"
-                    aria-label="Déconnecter Google Drive"
-                    disabled={googledriveStatus?.loading}
-                  >
-                    {googledriveStatus?.loading ? (
-                      <RefreshCw size={16} className="spinner" />
-                    ) : (
-                      <X size={16} />
-                    )}
-                    Déconnecter
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => onConnectGoogleDrive(platform)}
-                  className="platform-connect-btn"
-                  disabled={googledriveStatus?.loading}
-                  aria-label="Connecter à Google Drive"
-                >
-                  <Cloud size={16} />
-                  {googledriveStatus?.loading
-                    ? "Connexion..."
-                    : "Connecter OAuth"}
-                </button>
-              )}
-            </>
-          )}
+                )}
+              </>
+            )}
+          </div>
 
           <button
             onClick={() => onEdit(platform)}
-            className="platform-edit-btn"
+            className="platform-card-component__edit-btn"
             aria-label="Modifier"
           >
             <Edit size={16} />
           </button>
           <button
             onClick={() => onDelete(platform.id)}
-            className="platform-delete-btn"
+            className="platform-card-component__delete-btn"
             aria-label="Supprimer"
           >
             <Trash2 size={16} />

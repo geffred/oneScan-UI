@@ -1,77 +1,96 @@
 import React from "react";
 import { X, Shield, CheckCircle } from "lucide-react";
-import "./DexisOAuthModal.css";
+import "./PlatformOAuthModal.css";
 
 const DexisOAuthModal = ({ isOpen, onClose, onStartAuth, isLoading }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="platform-modal-overlay">
-      <div className="platform-modal platform-dexis-modal">
-        <div className="platform-modal-header">
-          <h2>Connexion Dexis</h2>
-          <button onClick={onClose} className="platform-modal-close">
-            <X size={24} />
+    <div className="platform-oauth-modal-overlay">
+      <div className="platform-oauth-modal">
+        <div className="platform-oauth-modal-header">
+          <h2 className="platform-oauth-modal-header__title">
+            Connexion Dexis
+          </h2>
+          <button
+            onClick={onClose}
+            className="platform-oauth-modal-header__close"
+          >
+            <X size={20} />
           </button>
         </div>
 
-        <div className="platform-dexis-auth-content">
-          <div className="platform-dexis-info">
-            <Shield size={48} />
-            <h3>Connexion à l'API Dexis</h3>
-            <p>
+        <div className="platform-oauth-modal-content">
+          <div className="platform-oauth-modal-info">
+            <Shield size={40} className="platform-oauth-modal-info__icon" />
+            <h3 className="platform-oauth-modal-info__title">
+              Connexion à l'API Dexis
+            </h3>
+            <p className="platform-oauth-modal-info__description">
               Connectez-vous à votre compte Dexis pour récupérer vos commandes
               et synchroniser vos données.
             </p>
           </div>
 
-          <div className="platform-dexis-features">
-            <h4>Accès aux fonctionnalités :</h4>
-            <ul>
-              <li>
-                <CheckCircle size={16} /> Récupération des commandes Dexis
+          <div className="platform-oauth-modal-features">
+            <h4 className="platform-oauth-modal-features__title">
+              Accès aux fonctionnalités :
+            </h4>
+            <ul className="platform-oauth-modal-features__list">
+              <li className="platform-oauth-modal-features__item">
+                <CheckCircle
+                  size={14}
+                  className="platform-oauth-modal-features__item-icon"
+                />
+                Récupération des commandes Dexis
               </li>
-              <li>
-                <CheckCircle size={16} /> Consultation des cas patients
+              <li className="platform-oauth-modal-features__item">
+                <CheckCircle
+                  size={14}
+                  className="platform-oauth-modal-features__item-icon"
+                />
+                Consultation des cas patients
               </li>
-              <li>
-                <CheckCircle size={16} /> Téléchargement des fichiers
+              <li className="platform-oauth-modal-features__item">
+                <CheckCircle
+                  size={14}
+                  className="platform-oauth-modal-features__item-icon"
+                />
+                Téléchargement des fichiers
               </li>
-              <li>
-                <CheckCircle size={16} /> Synchronisation automatique
+              <li className="platform-oauth-modal-features__item">
+                <CheckCircle
+                  size={14}
+                  className="platform-oauth-modal-features__item-icon"
+                />
+                Synchronisation automatique
               </li>
             </ul>
           </div>
 
-          <div className="platform-dexis-security">
-            <p>
+          <div className="platform-oauth-modal-security">
+            <p className="platform-oauth-modal-security__text">
               <strong>Note :</strong> La connexion utilise l'API Dexis sécurisée
               pour récupérer vos données.
             </p>
           </div>
 
-          <div className="platform-dexis-actions">
+          <div className="platform-oauth-modal-actions">
             <button
               onClick={onStartAuth}
               disabled={isLoading}
-              className="platform-dexis-connect-btn"
+              className="platform-oauth-modal-connect-btn"
             >
               {isLoading ? (
                 <>
-                  <div className="platform-loading-spinner"></div>
+                  <div className="platform-oauth-modal-loading-spinner"></div>
                   Connexion...
                 </>
               ) : (
-                <>Se connecter à Dexis</>
+                "Se connecter à Dexis"
               )}
             </button>
           </div>
-        </div>
-
-        <div className="platform-modal-actions">
-          <button onClick={onClose} className="platform-cancel-btn">
-            Annuler
-          </button>
         </div>
       </div>
     </div>

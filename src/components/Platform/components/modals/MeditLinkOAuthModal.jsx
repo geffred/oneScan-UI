@@ -1,82 +1,100 @@
 import React from "react";
 import { X, Shield, CheckCircle } from "lucide-react";
-import "./MeditLinkOAuthModal.css";
+import "./PlatformOAuthModal.css";
 
 const MeditLinkOAuthModal = ({ isOpen, onClose, onStartAuth, isLoading }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="platform-modal-overlay">
-      <div className="platform-modal platform-meditlink-modal">
-        <div className="platform-modal-header">
-          <h2>Connexion MeditLink OAuth</h2>
-          <button onClick={onClose} className="platform-modal-close">
-            <X size={24} />
+    <div className="platform-oauth-modal-overlay">
+      <div className="platform-oauth-modal">
+        <div className="platform-oauth-modal-header">
+          <h2 className="platform-oauth-modal-header__title">
+            Connexion MeditLink
+          </h2>
+          <button
+            onClick={onClose}
+            className="platform-oauth-modal-header__close"
+          >
+            <X size={20} />
           </button>
         </div>
 
-        <div className="platform-meditlink-auth-content">
-          <div className="platform-meditlink-info">
-            <Shield size={48} />
-            <h3>Authentification sécurisée MeditLink</h3>
-            <p>
+        <div className="platform-oauth-modal-content">
+          <div className="platform-oauth-modal-info">
+            <Shield size={40} className="platform-oauth-modal-info__icon" />
+            <h3 className="platform-oauth-modal-info__title">
+              Authentification sécurisée MeditLink
+            </h3>
+            <p className="platform-oauth-modal-info__description">
               Connectez-vous à votre compte MeditLink pour accéder à vos données
               et synchroniser vos informations.
             </p>
           </div>
 
-          <div className="platform-meditlink-features">
-            <h4>Accès aux fonctionnalités :</h4>
-            <ul>
-              <li>
-                <CheckCircle size={16} /> Consultation de vos données
-                utilisateur
+          <div className="platform-oauth-modal-features">
+            <h4 className="platform-oauth-modal-features__title">
+              Accès aux fonctionnalités :
+            </h4>
+            <ul className="platform-oauth-modal-features__list">
+              <li className="platform-oauth-modal-features__item">
+                <CheckCircle
+                  size={14}
+                  className="platform-oauth-modal-features__item-icon"
+                />
+                Consultation de vos données utilisateur
               </li>
-              <li>
-                <CheckCircle size={16} /> Accès aux groupes et cas
+              <li className="platform-oauth-modal-features__item">
+                <CheckCircle
+                  size={14}
+                  className="platform-oauth-modal-features__item-icon"
+                />
+                Accès aux groupes et cas
               </li>
-              <li>
-                <CheckCircle size={16} /> Gestion des fichiers
+              <li className="platform-oauth-modal-features__item">
+                <CheckCircle
+                  size={14}
+                  className="platform-oauth-modal-features__item-icon"
+                />
+                Gestion des fichiers
               </li>
-              <li>
-                <CheckCircle size={16} /> Synchronisation automatique
+              <li className="platform-oauth-modal-features__item">
+                <CheckCircle
+                  size={14}
+                  className="platform-oauth-modal-features__item-icon"
+                />
+                Synchronisation automatique
               </li>
             </ul>
           </div>
 
-          <div className="platform-meditlink-security">
-            <p>
+          <div className="platform-oauth-modal-security">
+            <p className="platform-oauth-modal-security__text">
               <strong>Sécurité :</strong> Cette connexion utilise le protocole
               OAuth 2.0 sécurisé. Vos identifiants ne seront jamais stockés sur
               nos serveurs.
             </p>
           </div>
 
-          <div className="platform-meditlink-actions">
+          <div className="platform-oauth-modal-actions">
             <button
               onClick={onStartAuth}
               disabled={isLoading}
-              className="platform-meditlink-connect-btn"
+              className="platform-oauth-modal-connect-btn"
             >
               {isLoading ? (
                 <>
-                  <div className="platform-loading-spinner"></div>
+                  <div className="platform-oauth-modal-loading-spinner"></div>
                   Initialisation...
                 </>
               ) : (
                 <>
-                  <Shield size={18} />
+                  <Shield size={16} />
                   Se connecter avec MeditLink
                 </>
               )}
             </button>
           </div>
-        </div>
-
-        <div className="platform-modal-actions">
-          <button onClick={onClose} className="platform-cancel-btn">
-            Annuler
-          </button>
         </div>
       </div>
     </div>

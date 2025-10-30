@@ -13,7 +13,7 @@ import {
   Info,
   Clock,
 } from "lucide-react";
-import useMeditLinkAuth from "../../components/Config/useMeditLinkAuth";
+import useMeditLinkAuth from "../../../Config/useMeditLinkAuth";
 import "./MeditLinkDashboard.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;

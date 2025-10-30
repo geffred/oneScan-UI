@@ -1,259 +1,426 @@
-.platform-card {
+/* ===== PLATFORM CARD COMPONENT ===== */
+/* Styles unifiés pour toutes les cartes de plateforme */
+
+/* Container principal */
+.platform-card-component {
   background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
   position: relative;
-  transition: all 0.2s ease;
+  overflow: hidden;
 }
 
-.platform-card:hover {
+.platform-card-component:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
-  border-color: #007AFF;
+  border-color: #cbd5e1;
 }
 
-.platform-card-header {
+/* En-tête de la carte */
+.platform-card-component__header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
+  gap: 12px;
 }
 
-.platform-card-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1e293b;
+.platform-card-component__title {
   margin: 0;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 700;
+  flex: 1;
+  line-height: 1.3;
 }
 
-.platform-dashboard-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.platform-dashboard-status.connected {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.platform-dashboard-status.disconnected {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.platform-googledrive-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-weight: 500;
-}
-
-.platform-googledrive-status.connected {
-  background: #e6f4ea;
-  color: #137333;
-  border: 1px solid #34a853;
-}
-
-.platform-googledrive-status.disconnected {
-  background: #fce8e6;
-  color: #c5221f;
-  border: 1px solid #ea4335;
-}
-
-.platform-card-content {
-  margin-bottom: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.platform-card-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #64748b;
-  font-size: 0.9rem;
-}
-
-.platform-card-status {
-  display: flex;
-  justify-content: start;
-  margin-top: 0.5rem;
-}
-
-.platform-connected-status {
-  display: inline-flex;
-  align-items: center;
-  background: #dcfce7;
-  color: #166534;
-  padding: 0.375rem 0.875rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.platform-user-info {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 4px 8px;
-  background-color: #f8fafc;
-  border-radius: 4px;
-  font-size: 12px;
-  color: #475569;
-  font-weight: 500;
-}
-
-.platform-card-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-top: 12px;
-}
-
-.platform-edit-btn {
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
-  color: #007AFF;
-  padding: 0.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.platform-edit-btn:hover {
-  background: #007AFF;
-  color: white;
-  border-color: #007AFF;
-}
-
-.platform-delete-btn {
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
-  color: #ef4444;
-  padding: 0.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.platform-delete-btn:hover {
-  background: #ef4444;
-  color: white;
-  border-color: #ef4444;
-}
-
-.platform-connect-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border: none;
-  border-radius: 6px;
-  background: #007AFF;
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.platform-connect-btn:hover:not(:disabled) {
-  background: #0056CC;
-  transform: translateY(-1px);
-}
-
-.platform-connect-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.platform-connect-btn.connected {
-  background: #10b981;
-}
-
-.platform-connect-btn.connected:hover:not(:disabled) {
-  background: #059669;
-}
-
-.platform-disconnect-btn {
+/* Indicateur de statut */
+.platform-card-component__status {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  border: 1px solid #dc2626;
-  background-color: #fef2f2;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.platform-card-component__status--connected {
+  color: #059669;
+  background: #06e1a32b;
+}
+
+.platform-card-component__status--disconnected {
+  background: #fef2f2;
   color: #dc2626;
-  border-radius: 6px;
-  font-size: 12px;
+  border: 1px solid #fecaca;
+}
+
+.platform-card-component__status-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* Contenu principal */
+.platform-card-component__content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* Informations de base */
+.platform-card-component__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  padding: 8px 0;
 }
 
-.platform-disconnect-btn:hover:not(:disabled) {
-  background-color: #dc2626;
+.platform-card-component__info-icon {
+  flex-shrink: 0;
+  color: #9ca3af;
+  width: 16px;
+  height: 16px;
+}
+
+/* Badge de configuration */
+.platform-card-component__config-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #01c28b0a;
+  color: #01c28c;
+  border: 1px solid #01c28b3b;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  align-self: flex-start;
+}
+
+/* Informations utilisateur */
+.platform-card-component__user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.platform-card-component__user-info-icon {
+  flex-shrink: 0;
+  color: #007AFF;
+  width: 14px;
+  height: 14px;
+}
+
+/* Zone d'actions */
+.platform-card-component__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Groupes d'actions */
+.platform-card-component__actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+/* ===== BOUTONS PRINCIPAUX ===== */
+/* Bouton de connexion principal - Style original */
+.platform-card-component__connect-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #007AFF;
   color: white;
-  transform: translateY(-1px);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-width: 120px;
+  justify-content: center;
 }
 
-.platform-disconnect-btn:disabled {
+.platform-card-component__connect-btn:hover:not(:disabled) {
+  background: #0056CC;
+}
+
+.platform-card-component__connect-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
-.threeshape-actions-group,
-.meditlink-actions-group,
-.itero-actions-group,
-.dexis-actions-group,
-.googledrive-actions-group {
+/* Variante connecté - Style original */
+.platform-card-component__connect-btn--connected {
+  background: #01c28c;
+}
+
+.platform-card-component__connect-btn--connected:hover:not(:disabled) {
+  background: #02da9d;
+}
+
+/* ===== BOUTONS SECONDAIRES ===== */
+/* Bouton tableau de bord - Style original */
+.platform-card-component__dashboard-btn {
   display: flex;
-  gap: 4px;
   align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.spinner {
-  animation: spin 1s linear infinite;
+.platform-card-component__dashboard-btn:hover {
+  background: #0056CC;
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* Bouton de déconnexion - Style original */
+.platform-card-component__disconnect-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-/* Responsive Design */
+.platform-card-component__disconnect-btn:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.platform-card-component__disconnect-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== BOUTONS D'ÉDITION ===== */
+/* Bouton d'édition - Style original */
+.platform-card-component__edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: #f8fafc;
+  color: #6b7280;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 36px;
+  height: 36px;
+}
+
+.platform-card-component__edit-btn:hover {
+  background: #e2e8f0;
+  color: #374151;
+}
+
+/* Bouton de suppression - Style original */
+.platform-card-component__delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 36px;
+  height: 36px;
+}
+
+.platform-card-component__delete-btn:hover {
+  background: #fecaca;
+  color: #b91c1c;
+}
+
+/* ===== ÉLÉMENTS D'INTERFACE ===== */
+/* Spinner de chargement */
+.platform-card-component__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: platform-card-component-spin 0.8s linear infinite;
+}
+
+@keyframes platform-card-component-spin {
+  0% { 
+    transform: rotate(0deg); 
+  }
+  100% { 
+    transform: rotate(360deg); 
+  }
+}
+
+/* Icônes dans les boutons */
+.platform-card-component__connect-btn svg,
+.platform-card-component__dashboard-btn svg,
+.platform-card-component__disconnect-btn svg,
+.platform-card-component__edit-btn svg,
+.platform-card-component__delete-btn svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== DESIGN RESPONSIVE ===== */
 @media (max-width: 768px) {
-  .platform-card-header {
+  .platform-card-component {
+    padding: 16px;
+  }
+  
+  .platform-card-component__header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 10px;
+    margin-bottom: 14px;
   }
-
-  .platform-card-actions {
-    justify-content: flex-start;
+  
+  .platform-card-component__title {
+    font-size: 16px;
+  }
+  
+  .platform-card-component__status {
+    align-self: flex-start;
+    font-size: 12px;
+  }
+  
+  .platform-card-component__content {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  
+  .platform-card-component__actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .platform-card-component__actions-group {
+    justify-content: stretch;
+    order: 1;
+  }
+  
+  .platform-card-component__connect-btn,
+  .platform-card-component__dashboard-btn,
+  .platform-card-component__disconnect-btn {
+    flex: 1;
+    min-width: auto;
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+  
+  .platform-card-component__edit-btn,
+  .platform-card-component__delete-btn {
+    align-self: stretch;
+    order: 2;
+    height: 40px;
+    min-width: auto;
+    margin-top: 4px;
+  }
+  
+  .platform-card-component__info {
+    font-size: 13px;
+  }
+  
+  .platform-card-component__user-info {
+    font-size: 12px;
+    padding: 8px 10px;
   }
 }
 
+@media (max-width: 480px) {
+  .platform-card-component {
+    padding: 14px;
+  }
+  
+  .platform-card-component__actions-group {
+    flex-direction: column;
+  }
+  
+  .platform-card-component__connect-btn,
+  .platform-card-component__dashboard-btn,
+  .platform-card-component__disconnect-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ===== ÉTATS SPÉCIAUX ===== */
+/* Carte en cours de chargement */
+.platform-card-component--loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Carte désactivée */
+.platform-card-component--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Focus accessibility */
+.platform-card-component__connect-btn:focus-visible,
+.platform-card-component__dashboard-btn:focus-visible,
+.platform-card-component__disconnect-btn:focus-visible,
+.platform-card-component__edit-btn:focus-visible,
+.platform-card-component__delete-btn:focus-visible {
+  outline: 2px solid #007AFF;
+  outline-offset: 2px;
+}
+
+/* Animation d'entrée */
+@keyframes platform-card-component-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.platform-card-component {
+  animation: platform-card-component-fade-in 0.3s ease-out;
+}
