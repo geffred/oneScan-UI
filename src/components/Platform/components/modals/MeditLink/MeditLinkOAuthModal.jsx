@@ -1,6 +1,6 @@
 import React from "react";
 import { X, Shield, CheckCircle } from "lucide-react";
-import "./PlatformOAuthModal.css";
+import "../PlatformOAuthModal.css";
 
 const MeditLinkOAuthModal = ({ isOpen, onClose, onStartAuth, isLoading }) => {
   if (!isOpen) return null;

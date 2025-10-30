@@ -13,17 +13,17 @@ import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import CryptoJS from "crypto-js";
 
-import PlatformCard from "./components/PlatformCard";
-import PlatformModal from "./components/PlatformModal";
-import ThreeShapeOAuthModal from "./components/modals/ThreeShapeOAuthModal";
-import MeditLinkOAuthModal from "./components/modals/MeditLinkOAuthModal";
-import IteroOAuthModal from "./components/modals/IteroOAuthModal";
-import DexisOAuthModal from "./components/modals/DexisOAuthModal";
-import GoogleDriveOAuthModal from "./components/modals/GoogleDriveOAuthModal";
-import ThreeShapeDashboardModal from "./components/modals/ThreeShapeDashboardModal";
-import MeditLinkDashboardModal from "./components/modals/MeditLinkDashboardModal";
-import ListLoadingSpinner from "./components/ListLoadingSpinner";
-import EmptyState from "./components/EmptyState";
+import PlatformCard from "./components/PlatformCard/PlatformCard";
+import PlatformModal from "./components/PlatformModal/PlatformModal";
+import ThreeShapeOAuthModal from "./components/modals/3shape/ThreeShapeOAuthModal";
+import MeditLinkOAuthModal from "./components/modals/MeditLink/MeditLinkOAuthModal";
+import IteroOAuthModal from "./components/modals/Itero/IteroOAuthModal";
+import DexisOAuthModal from "./components/modals/Dexis/DexisOAuthModal";
+import GoogleDriveOAuthModal from "./components/modals/Google/GoogleDriveOAuthModal";
+import ThreeShapeDashboardModal from "./components/modals/3shape/ThreeShapeDashboardModal";
+import MeditLinkDashboardModal from "./components/modals/MeditLink/MeditLinkDashboardModal";
+import ListLoadingSpinner from "./components/Loading/ListLoadingSpinner";
+import EmptyState from "./components/Loading/EmptyState";
 
 import useMeditLinkAuth from "../Config/useMeditLinkAuth";
 import useThreeShapeAuth from "../Config/useThreeShapeAuth";
@@ -285,7 +285,9 @@ const Platform = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Erreur lors de la connexion à Itero");
+        throw new Error(
+          "le service de Scraping Itero est actuellement indisponible "
+        );
       }
 
       const data = await response.json();
