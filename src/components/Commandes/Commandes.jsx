@@ -34,27 +34,114 @@ const Commandes = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useContext(AuthContext);
 
-  // États
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPlateforme, setSelectedPlateforme] = useState("");
-  const [showOnlyUnread, setShowOnlyUnread] = useState(false);
-  const [dateFilter, setDateFilter] = useState("all");
-  const [customDateFrom, setCustomDateFrom] = useState("");
-  const [customDateTo, setCustomDateTo] = useState("");
+  // --- États avec restauration depuis le localStorage ---
+  const savedState = JSON.parse(localStorage.getItem("commandesState") || "{}");
+
+  const [searchTerm, setSearchTerm] = useState(savedState.searchTerm || "");
+  const [selectedPlateforme, setSelectedPlateforme] = useState(
+    savedState.selectedPlateforme || ""
+  );
+  const [showOnlyUnread, setShowOnlyUnread] = useState(
+    savedState.showOnlyUnread || false
+  );
+  const [dateFilter, setDateFilter] = useState(savedState.dateFilter || "all");
+  const [customDateFrom, setCustomDateFrom] = useState(
+    savedState.customDateFrom || ""
+  );
+  const [customDateTo, setCustomDateTo] = useState(
+    savedState.customDateTo || ""
+  );
   const [syncStatus, setSyncStatus] = useState({});
   const [isSyncing, setIsSyncing] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1);
   const [itemsPerPage] = useState(25);
+
+  // ✅ Flag pour éviter le reset après restauration
+  const hasRestoredState = React.useRef(false);
+
+  // --- Sauvegarde automatique dans le localStorage ---
+  useEffect(() => {
+    const stateToSave = {
+      searchTerm,
+      selectedPlateforme,
+      showOnlyUnread,
+      dateFilter,
+      customDateFrom,
+      customDateTo,
+      currentPage,
+    };
+    localStorage.setItem("commandesState", JSON.stringify(stateToSave));
+  }, [
+    searchTerm,
+    selectedPlateforme,
+    showOnlyUnread,
+    dateFilter,
+    customDateFrom,
+    customDateTo,
+    currentPage,
+  ]);
+
+  // --- Reset pagination uniquement si filtres changent APRÈS restauration ---
+  const previousFiltersRef = React.useRef({
+    searchTerm,
+    selectedPlateforme,
+    showOnlyUnread,
+    dateFilter,
+    customDateFrom,
+    customDateTo,
+  });
+
+  useEffect(() => {
+    // Ignorer la première exécution (montage)
+    if (!hasRestoredState.current) {
+      hasRestoredState.current = true;
+      previousFiltersRef.current = {
+        searchTerm,
+        selectedPlateforme,
+        showOnlyUnread,
+        dateFilter,
+        customDateFrom,
+        customDateTo,
+      };
+      return;
+    }
+
+    const prev = previousFiltersRef.current;
+    const filtersChanged =
+      prev.searchTerm !== searchTerm ||
+      prev.selectedPlateforme !== selectedPlateforme ||
+      prev.showOnlyUnread !== showOnlyUnread ||
+      prev.dateFilter !== dateFilter ||
+      prev.customDateFrom !== customDateFrom ||
+      prev.customDateTo !== customDateTo;
+
+    if (filtersChanged) {
+      setCurrentPage(1);
+      previousFiltersRef.current = {
+        searchTerm,
+        selectedPlateforme,
+        showOnlyUnread,
+        dateFilter,
+        customDateFrom,
+        customDateTo,
+      };
+    }
+  }, [
+    searchTerm,
+    selectedPlateforme,
+    showOnlyUnread,
+    dateFilter,
+    customDateFrom,
+    customDateTo,
+  ]);
 
   // Hooks d'authentification
   const googleDriveStatus = useGoogleDriveStatus(isAuthenticated);
-
   const meditlinkAuth = useMeditLinkAuth({
     autoRefresh: false,
     refreshInterval: 0,
     fetchOnMount: true,
   });
-
   const threeshapeAuth = useThreeShapeAuth();
 
   // Hooks SWR pour les données
@@ -117,7 +204,7 @@ const Commandes = () => {
     () => ({
       search: (e) => {
         setSearchTerm(e.target.value);
-        setCurrentPage(1); // Reset à la première page lors de la recherche
+        setCurrentPage(1);
       },
       plateforme: (e) => {
         setSelectedPlateforme(e.target.value);
@@ -163,17 +250,12 @@ const Commandes = () => {
     googleDriveStatus,
   });
 
-  // Calcul de la pagination
+  // Pagination
   const totalPages = useMemo(() => {
     return Math.ceil(filteredCommandes.length / itemsPerPage);
   }, [filteredCommandes.length, itemsPerPage]);
 
-  // Reset à la première page quand les données changent
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filteredCommandes.length]);
-
-  // Handler pour synchroniser une plateforme spécifique
+  // Synchronisation
   const handleSyncPlatform = useCallback(
     (platformName) => {
       syncPlatformCommandes(platformName, connectionStatus.get);
@@ -181,7 +263,6 @@ const Commandes = () => {
     [syncPlatformCommandes, connectionStatus.get]
   );
 
-  // Handler pour synchroniser toutes les plateformes
   const handleSyncAllPlatforms = useCallback(() => {
     syncAllPlatforms(userPlatforms, connectionStatus.get);
   }, [syncAllPlatforms, userPlatforms, connectionStatus.get]);

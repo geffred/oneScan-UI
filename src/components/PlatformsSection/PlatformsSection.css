@@ -36,8 +36,8 @@
   margin-top: 3rem;
 }
 
-.platform-card {
-  background: #f8fafc;
+.platforms-grid .platform-card {
+  background: #ffffff;
   padding: 2rem;
   border-radius: 16px;
   text-align: center;
@@ -45,7 +45,7 @@
   border: 2px solid #e2e8f0;
 }
 
-.platform-card:hover {
+.platforms-grid .platform-card:hover {
   background: white;
   border-color: #007AFF;
   transform: translateY(-3px);
