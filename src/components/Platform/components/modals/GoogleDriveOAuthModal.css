@@ -1,0 +1,135 @@
+.platform-googledrive-modal {
+  max-width: 500px;
+  width: 90%;
+}
+
+.platform-googledrive-auth-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.platform-googledrive-info {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.platform-googledrive-info svg {
+  color: #4285f4;
+}
+
+.platform-googledrive-info h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.platform-googledrive-info p {
+  margin: 0;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.platform-googledrive-features {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.platform-googledrive-features h4 {
+  margin: 0 0 16px 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.platform-googledrive-features ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.platform-googledrive-features li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.platform-googledrive-features li svg {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.platform-googledrive-security {
+  background: #e8f0fe;
+  border-radius: 8px;
+  padding: 16px;
+  border-left: 4px solid #4285f4;
+}
+
+.platform-googledrive-security p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1a73e8;
+}
+
+.platform-googledrive-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.platform-googledrive-connect-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 240px;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.platform-googledrive-connect-btn:hover:not(:disabled) {
+  background: #3367d6;
+  transform: translateY(-1px);
+}
+
+.platform-googledrive-connect-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .platform-googledrive-modal {
+    width: 95%;
+  }
+  
+  .platform-googledrive-auth-content {
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .platform-googledrive-connect-btn {
+    min-width: 200px;
+    padding: 10px 20px;
+  }
+}

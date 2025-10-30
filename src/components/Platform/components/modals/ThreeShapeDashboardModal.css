@@ -1,0 +1,32 @@
+.platform-threeshape-dashboard-modal {
+  max-width: 1200px;
+  width: 95%;
+  max-height: 90vh;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.platform-threeshape-dashboard-modal .platform-modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.platform-threeshape-dashboard-modal .platform-modal-content {
+  padding: 0;
+  max-height: calc(90vh - 80px);
+  overflow-y: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .platform-threeshape-dashboard-modal {
+    width: 98%;
+    margin: 1rem;
+  }
+  
+  .platform-threeshape-dashboard-modal .platform-modal-header {
+    padding: 1rem 1.5rem;
+  }
+}

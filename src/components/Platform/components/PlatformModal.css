@@ -1,0 +1,249 @@
+.platform-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.platform-modal {
+  background: white;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 95vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.platform-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.platform-modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.platform-modal-close {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.platform-modal-close:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.platform-modal-form {
+  padding: 2rem;
+}
+
+.platform-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.platform-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.platform-field-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.platform-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.platform-input-icon {
+  position: absolute;
+  left: 1rem;
+  color: #94a3b8;
+  z-index: 1;
+}
+
+.platform-text-input,
+.platform-select-input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.platform-text-input:focus,
+.platform-select-input:focus {
+  outline: none;
+  border-color: #007AFF;
+}
+
+.platform-error-message {
+  color: #ef4444;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.platform-info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.platform-info-banner svg {
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.platform-info-banner div {
+  flex: 1;
+}
+
+.platform-info-banner strong {
+  color: #1e40af;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.platform-info-banner p {
+  margin: 0;
+  color: #1e40af;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.platform-modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.platform-cancel-btn {
+  padding: 1rem 2rem;
+  background: #f8fafc;
+  color: #64748b;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.platform-cancel-btn:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.platform-save-btn {
+  padding: 1rem 2rem;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.platform-save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.platform-save-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.platform-loading-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.platform-loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: platform-spinner-rotation 1s linear infinite;
+}
+
+@keyframes platform-spinner-rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .platform-modal {
+    width: 95%;
+    margin: 1rem;
+  }
+
+  .platform-modal-form {
+    padding: 1.5rem;
+  }
+
+  .platform-modal-actions {
+    flex-direction: column;
+  }
+
+  .platform-cancel-btn,
+  .platform-save-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .platform-text-input,
+  .platform-select-input {
+    padding: 0.875rem 0.875rem 0.875rem 2.5rem;
+  }
+
+  .platform-input-icon {
+    left: 0.75rem;
+  }
+}

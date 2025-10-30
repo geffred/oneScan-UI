@@ -1,0 +1,144 @@
+.platform-meditlink-modal {
+  max-width: 500px;
+  width: 90%;
+}
+
+.platform-meditlink-auth-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  text-align: center;
+}
+
+.platform-meditlink-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.platform-meditlink-info svg {
+  color: #3b82f6;
+}
+
+.platform-meditlink-info h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.platform-meditlink-info p {
+  margin: 0;
+  color: #6b7280;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.platform-meditlink-features {
+  text-align: left;
+  background-color: #f8fafc;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.platform-meditlink-features h4 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.platform-meditlink-features ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.platform-meditlink-features li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.platform-meditlink-features li svg {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.platform-meditlink-security {
+  background-color: #fef3f2;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.platform-meditlink-security p {
+  margin: 0;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #92400e;
+}
+
+.platform-meditlink-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.platform-meditlink-connect-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 200px;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.platform-meditlink-connect-btn:hover:not(:disabled) {
+  background: #0056CC;
+  transform: translateY(-2px);
+}
+
+.platform-meditlink-connect-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.platform-meditlink-connect-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .platform-meditlink-modal {
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .platform-meditlink-auth-content {
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .platform-meditlink-connect-btn {
+    padding: 10px 20px;
+    font-size: 15px;
+    min-width: 180px;
+  }
+}
