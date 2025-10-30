@@ -86,14 +86,15 @@
 }
 
 .bon-de-commande-logo h1 {
-  font-size: 1.8rem;
+  font-size: 4rem;
   color: #007AFF;
-  margin-bottom: 0.5rem;
+   font-family: 'Armarialbold', sans-serif;
 }
 
 .bon-de-commande-logo p {
   color: #6b7280;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  text-transform: lowercase;
 }
 
 .bon-de-commande-title {
@@ -101,8 +102,9 @@
 }
 
 .bon-de-commande-title h2 {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: #111827;
+  margin-top: 9rem;
   margin-bottom: 0.5rem;
 }
 
@@ -189,14 +191,12 @@
 }
 
 /* Pied de page */
-.bon-de-commande-footer {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 2px solid #007AFF;
+.bon-de-commande-company-info{
+  margin-top: 1rem;
   font-size: 0.9rem;
 }
 
-.bon-de-commande-footer p {
+.bon-de-commande-company-info p {
   margin-bottom: 0.1rem;
 }
 
@@ -306,3 +306,63 @@
   font-style: italic;
   margin-top: 0.5em;
 }
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm; /* marges propres pour le PDF ou l’impression */
+  }
+
+  html, body {
+    width: 100%;
+    height: 297mm;
+    margin: 0;
+    padding: 0;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Conteneur principal du bon */
+  .bon-de-commande-container {
+    width: 100%; /* largeur interne (A4 = 210mm) */
+    background: white;
+    margin: auto;
+    padding: 10mm;
+    border: none;
+    box-shadow: none;
+    page-break-inside: avoid !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Contenu du bon : zoom léger pour tout faire tenir */
+  .bon-de-commande-content {
+    width: 100%;
+    transform-origin: top center;
+    zoom: 0.93; /* Ajuste entre 0.85 et 1 selon la densité du contenu */
+    page-break-inside: avoid !important;
+  }
+
+  /* Masquer les boutons et tout ce qui n’est pas à imprimer */
+  .bon-de-commande-actions {
+    display: none !important;
+  }
+
+  /* Empêcher les coupures de page entre sections */
+  .bon-de-commande-section,
+  .bon-de-commande-grid,
+  .bon-de-commande-table,
+  .bon-de-commande-company-info{
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  
+}
+
+
+
+

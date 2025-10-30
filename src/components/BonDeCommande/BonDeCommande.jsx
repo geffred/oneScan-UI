@@ -6,30 +6,38 @@ import "./BonDeCommande.css";
 const BonDeCommande = ({ commande, cabinet, onClose }) => {
   const bonDeCommandeRef = useRef();
 
-  // Version moderne de useReactToPrint avec contentRef
   const handleDownloadPDF = useReactToPrint({
-    contentRef: bonDeCommandeRef, // Utiliser contentRef au lieu de content
+    contentRef: bonDeCommandeRef,
     pageStyle: `
       @page {
         size: A4;
-        margin: 0;
+        margin: 5mm;
       }
       @media print {
-        body {
+        html, body {
           -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          zoom: 0.9; /* Réduction légère pour tenir sur une page */
         }
         .bon-de-commande-actions {
           display: none !important;
         }
+        .bon-de-commande-container {
+          page-break-inside: avoid !important;
+          page-break-before: avoid !important;
+          page-break-after: avoid !important;
+          overflow: visible !important;
+        }
+        .bon-de-commande-section, 
+        .bon-de-commande-table, 
+        .bon-de-commande-grid {
+          page-break-inside: avoid !important;
+          page-break-before: avoid !important;
+          page-break-after: avoid !important;
+        }
       }
     `,
     documentTitle: `Bon_de_commande_${commande.externalId}`,
-    onAfterPrint: () => {
-      console.log("PDF généré avec succès");
-    },
-    onPrintError: (errorLocation, error) => {
-      console.error("Erreur lors de la génération du PDF:", error);
-    },
   });
 
   const formatDate = (dateString) => {
@@ -42,14 +50,12 @@ const BonDeCommande = ({ commande, cabinet, onClose }) => {
     });
   };
 
-  const currentDate = new Date();
-  const formattedCurrentDate = currentDate.toLocaleDateString("fr-FR", {
+  const currentDate = new Date().toLocaleDateString("fr-FR", {
     day: "2-digit",
     month: "long",
     year: "numeric",
   });
 
-  // Gestion des adresses avec fallback sur le cabinet si nécessaire
   const adresseLivraison =
     commande.adresseDeLivraison ||
     (cabinet ? cabinet.adresseDeLivraison : "Non spécifiée");
@@ -80,10 +86,23 @@ const BonDeCommande = ({ commande, cabinet, onClose }) => {
         <div className="bon-de-commande-content" ref={bonDeCommandeRef}>
           <header className="bon-de-commande-header">
             <div className="bon-de-commande-logo">
-              <h1>
-                <span className="lab">My</span>smilelab
-              </h1>
-              <p>Spécialiste en solutions dentaires numériques</p>
+              <h1>smile lab</h1>
+              <p>
+                LE LABORATOIRE D’ORTHODONTIE OÙ L’ARTISANAT RENCONTRE
+                L’INNOVATION.
+              </p>
+              <section className="bon-de-commande-company-info">
+                <p>
+                  <strong>Téléphone:</strong> +32(0) 493 35 73 28
+                </p>
+                <p>
+                  <strong>Adresse:</strong> Boulevard Roosevelt 23, 7060
+                  Soignies
+                </p>
+                <p>
+                  <strong>IBAN:</strong> BE0794998835
+                </p>
+              </section>
             </div>
             <div className="bon-de-commande-title">
               <h2>BON DE COMMANDE</h2>
@@ -92,7 +111,7 @@ const BonDeCommande = ({ commande, cabinet, onClose }) => {
                   <strong>N°:</strong> {commande.externalId}
                 </p>
                 <p>
-                  <strong>Date:</strong> {formattedCurrentDate}
+                  <strong>Date:</strong> {currentDate}
                 </p>
               </div>
             </div>
@@ -158,15 +177,11 @@ const BonDeCommande = ({ commande, cabinet, onClose }) => {
                   <strong>Date de commande:</strong>{" "}
                   {formatDate(commande.dateReception) || "N/A"}
                 </p>
-                <p>
-                  <strong>Date souhaitée:</strong>{" "}
-                  {formatDate(commande.dateEcheance) || "N/A"}
-                </p>
               </div>
               <div>
                 <p>
-                  <strong>Date prévue de livraison:</strong>{" "}
-                  {formatDate(commande.dateEcheance) || "À définir"}
+                  <strong>Date de livraison souhaitée:</strong>{" "}
+                  {formatDate(commande.dateEcheance) || "N/A"}
                 </p>
               </div>
             </div>
@@ -190,18 +205,6 @@ const BonDeCommande = ({ commande, cabinet, onClose }) => {
               </div>
             </div>
           </section>
-
-          <footer className="bon-de-commande-footer">
-            <p>
-              <strong>Téléphone:</strong> +32(0) 493 35 73 28
-            </p>
-            <p>
-              <strong>Adresse</strong> Boulevard Roosevelt 23 7060 Soignies
-            </p>
-            <p>
-              <strong>IBAN:</strong> BE0794998835
-            </p>
-          </footer>
         </div>
       </div>
     </div>
