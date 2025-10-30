@@ -1,6 +1,6 @@
 import React from "react";
 import { X } from "lucide-react";
-import MeditLinkDashboard from "../MeditLinkDashboard/MeditLinkDashboard";
+import MeditLinkDashboard from "../../MeditLinkDashboard/MeditLinkDashboard";
 import "./MeditLinkDashboardModal.css";
 
 const MeditLinkDashboardModal = ({ isOpen, onClose }) => {

@@ -1,6 +1,6 @@
 import React from "react";
 import { X } from "lucide-react";
-import ThreeShapeDashboard from "../ThreeShapeDashboard/ThreeShapeDashboard";
+import ThreeShapeDashboard from "../../ThreeShapeDashboard/ThreeShapeDashboard";
 import "./ThreeShapeDashboardModal.css";
 
 const ThreeShapeDashboardModal = ({ isOpen, onClose }) => {
