@@ -60,9 +60,13 @@ const CommentSection = ({
 
       const updatedCommande = await response.json();
 
-      mutateCommentaire(editValue.trim() || null, false);
-      mutateCommande(updatedCommande, false);
-      mutateCommandes();
+      // Utiliser directement mutateCommande et mutateCommandes
+      if (mutateCommande) {
+        await mutateCommande(updatedCommande, false);
+      }
+      if (mutateCommandes) {
+        await mutateCommandes();
+      }
 
       setIsEditing(false);
       showNotification("Commentaire mis à jour avec succès", "success");
@@ -73,7 +77,6 @@ const CommentSection = ({
       setIsSaving(false);
     }
   };
-
   const handleKeyDown = (e) => {
     if (e.key === "Escape") {
       handleCancel();
