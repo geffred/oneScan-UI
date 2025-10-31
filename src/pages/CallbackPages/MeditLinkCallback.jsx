@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useContext, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -9,7 +11,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
-import "./MeditLinkCallback.css";
+import "./Callback.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const MeditLinkCallback = () => {

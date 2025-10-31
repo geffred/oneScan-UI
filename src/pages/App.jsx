@@ -12,11 +12,11 @@ import CommandeDetails from "../components/CommandeDetails/CommandeDetails";
 import SuiviCommandesPage from "./SuiviCommandesPage/SuiviCommandesPage";
 import AppareilGalleryPage from "./AppareilGalleryPage/AppareilGalleryPage";
 import CompteCabinet from "./CompteCabinet/CompteCabinet";
-import MeditLinkCallback from "./MeditLinkCallback/MeditLinkCallback";
-import ThreeShapeCallback from "./ThreeShapeCallback/ThreeShapeCallback";
+import MeditLinkCallback from "./CallbackPages/MeditLinkCallback";
+import ThreeShapeCallback from "./CallbackPages/ThreeShapeCallback";
 import CabinetRegisterPage from "./CabinetRegisterPage/CabinetRegisterPage";
 import GuideCommande from "./GuideCommande/GuideCommande";
-import GoogleDriveCallback from "./GoogleDriveCallback/GoogleDriveCallback";
+import GoogleDriveCallback from "./CallbackPages/GoogleDriveCallback";
 
 function App() {
   return (

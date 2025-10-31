@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -9,7 +10,7 @@ import {
   Home,
   RefreshCw,
 } from "lucide-react";
-import "./GoogleDriveCallback.css";
+import "./Callback.css";
 
 // ⏱️ CONFIGURATION DES DÉLAIS (en millisecondes)
 const DELAYS = {
@@ -35,6 +36,34 @@ const GoogleDriveCallback = () => {
   const hasRedirectedRef = useRef(false);
   const timeoutRef = useRef(null);
   const countdownIntervalRef = useRef(null);
+
+  // Fonction pour actualiser la page parente
+  const refreshParentPage = () => {
+    if (window.opener) {
+      try {
+        // Envoyer un message pour demander le rechargement
+        window.opener.postMessage(
+          {
+            type: "GOOGLE_DRIVE_AUTH_COMPLETE",
+            action: "refresh",
+            timestamp: Date.now(),
+          },
+          window.location.origin
+        );
+
+        // Alternative: forcer le rechargement si la page parente est sur le même domaine
+        if (window.opener.location && !window.opener.closed) {
+          try {
+            window.opener.location.reload();
+          } catch (e) {
+            console.log("Rechargement automatique bloqué par le navigateur");
+          }
+        }
+      } catch (error) {
+        console.warn("Impossible d'actualiser la page parente:", error);
+      }
+    }
+  };
 
   // Fonction pour démarrer le compte à rebours
   const startCountdown = (seconds) => {
@@ -80,7 +109,11 @@ const GoogleDriveCallback = () => {
           window.opener.postMessage(
             {
               type: "GOOGLE_DRIVE_AUTH_SUCCESS",
-              data: { authenticated: true },
+              data: {
+                authenticated: true,
+                timestamp: Date.now(),
+              },
+              action: "refresh", // Indiquer qu'il faut actualiser
             },
             window.location.origin
           );
@@ -89,8 +122,9 @@ const GoogleDriveCallback = () => {
           const delay = DELAYS.POPUP_SUCCESS_CLOSE / 1000;
           startCountdown(delay);
 
-          // Fermer la popup après délai
+          // Fermer la popup après délai avec actualisation de la page parente
           timeoutRef.current = setTimeout(() => {
+            refreshParentPage(); // Actualiser avant fermeture
             window.close();
           }, DELAYS.POPUP_SUCCESS_CLOSE);
         } else {
@@ -101,6 +135,8 @@ const GoogleDriveCallback = () => {
           startCountdown(delay);
 
           timeoutRef.current = setTimeout(() => {
+            // Actualiser la page courante avant redirection
+            window.location.reload();
             navigate("/Dashboard/Platform", { replace: true });
           }, DELAYS.WINDOW_SUCCESS_REDIRECT);
         }
@@ -118,6 +154,7 @@ const GoogleDriveCallback = () => {
             {
               type: "GOOGLE_DRIVE_AUTH_ERROR",
               error: errorMsg,
+              action: "refresh", // Indiquer qu'il faut actualiser même en cas d'erreur
             },
             window.location.origin
           );
@@ -126,6 +163,7 @@ const GoogleDriveCallback = () => {
           startCountdown(delay);
 
           timeoutRef.current = setTimeout(() => {
+            refreshParentPage(); // Actualiser avant fermeture
             window.close();
           }, DELAYS.POPUP_ERROR_CLOSE);
         } else {
@@ -133,6 +171,8 @@ const GoogleDriveCallback = () => {
           startCountdown(delay);
 
           timeoutRef.current = setTimeout(() => {
+            // Actualiser la page courante avant redirection
+            window.location.reload();
             navigate("/Dashboard/Platform", { replace: true });
           }, DELAYS.WINDOW_ERROR_REDIRECT);
         }
@@ -150,6 +190,7 @@ const GoogleDriveCallback = () => {
           {
             type: "GOOGLE_DRIVE_AUTH_ERROR",
             error: err.message,
+            action: "refresh",
           },
           window.location.origin
         );
@@ -191,8 +232,11 @@ const GoogleDriveCallback = () => {
     }
 
     if (window.opener) {
+      refreshParentPage(); // Actualiser avant fermeture
       window.close();
     } else {
+      // Actualiser la page avant redirection
+      window.location.reload();
       navigate("/Dashboard/Platform", { replace: true });
     }
   };

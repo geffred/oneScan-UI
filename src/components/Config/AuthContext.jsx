@@ -10,8 +10,7 @@ import { jwtDecode } from "jwt-decode";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // 🆕 version de l'app — change-la à chaque déploiement sur Railway
-  const APP_VERSION = "v1.0.0.1";
+  const APP_VERSION = "v1.0.0.2"; // Change à chaque release
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userType, setUserType] = useState(null);
@@ -22,147 +21,68 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     const storedUserType = localStorage.getItem("userType");
 
-    console.log(
-      "🔍 Restauration session - Token:",
-      token,
-      "UserType:",
-      storedUserType
-    );
+    if (!token || !storedUserType) return false;
 
-    if (token && storedUserType) {
-      try {
-        const decoded = jwtDecode(token);
-        console.log("🔍 Token décodé:", decoded);
+    try {
+      const decoded = jwtDecode(token);
+      setIsAuthenticated(true);
+      setUserType(storedUserType);
 
-        // Même si le token est expiré, on maintient la session pour l'UX
-        // La vérification de validité se fera au niveau des appels API
-        setIsAuthenticated(true);
-        setUserType(storedUserType);
-
-        if (storedUserType === "laboratoire") {
-          setUserData({
-            email: decoded.sub,
-            role: "laboratoire",
-          });
-        } else if (storedUserType === "cabinet") {
-          setUserData({
-            id: decoded.cabinetId,
-            email: decoded.sub,
-            nom: decoded.cabinetNom,
-            role: "cabinet",
-          });
-        }
-
-        console.log("✅ Session restaurée avec succès");
-        return true;
-      } catch (error) {
-        console.error("❌ Erreur lors du décodage du token:", error);
-        localStorage.removeItem("token");
-        localStorage.removeItem("userType");
-        return false;
+      if (storedUserType === "laboratoire") {
+        setUserData({ email: decoded.sub, role: "laboratoire" });
+      } else if (storedUserType === "cabinet") {
+        setUserData({
+          id: decoded.cabinetId,
+          email: decoded.sub,
+          nom: decoded.cabinetNom,
+          role: "cabinet",
+        });
       }
-    } else {
-      console.log("❌ Aucune session à restaurer");
+      return true;
+    } catch {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userType");
       return false;
     }
   }, []);
 
   useEffect(() => {
-    const initAuth = async () => {
-      await restoreSession();
-      setIsLoading(false);
-    };
-    initAuth();
+    restoreSession();
+    setIsLoading(false);
   }, [restoreSession]);
 
-  // 🧩 Vérifie la version de l'application (Railway update)
+  // ⚙️ Gestion de version (ne supprime plus tout localStorage)
   useEffect(() => {
     const storedVersion = localStorage.getItem("app_version");
-
-    // Si aucune version ou version différente => déconnexion
     if (storedVersion !== APP_VERSION) {
-      console.log("Nouvelle version détectée — déconnexion automatique");
-      localStorage.clear();
-      localStorage.setItem("app_version", APP_VERSION);
-      window.location.href = "/";
-    } else {
-      // Si même version => rien à faire
+      console.log("Nouvelle version détectée — réinitialisation sécurisée");
       localStorage.setItem("app_version", APP_VERSION);
     }
   }, [APP_VERSION]);
 
-  // 🔄 Synchronisation entre onglets
-  useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === "token" || e.key === "userType") {
-        if (e.newValue === null) {
-          setIsAuthenticated(false);
-          setUserType(null);
-          setUserData(null);
-          window.location.href = "/";
-        } else {
-          restoreSession();
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [restoreSession]);
-
   const login = useCallback((type, cabinetData = null, token) => {
-    console.log(
-      "🔐 Connexion - Type:",
-      type,
-      "Token présent:",
-      !!token,
-      "CabinetData:",
-      cabinetData
-    );
-
-    if (!token) {
-      console.error("❌ Token manquant lors de la connexion");
-      return false;
-    }
+    if (!token) return false;
 
     try {
       const decoded = jwtDecode(token);
-      console.log("🔐 Token décodé lors du login:", decoded);
-
-      // Stockage immédiat dans localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("userType", type);
 
-      // Mise à jour du state
       setIsAuthenticated(true);
       setUserType(type);
-
-      if (type === "laboratoire") {
-        setUserData({
-          email: decoded.sub,
-          role: "laboratoire",
-        });
-      } else if (type === "cabinet") {
-        const userDataToSet = {
-          id: decoded.cabinetId || cabinetData?.id,
-          email: decoded.sub,
-          nom: decoded.cabinetNom || cabinetData?.nom,
-          role: "cabinet",
-        };
-        console.log("🔐 Données cabinet définies:", userDataToSet);
-        setUserData(userDataToSet);
-      }
-
-      console.log("✅ Connexion réussie");
+      setUserData({
+        id: decoded.cabinetId || cabinetData?.id,
+        email: decoded.sub,
+        nom: decoded.cabinetNom || cabinetData?.nom,
+        role: type,
+      });
       return true;
-    } catch (error) {
-      console.error("❌ Erreur lors du décodage du token:", error);
+    } catch {
       return false;
     }
   }, []);
 
   const logout = useCallback(() => {
-    console.log("🚪 Déconnexion");
     setIsAuthenticated(false);
     setUserType(null);
     setUserData(null);
@@ -173,7 +93,6 @@ export const AuthProvider = ({ children }) => {
   const checkTokenValidity = useCallback(() => {
     const token = localStorage.getItem("token");
     if (!token) return false;
-
     try {
       const decoded = jwtDecode(token);
       return decoded.exp * 1000 > Date.now();
@@ -182,54 +101,21 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const refreshSession = useCallback(() => {
-    return restoreSession();
-  }, [restoreSession]);
-
-  // ⏰ Auto-déconnexion après 24h
-  useEffect(() => {
-    if (isAuthenticated) {
-      const timer = setTimeout(() => {
-        console.log("⏰ Auto-déconnexion après 24h");
-        logout();
-        window.location.href = "/";
-      }, 86400000);
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthenticated, logout]);
-
-  // Vérifie régulièrement la présence du token
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const token = localStorage.getItem("token");
-      if (!token && isAuthenticated) {
-        console.warn("⚠️ Token manquant — déconnexion forcée");
-        logout();
-        window.location.href = "/login";
-      }
-    }, 30000); // Vérifie toutes les 30 secondes au lieu de 2 secondes
-    return () => clearInterval(interval);
-  }, [isAuthenticated, logout]);
-
-  const value = {
-    isAuthenticated,
-    setIsAuthenticated,
-    userType,
-    userData,
-    isLoading,
-    login,
-    logout,
-    checkTokenValidity,
-    refreshSession,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        userType,
+        userData,
+        isLoading,
+        login,
+        logout,
+        checkTokenValidity,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);

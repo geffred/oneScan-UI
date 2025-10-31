@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useContext, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -10,7 +12,7 @@ import {
   Activity,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
-import "./ThreeShapeCallback.css";
+import "./Callback.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
