@@ -177,6 +177,12 @@ const CommandeDetails = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useContext(AuthContext);
 
+  // Ajouter cette fonction si elle n'existe pas
+  const mutateCommentaire = useCallback(async () => {
+    await mutateCommande();
+    await mutateCommandes();
+  }, [mutateCommande, mutateCommandes]);
+
   const [actionStates, setActionStates] = useState({
     download: false,
     generate: false,
@@ -637,6 +643,7 @@ const CommandeDetails = () => {
           finalCommentaire={finalCommentaire}
           mutateCommande={mutateCommande}
           mutateCommandes={mutateCommandes}
+          mutateCommentaire={mutateCommentaire}
           showNotification={(message, type) => {
             if (type === "success") toast.success(message);
             else if (type === "error") toast.error(message);

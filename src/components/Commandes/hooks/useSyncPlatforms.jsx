@@ -322,10 +322,7 @@ export const useSyncPlatforms = ({
 
       try {
         const token = localStorage.getItem("token");
-        const method =
-          platformName === "MEDITLINK" || platformName === "THREESHAPE"
-            ? "GET"
-            : "POST";
+        const method = "POST";
 
         const response = await fetch(endpoint, {
           method: method,
