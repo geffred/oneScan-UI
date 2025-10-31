@@ -301,15 +301,20 @@ export const useSyncPlatforms = ({
     }, 5000);
   }, [mutateCommandes, setSyncStatus]);
 
-  // Fonction pour synchroniser les autres plateformes
+  // Fonction pour synchroniser les autres plateformes - CORRIGÉE
   const syncOtherPlatform = useCallback(
     async (platformName) => {
-      const endpoint = platformEndpoints[platformName];
+      let endpoint = platformEndpoints[platformName];
       if (!endpoint) {
         console.error(
           `Endpoint non trouvé pour la plateforme: ${platformName}`
         );
         return;
+      }
+
+      // CORRECTION : Ajouter les paramètres de pagination pour 3Shape
+      if (platformName === "THREESHAPE") {
+        endpoint += "?startPage=0&endPage=1"; // Paramètres requis par le backend
       }
 
       setSyncStatus((prev) => ({
@@ -322,6 +327,10 @@ export const useSyncPlatforms = ({
 
       try {
         const token = localStorage.getItem("token");
+
+        // CORRECTION : Log pour débogage
+        console.log(`🔗 Appel ${platformName}: ${endpoint}`);
+
         const method =
           platformName === "MEDITLINK" || platformName === "THREESHAPE"
             ? "GET"
@@ -336,8 +345,17 @@ export const useSyncPlatforms = ({
           credentials: "include",
         });
 
+        // CORRECTION : Meilleur logging des réponses
+        console.log(
+          `📥 Réponse ${platformName}:`,
+          response.status,
+          response.statusText
+        );
+
         if (response.ok) {
           const result = await response.json();
+          console.log(`✅ Succès ${platformName}:`, result);
+
           mutateCommandes();
 
           const savedCount = result.savedCount || result.count || 0;
@@ -371,26 +389,30 @@ export const useSyncPlatforms = ({
           }
         } else {
           const errorText = await response.text();
-          console.error(`Erreur ${platformName}:`, errorText);
+          console.error(
+            `❌ Erreur ${platformName}:`,
+            response.status,
+            errorText
+          );
 
           setSyncStatus((prev) => ({
             ...prev,
             [platformName]: {
               status: "error",
-              message: `Erreur de synchronisation ${platformName}`,
+              message: `Erreur ${response.status} - Synchronisation ${platformName}`,
             },
           }));
 
-          toast.error(`Erreur lors de la synchronisation ${platformName}`, {
-            position: "top-right",
-            autoClose: 5000,
-          });
+          toast.error(
+            `Erreur ${response.status} lors de la synchronisation ${platformName}`,
+            {
+              position: "top-right",
+              autoClose: 5000,
+            }
+          );
         }
       } catch (err) {
-        console.error(
-          `Erreur lors de la synchronisation ${platformName}:`,
-          err
-        );
+        console.error(`💥 Erreur réseau ${platformName}:`, err);
         setSyncStatus((prev) => ({
           ...prev,
           [platformName]: {
@@ -416,7 +438,7 @@ export const useSyncPlatforms = ({
     [mutateCommandes, setSyncStatus]
   );
 
-  // Fonction pour synchroniser une plateforme spécifique
+  // Fonction pour synchroniser une plateforme spécifique - AMÉLIORÉE
   const syncPlatformCommandes = useCallback(
     (platformName, getConnectionStatus) => {
       // Ignorer Google Drive
@@ -425,6 +447,10 @@ export const useSyncPlatforms = ({
       }
 
       const connectionStatus = getConnectionStatus(platformName);
+
+      // CORRECTION : Meilleur logging de l'état de connexion
+      console.log(`🔐 Statut connexion ${platformName}:`, connectionStatus);
+
       if (!connectionStatus.authenticated) {
         toast.warning(
           `${platformName} n'est pas connectée. Veuillez d'abord vous connecter.`,
@@ -435,6 +461,8 @@ export const useSyncPlatforms = ({
         );
         return;
       }
+
+      console.log(`🔄 Lancement synchronisation ${platformName}...`);
 
       switch (platformName) {
         case "MEDITLINK":
