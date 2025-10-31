@@ -944,9 +944,7 @@ const CommandeInfoGrid = ({
         <div className="details-card-content">
           <div className="details-item">
             <span className="details-item-label">Date de réception :</span>
-            <span className="details-item-value">
-              {formatDate(commande.dateReception)}
-            </span>
+            <span className="details-item-value">{commande.dateReception}</span>
           </div>
           <div className="details-item">
             <span className="details-item-label">Date d'échéance :</span>
