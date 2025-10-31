@@ -1,0 +1,623 @@
+/* CommandeInfoGrid.css - Styles spécifiques au composant CommandeInfoGrid */
+
+/* Container principal de la grille */
+.details-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Cartes d'informations */
+.details-info-card {
+  background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
+  border: 1px solid #d1e7ff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.details-info-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 122, 255, 0.15);
+  border-color: #007AFF;
+}
+
+/* En-têtes des cartes */
+.details-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  color: #007AFF;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5f3ff;
+  position: relative;
+}
+
+.details-card-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.details-card-header h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+  background: #007AFF;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Bouton de rechargement des fichiers */
+.details-reload-files-btn {
+  background: transparent;
+  border: none;
+  color: #007AFF;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.details-reload-files-btn:hover:not(:disabled) {
+  background: rgba(0, 122, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.details-reload-files-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.details-reload-files-btn .spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Contenu des cartes */
+.details-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.details-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(0, 122, 255, 0.03);
+  border-radius: 8px;
+}
+
+.details-item-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.details-item-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Badges spéciaux */
+.details-external-id {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-weight: 700;
+  color: #007AFF;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  border: 1px solid #93c5fd;
+}
+
+.details-platform-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+}
+
+.details-status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* États de lecture */
+.details-read-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #065f46;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-radius: 12px;
+  border: 1px solid #10b981;
+}
+
+.details-read-icon {
+  color: #10b981;
+}
+
+.details-unread-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #dc2626;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-radius: 12px;
+  border: 1px solid #ef4444;
+}
+
+.details-unread-icon {
+  color: #ef4444;
+}
+
+/* Container pour les scans et fichiers */
+.details-scans-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Boutons de téléchargement génériques */
+.details-scan-download-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-height: 40px;
+}
+
+.details-scan-download-btn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.details-scan-download-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Styles spécifiques pour MeditLink */
+.meditlink-files-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.meditlink-file-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 40px;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.meditlink-file-btn:hover:not(:disabled) {
+  background: #0070e7;
+}
+
+.meditlink-file-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Styles spécifiques pour Google Drive */
+.google-drive-files-container {
+  margin-top: 8px;
+}
+
+.google-drive-file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.google-drive-download-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 40px;
+}
+
+.google-drive-download-btn:hover:not(:disabled) {
+  background: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.google-drive-download-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.google-drive-view-btn {
+  padding: 8px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  min-height: 40px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.google-drive-view-btn:hover {
+  background: #3367d6;
+}
+
+/* Styles pour MySmileLab */
+.mysmilelab-file-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  min-height: 40px;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.mysmilelab-file-btn:hover:not(:disabled) {
+  background: #218838;
+}
+
+.mysmilelab-file-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Informations de fichier */
+.file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-size: 14px;
+}
+
+.file-details {
+  font-size: 11px;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Spinners de téléchargement */
+.details-download-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: auto;
+}
+
+/* Messages d'état */
+.loading-text {
+  color: #6b7280;
+  font-style: italic;
+  font-size: 12px;
+}
+
+.no-files-message {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 13px;
+  padding: 8px;
+  text-align: center;
+  border: 1px dashed #d1d5db;
+  border-radius: 4px;
+  background-color: #f9fafb;
+}
+
+/* StatusDropdown - Styles spécifiques */
+.status-dropdown {
+  position: relative;
+  display: inline-block;
+  min-width: 200px;
+  font-family: 'Inter', sans-serif;
+}
+
+.status-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #1e293b;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.status-dropdown-trigger:hover {
+  border-color: #94a3b8;
+  background-color: #f8fafc;
+}
+
+.status-dropdown-trigger:focus {
+  outline: none;
+  border-color: #007AFF;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.status-dropdown-trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f1f5f9;
+}
+
+.status-dropdown-chevron {
+  transition: transform 0.2s ease;
+}
+
+.status-dropdown-chevron.open {
+  transform: rotate(180deg);
+}
+
+.status-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transform-origin: top center;
+  animation: dropdown-scale-in 0.15s ease-out;
+}
+
+@keyframes dropdown-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.status-dropdown-item {
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  color: #1e293b;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.status-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.status-dropdown-item:hover {
+  background-color: #f8fafc;
+  color: #007AFF;
+}
+
+.status-dropdown-item.active {
+  background-color: #f0f7ff;
+  color: #007AFF;
+  font-weight: 600;
+}
+
+/* Animations */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Classes de couleur pour les plateformes */
+.commandes-plateforme-blue {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.commandes-plateforme-green {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.commandes-plateforme-purple {
+  background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+  color: #581c87;
+  border: 1px solid #c084fc;
+}
+
+.commandes-plateforme-orange {
+  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+  color: #9a3412;
+  border: 1px solid #fb923c;
+}
+
+.commandes-plateforme-gray {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+/* Classes de statut */
+.commandes-status-green {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.commandes-status-yellow {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.commandes-status-red {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.commandes-status-gray {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .details-info-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .details-info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .details-info-card {
+    padding: 1.25rem;
+  }
+
+  .status-dropdown {
+    min-width: 180px;
+  }
+  
+  .status-dropdown-trigger {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+  }
+  
+  .status-dropdown-item {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+  }
+
+  .file-name {
+    font-size: 12px;
+  }
+  
+  .file-details {
+    font-size: 10px;
+  }
+  
+  .details-scan-download-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+    min-height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .details-info-card {
+    padding: 1rem;
+  }
+
+  .details-item {
+    padding: 0.5rem;
+  }
+
+  .status-dropdown {
+    width: 100%;
+  }
+  
+  .status-dropdown-menu {
+    width: 100%;
+  }
+}
