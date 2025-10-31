@@ -130,6 +130,25 @@ const Platform = () => {
     }
   );
 
+  const handleStartThreeShapeAuth = useCallback(async () => {
+    try {
+      // Fermer la modale immédiatement
+      setIs3ShapeModalOpen(false);
+
+      // Lancer l'authentification
+      await startThreeshapeAuth();
+
+      // Optionnel: afficher un message de succès
+      setSuccess("Authentification 3Shape lancée - vérifiez le nouvel onglet");
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError(
+        "Erreur lors du lancement de l'authentification 3Shape: " + err.message
+      );
+      setTimeout(() => setError(null), 5000);
+    }
+  }, [startThreeshapeAuth]);
+
   // Fonctions pour vérifier les statuts
   const checkGoogleDriveStatus = useCallback(async () => {
     try {
@@ -833,8 +852,8 @@ const Platform = () => {
       <ThreeShapeOAuthModal
         isOpen={is3ShapeModalOpen}
         onClose={() => setIs3ShapeModalOpen(false)}
-        onStartAuth={startThreeshapeAuth}
         isLoading={threeshapeLoading}
+        onStartAuth={handleStartThreeShapeAuth}
       />
 
       <MeditLinkOAuthModal
