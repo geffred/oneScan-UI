@@ -36,7 +36,16 @@ export const getUserPlatforms = async (userId) => {
 
 // Fonction pour récupérer les commandes
 export const getCommandes = async () => {
-  return fetchWithAuth(`${API_BASE_URL}/public/commandes`);
+  const data = await fetchWithAuth(`${API_BASE_URL}/public/commandes`);
+
+  // Trier les commandes par date de réception décroissante (les plus récentes en premier)
+  if (data && Array.isArray(data)) {
+    return data.sort(
+      (a, b) => new Date(b.dateReception) - new Date(a.dateReception)
+    );
+  }
+
+  return data;
 };
 
 // Configuration des endpoints
