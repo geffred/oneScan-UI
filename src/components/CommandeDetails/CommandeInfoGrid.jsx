@@ -1004,7 +1004,6 @@ const CommandeInfoGrid = ({
         commande={commande}
         mutateCommande={mutateCommande}
         mutateCommandes={mutateCommandes}
-        mutateCommentaire={mutateCommentaire}
         showNotification={showNotification}
       />
 
