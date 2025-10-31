@@ -1,3 +1,18 @@
+/* Ajoutez cette classe CSS pour l'animation du spinner */
+.commandes-sync-loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Assurez-vous que l'animation spin est définie */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Platforms Section Styles */
 .commandes-platforms-section {
   margin-bottom: 2rem;
@@ -34,7 +49,6 @@
   position: relative;
   overflow: hidden;
 }
-
 
 .commandes-platform-card:hover {
   box-shadow: 0px 0px 8px rgba(26, 26, 26, 0.096);
@@ -565,12 +579,6 @@
   border-top: 2px solid currentColor;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 /* Responsive */

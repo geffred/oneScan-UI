@@ -20,7 +20,7 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
 
     switch (syncStatus.status) {
       case "loading":
-        return <Loader2 size={14} className="commandes-sync-loading" />;
+        return <Loader2 size={14} className="commandes-sync-loading-spinner" />; // Changé ici
       case "success":
         return <CheckCircle size={14} className="commandes-sync-success" />;
       case "error":
@@ -186,7 +186,8 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
           >
             {syncStatus?.status === "loading" ? (
               <>
-                <Loader2 size={14} className="commandes-sync-loading" />
+                <Loader2 size={14} className="commandes-sync-loading-spinner" />{" "}
+                {/* Changé ici */}
                 Sync...
               </>
             ) : (
