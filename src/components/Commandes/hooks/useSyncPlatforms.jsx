@@ -314,7 +314,7 @@ export const useSyncPlatforms = ({
 
       // CORRECTION : Ajouter les paramètres de pagination pour 3Shape
       if (platformName === "THREESHAPE") {
-        endpoint += "?startPage=0&endPage=5"; // Paramètres requis par le backend
+        endpoint += "?startPage=0&endPage=1"; // Paramètres requis par le backend
       }
 
       setSyncStatus((prev) => ({
