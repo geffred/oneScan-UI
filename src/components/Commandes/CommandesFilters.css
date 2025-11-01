@@ -2,14 +2,16 @@
 .commandes-filters-section {
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: var(--commandes-background-muted);
-  border-radius: var(--commandes-radius-lg);
+  background: linear-gradient(135deg, var(--commandes-background-muted) 0%, var(--commandes-background) 100%);
+  border-radius: 12px;
   border: 1px solid var(--commandes-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
 }
 
 .commandes-search-bar {
   position: relative;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .commandes-search-icon {
@@ -18,22 +20,61 @@
   top: 50%;
   transform: translateY(-50%);
   color: var(--commandes-text-muted);
+  z-index: 2;
+  transition: color 0.2s ease;
 }
 
 .commandes-search-input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: var(--commandes-radius);
-  font-size: var(--commandes-font-lg);
-  transition: var(--commandes-transition);
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: var(--commandes-font-base);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: var(--commandes-background);
+  font-weight: 400;
+  color: var(--commandes-text-primary);
+}
+
+.commandes-search-input::placeholder {
+  color: var(--commandes-text-muted);
+  font-weight: 400;
+}
+
+.commandes-search-input:hover {
+  border-color: #9ca3af;
+  background: var(--commandes-background-muted);
 }
 
 .commandes-search-input:focus {
   outline: none;
   border-color: var(--commandes-primary);
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+  background: var(--commandes-background);
+  transform: translateY(-1px);
+}
+
+.commandes-search-clear {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  padding: 0.375rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.commandes-search-clear:hover {
+  background: #e5e7eb;
+  color: #374151;
+  transform: translateY(-50%) scale(1.05);
 }
 
 .commandes-filters {
@@ -46,47 +87,73 @@
 .commandes-filter-group {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   color: var(--commandes-primary);
+  font-weight: 500;
 }
 
 .commandes-filter-select {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 0.625rem 1rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
   background: var(--commandes-background);
   font-size: var(--commandes-font-base);
   cursor: pointer;
-  transition: var(--commandes-transition);
+  transition: all 0.2s ease;
+  color: var(--commandes-text-primary);
+  font-weight: 400;
+  min-width: 140px;
+}
+
+.commandes-filter-select:hover {
+  border-color: #9ca3af;
+  background: var(--commandes-background-muted);
 }
 
 .commandes-filter-select:focus {
   outline: none;
   border-color: var(--commandes-primary);
   box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+  background: var(--commandes-background);
 }
 
 .commandes-date-range {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   background: var(--commandes-background);
-  padding: 0.5rem;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
+  padding: 0.625rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.commandes-date-range:hover {
+  border-color: #9ca3af;
+  background: var(--commandes-background-muted);
 }
 
 .commandes-date-input {
-  border: none;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: var(--commandes-font-base);
+  border: 1.5px solid #f3f4f6;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: var(--commandes-font-sm);
+  background: var(--commandes-background);
+  transition: all 0.2s ease;
+  color: var(--commandes-text-primary);
+  font-weight: 400;
+  min-width: 120px;
+}
+
+.commandes-date-input:hover {
+  border-color: #e5e7eb;
   background: var(--commandes-background-muted);
-  transition: var(--commandes-transition);
 }
 
 .commandes-date-input:focus {
-  outline: 1px solid var(--commandes-primary);
+  outline: none;
+  border-color: var(--commandes-primary);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
   background: var(--commandes-background);
 }
 
@@ -94,32 +161,139 @@
   font-size: var(--commandes-font-sm);
   color: var(--commandes-text-secondary);
   font-weight: 500;
+  margin: 0 0.25rem;
 }
 
 .commandes-checkbox-filter {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   cursor: pointer;
   font-size: var(--commandes-font-base);
-  color: #374151;
+  color: var(--commandes-text-primary);
+  font-weight: 500;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.commandes-checkbox-filter:hover {
+  background: var(--commandes-background-muted);
 }
 
 .commandes-checkbox {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   accent-color: var(--commandes-primary);
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
-/* Responsive */
+.commandes-checkbox:checked {
+  transform: scale(1.1);
+}
+
+/* Animation pour les transitions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.commandes-filters-section {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
+  .commandes-filters-section {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
   .commandes-filters {
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
+  }
+
+  .commandes-filter-group {
+    justify-content: space-between;
+  }
+
+  .commandes-filter-select {
+    min-width: 100%;
+    flex: 1;
   }
 
   .commandes-date-range {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .commandes-date-input {
+    min-width: 100%;
+    text-align: center;
+  }
+
+  .commandes-search-input {
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    font-size: 16px; /* Évite le zoom sur iOS */
+  }
+}
+
+@media (max-width: 480px) {
+  .commandes-filters-section {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .commandes-search-bar {
+    margin-bottom: 1.25rem;
+  }
+
+  .commandes-filter-group {
+    font-size: var(--commandes-font-sm);
+  }
+}
+
+/* États de focus améliorés */
+.commandes-search-input:focus,
+.commandes-filter-select:focus,
+.commandes-date-input:focus,
+.commandes-checkbox:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+}
+
+/* Support pour le mode sombre */
+@media (prefers-color-scheme: dark) {
+  .commandes-search-clear {
+    background: #374151;
+    color: #9ca3af;
+  }
+
+  .commandes-search-clear:hover {
+    background: #4b5563;
+    color: #d1d5db;
+  }
+
+  .commandes-search-input,
+  .commandes-filter-select,
+  .commandes-date-input {
+    border-color: #4b5563;
+  }
+
+  .commandes-search-input:hover,
+  .commandes-filter-select:hover,
+  .commandes-date-range:hover {
+    border-color: #6b7280;
   }
 }
