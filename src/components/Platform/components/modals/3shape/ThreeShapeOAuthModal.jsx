@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react/prop-types */
 import React from "react";
 import { X, Link2, CheckCircle } from "lucide-react";
 import "../PlatformOAuthModal.css";

@@ -379,11 +379,7 @@ Adresse de facturation : Même adresse`,
       <div className="msl-guide-footer">
         <div className="msl-guide-footer-content">
           <div className="msl-guide-footer-logo">
-            <HashLink
-              smooth
-              to={"/#header"}
-              style={{ textDecoration: "none", color: "white" }}
-            >
+            <HashLink smooth to={"/#header"}>
               MySmileLab
             </HashLink>
             <span>Votre partenaire dentaire de confiance</span>
