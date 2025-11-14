@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import {
   createContext,
   useState,
@@ -10,14 +11,19 @@ import { jwtDecode } from "jwt-decode";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const APP_VERSION = "v1.0.0.2"; // Change à chaque release
+  const APP_VERSION = "v1.0.0.2";
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userType, setUserType] = useState(null);
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const restoreSession = useCallback(() => {
+  /**
+   * =========================================================
+   *  RESTAURATION DE SESSION (CORRIGÉE)
+   * =========================================================
+   */
+  const restoreSession = useCallback(async () => {
     const token = localStorage.getItem("token");
     const storedUserType = localStorage.getItem("userType");
 
@@ -25,11 +31,15 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const decoded = jwtDecode(token);
+
       setIsAuthenticated(true);
       setUserType(storedUserType);
 
       if (storedUserType === "laboratoire") {
-        setUserData({ email: decoded.sub, role: "laboratoire" });
+        setUserData({
+          email: decoded.sub,
+          role: "laboratoire",
+        });
       } else if (storedUserType === "cabinet") {
         setUserData({
           id: decoded.cabinetId,
@@ -38,33 +48,50 @@ export const AuthProvider = ({ children }) => {
           role: "cabinet",
         });
       }
+
       return true;
-    } catch {
+    } catch (err) {
+      console.error("❌ Erreur restauration session :", err);
       localStorage.removeItem("token");
       localStorage.removeItem("userType");
       return false;
     }
   }, []);
 
+  /**
+   * =========================================================
+   *  CHARGEMENT INITIAL — ON ATTEND restoreSession()
+   * =========================================================
+   */
   useEffect(() => {
-    restoreSession();
-    setIsLoading(false);
+    const init = async () => {
+      await restoreSession(); // On attend vraiment la restauration
+      setIsLoading(false); // Ensuite seulement on charge l’app
+    };
+    init();
   }, [restoreSession]);
 
-  // ⚙️ Gestion de version (ne supprime plus tout localStorage)
+  /**
+   * Gestion version App
+   */
   useEffect(() => {
     const storedVersion = localStorage.getItem("app_version");
     if (storedVersion !== APP_VERSION) {
-      console.log("Nouvelle version détectée — réinitialisation sécurisée");
       localStorage.setItem("app_version", APP_VERSION);
     }
   }, [APP_VERSION]);
 
+  /**
+   * =========================================================
+   *  LOGIN (OK)
+   * =========================================================
+   */
   const login = useCallback((type, cabinetData = null, token) => {
     if (!token) return false;
 
     try {
       const decoded = jwtDecode(token);
+
       localStorage.setItem("token", token);
       localStorage.setItem("userType", type);
 
@@ -76,23 +103,35 @@ export const AuthProvider = ({ children }) => {
         nom: decoded.cabinetNom || cabinetData?.nom,
         role: type,
       });
+
       return true;
-    } catch {
+    } catch (e) {
+      console.error("❌ Erreur login :", e);
       return false;
     }
   }, []);
 
+  /**
+   * =========================================================
+   *  LOGOUT
+   * =========================================================
+   */
   const logout = useCallback(() => {
     setIsAuthenticated(false);
     setUserType(null);
     setUserData(null);
+
     localStorage.removeItem("token");
     localStorage.removeItem("userType");
   }, []);
 
+  /**
+   * Vérification expiration token
+   */
   const checkTokenValidity = useCallback(() => {
     const token = localStorage.getItem("token");
     if (!token) return false;
+
     try {
       const decoded = jwtDecode(token);
       return decoded.exp * 1000 > Date.now();
