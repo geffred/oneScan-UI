@@ -20,7 +20,7 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
 
     switch (syncStatus.status) {
       case "loading":
-        return <Loader2 size={14} className="commandes-sync-loading-spinner" />; // Changé ici
+        return <Loader2 size={14} className="commandes-sync-loading-spinner" />;
       case "success":
         return <CheckCircle size={14} className="commandes-sync-success" />;
       case "error":
@@ -54,6 +54,12 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
           <Link2 size={16} className="commandes-connection-error" />
         );
       case "DEXIS":
+        return connectionStatus.authenticated ? (
+          <Link2 size={16} className="commandes-connection-success" />
+        ) : (
+          <Link2 size={16} className="commandes-connection-error" />
+        );
+      case "CSCONNECT":
         return connectionStatus.authenticated ? (
           <Link2 size={16} className="commandes-connection-success" />
         ) : (
@@ -94,6 +100,10 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
         return connectionStatus.authenticated
           ? "Connecté à l'API"
           : "Non connecté";
+      case "CSCONNECT":
+        return connectionStatus.authenticated
+          ? "Connecté à l'API"
+          : "Non connecté";
       case "GOOGLE_DRIVE":
         return connectionStatus.authenticated ? "Drive activé" : "Non connecté";
       default:
@@ -109,6 +119,8 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
         return "Itero";
       case "DEXIS":
         return "Dexis";
+      case "CSCONNECT":
+        return "CS Connect";
       case "GOOGLE_DRIVE":
         return "Google Drive";
       default:
@@ -186,8 +198,7 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
           >
             {syncStatus?.status === "loading" ? (
               <>
-                <Loader2 size={14} className="commandes-sync-loading-spinner" />{" "}
-                {/* Changé ici */}
+                <Loader2 size={14} className="commandes-sync-loading-spinner" />
                 Sync...
               </>
             ) : (

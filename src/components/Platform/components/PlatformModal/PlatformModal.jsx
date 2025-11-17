@@ -20,6 +20,7 @@ const platformTypes = [
   { value: "ITERO", label: "Itero" },
   { value: "DEXIS", label: "Dexis" },
   { value: "GOOGLE_DRIVE", label: "Google Drive" },
+  { value: "CSCONNECT", label: "CS Connect" },
 ];
 
 const validationSchema = Yup.object({

@@ -51,6 +51,9 @@ export const getUserPlatforms = async (userId) => {
   return fetchWithAuth(`${API_BASE_URL}/platforms/user/${userId}`);
 };
 
+/**
+ * Vérifie le statut d’une plateforme externe
+ */
 export const checkPlatformStatus = async (platformType) => {
   try {
     const token = localStorage.getItem("token");
@@ -60,6 +63,7 @@ export const checkPlatformStatus = async (platformType) => {
       GOOGLE_DRIVE: `${API_BASE_URL}/drive/status`,
       ITERO: `${API_BASE_URL}/itero/status`,
       DEXIS: `${API_BASE_URL}/dexis/status`,
+      CSCONNECT: `${API_BASE_URL}/csconnect/status`,
     };
 
     const endpoint = endpoints[platformType];

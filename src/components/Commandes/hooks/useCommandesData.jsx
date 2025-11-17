@@ -15,6 +15,7 @@ export const useCommandesData = ({
   googleDriveStatus,
   iteroStatus,
   dexisStatus,
+  csconnectStatus,
 }) => {
   // Fonction pour obtenir le statut de connexion d'une plateforme
   const getConnectionStatus = useCallback(
@@ -44,6 +45,12 @@ export const useCommandesData = ({
             loading: dexisStatus?.loading || false,
             error: dexisStatus?.error || null,
           };
+        case "CSCONNECT":
+          return {
+            authenticated: csconnectStatus?.authenticated || true,
+            loading: csconnectStatus?.loading || false,
+            error: csconnectStatus?.error || null,
+          };
         case "GOOGLE_DRIVE":
           return {
             authenticated: googleDriveStatus.authenticated,
@@ -63,6 +70,7 @@ export const useCommandesData = ({
       threeshapeAuth.authStatus,
       iteroStatus,
       dexisStatus,
+      csconnectStatus,
       googleDriveStatus,
     ]
   );

@@ -8,6 +8,7 @@ const platformEndpoints = {
   ITERO: `${API_BASE_URL}/itero/commandes/save`,
   DEXIS: `${API_BASE_URL}/dexis/commandes/save`,
   THREESHAPE: `${API_BASE_URL}/threeshape/cases/save`,
+  CSCONNECT: `${API_BASE_URL}/csconnect/commandes`,
 };
 
 export const useSyncPlatforms = ({
@@ -301,6 +302,103 @@ export const useSyncPlatforms = ({
     }, 5000);
   }, [mutateCommandes, setSyncStatus]);
 
+  // Fonction pour synchroniser CS Connect
+  const syncCsConnectCommandes = useCallback(async () => {
+    const endpoint = `${API_BASE_URL}/csconnect/commandes`;
+
+    setSyncStatus((prev) => ({
+      ...prev,
+      CSCONNECT: {
+        status: "loading",
+        message: "Synchronisation CS Connect en cours...",
+      },
+    }));
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        mutateCommandes();
+
+        // CS Connect retourne un objet avec les commandes
+        const commandes = result.commandes || result;
+        const savedCount = Array.isArray(commandes) ? commandes.length : 0;
+        const message =
+          savedCount > 0
+            ? `${savedCount} nouvelle(s) commande(s) récupérée(s)`
+            : "Aucune nouvelle commande";
+
+        setSyncStatus((prev) => ({
+          ...prev,
+          CSCONNECT: {
+            status: "success",
+            message: message,
+            count: savedCount,
+          },
+        }));
+
+        if (savedCount > 0) {
+          toast.success(`CS Connect: ${savedCount} nouvelle(s) commande(s)`, {
+            position: "top-right",
+            autoClose: 5000,
+          });
+        } else {
+          toast.info(`CS Connect: Aucune nouvelle commande`, {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        }
+      } else {
+        const errorText = await response.text();
+        console.error("Erreur CS Connect:", errorText);
+
+        setSyncStatus((prev) => ({
+          ...prev,
+          CSCONNECT: {
+            status: "error",
+            message: "Erreur de synchronisation CS Connect",
+          },
+        }));
+
+        toast.error("Erreur lors de la synchronisation CS Connect", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      }
+    } catch (err) {
+      console.error("Erreur lors de la synchronisation CS Connect:", err);
+      setSyncStatus((prev) => ({
+        ...prev,
+        CSCONNECT: {
+          status: "error",
+          message: "Erreur de connexion CS Connect",
+        },
+      }));
+
+      toast.error("Erreur de connexion avec CS Connect", {
+        position: "top-right",
+        autoClose: 5000,
+      });
+    }
+
+    setTimeout(() => {
+      setSyncStatus((prev) => {
+        const newStatus = { ...prev };
+        delete newStatus.CSCONNECT;
+        return newStatus;
+      });
+    }, 5000);
+  }, [mutateCommandes, setSyncStatus]);
+
   // Fonction pour synchroniser les autres plateformes - CORRIGÉE
   const syncOtherPlatform = useCallback(
     async (platformName) => {
@@ -471,6 +569,8 @@ export const useSyncPlatforms = ({
           return syncIteroCommandes();
         case "DEXIS":
           return syncDexisCommandes();
+        case "CSCONNECT":
+          return syncCsConnectCommandes();
         default:
           return syncOtherPlatform(platformName);
       }
@@ -479,6 +579,7 @@ export const useSyncPlatforms = ({
       syncMeditLinkCommandes,
       syncIteroCommandes,
       syncDexisCommandes,
+      syncCsConnectCommandes,
       syncOtherPlatform,
     ]
   );
@@ -516,6 +617,8 @@ export const useSyncPlatforms = ({
             return syncIteroCommandes();
           case "DEXIS":
             return syncDexisCommandes();
+          case "CSCONNECT":
+            return syncCsConnectCommandes();
           default:
             return syncOtherPlatform(platform.name);
         }
@@ -541,6 +644,7 @@ export const useSyncPlatforms = ({
       syncMeditLinkCommandes,
       syncIteroCommandes,
       syncDexisCommandes,
+      syncCsConnectCommandes,
       syncOtherPlatform,
       setIsSyncing,
     ]
@@ -550,6 +654,7 @@ export const useSyncPlatforms = ({
     syncMeditLinkCommandes,
     syncIteroCommandes,
     syncDexisCommandes,
+    syncCsConnectCommandes,
     syncOtherPlatform,
     syncPlatformCommandes,
     syncAllPlatforms,

@@ -26,8 +26,10 @@ const PlatformCard = React.memo(
     onConnectItero,
     onConnectDexis,
     onConnectGoogleDrive,
+    onConnectCsConnect,
     onDisconnectMeditLink,
     onDisconnectGoogleDrive,
+    onDisconnectCsConnect,
     onShowMeditLinkDashboard,
     onShowThreeShapeDashboard,
     threeshapeStatus,
@@ -35,12 +37,14 @@ const PlatformCard = React.memo(
     iteroStatus,
     dexisStatus,
     googledriveStatus,
+    csconnectStatus,
   }) => {
     const is3Shape = platform.name === "THREESHAPE";
     const isMeditLink = platform.name === "MEDITLINK";
     const isItero = platform.name === "ITERO";
     const isDexis = platform.name === "DEXIS";
     const isGoogleDrive = platform.name === "GOOGLE_DRIVE";
+    const isCsConnect = platform.name === "CSCONNECT";
 
     const getPlatformDisplayName = () => {
       switch (platform.name) {
@@ -48,6 +52,8 @@ const PlatformCard = React.memo(
           return "3Shape";
         case "GOOGLE_DRIVE":
           return "Google Drive";
+        case "CSCONNECT":
+          return "CS Connect";
         default:
           return platform.name;
       }
@@ -59,6 +65,7 @@ const PlatformCard = React.memo(
       if (isItero) return iteroStatus;
       if (isDexis) return dexisStatus;
       if (isGoogleDrive) return googledriveStatus;
+      if (isCsConnect) return csconnectStatus;
       return null;
     };
 
@@ -156,6 +163,16 @@ const PlatformCard = React.memo(
                 className="platform-card-component__user-info-icon"
               />
               <span>Accès Drive activé</span>
+            </div>
+          )}
+
+          {isCsConnect && isConnected && (
+            <div className="platform-card-component__user-info">
+              <Link2
+                size={14}
+                className="platform-card-component__user-info-icon"
+              />
+              <span>Connecté à l'API CS Connect</span>
             </div>
           )}
         </div>
@@ -272,6 +289,50 @@ const PlatformCard = React.memo(
                   ? "Reconnecter"
                   : "Connecter"}
               </button>
+            )}
+
+            {/* CS Connect Actions */}
+            {isCsConnect && (
+              <>
+                {isConnected ? (
+                  <>
+                    <button
+                      onClick={() => onConnectCsConnect(platform)}
+                      className="platform-card-component__connect-btn platform-card-component__connect-btn--connected"
+                      aria-label="Reconnecter à CS Connect"
+                    >
+                      <Link2 size={16} />
+                      Reconnecter
+                    </button>
+                    <button
+                      onClick={() => onDisconnectCsConnect(platform)}
+                      className="platform-card-component__disconnect-btn"
+                      aria-label="Déconnecter CS Connect"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <RefreshCw
+                          size={16}
+                          className="platform-card-component__spinner"
+                        />
+                      ) : (
+                        <X size={16} />
+                      )}
+                      Déconnecter
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => onConnectCsConnect(platform)}
+                    className="platform-card-component__connect-btn"
+                    disabled={isLoading}
+                    aria-label="Connecter à CS Connect"
+                  >
+                    <Link2 size={16} />
+                    {isLoading ? "Connexion..." : "Connecter"}
+                  </button>
+                )}
+              </>
             )}
 
             {/* Google Drive Actions */}

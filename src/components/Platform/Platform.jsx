@@ -20,6 +20,7 @@ import MeditLinkOAuthModal from "./components/modals/MeditLink/MeditLinkOAuthMod
 import IteroOAuthModal from "./components/modals/Itero/IteroOAuthModal";
 import DexisOAuthModal from "./components/modals/Dexis/DexisOAuthModal";
 import GoogleDriveOAuthModal from "./components/modals/Google/GoogleDriveOAuthModal";
+import CsConnectOAuthModal from "./components/modals/CsConnect/CsConnectOAuthModal";
 import ThreeShapeDashboardModal from "./components/modals/3shape/ThreeShapeDashboardModal";
 import MeditLinkDashboardModal from "./components/modals/MeditLink/MeditLinkDashboardModal";
 import ListLoadingSpinner from "./components/Loading/ListLoadingSpinner";
@@ -33,6 +34,7 @@ import {
   getUserPlatforms,
   encryptPassword,
   decryptPassword,
+  checkPlatformStatus,
 } from "./utils/platformUtils";
 import { platformTypes } from "./constants/platformConstants";
 
@@ -54,6 +56,7 @@ const Platform = () => {
   const [isIteroModalOpen, setIsIteroModalOpen] = useState(false);
   const [isDexisModalOpen, setIsDexisModalOpen] = useState(false);
   const [isGoogleDriveModalOpen, setIsGoogleDriveModalOpen] = useState(false);
+  const [isCsConnectModalOpen, setIsCsConnectModalOpen] = useState(false);
 
   const [googleDriveStatus, setGoogleDriveStatus] = useState({
     authenticated: false,
@@ -66,6 +69,11 @@ const Platform = () => {
     error: null,
   });
   const [dexisStatus, setDexisStatus] = useState({
+    authenticated: false,
+    loading: false,
+    error: null,
+  });
+  const [csConnectStatus, setCsConnectStatus] = useState({
     authenticated: false,
     loading: false,
     error: null,
@@ -288,6 +296,56 @@ const Platform = () => {
     }
   }, []);
 
+  const checkCsConnectStatus = useCallback(async () => {
+    try {
+      setCsConnectStatus((prev) => ({ ...prev, loading: true, error: null }));
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setCsConnectStatus({
+          authenticated: false,
+          loading: false,
+          error: "Token manquant",
+        });
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/csconnect/status`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCsConnectStatus({
+          authenticated: data.connected || false,
+          loading: false,
+          error: null,
+        });
+      } else if (response.status === 401) {
+        setCsConnectStatus({
+          authenticated: false,
+          loading: false,
+          error: null,
+        });
+      } else {
+        setCsConnectStatus({
+          authenticated: false,
+          loading: false,
+          error: "Erreur de vérification",
+        });
+      }
+    } catch (error) {
+      setCsConnectStatus({
+        authenticated: false,
+        loading: false,
+        error: error.message,
+      });
+    }
+  }, []);
+
   // Handlers pour Itero
   const handleStartIteroAuth = useCallback(async () => {
     try {
@@ -364,6 +422,86 @@ const Platform = () => {
     } catch (err) {
       setError("Erreur lors de la connexion Dexis: " + err.message);
       setDexisStatus((prev) => ({ ...prev, loading: false }));
+      setTimeout(() => setError(null), 5000);
+    }
+  }, []);
+
+  // Handlers pour CS Connect
+  const handleStartCsConnectAuth = useCallback(async () => {
+    try {
+      setIsCsConnectModalOpen(false);
+      setCsConnectStatus((prev) => ({ ...prev, loading: true }));
+
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/csconnect/login`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la connexion à CS Connect");
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setCsConnectStatus({
+          authenticated: true,
+          loading: false,
+          error: null,
+        });
+        setSuccess(data.message || "Connexion CS Connect réussie !");
+        setTimeout(() => setSuccess(null), 5000);
+      } else {
+        throw new Error(data.error || "Erreur lors de la connexion");
+      }
+    } catch (err) {
+      setError("Erreur lors de la connexion CS Connect: " + err.message);
+      setCsConnectStatus((prev) => ({ ...prev, loading: false }));
+      setTimeout(() => setError(null), 5000);
+    }
+  }, []);
+
+  // Handler pour déconnexion CS Connect
+  const handleCsConnectDisconnect = useCallback(async () => {
+    if (!window.confirm("Êtes-vous sûr de vouloir déconnecter CS Connect ?")) {
+      return;
+    }
+
+    try {
+      setCsConnectStatus((prev) => ({ ...prev, loading: true }));
+
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/csconnect/logout`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setCsConnectStatus({
+            authenticated: false,
+            loading: false,
+            error: null,
+          });
+          setSuccess("Déconnexion CS Connect réussie");
+          setTimeout(() => setSuccess(null), 3000);
+        } else {
+          throw new Error(data.error || "Erreur lors de la déconnexion");
+        }
+      } else {
+        throw new Error("Erreur lors de la déconnexion");
+      }
+    } catch (err) {
+      setError("Erreur lors de la déconnexion CS Connect: " + err.message);
+      setCsConnectStatus((prev) => ({ ...prev, loading: false }));
       setTimeout(() => setError(null), 5000);
     }
   }, []);
@@ -728,12 +866,14 @@ const Platform = () => {
       checkGoogleDriveStatus();
       checkIteroStatus();
       checkDexisStatus();
+      checkCsConnectStatus();
     }
   }, [
     isAuthenticated,
     checkGoogleDriveStatus,
     checkIteroStatus,
     checkDexisStatus,
+    checkCsConnectStatus,
   ]);
 
   if (!isAuthenticated) {
@@ -803,8 +943,10 @@ const Platform = () => {
                     onConnectItero={() => setIsIteroModalOpen(true)}
                     onConnectDexis={() => setIsDexisModalOpen(true)}
                     onConnectGoogleDrive={() => setIsGoogleDriveModalOpen(true)}
+                    onConnectCsConnect={() => setIsCsConnectModalOpen(true)}
                     onDisconnectGoogleDrive={handleGoogleDriveDisconnect}
                     onDisconnectMeditLink={handleMeditLinkDisconnect}
+                    onDisconnectCsConnect={handleCsConnectDisconnect}
                     onShowMeditLinkDashboard={() =>
                       setShowMeditLinkDashboard(true)
                     }
@@ -816,6 +958,7 @@ const Platform = () => {
                     iteroStatus={iteroStatus}
                     dexisStatus={dexisStatus}
                     googledriveStatus={googleDriveStatus}
+                    csconnectStatus={csConnectStatus}
                   />
                 ))}
               </div>
@@ -882,6 +1025,13 @@ const Platform = () => {
         onClose={() => setIsGoogleDriveModalOpen(false)}
         onStartAuth={handleStartGoogleDriveAuth}
         isLoading={googleDriveStatus.loading}
+      />
+
+      <CsConnectOAuthModal
+        isOpen={isCsConnectModalOpen}
+        onClose={() => setIsCsConnectModalOpen(false)}
+        onStartAuth={handleStartCsConnectAuth}
+        isLoading={csConnectStatus.loading}
       />
     </div>
   );

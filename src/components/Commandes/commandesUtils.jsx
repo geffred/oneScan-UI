@@ -54,4 +54,5 @@ export const platformEndpoints = {
   ITERO: `${API_BASE_URL}/itero/commandes`,
   THREESHAPE: `${API_BASE_URL}/threeshape/cases/save`,
   DEXIS: `${API_BASE_URL}/dexis/commandes`,
+  CSCONNECT: `${API_BASE_URL}/csconnect/commandes`,
 };

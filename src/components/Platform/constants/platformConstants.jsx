@@ -3,6 +3,7 @@ export const platformTypes = [
   { value: "MEDITLINK", label: "MeditLink" },
   { value: "ITERO", label: "Itero" },
   { value: "DEXIS", label: "Dexis" },
+  { value: "CSCONNECT", label: "CS Connect" },
   { value: "GOOGLE_DRIVE", label: "Google Drive" },
 ];
 
@@ -22,6 +23,7 @@ export const PLATFORM_NAMES = {
   MEDITLINK: "MEDITLINK",
   ITERO: "ITERO",
   DEXIS: "DEXIS",
+  CSCONNECT: "CSCONNECT",
   GOOGLE_DRIVE: "GOOGLE_DRIVE",
 };
 
@@ -30,5 +32,6 @@ export const PLATFORM_DISPLAY_NAMES = {
   [PLATFORM_NAMES.MEDITLINK]: "MeditLink",
   [PLATFORM_NAMES.ITERO]: "Itero",
   [PLATFORM_NAMES.DEXIS]: "Dexis",
+  [PLATFORM_NAMES.CSCONNECT]: "CS Connect",
   [PLATFORM_NAMES.GOOGLE_DRIVE]: "Google Drive",
 };
