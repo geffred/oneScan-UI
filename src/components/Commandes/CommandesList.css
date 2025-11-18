@@ -404,3 +404,43 @@
     display: none;
   }
 }
+
+
+/* Platform Badges - Ajout de CS Connect */
+.commandes-plateforme-blue {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.commandes-plateforme-green {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.commandes-plateforme-purple {
+  background: #e9d5ff;
+  color: #7c3aed;
+}
+
+.commandes-plateforme-orange {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.commandes-plateforme-red {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* NOUVEAU : Style pour CS Connect */
+.commandes-plateforme-cyan {
+  background: #cffafe;
+  color: #0e7490;
+  border: 1px solid #a5f3fc;
+}
+
+.commandes-plateforme-gray {
+  background: var(--commandes-border-light);
+  color: var(--commandes-text-secondary);
+}

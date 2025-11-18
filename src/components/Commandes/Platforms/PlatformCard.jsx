@@ -4,14 +4,11 @@ import {
   RefreshCw,
   Loader2,
   HardDrive,
-  Wifi,
   WifiOff,
-  Shield,
   Link2,
   Cloud,
   AlertCircle,
   CheckCircle,
-  Cpu,
 } from "lucide-react";
 
 const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {

@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// Configuration des endpoints pour chaque plateforme
 const platformEndpoints = {
   MEDITLINK: `${API_BASE_URL}/meditlink/cases/save`,
   ITERO: `${API_BASE_URL}/itero/commandes/save`,
@@ -16,425 +17,29 @@ export const useSyncPlatforms = ({
   setSyncStatus,
   setIsSyncing,
 }) => {
-  // Fonction pour synchroniser MeditLink
-  const syncMeditLinkCommandes = useCallback(async () => {
-    const endpoint = `${API_BASE_URL}/meditlink/cases/save?page=0&size=20`;
-
-    setSyncStatus((prev) => ({
-      ...prev,
-      MEDITLINK: {
-        status: "loading",
-        message: "Synchronisation MeditLink en cours...",
-      },
-    }));
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        mutateCommandes();
-
-        const savedCount = result.savedCount || result.count || 0;
-        const message =
-          savedCount > 0
-            ? `${savedCount} nouvelle(s) commande(s) récupérée(s)`
-            : "Aucune nouvelle commande";
-
-        setSyncStatus((prev) => ({
-          ...prev,
-          MEDITLINK: {
-            status: "success",
-            message: message,
-            count: savedCount,
-          },
-        }));
-
-        if (savedCount > 0) {
-          toast.success(`MeditLink: ${savedCount} nouvelle(s) commande(s)`, {
-            position: "top-right",
-            autoClose: 5000,
-          });
-        } else {
-          toast.info(`MeditLink: Aucune nouvelle commande`, {
-            position: "top-right",
-            autoClose: 3000,
-          });
-        }
-      } else {
-        const errorText = await response.text();
-        console.error("Erreur MeditLink:", errorText);
-
-        setSyncStatus((prev) => ({
-          ...prev,
-          MEDITLINK: {
-            status: "error",
-            message: "Erreur de synchronisation MeditLink",
-          },
-        }));
-
-        toast.error("Erreur lors de la synchronisation MeditLink", {
-          position: "top-right",
-          autoClose: 5000,
-        });
-      }
-    } catch (err) {
-      console.error("Erreur lors de la synchronisation MeditLink:", err);
-      setSyncStatus((prev) => ({
-        ...prev,
-        MEDITLINK: {
-          status: "error",
-          message: "Erreur de connexion MeditLink",
-        },
-      }));
-
-      toast.error("Erreur de connexion avec MeditLink", {
-        position: "top-right",
-        autoClose: 5000,
-      });
-    }
-
-    setTimeout(() => {
-      setSyncStatus((prev) => {
-        const newStatus = { ...prev };
-        delete newStatus.MEDITLINK;
-        return newStatus;
-      });
-    }, 5000);
-  }, [mutateCommandes, setSyncStatus]);
-
-  // Fonction pour synchroniser Itero
-  const syncIteroCommandes = useCallback(async () => {
-    const endpoint = `${API_BASE_URL}/itero/commandes/save`;
-
-    setSyncStatus((prev) => ({
-      ...prev,
-      ITERO: {
-        status: "loading",
-        message: "Synchronisation Itero en cours...",
-      },
-    }));
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        mutateCommandes();
-
-        const savedCount = result.savedCount || result.count || 0;
-        const message =
-          savedCount > 0
-            ? `${savedCount} nouvelle(s) commande(s) récupérée(s)`
-            : "Aucune nouvelle commande";
-
-        setSyncStatus((prev) => ({
-          ...prev,
-          ITERO: {
-            status: "success",
-            message: message,
-            count: savedCount,
-          },
-        }));
-
-        if (savedCount > 0) {
-          toast.success(`Itero: ${savedCount} nouvelle(s) commande(s)`, {
-            position: "top-right",
-            autoClose: 5000,
-          });
-        } else {
-          toast.info(`Itero: Aucune nouvelle commande`, {
-            position: "top-right",
-            autoClose: 3000,
-          });
-        }
-      } else {
-        const errorText = await response.text();
-        console.error("Erreur Itero:", errorText);
-
-        setSyncStatus((prev) => ({
-          ...prev,
-          ITERO: {
-            status: "error",
-            message: "Erreur de synchronisation Itero",
-          },
-        }));
-
-        toast.error("Erreur lors de la synchronisation Itero", {
-          position: "top-right",
-          autoClose: 5000,
-        });
-      }
-    } catch (err) {
-      console.error("Erreur lors de la synchronisation Itero:", err);
-      setSyncStatus((prev) => ({
-        ...prev,
-        ITERO: {
-          status: "error",
-          message: "Erreur de connexion Itero",
-        },
-      }));
-
-      toast.error("Erreur de connexion avec Itero", {
-        position: "top-right",
-        autoClose: 5000,
-      });
-    }
-
-    setTimeout(() => {
-      setSyncStatus((prev) => {
-        const newStatus = { ...prev };
-        delete newStatus.ITERO;
-        return newStatus;
-      });
-    }, 5000);
-  }, [mutateCommandes, setSyncStatus]);
-
-  // Fonction pour synchroniser Dexis
-  const syncDexisCommandes = useCallback(async () => {
-    const endpoint = `${API_BASE_URL}/dexis/commandes`;
-
-    setSyncStatus((prev) => ({
-      ...prev,
-      DEXIS: {
-        status: "loading",
-        message: "Synchronisation Dexis en cours...",
-      },
-    }));
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(endpoint, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        mutateCommandes();
-
-        // Dexis retourne directement un tableau de commandes
-        const savedCount = Array.isArray(result) ? result.length : 0;
-        const message =
-          savedCount > 0
-            ? `${savedCount} nouvelle(s) commande(s) récupérée(s)`
-            : "Aucune nouvelle commande";
-
-        setSyncStatus((prev) => ({
-          ...prev,
-          DEXIS: {
-            status: "success",
-            message: message,
-            count: savedCount,
-          },
-        }));
-
-        if (savedCount > 0) {
-          toast.success(`Dexis: ${savedCount} nouvelle(s) commande(s)`, {
-            position: "top-right",
-            autoClose: 5000,
-          });
-        } else {
-          toast.info(`Dexis: Aucune nouvelle commande`, {
-            position: "top-right",
-            autoClose: 3000,
-          });
-        }
-      } else {
-        const errorText = await response.text();
-        console.error("Erreur Dexis:", errorText);
-
-        setSyncStatus((prev) => ({
-          ...prev,
-          DEXIS: {
-            status: "error",
-            message: "Erreur de synchronisation Dexis",
-          },
-        }));
-
-        toast.error("Erreur lors de la synchronisation Dexis", {
-          position: "top-right",
-          autoClose: 5000,
-        });
-      }
-    } catch (err) {
-      console.error("Erreur lors de la synchronisation Dexis:", err);
-      setSyncStatus((prev) => ({
-        ...prev,
-        DEXIS: {
-          status: "error",
-          message: "Erreur de connexion Dexis",
-        },
-      }));
-
-      toast.error("Erreur de connexion avec Dexis", {
-        position: "top-right",
-        autoClose: 5000,
-      });
-    }
-
-    setTimeout(() => {
-      setSyncStatus((prev) => {
-        const newStatus = { ...prev };
-        delete newStatus.DEXIS;
-        return newStatus;
-      });
-    }, 5000);
-  }, [mutateCommandes, setSyncStatus]);
-
-  // Fonction pour synchroniser CS Connect
-  const syncCsConnectCommandes = useCallback(async () => {
-    const endpoint = `${API_BASE_URL}/csconnect/commandes`;
-
-    setSyncStatus((prev) => ({
-      ...prev,
-      CSCONNECT: {
-        status: "loading",
-        message: "Synchronisation CS Connect en cours...",
-      },
-    }));
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(endpoint, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        mutateCommandes();
-
-        // CS Connect retourne un objet avec les commandes
-        const commandes = result.commandes || result;
-        const savedCount = Array.isArray(commandes) ? commandes.length : 0;
-        const message =
-          savedCount > 0
-            ? `${savedCount} nouvelle(s) commande(s) récupérée(s)`
-            : "Aucune nouvelle commande";
-
-        setSyncStatus((prev) => ({
-          ...prev,
-          CSCONNECT: {
-            status: "success",
-            message: message,
-            count: savedCount,
-          },
-        }));
-
-        if (savedCount > 0) {
-          toast.success(`CS Connect: ${savedCount} nouvelle(s) commande(s)`, {
-            position: "top-right",
-            autoClose: 5000,
-          });
-        } else {
-          toast.info(`CS Connect: Aucune nouvelle commande`, {
-            position: "top-right",
-            autoClose: 3000,
-          });
-        }
-      } else {
-        const errorText = await response.text();
-        console.error("Erreur CS Connect:", errorText);
-
-        setSyncStatus((prev) => ({
-          ...prev,
-          CSCONNECT: {
-            status: "error",
-            message: "Erreur de synchronisation CS Connect",
-          },
-        }));
-
-        toast.error("Erreur lors de la synchronisation CS Connect", {
-          position: "top-right",
-          autoClose: 5000,
-        });
-      }
-    } catch (err) {
-      console.error("Erreur lors de la synchronisation CS Connect:", err);
-      setSyncStatus((prev) => ({
-        ...prev,
-        CSCONNECT: {
-          status: "error",
-          message: "Erreur de connexion CS Connect",
-        },
-      }));
-
-      toast.error("Erreur de connexion avec CS Connect", {
-        position: "top-right",
-        autoClose: 5000,
-      });
-    }
-
-    setTimeout(() => {
-      setSyncStatus((prev) => {
-        const newStatus = { ...prev };
-        delete newStatus.CSCONNECT;
-        return newStatus;
-      });
-    }, 5000);
-  }, [mutateCommandes, setSyncStatus]);
-
-  // Fonction pour synchroniser les autres plateformes - CORRIGÉE
-  const syncOtherPlatform = useCallback(
-    async (platformName) => {
-      let endpoint = platformEndpoints[platformName];
-      if (!endpoint) {
-        console.error(
-          `Endpoint non trouvé pour la plateforme: ${platformName}`
-        );
-        return;
-      }
-
-      // CORRECTION : Ajouter les paramètres de pagination pour 3Shape
-      if (platformName === "THREESHAPE") {
-        endpoint += "?startPage=0&endPage=1"; // Paramètres requis par le backend
-      }
-
+  // Fonction générique pour synchroniser une plateforme
+  const syncPlatform = useCallback(
+    async (platformName, endpoint, method = "POST") => {
+      // Définir le statut de chargement
       setSyncStatus((prev) => ({
         ...prev,
         [platformName]: {
           status: "loading",
-          message: `Synchronisation ${platformName} en cours...`,
+          message: "Synchronisation en cours...",
         },
       }));
 
       try {
         const token = localStorage.getItem("token");
 
-        // CORRECTION : Log pour débogage
-        console.log(`🔗 Appel ${platformName}: ${endpoint}`);
+        // Préparer les paramètres de requête pour 3Shape
+        let finalEndpoint = endpoint;
+        if (platformName === "THREESHAPE") {
+          finalEndpoint += "?startPage=0&endPage=1";
+        }
 
-        const method =
-          platformName === "MEDITLINK" || platformName === "THREESHAPE"
-            ? "GET"
-            : "POST";
-
-        const response = await fetch(endpoint, {
+        // Effectuer la requête API
+        const response = await fetch(finalEndpoint, {
           method: method,
           headers: {
             Authorization: `Bearer ${token}`,
@@ -443,88 +48,82 @@ export const useSyncPlatforms = ({
           credentials: "include",
         });
 
-        // CORRECTION : Meilleur logging des réponses
-        console.log(
-          `📥 Réponse ${platformName}:`,
-          response.status,
-          response.statusText
-        );
-
         if (response.ok) {
           const result = await response.json();
-          console.log(`✅ Succès ${platformName}:`, result);
 
+          // Actualiser les commandes
           mutateCommandes();
 
-          const savedCount = result.savedCount || result.count || 0;
-          const message =
-            savedCount > 0
-              ? `${savedCount} nouvelle(s) commande(s) récupérée(s)`
-              : "Aucune nouvelle commande";
+          // CALCUL DU NOMBRE DE COMMANDES SAUVEGARDÉES AVEC LA NOUVELLE LOGIQUE
+          let savedCount = 0;
 
+          if (platformName === "DEXIS") {
+            // Pour Dexis, utiliser savedCount directement depuis l'objet résultat
+            savedCount = result.savedCount || result.count || 0;
+          } else if (platformName === "CSCONNECT") {
+            // Pour CS Connect, compter les commandes dans le tableau
+            const commandes = result.commandes || result;
+            savedCount = Array.isArray(commandes) ? commandes.length : 0;
+          } else {
+            // Pour les autres plateformes (MEDITLINK, ITERO, THREESHAPE)
+            savedCount = result.savedCount || result.count || 0;
+          }
+
+          // Mettre à jour le statut avec un message simple
           setSyncStatus((prev) => ({
             ...prev,
             [platformName]: {
               status: "success",
-              message: message,
+              message: "Synchronisation terminée",
               count: savedCount,
             },
           }));
 
-          if (savedCount > 0) {
-            toast.success(
-              `${platformName}: ${savedCount} nouvelle(s) commande(s)`,
-              {
-                position: "top-right",
-                autoClose: 5000,
-              }
-            );
-          } else {
-            toast.info(`${platformName}: Aucune nouvelle commande`, {
+          // Afficher un toast de succès avec le nombre de commandes
+          toast.success(
+            `${platformName}: ${savedCount} commande(s) synchronisée(s)`,
+            {
               position: "top-right",
               autoClose: 3000,
-            });
-          }
-        } else {
-          const errorText = await response.text();
-          console.error(
-            `❌ Erreur ${platformName}:`,
-            response.status,
-            errorText
+            }
           );
+        } else {
+          // Gérer les erreurs HTTP
+          const errorText = await response.text();
+          console.error(`Erreur ${platformName}:`, errorText);
 
           setSyncStatus((prev) => ({
             ...prev,
             [platformName]: {
               status: "error",
-              message: `Erreur ${response.status} - Synchronisation ${platformName}`,
+              message: `Erreur de synchronisation: ${response.status}`,
             },
           }));
 
-          toast.error(
-            `Erreur ${response.status} lors de la synchronisation ${platformName}`,
-            {
-              position: "top-right",
-              autoClose: 5000,
-            }
-          );
+          toast.error(`${platformName}: Erreur de synchronisation`, {
+            position: "top-right",
+            autoClose: 5000,
+          });
         }
       } catch (err) {
-        console.error(`💥 Erreur réseau ${platformName}:`, err);
+        // Gérer les erreurs réseau
+        console.error(`Erreur réseau ${platformName}:`, err);
+
         setSyncStatus((prev) => ({
           ...prev,
           [platformName]: {
             status: "error",
-            message: `Erreur de connexion ${platformName}`,
+            message: "Erreur de connexion",
           },
         }));
 
-        toast.error(`Erreur de connexion avec ${platformName}`, {
+        toast.error(`${platformName}: Erreur de connexion`, {
           position: "top-right",
           autoClose: 5000,
         });
       }
 
+      // Nettoyer le statut après 5 secondes
       setTimeout(() => {
         setSyncStatus((prev) => {
           const newStatus = { ...prev };
@@ -536,32 +135,65 @@ export const useSyncPlatforms = ({
     [mutateCommandes, setSyncStatus]
   );
 
-  // Fonction pour synchroniser une plateforme spécifique - AMÉLIORÉE
+  // Fonctions spécifiques pour chaque plateforme
+  const syncMeditLinkCommandes = useCallback(async () => {
+    const endpoint = `${API_BASE_URL}/meditlink/cases/save?page=0&size=20`;
+    await syncPlatform("MEDITLINK", endpoint, "POST");
+  }, [syncPlatform]);
+
+  const syncIteroCommandes = useCallback(async () => {
+    const endpoint = `${API_BASE_URL}/itero/commandes/save`;
+    await syncPlatform("ITERO", endpoint, "POST");
+  }, [syncPlatform]);
+
+  const syncDexisCommandes = useCallback(async () => {
+    const endpoint = `${API_BASE_URL}/dexis/commandes/save`;
+    await syncPlatform("DEXIS", endpoint, "POST");
+  }, [syncPlatform]);
+
+  const syncCsConnectCommandes = useCallback(async () => {
+    const endpoint = `${API_BASE_URL}/csconnect/commandes`;
+    await syncPlatform("CSCONNECT", endpoint, "GET");
+  }, [syncPlatform]);
+
+  const syncOtherPlatform = useCallback(
+    async (platformName) => {
+      const endpoint = platformEndpoints[platformName];
+      if (!endpoint) {
+        console.error(`Endpoint non trouvé pour: ${platformName}`);
+        return;
+      }
+
+      // Déterminer la méthode HTTP en fonction de la plateforme
+      const method =
+        platformName === "MEDITLINK" || platformName === "THREESHAPE"
+          ? "GET"
+          : "POST";
+
+      await syncPlatform(platformName, endpoint, method);
+    },
+    [syncPlatform]
+  );
+
+  // Fonction pour synchroniser une plateforme spécifique
   const syncPlatformCommandes = useCallback(
     (platformName, getConnectionStatus) => {
-      // Ignorer Google Drive
+      // Ignorer Google Drive (plateforme de stockage uniquement)
       if (platformName === "GOOGLE_DRIVE") {
         return;
       }
 
+      // Vérifier si la plateforme est connectée
       const connectionStatus = getConnectionStatus(platformName);
-
-      // CORRECTION : Meilleur logging de l'état de connexion
-      console.log(`🔐 Statut connexion ${platformName}:`, connectionStatus);
-
       if (!connectionStatus.authenticated) {
-        toast.warning(
-          `${platformName} n'est pas connectée. Veuillez d'abord vous connecter.`,
-          {
-            position: "top-right",
-            autoClose: 5000,
-          }
-        );
+        toast.warning(`${platformName}: Veuillez d'abord vous connecter`, {
+          position: "top-right",
+          autoClose: 5000,
+        });
         return;
       }
 
-      console.log(`🔄 Lancement synchronisation ${platformName}...`);
-
+      // Lancer la synchronisation selon la plateforme
       switch (platformName) {
         case "MEDITLINK":
           return syncMeditLinkCommandes();
@@ -591,17 +223,15 @@ export const useSyncPlatforms = ({
 
       setIsSyncing(true);
 
-      // Filtrer seulement les plateformes connectées (exclure Google Drive)
+      // Filtrer les plateformes connectées (exclure Google Drive)
       const connectedPlatforms = userPlatforms.filter((platform) => {
-        // Exclure Google Drive de la synchronisation
         if (platform.name === "GOOGLE_DRIVE") return false;
-
         const connectionStatus = getConnectionStatus(platform.name);
         return connectionStatus.authenticated;
       });
 
       if (connectedPlatforms.length === 0) {
-        toast.warning("Aucune plateforme connectée à synchroniser", {
+        toast.warning("Aucune plateforme connectée", {
           position: "top-right",
           autoClose: 5000,
         });
@@ -609,6 +239,7 @@ export const useSyncPlatforms = ({
         return;
       }
 
+      // Créer les promesses de synchronisation
       const syncPromises = connectedPlatforms.map((platform) => {
         switch (platform.name) {
           case "MEDITLINK":
@@ -625,15 +256,13 @@ export const useSyncPlatforms = ({
       });
 
       try {
+        // Exécuter toutes les synchronisations en parallèle
         await Promise.all(syncPromises);
 
-        toast.success(
-          `${connectedPlatforms.length} plateforme(s) synchronisée(s)`,
-          {
-            position: "top-right",
-            autoClose: 5000,
-          }
-        );
+        toast.success("Synchronisation globale terminée", {
+          position: "top-right",
+          autoClose: 5000,
+        });
       } catch (error) {
         console.error("Erreur lors de la synchronisation globale:", error);
       } finally {
@@ -650,6 +279,7 @@ export const useSyncPlatforms = ({
     ]
   );
 
+  // Exposer les fonctions
   return {
     syncMeditLinkCommandes,
     syncIteroCommandes,

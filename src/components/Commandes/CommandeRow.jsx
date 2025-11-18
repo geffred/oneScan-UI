@@ -43,13 +43,28 @@ const CommandeRow = ({ commande, onViewDetails }) => {
       ITERO: "green",
       THREESHAPE: "purple",
       DEXIS: "orange",
+      CSCONNECT: "cyan", // NOUVEAU : Ajout de CS Connect
       GOOGLE_DRIVE: "red",
     };
     return colors[plateforme] || "gray";
   };
 
+  const getPlatformDisplayName = (platformName) => {
+    switch (platformName) {
+      case "THREESHAPE":
+        return "3Shape";
+      case "GOOGLE_DRIVE":
+        return "Google Drive";
+      case "CSCONNECT":
+        return "CS Connect"; // NOUVEAU : Nom d'affichage pour CS Connect
+      default:
+        return platformName;
+    }
+  };
+
   const echeanceStatus = getEcheanceStatus(commande.dateEcheance);
   const plateformeColor = getPlateformeColor(commande.plateforme);
+  const platformDisplayName = getPlatformDisplayName(commande.plateforme);
 
   return (
     <div
@@ -84,11 +99,7 @@ const CommandeRow = ({ commande, onViewDetails }) => {
         <span
           className={`commandes-plateforme-badge commandes-plateforme-${plateformeColor}`}
         >
-          {commande.plateforme === "THREESHAPE"
-            ? "3Shape"
-            : commande.plateforme === "GOOGLE_DRIVE"
-            ? "Google Drive"
-            : commande.plateforme}
+          {platformDisplayName}
         </span>
       </div>
 

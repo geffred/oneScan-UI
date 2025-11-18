@@ -52,6 +52,7 @@ const CommandesFilters = ({
             <option value="ITERO">Itero</option>
             <option value="THREESHAPE">3Shape</option>
             <option value="DEXIS">Dexis</option>
+            <option value="CSCONNECT">CS Connect</option>
             <option value="GOOGLE_DRIVE">Google Drive</option>
           </select>
         </div>
