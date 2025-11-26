@@ -3,13 +3,37 @@ import { useState, useCallback, useContext } from "react";
 import useSWR from "swr";
 import { AuthContext } from "./AuthContext";
 
-const fetcher = (url) =>
-  fetch(url, { credentials: "include" }).then((res) => {
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// ✅ Fonction pour obtenir les headers d'authentification
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+};
+
+// ✅ Fetcher avec authentification JWT
+const fetcher = (url) => {
+  const token = localStorage.getItem("token");
+  const headers = {};
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  return fetch(url, {
+    credentials: "include",
+    headers,
+  }).then((res) => {
     if (!res.ok) throw new Error(res.statusText);
     return res.json();
   });
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+};
 
 export const useMeditLinkAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -35,15 +59,26 @@ export const useMeditLinkAuth = () => {
 
       const response = await fetch(`${API_BASE_URL}/meditlink/auth/login`, {
         credentials: "include",
+        headers: getAuthHeaders(), // ✅ Ajout des headers avec token JWT
       });
 
       const data = await response.json();
 
       if (data.success && data.authUrl) {
+        // ✅ Préserver le token JWT avant la redirection OAuth
+        try {
+          sessionStorage.setItem(
+            "preserve_jwt",
+            localStorage.getItem("token") || ""
+          );
+        } catch (e) {
+          console.warn("Impossible de sauvegarder preserve_jwt:", e);
+        }
+
         window.location.href = data.authUrl;
       } else {
         throw new Error(
-          data.error || "Erreur lors de l’initiation de l’authentification"
+          data.error || "Erreur lors de l'initiation de l'authentification"
         );
       }
     } catch (err) {
@@ -62,11 +97,17 @@ export const useMeditLinkAuth = () => {
       const response = await fetch(`${API_BASE_URL}/meditlink/auth/logout`, {
         method: "POST",
         credentials: "include",
+        headers: getAuthHeaders(), // ✅ Ajout des headers avec token JWT
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        const txt = await response.text().catch(() => response.statusText);
+        console.warn("MeditLink logout non OK:", txt);
+      }
 
-      if (data.success) {
+      const data = await response.json().catch(() => ({ success: true }));
+
+      if (data.success || response.ok) {
         // Invalider le cache SWR
         mutateAuth(undefined, { revalidate: false });
 
@@ -75,6 +116,7 @@ export const useMeditLinkAuth = () => {
           setAuthData((prev) => ({
             ...prev,
             meditlinkAuthenticated: false,
+            meditlinkUser: null,
           }));
         }
       } else {
@@ -82,7 +124,16 @@ export const useMeditLinkAuth = () => {
       }
     } catch (err) {
       setError(err.message);
-      throw err;
+      console.error("Erreur logout MeditLink:", err);
+      // Continuer même en cas d'erreur pour nettoyer l'état local
+      mutateAuth(undefined, { revalidate: false });
+      if (setAuthData) {
+        setAuthData((prev) => ({
+          ...prev,
+          meditlinkAuthenticated: false,
+          meditlinkUser: null,
+        }));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -96,6 +147,7 @@ export const useMeditLinkAuth = () => {
       const response = await fetch(`${API_BASE_URL}/meditlink/auth/refresh`, {
         method: "POST",
         credentials: "include",
+        headers: getAuthHeaders(), // ✅ Ajout des headers avec token JWT
       });
 
       const data = await response.json();
@@ -124,6 +176,7 @@ export const useMeditLinkAuth = () => {
         `${API_BASE_URL}/meditlink/auth/token-debug`,
         {
           credentials: "include",
+          headers: getAuthHeaders(), // ✅ Ajout des headers avec token JWT
         }
       );
 

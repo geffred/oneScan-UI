@@ -41,7 +41,7 @@ export const apiRequest = async (endpoint, options = {}) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
-      credentials: "omit", // IMPORTANT : ne pas envoyer de cookies pour éviter conflit OAuth
+      credentials: "include",
     });
 
     if (response.status === 401) {
