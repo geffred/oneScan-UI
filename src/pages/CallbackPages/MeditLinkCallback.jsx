@@ -14,6 +14,7 @@ import { AuthContext } from "../../components/Config/AuthContext";
 import "./Callback.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const MeditLinkCallback = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,12 +33,31 @@ const MeditLinkCallback = () => {
   const timeoutRef = useRef(null);
   const refreshIntervalRef = useRef(null);
 
+  // Fonction pour obtenir les headers d'authentification
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    const headers = {
+      "Content-Type": "application/x-www-form-urlencoded",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  };
+
   // Fonction pour rafraîchir la session
   const refreshSession = useRef(async () => {
     try {
+      const token = localStorage.getItem("token");
+      const headers = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       await fetch(`${API_BASE_URL}/meditlink/auth/refresh`, {
         method: "POST",
         credentials: "include",
+        headers,
       });
       console.log("Session rafraîchie ✅");
     } catch (e) {
@@ -83,9 +103,10 @@ const MeditLinkCallback = () => {
         params.append("state", state);
       }
 
+      // ✅ Utilisation de getAuthHeaders() pour inclure le token JWT
       const response = await fetch(`${API_BASE_URL}/meditlink/auth/callback`, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: getAuthHeaders(), // ✅ CORRECTION CRITIQUE : Ajout du token JWT
         credentials: "include",
         body: params.toString(),
       });
