@@ -1,12 +1,11 @@
-// useMeditLinkAuth.js
+// useMeditLinkAuth.js - Version corrigée
 import { useState, useCallback, useContext } from "react";
 import useSWR from "swr";
 import { AuthContext } from "./AuthContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// ✅ Fonction pour obtenir les headers d'authentification
-const getAuthHeaders = () => {
+const fetcher = (url) => {
   const token = localStorage.getItem("token");
   const headers = {
     "Content-Type": "application/json",
@@ -14,20 +13,9 @@ const getAuthHeaders = () => {
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  return headers;
-};
-
-// ✅ Fetcher avec authentification JWT
-const fetcher = (url) => {
-  const token = localStorage.getItem("token");
-  const headers = {};
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
 
   return fetch(url, {
-    credentials: "include",
+    credentials: "include", // IMPORTANT : envoyer les cookies MeditLink
     headers,
   }).then((res) => {
     if (!res.ok) throw new Error(res.statusText);
@@ -47,34 +35,38 @@ export const useMeditLinkAuth = () => {
     {
       refreshInterval: 30000,
       onError: (err) => setError(err.message),
+      revalidateOnFocus: true,
     }
   );
 
   const isAuthenticated = authStatus?.authenticated || false;
+  const userInfo = authStatus?.user || null;
 
   const initiateAuth = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${API_BASE_URL}/meditlink/auth/login`, {
-        credentials: "include",
-        headers: getAuthHeaders(), // ✅ Ajout des headers avec token JWT
+        credentials: "include", // IMPORTANT
+        headers,
       });
 
       const data = await response.json();
 
       if (data.success && data.authUrl) {
-        // ✅ Préserver le token JWT avant la redirection OAuth
-        try {
-          sessionStorage.setItem(
-            "preserve_jwt",
-            localStorage.getItem("token") || ""
-          );
-        } catch (e) {
-          console.warn("Impossible de sauvegarder preserve_jwt:", e);
+        // Sauvegarder le JWT avant redirection
+        if (token) {
+          sessionStorage.setItem("preserve_jwt", token);
         }
-
         window.location.href = data.authUrl;
       } else {
         throw new Error(
@@ -94,20 +86,23 @@ export const useMeditLinkAuth = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(`${API_BASE_URL}/meditlink/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-        headers: getAuthHeaders(), // ✅ Ajout des headers avec token JWT
-      });
-
-      if (!response.ok) {
-        const txt = await response.text().catch(() => response.statusText);
-        console.warn("MeditLink logout non OK:", txt);
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const data = await response.json().catch(() => ({ success: true }));
+      const response = await fetch(`${API_BASE_URL}/meditlink/auth/logout`, {
+        method: "POST",
+        credentials: "include", // IMPORTANT
+        headers,
+      });
 
-      if (data.success || response.ok) {
+      const data = await response.json();
+
+      if (data.success) {
         // Invalider le cache SWR
         mutateAuth(undefined, { revalidate: false });
 
@@ -124,16 +119,7 @@ export const useMeditLinkAuth = () => {
       }
     } catch (err) {
       setError(err.message);
-      console.error("Erreur logout MeditLink:", err);
-      // Continuer même en cas d'erreur pour nettoyer l'état local
-      mutateAuth(undefined, { revalidate: false });
-      if (setAuthData) {
-        setAuthData((prev) => ({
-          ...prev,
-          meditlinkAuthenticated: false,
-          meditlinkUser: null,
-        }));
-      }
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -144,10 +130,18 @@ export const useMeditLinkAuth = () => {
       setIsLoading(true);
       setError(null);
 
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${API_BASE_URL}/meditlink/auth/refresh`, {
         method: "POST",
-        credentials: "include",
-        headers: getAuthHeaders(), // ✅ Ajout des headers avec token JWT
+        credentials: "include", // IMPORTANT
+        headers,
       });
 
       const data = await response.json();
@@ -172,13 +166,18 @@ export const useMeditLinkAuth = () => {
 
   const getTokenDetails = useCallback(async () => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/meditlink/auth/token-debug`,
-        {
-          credentials: "include",
-          headers: getAuthHeaders(), // ✅ Ajout des headers avec token JWT
-        }
-      );
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/meditlink/auth/debug`, {
+        credentials: "include", // IMPORTANT
+        headers,
+      });
 
       if (!response.ok) {
         throw new Error("Erreur lors de la récupération des détails du token");
@@ -192,8 +191,8 @@ export const useMeditLinkAuth = () => {
   }, []);
 
   // Vérifie si le token expire bientôt (dans 5 min)
-  const isExpiringSoon = authStatus?.expiresAt
-    ? new Date(authStatus.expiresAt).getTime() - Date.now() < 5 * 60 * 1000
+  const isExpiringSoon = authStatus?.tokenDetails?.remainingSeconds
+    ? authStatus.tokenDetails.remainingSeconds < 300
     : false;
 
   return {
@@ -207,6 +206,7 @@ export const useMeditLinkAuth = () => {
     refresh,
     clearError,
     getTokenDetails,
+    userInfo,
   };
 };
 

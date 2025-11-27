@@ -33,23 +33,13 @@ const MeditLinkCallback = () => {
   const timeoutRef = useRef(null);
   const refreshIntervalRef = useRef(null);
 
-  // Fonction pour obtenir les headers d'authentification
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem("token");
-    const headers = {
-      "Content-Type": "application/x-www-form-urlencoded",
-    };
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-    return headers;
-  };
-
   // Fonction pour rafraîchir la session
   const refreshSession = useRef(async () => {
     try {
       const token = localStorage.getItem("token");
-      const headers = {};
+      const headers = {
+        "Content-Type": "application/json",
+      };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -59,21 +49,21 @@ const MeditLinkCallback = () => {
         credentials: "include",
         headers,
       });
-      console.log("Session rafraîchie ✅");
+      console.log("Session rafraîchie");
     } catch (e) {
       console.error("Erreur de rafraîchissement", e);
     }
   });
 
   useEffect(() => {
-    // Démarrer le rafraîchissement automatique seulement après une authentification réussie
+    // Démarrer le rafraîchissement automatique seulement après succès
     if (status === "success" && !refreshIntervalRef.current) {
       refreshIntervalRef.current = setInterval(() => {
         refreshSession.current();
       }, 30 * 1000); // Toutes les 30 secondes
     }
 
-    // Nettoyer l'intervalle lors du démontage du composant
+    // Nettoyer l'intervalle lors du démontage
     return () => {
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
@@ -83,7 +73,7 @@ const MeditLinkCallback = () => {
   }, [status]);
 
   const handleCallback = async (code, state = null, isRetry = false) => {
-    // Éviter les appels multiples si déjà en cours, déjà réussi ou déjà redirigé
+    // Éviter les appels multiples
     if (
       isProcessingRef.current ||
       hasSucceededRef.current ||
@@ -96,6 +86,14 @@ const MeditLinkCallback = () => {
     isProcessingRef.current = true;
 
     try {
+      // RESTAURER LE JWT AVANT L'APPEL
+      const savedToken = sessionStorage.getItem("preserve_jwt");
+      if (savedToken) {
+        localStorage.setItem("token", savedToken);
+        sessionStorage.removeItem("preserve_jwt");
+        console.debug("Token JWT restauré dans Callback");
+      }
+
       const params = new URLSearchParams();
       params.append("code", code);
 
@@ -103,11 +101,20 @@ const MeditLinkCallback = () => {
         params.append("state", state);
       }
 
-      // ✅ Utilisation de getAuthHeaders() pour inclure le token JWT
+      // Préparer les headers avec JWT
+      const headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+      };
+
+      const token = localStorage.getItem("token");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${API_BASE_URL}/meditlink/auth/callback`, {
         method: "POST",
-        headers: getAuthHeaders(), // ✅ CORRECTION CRITIQUE : Ajout du token JWT
-        credentials: "include",
+        headers,
+        credentials: "include", // IMPORTANT : envoyer les cookies MeditLink
         body: params.toString(),
       });
 
@@ -117,14 +124,12 @@ const MeditLinkCallback = () => {
           setMessage(`Tentative en cours... (${retryCount + 1}/3)`);
           setRetryCount((prev) => prev + 1);
 
-          // Utiliser une fonction anonyme pour éviter la récursion directe
           timeoutRef.current = setTimeout(() => {
             isProcessingRef.current = false;
             handleCallback(code, state, true);
           }, 1000);
           return;
         } else {
-          // Après 3 tentatives → on arrête la boucle
           setStatus("error");
           setMessage("Impossible de finaliser l'authentification (401).");
           isProcessingRef.current = false;
@@ -135,7 +140,7 @@ const MeditLinkCallback = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Marquer comme réussi pour empêcher tout autre appel
+        // Marquer comme réussi
         hasSucceededRef.current = true;
         setStatus("success");
         setMessage(
@@ -176,7 +181,6 @@ const MeditLinkCallback = () => {
   };
 
   const handleRetry = () => {
-    // Empêcher les nouvelles tentatives si déjà réussi ou redirigé
     if (hasSucceededRef.current || hasRedirectedRef.current) {
       return;
     }
@@ -186,7 +190,7 @@ const MeditLinkCallback = () => {
     const state = queryParams.get("state");
 
     if (code) {
-      setRetryCount(0); // Réinitialiser le compteur pour une nouvelle tentative manuelle
+      setRetryCount(0);
       setStatus("loading");
       setMessage("Nouvelle tentative...");
       handleCallback(code, state);
@@ -196,7 +200,6 @@ const MeditLinkCallback = () => {
   };
 
   const handleGoHome = () => {
-    // Nettoyer les timeouts et rediriger immédiatement
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -213,7 +216,6 @@ const MeditLinkCallback = () => {
     const state = queryParams.get("state");
     const error = queryParams.get("error");
 
-    // Ne rien faire si déjà réussi ou redirigé
     if (hasSucceededRef.current || hasRedirectedRef.current) {
       return;
     }
@@ -231,7 +233,6 @@ const MeditLinkCallback = () => {
       setMessage("Code d'autorisation manquant");
     }
 
-    // Cleanup function pour nettoyer les timeouts
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);

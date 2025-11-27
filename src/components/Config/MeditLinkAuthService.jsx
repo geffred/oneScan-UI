@@ -12,9 +12,8 @@ class MeditLinkAuthService {
   }
 
   /**
-   * 🛠️ HELPER : Génère les headers d'authentification
-   * Récupère le token JWT du localStorage pour authentifier la requête
-   * auprès de votre backend Spring Boot.
+   * HELPER : Génère les headers d'authentification
+   * Pour MeditLink, on utilise à la fois JWT ET cookies
    */
   getAuthHeaders() {
     const token = localStorage.getItem("token");
@@ -36,7 +35,7 @@ class MeditLinkAuthService {
         console.error("MeditLink callback error:", err);
       }
     });
-    // Emission d'un event global
+
     try {
       window.dispatchEvent(
         new CustomEvent("meditlink:status", { detail: { status } })
@@ -54,8 +53,8 @@ class MeditLinkAuthService {
   async initiateAuth() {
     try {
       const res = await fetch(`${this.baseUrl}/auth/login`, {
-        credentials: "include",
-        headers: this.getAuthHeaders(), // <--- AJOUT DES HEADERS JWT
+        credentials: "include", // IMPORTANT : envoyer les cookies
+        headers: this.getAuthHeaders(),
       });
 
       if (!res.ok) {
@@ -66,14 +65,11 @@ class MeditLinkAuthService {
       const data = await res.json();
 
       if (data.success && data.authUrl) {
-        // On préserve le JWT actuel pour le restaurer au retour
-        try {
-          sessionStorage.setItem(
-            "preserve_jwt",
-            localStorage.getItem("token") ?? ""
-          );
-        } catch (e) {
-          console.warn("Impossible de sauvegarder preserve_jwt:", e);
+        // Sauvegarder le token JWT avant redirection
+        const currentToken = localStorage.getItem("token");
+        if (currentToken) {
+          sessionStorage.setItem("preserve_jwt", currentToken);
+          console.debug("Token JWT sauvegardé avant redirection MeditLink");
         }
 
         // Redirection vers MeditLink
@@ -90,17 +86,16 @@ class MeditLinkAuthService {
   /**
    * handleCallback :
    * Appelle le backend pour échanger le code.
-   * C'est ici que l'erreur 401 se produisait car le fetch manquait de token.
+   * CORRECTION CRITIQUE : utilise credentials: "include" pour envoyer les cookies
    */
   async handleCallback(code, state = null) {
     try {
-      // --- RESTAURATION PRÉVENTIVE DU TOKEN ---
-      // On restaure le token AVANT l'appel fetch pour être sûr d'être authentifié
+      // Restauration du token JWT AVANT l'appel
       const savedToken = sessionStorage.getItem("preserve_jwt");
       if (savedToken) {
         localStorage.setItem("token", savedToken);
         sessionStorage.removeItem("preserve_jwt");
-        console.debug("MeditLink: token restauré avant l'appel callback");
+        console.debug("Token JWT restauré avant callback");
       }
 
       const params = new URLSearchParams({ code });
@@ -108,11 +103,13 @@ class MeditLinkAuthService {
 
       const res = await fetch(`${this.baseUrl}/auth/callback`, {
         method: "POST",
-        credentials: "include",
-        // Fusion des headers (Content-Type form + Authorization Bearer)
+        credentials: "include", // CORRECTION : envoyer les cookies
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          ...this.getAuthHeaders(), // <--- CORRECTION CRITIQUE DU 401
+          // Ajouter le JWT si disponible
+          ...(localStorage.getItem("token") && {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          }),
         },
         body: params.toString(),
       });
@@ -120,21 +117,23 @@ class MeditLinkAuthService {
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        // Gestion spécifique 401/403
         if (res.status === 401 || res.status === 403) {
           throw new Error(
-            "Session expirée pendant l'authentification MeditLink. Veuillez vous reconnecter à l'application."
+            "Session expirée pendant l'authentification MeditLink. Veuillez vous reconnecter."
           );
         }
-        const message = data?.message || `Erreur callback: ${res.status}`;
+        const message =
+          data?.message || data?.error || `Erreur callback: ${res.status}`;
         throw new Error(message);
       }
 
       if (!data?.success) {
-        throw new Error(data?.message || "Callback OAuth non réussi");
+        throw new Error(
+          data?.message || data?.error || "Callback OAuth non réussi"
+        );
       }
 
-      // Rafraîchir le statut depuis l'API MeditLink
+      // Rafraîchir le statut
       await this.refreshAuthStatus();
 
       try {
@@ -155,12 +154,11 @@ class MeditLinkAuthService {
   async checkAuthStatus() {
     try {
       const res = await fetch(`${this.baseUrl}/auth/status`, {
-        credentials: "include",
-        headers: this.getAuthHeaders(), // <--- AJOUT DES HEADERS JWT
+        credentials: "include", // IMPORTANT : envoyer les cookies
+        headers: this.getAuthHeaders(),
       });
 
       if (!res.ok) {
-        // Si 401, on considère simplement que l'utilisateur n'est pas authentifié MeditLink (ou App)
         if (res.status === 401) {
           this.notifyStatusChange({ authenticated: false });
           return { authenticated: false };
@@ -188,8 +186,8 @@ class MeditLinkAuthService {
     try {
       const res = await fetch(`${this.baseUrl}/auth/logout`, {
         method: "POST",
-        credentials: "include",
-        headers: this.getAuthHeaders(), // <--- AJOUT DES HEADERS JWT
+        credentials: "include", // IMPORTANT : envoyer les cookies
+        headers: this.getAuthHeaders(),
       });
 
       if (!res.ok) {
