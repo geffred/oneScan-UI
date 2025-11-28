@@ -32,10 +32,10 @@ export const useSyncPlatforms = ({
       try {
         const token = localStorage.getItem("token");
 
-        // Préparer les paramètres de requête pour 3Shape
+        // Préparer les paramètres de requête pour 3Shape (pagination augmentée)
         let finalEndpoint = endpoint;
         if (platformName === "THREESHAPE") {
-          finalEndpoint += "?startPage=0&endPage=1";
+          finalEndpoint += "?startPage=0&endPage=5";
         }
 
         // Effectuer la requête API
@@ -54,39 +54,59 @@ export const useSyncPlatforms = ({
           // Actualiser les commandes
           mutateCommandes();
 
-          // CALCUL DU NOMBRE DE COMMANDES SAUVEGARDÉES AVEC LA NOUVELLE LOGIQUE
+          // CALCUL DU NOMBRE DE COMMANDES AVEC DISTINCTION NOUVELLES/MISES À JOUR
           let savedCount = 0;
+          let updatedCount = 0;
+          let totalCount = 0;
 
           if (platformName === "DEXIS") {
             // Pour Dexis, utiliser savedCount directement depuis l'objet résultat
             savedCount = result.savedCount || result.count || 0;
+            updatedCount = result.updatedCount || 0;
+            totalCount = savedCount + updatedCount;
           } else if (platformName === "CSCONNECT") {
             // Pour CS Connect, compter les commandes dans le tableau
             const commandes = result.commandes || result;
-            savedCount = Array.isArray(commandes) ? commandes.length : 0;
+            totalCount = Array.isArray(commandes) ? commandes.length : 0;
+            savedCount = totalCount; // CS Connect ne distingue pas encore
+            updatedCount = 0;
+          } else if (platformName === "THREESHAPE") {
+            // Pour 3Shape, utiliser les nouvelles statistiques détaillées
+            savedCount = result.savedCount || 0;
+            updatedCount = result.updatedCount || 0;
+            totalCount = result.totalProcessed || savedCount + updatedCount;
           } else {
-            // Pour les autres plateformes (MEDITLINK, ITERO, THREESHAPE)
+            // Pour les autres plateformes (MEDITLINK, ITERO)
             savedCount = result.savedCount || result.count || 0;
+            updatedCount = result.updatedCount || 0;
+            totalCount = savedCount + updatedCount;
           }
 
-          // Mettre à jour le statut avec un message simple
+          // Construire un message détaillé
+          let detailMessage = "";
+          if (updatedCount > 0) {
+            detailMessage = `${savedCount} nouvelle(s), ${updatedCount} mise(s) à jour`;
+          } else {
+            detailMessage = `${savedCount} commande(s) synchronisée(s)`;
+          }
+
+          // Mettre à jour le statut avec un message détaillé
           setSyncStatus((prev) => ({
             ...prev,
             [platformName]: {
               status: "success",
               message: "Synchronisation terminée",
-              count: savedCount,
+              count: totalCount,
+              savedCount: savedCount,
+              updatedCount: updatedCount,
             },
           }));
 
-          // Afficher un toast de succès avec le nombre de commandes
-          toast.success(
-            `${platformName}: ${savedCount} commande(s) synchronisée(s)`,
-            {
-              position: "top-right",
-              autoClose: 3000,
-            }
-          );
+          // Afficher un toast de succès avec les détails
+          toast.success(`${platformName}: ${detailMessage}`, {
+            position: "top-right",
+            autoClose: 3000,
+          });
         } else {
           // Gérer les erreurs HTTP
           const errorText = await response.text();

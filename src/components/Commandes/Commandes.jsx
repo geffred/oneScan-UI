@@ -56,7 +56,7 @@ const Commandes = () => {
   const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1);
   const [itemsPerPage] = useState(25);
 
-  // ✅ Flag pour éviter le reset après restauration
+  //  Flag pour éviter le reset après restauration
   const hasRestoredState = React.useRef(false);
 
   // --- Sauvegarde automatique dans le localStorage ---
