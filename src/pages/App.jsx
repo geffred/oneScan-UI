@@ -29,6 +29,7 @@ function App() {
 
           {/* ==================== CALLBACK ROUTES ==================== */}
           <Route path="/meditLink/callback" element={<MeditLinkCallback />} />
+          <Route path="/3shapde/callback" element={<ThreeShapeCallback />} />
           <Route path="/3shape/callback" element={<ThreeShapeCallback />} />
 
           {/* ==================== PUBLIC ROUTES ==================== */}
