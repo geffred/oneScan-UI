@@ -15,12 +15,12 @@ import {
 import "./PlatformModal.css";
 
 const platformTypes = [
+  { value: "CSCONNECT", label: "CS Connect" },
   { value: "THREESHAPE", label: "3Shape" },
   { value: "MEDITLINK", label: "MeditLink" },
   { value: "ITERO", label: "Itero" },
   { value: "DEXIS", label: "Dexis" },
   { value: "GOOGLE_DRIVE", label: "Google Drive" },
-  { value: "CSCONNECT", label: "CS Connect" },
 ];
 
 const validationSchema = Yup.object({
