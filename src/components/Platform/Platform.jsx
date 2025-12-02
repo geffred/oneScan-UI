@@ -11,7 +11,8 @@ import useSWR from "swr";
 import { Server, Plus, Search, Monitor, Mail } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
-import CryptoJS from "crypto-js";
+// SUPPRIMEZ CryptoJS car vous n'avez plus besoin d'encrypter/décrypter
+// import CryptoJS from "crypto-js";
 
 import PlatformCard from "./components/PlatformCard/PlatformCard";
 import PlatformModal from "./components/PlatformModal/PlatformModal";
@@ -32,8 +33,9 @@ import {
   fetchWithAuth,
   getUserData,
   getUserPlatforms,
-  encryptPassword,
-  decryptPassword,
+  // SUPPRIMEZ encryptPassword et decryptPassword
+  // encryptPassword,
+  // decryptPassword,
   checkPlatformStatus,
 } from "./utils/platformUtils";
 import { platformTypes } from "./constants/platformConstants";
@@ -135,6 +137,16 @@ const Platform = () => {
       revalidateOnReconnect: true,
       refreshInterval: 30000,
       errorRetryCount: 3,
+      onSuccess: (data) => {
+        console.log("✅ Plateformes chargées:", data);
+        console.log(
+          "🔍 CSCONNECT présent?",
+          data.filter((p) => p.name === "CSCONNECT")
+        );
+      },
+      onError: (err) => {
+        console.error("❌ Erreur chargement plateformes:", err);
+      },
     }
   );
 
@@ -691,7 +703,7 @@ const Platform = () => {
     );
   }, [platforms, searchTerm]);
 
-  // Handlers principaux
+  // CORRECTION IMPORTANTE : Mettez à jour handleSubmit
   const handleSubmit = useCallback(
     async (values, { setSubmitting, resetForm }) => {
       try {
@@ -701,11 +713,14 @@ const Platform = () => {
           : `${API_BASE_URL}/platforms`;
         const method = editingPlatform ? "PUT" : "POST";
 
+        // SUPPRIMEZ le champ password
         const platformData = {
-          ...values,
-          password: encryptPassword(values.password),
+          name: values.name,
+          email: values.email,
           userId: userData.id,
         };
+
+        console.log("📤 Envoi des données:", platformData);
 
         const response = await fetch(url, {
           method,
@@ -717,14 +732,15 @@ const Platform = () => {
         });
 
         if (!response.ok) {
+          const errorText = await response.text();
           throw new Error(
-            `Erreur lors de ${
-              editingPlatform ? "la modification" : "la création"
-            } de la plateforme`
+            `Erreur ${response.status}: ${errorText || "Erreur inconnue"}`
           );
         }
 
         const data = await response.json();
+
+        console.log("✅ Réponse reçue:", data);
 
         if (editingPlatform) {
           mutatePlatforms(
@@ -743,8 +759,9 @@ const Platform = () => {
         setTimeout(() => setSuccess(null), 3000);
         mutatePlatforms();
       } catch (err) {
+        console.error("❌ Erreur détaillée:", err);
         setError(err.message);
-        setTimeout(() => setError(null), 3000);
+        setTimeout(() => setError(null), 5000);
       } finally {
         setSubmitting(false);
       }
@@ -752,10 +769,14 @@ const Platform = () => {
     [editingPlatform, userData?.id, platforms, mutatePlatforms]
   );
 
+  // CORRECTION IMPORTANTE : Mettez à jour handleEdit
   const handleEdit = useCallback((platform) => {
+    // SUPPRIMEZ la décryption du password
     const platformToEdit = {
-      ...platform,
-      password: decryptPassword(platform.password),
+      id: platform.id,
+      name: platform.name,
+      email: platform.email,
+      // NE PAS inclure password
     };
     setEditingPlatform(platformToEdit);
     setIsModalOpen(true);
@@ -876,6 +897,21 @@ const Platform = () => {
     checkCsConnectStatus,
   ]);
 
+  // Debug: afficher les plateformes chargées
+  useEffect(() => {
+    if (platforms.length > 0) {
+      console.log("📊 Plateformes disponibles:", platforms);
+      const csConnectPlatforms = platforms.filter(
+        (p) => p.name === "CSCONNECT"
+      );
+      if (csConnectPlatforms.length === 0) {
+        console.log("⚠️ CSCONNECT n'est pas dans les plateformes chargées");
+      } else {
+        console.log("✅ CSCONNECT trouvé:", csConnectPlatforms);
+      }
+    }
+  }, [platforms]);
+
   if (!isAuthenticated) {
     return null;
   }
@@ -976,7 +1012,7 @@ const Platform = () => {
           initialValues={{
             name: editingPlatform?.name || "",
             email: editingPlatform?.email || "",
-            password: editingPlatform?.password || "",
+            // SUPPRIMEZ password
           }}
           onSubmit={handleSubmit}
         />

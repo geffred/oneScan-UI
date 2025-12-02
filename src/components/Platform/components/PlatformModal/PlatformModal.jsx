@@ -26,7 +26,7 @@ const platformTypes = [
 const validationSchema = Yup.object({
   name: Yup.string().required("Le nom de la plateforme est requis"),
   email: Yup.string().email("Email invalide").required("L'email est requis"),
-  password: Yup.string().default("").notRequired(),
+  // SUPPRIMEZ le champ password
 });
 
 const PlatformModal = ({
@@ -150,6 +150,19 @@ const PlatformModal = ({
                         Après création, utilisez le bouton "Connecter OAuth"
                         pour vous authentifier avec votre compte Google et
                         activer le stockage des fichiers.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {values.name === "CSCONNECT" && (
+                  <div className="platform-info-banner">
+                    <Link2 size={16} />
+                    <div>
+                      <strong>Plateforme CS Connect :</strong>
+                      <p>
+                        Après création, utilisez le bouton "Connecter" pour vous
+                        connecter à l'API CS Connect.
                       </p>
                     </div>
                   </div>
