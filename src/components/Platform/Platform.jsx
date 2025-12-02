@@ -12,7 +12,7 @@ import { Server, Plus, Search, Monitor, Mail } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 // SUPPRIMEZ CryptoJS car vous n'avez plus besoin d'encrypter/décrypter
-// import CryptoJS from "crypto-js";
+// import CryptoJS from "crypto-js ";
 
 import PlatformCard from "./components/PlatformCard/PlatformCard";
 import PlatformModal from "./components/PlatformModal/PlatformModal";
