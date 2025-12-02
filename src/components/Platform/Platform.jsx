@@ -33,9 +33,6 @@ import {
   fetchWithAuth,
   getUserData,
   getUserPlatforms,
-  // SUPPRIMEZ encryptPassword et decryptPassword
-  // encryptPassword,
-  // decryptPassword,
   checkPlatformStatus,
 } from "./utils/platformUtils";
 import { platformTypes } from "./constants/platformConstants";
