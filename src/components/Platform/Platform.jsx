@@ -21,7 +21,7 @@ import MeditLinkOAuthModal from "./components/modals/MeditLink/MeditLinkOAuthMod
 import IteroOAuthModal from "./components/modals/Itero/IteroOAuthModal";
 import DexisOAuthModal from "./components/modals/Dexis/DexisOAuthModal";
 import GoogleDriveOAuthModal from "./components/modals/Google/GoogleDriveOAuthModal";
-import CsConnectOAuthModal from "./components/modals/csconnect/CsConnectOAuthModal";
+import CsConnectOAuthModal from "./components/modals/CsConnectOAuthModal";
 import ThreeShapeDashboardModal from "./components/modals/3shape/ThreeShapeDashboardModal";
 import MeditLinkDashboardModal from "./components/modals/MeditLink/MeditLinkDashboardModal";
 import ListLoadingSpinner from "./components/Loading/ListLoadingSpinner";
