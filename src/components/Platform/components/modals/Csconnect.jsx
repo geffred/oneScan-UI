@@ -3,7 +3,7 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { X, Shield, CheckCircle } from "lucide-react";
-import "../PlatformOAuthModal.css";
+import "./PlatformOAuthModal.css";
 
 const CsConnectOAuthModal = ({ isOpen, onClose, onStartAuth, isLoading }) => {
   if (!isOpen) return null;
