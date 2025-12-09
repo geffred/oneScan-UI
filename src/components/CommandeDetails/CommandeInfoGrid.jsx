@@ -21,6 +21,8 @@ import CommentSection from "./CommentSection";
 import "./CommandeInfoGrid.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const ITERO_API_BASE_URL =
+  "https://smilelabitero-api-production.up.railway.app";
 
 // Fonction pour récupérer les données de génération de bon de commande
 const fetchCommandeData = async (externalId) => {
@@ -86,6 +88,111 @@ const fetchThreeShapeOrderData = async (externalId) => {
 
   return response.json();
 };
+
+// Composant pour télécharger les fichiers Itero
+const IteroFileDownloadButton = React.memo(
+  ({ externalId, disabled, isLoading }) => {
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    const downloadIteroFile = async (externalId) => {
+      console.log(`📥 Début du téléchargement Itero: ${externalId}`);
+
+      try {
+        const response = await fetch(
+          `${ITERO_API_BASE_URL}/api/itero/commandes/${externalId}/download-stl-file`,
+          {
+            method: "GET",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+
+        if (blob.size === 0) {
+          throw new Error("Le fichier téléchargé est vide (0 bytes)");
+        }
+
+        // Extraire le nom de fichier du header Content-Disposition
+        let downloadFilename = `scan-itero-${externalId}.stl`;
+        const contentDisposition = response.headers.get("content-disposition");
+
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(
+            /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+          );
+          if (filenameMatch && filenameMatch[1]) {
+            downloadFilename = filenameMatch[1].replace(/['"]/g, "");
+          }
+        }
+
+        console.log(`💾 Nom de fichier final: ${downloadFilename}`);
+
+        // Déclencher le téléchargement
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = downloadFilename;
+
+        document.body.appendChild(a);
+        a.click();
+
+        // Nettoyer
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }, 100);
+
+        console.log("✅ Téléchargement Itero terminé avec succès");
+        return blob;
+      } catch (error) {
+        console.error(
+          "❌ Erreur détaillée lors du téléchargement Itero:",
+          error
+        );
+        throw error;
+      }
+    };
+
+    const handleDownload = async () => {
+      if (!externalId || disabled) return;
+
+      setIsDownloading(true);
+      try {
+        await downloadIteroFile(externalId);
+        console.log(`✅ Fichier Itero ${externalId} téléchargé avec succès`);
+      } catch (error) {
+        console.error(
+          `❌ Erreur lors du téléchargement du fichier Itero ${externalId}:`,
+          error
+        );
+      } finally {
+        setIsDownloading(false);
+      }
+    };
+
+    return (
+      <button
+        className="details-scan-download-btn itero-file-btn"
+        onClick={handleDownload}
+        disabled={disabled || isLoading || isDownloading}
+        title={`Télécharger le scan Itero ${externalId}`}
+      >
+        <Download size={16} />
+        <div className="file-info">
+          <span className="file-name">Scan Itero</span>
+          <span className="file-details">Fichier STL</span>
+        </div>
+        {isDownloading && (
+          <div className="details-download-spinner-small"></div>
+        )}
+      </button>
+    );
+  }
+);
 
 // Composant pour télécharger les fichiers MySmileLab
 // eslint-disable-next-line react/display-name
@@ -360,6 +467,7 @@ const GoogleDriveFileDownloadButton = React.memo(
     );
   }
 );
+
 // eslint-disable-next-line react/display-name
 const MeditLinkFileDownloadButton = React.memo(
   ({ file, externalId, disabled, isLoading }) => {
@@ -738,6 +846,7 @@ const CommandeInfoGrid = ({
   const isThreeShape = commande && commande.plateforme === "THREESHAPE";
   const isMeditLink = commande && commande.plateforme === "MEDITLINK";
   const isMySmileLab = commande && commande.plateforme === "MYSMILELAB";
+  const isItero = commande && commande.plateforme === "ITERO";
 
   // Fonction pour récupérer les fichiers MeditLink
   const fetchMeditLinkFiles = async () => {
@@ -1015,14 +1124,19 @@ const CommandeInfoGrid = ({
             <FileText size={20} />
             <h3>Informations Techniques</h3>
           </div>
-          <button
-            className="details-reload-files-btn"
-            onClick={handleReloadFiles}
-            disabled={isLoadingFiles}
-            title="Recharger les fichiers"
-          >
-            <RefreshCw size={16} className={isLoadingFiles ? "spinning" : ""} />
-          </button>
+          {!isItero && (
+            <button
+              className="details-reload-files-btn"
+              onClick={handleReloadFiles}
+              disabled={isLoadingFiles}
+              title="Recharger les fichiers"
+            >
+              <RefreshCw
+                size={16}
+                className={isLoadingFiles ? "spinning" : ""}
+              />
+            </button>
+          )}
         </div>
         <div className="details-card-content">
           <div className="details-item">
@@ -1046,6 +1160,22 @@ const CommandeInfoGrid = ({
               <span className="details-item-value">
                 {commande.typeAppareil}
               </span>
+            </div>
+          )}
+
+          {/* Affichage des fichiers Itero */}
+          {isItero && (
+            <div className="details-item">
+              <span className="details-item-label">
+                Fichiers 3D disponibles :
+              </span>
+              <div className="details-scans-container itero-files-container">
+                <IteroFileDownloadButton
+                  externalId={commande.externalId}
+                  disabled={false}
+                  isLoading={false}
+                />
+              </div>
             </div>
           )}
 
