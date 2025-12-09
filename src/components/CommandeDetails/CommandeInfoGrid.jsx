@@ -23,6 +23,8 @@ import "./CommandeInfoGrid.css";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const ITERO_API_BASE_URL =
   "https://smilelabitero-api-production.up.railway.app";
+const CSCONNECT_API_BASE_URL =
+  "https://smilelabcsconnect-api-production.up.railway.app";
 
 // Fonction pour récupérer les données de génération de bon de commande
 const fetchCommandeData = async (externalId) => {
@@ -89,6 +91,95 @@ const fetchThreeShapeOrderData = async (externalId) => {
   return response.json();
 };
 
+// Composant pour télécharger les fichiers CSConnect
+const CSConnectFileDownloadButton = React.memo(
+  ({ externalId, disabled, isLoading }) => {
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [downloadError, setDownloadError] = useState(null);
+
+    const downloadCSConnectFile = async (externalId) => {
+      console.log(`📥 Début du téléchargement CSConnect: ${externalId}`);
+
+      try {
+        const response = await fetch(
+          `${CSCONNECT_API_BASE_URL}/api/csconnect/download/${externalId}`,
+          {
+            method: "POST",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log("📦 Réponse CSConnect:", result);
+
+        if (result.status === "success" && result.filePath) {
+          console.log(
+            `✅ Fichier téléchargé avec succès sur le serveur: ${result.filePath}`
+          );
+          return result;
+        } else {
+          throw new Error(result.message || "Échec du téléchargement");
+        }
+      } catch (error) {
+        console.error(
+          "❌ Erreur détaillée lors du téléchargement CSConnect:",
+          error
+        );
+        throw error;
+      }
+    };
+
+    const handleDownload = async () => {
+      if (!externalId || disabled) return;
+
+      setIsDownloading(true);
+      setDownloadError(null);
+
+      try {
+        const result = await downloadCSConnectFile(externalId);
+        console.log(
+          `✅ Fichier CSConnect ${externalId} téléchargé avec succès`
+        );
+
+        // Afficher un message de succès à l'utilisateur
+        if (result.message) {
+          alert(`✅ ${result.message}\n\nFichier: ${result.filePath}`);
+        }
+      } catch (error) {
+        console.error(
+          `❌ Erreur lors du téléchargement du fichier CSConnect ${externalId}:`,
+          error
+        );
+        setDownloadError(error.message);
+        alert(`❌ Erreur: ${error.message}`);
+      } finally {
+        setIsDownloading(false);
+      }
+    };
+
+    return (
+      <button
+        className="details-scan-download-btn csconnect-file-btn"
+        onClick={handleDownload}
+        disabled={disabled || isLoading || isDownloading}
+        title={`Télécharger le scan CSConnect ${externalId}`}
+      >
+        <Download size={16} />
+        <div className="file-info">
+          <span className="file-name">Scan CSConnect</span>
+          <span className="file-details">Archive ZIP</span>
+        </div>
+        {isDownloading && (
+          <div className="details-download-spinner-small"></div>
+        )}
+      </button>
+    );
+  }
+);
+
 // Composant pour télécharger les fichiers Itero
 const IteroFileDownloadButton = React.memo(
   ({ externalId, disabled, isLoading }) => {
@@ -116,7 +207,7 @@ const IteroFileDownloadButton = React.memo(
         }
 
         // Extraire le nom de fichier du header Content-Disposition
-        let downloadFilename = `scan-itero-${externalId}.zip`; // Extension par défaut .zip
+        let downloadFilename = `scan-itero-${externalId}.zip`;
         const contentDisposition = response.headers.get("content-disposition");
 
         if (contentDisposition) {
@@ -195,7 +286,6 @@ const IteroFileDownloadButton = React.memo(
 );
 
 // Composant pour télécharger les fichiers MySmileLab
-// eslint-disable-next-line react/display-name
 const MySmileLabFileDownloadButton = React.memo(
   ({ fileUrl, fileName, publicId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -287,14 +377,6 @@ const MySmileLabFileDownloadButton = React.memo(
       return "Fichier 3D";
     };
 
-    const formatFileSize = (bytes) => {
-      if (!bytes || bytes === 0) return "Taille inconnue";
-      const k = 1024;
-      const sizes = ["B", "KB", "MB", "GB"];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-    };
-
     return (
       <button
         className="details-scan-download-btn mysmilelab-file-btn"
@@ -315,7 +397,6 @@ const MySmileLabFileDownloadButton = React.memo(
   }
 );
 
-// eslint-disable-next-line react/display-name
 const GoogleDriveFileDownloadButton = React.memo(
   ({ fileUrl, fileName, fileId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -468,7 +549,6 @@ const GoogleDriveFileDownloadButton = React.memo(
   }
 );
 
-// eslint-disable-next-line react/display-name
 const MeditLinkFileDownloadButton = React.memo(
   ({ file, externalId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -507,7 +587,6 @@ const MeditLinkFileDownloadButton = React.memo(
         const fileInfo = await infoResponse.json();
         console.log("📄 Infos fichier reçues:", fileInfo);
 
-        // CORRECTION ICI : Utiliser 'url' au lieu de 'downloadUrl'
         const downloadUrl = fileInfo.url || fileInfo.downloadUrl;
 
         if (!downloadUrl) {
@@ -847,6 +926,7 @@ const CommandeInfoGrid = ({
   const isMeditLink = commande && commande.plateforme === "MEDITLINK";
   const isMySmileLab = commande && commande.plateforme === "MYSMILELAB";
   const isItero = commande && commande.plateforme === "ITERO";
+  const isCSConnect = commande && commande.plateforme === "CSCONNECT";
 
   // Fonction pour récupérer les fichiers MeditLink
   const fetchMeditLinkFiles = async () => {
@@ -1124,7 +1204,7 @@ const CommandeInfoGrid = ({
             <FileText size={20} />
             <h3>Informations Techniques</h3>
           </div>
-          {!isItero && (
+          {!isItero && !isCSConnect && (
             <button
               className="details-reload-files-btn"
               onClick={handleReloadFiles}
@@ -1160,6 +1240,22 @@ const CommandeInfoGrid = ({
               <span className="details-item-value">
                 {commande.typeAppareil}
               </span>
+            </div>
+          )}
+
+          {/* Affichage des fichiers CSConnect */}
+          {isCSConnect && (
+            <div className="details-item">
+              <span className="details-item-label">
+                Fichiers 3D disponibles :
+              </span>
+              <div className="details-scans-container csconnect-files-container">
+                <CSConnectFileDownloadButton
+                  externalId={commande.externalId}
+                  disabled={false}
+                  isLoading={false}
+                />
+              </div>
             </div>
           )}
 
@@ -1274,7 +1370,7 @@ const CommandeInfoGrid = ({
                       key={index}
                       fileUrl={file.url}
                       fileName={file.name}
-                      fileId={file.publicId} // Ici publicId contient l'ID Google Drive
+                      fileId={file.publicId}
                       disabled={false}
                       isLoading={false}
                     />
