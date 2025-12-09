@@ -116,7 +116,7 @@ const IteroFileDownloadButton = React.memo(
         }
 
         // Extraire le nom de fichier du header Content-Disposition
-        let downloadFilename = `scan-itero-${externalId}.stl`;
+        let downloadFilename = `scan-itero-${externalId}.zip`; // Extension par défaut .zip
         const contentDisposition = response.headers.get("content-disposition");
 
         if (contentDisposition) {
@@ -184,7 +184,7 @@ const IteroFileDownloadButton = React.memo(
         <Download size={16} />
         <div className="file-info">
           <span className="file-name">Scan Itero</span>
-          <span className="file-details">Fichier STL</span>
+          <span className="file-details">Archive ZIP</span>
         </div>
         {isDownloading && (
           <div className="details-download-spinner-small"></div>
