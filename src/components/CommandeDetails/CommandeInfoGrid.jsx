@@ -95,7 +95,6 @@ const fetchThreeShapeOrderData = async (externalId) => {
 const CSConnectFileDownloadButton = React.memo(
   ({ externalId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
-    const [downloadError, setDownloadError] = useState(null);
 
     const downloadCSConnectFile = async (externalId) => {
       console.log(`📥 Début du téléchargement CSConnect: ${externalId}`);
@@ -104,7 +103,7 @@ const CSConnectFileDownloadButton = React.memo(
         const response = await fetch(
           `${CSCONNECT_API_BASE_URL}/api/csconnect/download/${externalId}`,
           {
-            method: "POST",
+            method: "GET",
           }
         );
 
@@ -112,17 +111,45 @@ const CSConnectFileDownloadButton = React.memo(
           throw new Error(`Erreur ${response.status}: ${response.statusText}`);
         }
 
-        const result = await response.json();
-        console.log("📦 Réponse CSConnect:", result);
+        const blob = await response.blob();
 
-        if (result.status === "success" && result.filePath) {
-          console.log(
-            `✅ Fichier téléchargé avec succès sur le serveur: ${result.filePath}`
-          );
-          return result;
-        } else {
-          throw new Error(result.message || "Échec du téléchargement");
+        if (blob.size === 0) {
+          throw new Error("Le fichier téléchargé est vide (0 bytes)");
         }
+
+        // Extraire le nom de fichier du header Content-Disposition
+        let downloadFilename = `scan-csconnect-${externalId}.zip`;
+        const contentDisposition = response.headers.get("content-disposition");
+
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(
+            /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+          );
+          if (filenameMatch && filenameMatch[1]) {
+            downloadFilename = filenameMatch[1].replace(/['"]/g, "");
+          }
+        }
+
+        console.log(`💾 Nom de fichier final: ${downloadFilename}`);
+
+        // Déclencher le téléchargement
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = downloadFilename;
+
+        document.body.appendChild(a);
+        a.click();
+
+        // Nettoyer
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }, 100);
+
+        console.log("✅ Téléchargement CSConnect terminé avec succès");
+        return blob;
       } catch (error) {
         console.error(
           "❌ Erreur détaillée lors du téléchargement CSConnect:",
@@ -136,24 +163,17 @@ const CSConnectFileDownloadButton = React.memo(
       if (!externalId || disabled) return;
 
       setIsDownloading(true);
-      setDownloadError(null);
 
       try {
-        const result = await downloadCSConnectFile(externalId);
+        await downloadCSConnectFile(externalId);
         console.log(
           `✅ Fichier CSConnect ${externalId} téléchargé avec succès`
         );
-
-        // Afficher un message de succès à l'utilisateur
-        if (result.message) {
-          alert(`✅ ${result.message}\n\nFichier: ${result.filePath}`);
-        }
       } catch (error) {
         console.error(
           `❌ Erreur lors du téléchargement du fichier CSConnect ${externalId}:`,
           error
         );
-        setDownloadError(error.message);
         alert(`❌ Erreur: ${error.message}`);
       } finally {
         setIsDownloading(false);
