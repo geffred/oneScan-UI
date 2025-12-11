@@ -765,6 +765,7 @@ const CommandeDetails = () => {
                 commandeId={commande.id}
                 onUpdate={handleCertificatUpdate}
                 commandeTypeAppareil={commande.typeAppareil}
+                commandeRefPatient={commande.refPatient}
               />
             </div>
           </div>
