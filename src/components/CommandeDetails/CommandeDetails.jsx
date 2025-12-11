@@ -13,8 +13,9 @@ import { AuthContext } from "../../components/Config/AuthContext";
 import Navbar from "../../components/Navbar/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import BonCommande from "../BonDeCommande/BonDeCommande";
+import CertificatConformite from "./CertificatConformite"; // NOUVEAU IMPORT
 import { useReactToPrint } from "react-to-print";
-import { AlertCircle, ArrowLeft } from "lucide-react";
+import { AlertCircle, ArrowLeft, Shield } from "lucide-react";
 
 // Imports des nouveaux composants
 import CommandeHeader from "./CommandeHeader";
@@ -151,6 +152,36 @@ const updateCommandeStatus = async (commandeId, status) => {
   return response.json();
 };
 
+// NOUVEAU : Fonction pour vérifier si un certificat existe
+const checkCertificatExists = async (commandeId) => {
+  if (!commandeId) return false;
+
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token manquant");
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/certificats/commande/${commandeId}/exists`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    return data.exists || false;
+  } catch (error) {
+    console.error("Erreur lors de la vérification du certificat:", error);
+    return false;
+  }
+};
+
 // Composants d'état
 const LoadingState = React.memo(() => (
   <div className="commandes-loading-state">
@@ -189,6 +220,8 @@ const CommandeDetails = () => {
   const [activeComponent, setActiveComponent] = useState("commandes");
   const [showBonDeCommande, setShowBonDeCommande] = useState(false);
   const [showCabinetSearch, setShowCabinetSearch] = useState(false);
+  const [showCertificat, setShowCertificat] = useState(false); // NOUVEAU ÉTAT
+  const [hasCertificat, setHasCertificat] = useState(false); // NOUVEAU ÉTAT
 
   const bonDeCommandeRef = useRef();
 
@@ -228,6 +261,25 @@ const CommandeDetails = () => {
   } = useSWR(isAuthenticated ? "cabinets" : null, getCabinets, {
     revalidateOnFocus: false,
   });
+
+  // NOUVEAU : Vérifier si un certificat existe pour cette commande
+  useEffect(() => {
+    const verifyCertificatExists = async () => {
+      if (commande?.id) {
+        try {
+          const exists = await checkCertificatExists(commande.id);
+          setHasCertificat(exists);
+        } catch (error) {
+          console.error("Erreur vérification certificat:", error);
+          setHasCertificat(false);
+        }
+      }
+    };
+
+    if (commande?.id) {
+      verifyCertificatExists();
+    }
+  }, [commande]);
 
   // Callbacks et handlers
   const toggleSidebar = useCallback(() => {
@@ -363,6 +415,15 @@ const CommandeDetails = () => {
     setShowBonDeCommande(true);
   }, []);
 
+  // NOUVEAU : Handler pour ouvrir le certificat
+  const handleOpenCertificat = useCallback(() => {
+    if (!commande?.id) {
+      toast.error("Commande non disponible");
+      return;
+    }
+    setShowCertificat(true);
+  }, [commande]);
+
   const handleSendEmailNotification = useCallback(async () => {
     if (!commande || !commande.cabinetId) {
       toast.warning("Aucun cabinet associé à cette commande");
@@ -455,6 +516,14 @@ const CommandeDetails = () => {
     },
     [commande, mutateCommande, mutateCommandes]
   );
+
+  // NOUVEAU : Mettre à jour l'état du certificat après création/suppression
+  const handleCertificatUpdate = useCallback(async () => {
+    if (commande?.id) {
+      const exists = await checkCertificatExists(commande.id);
+      setHasCertificat(exists);
+    }
+  }, [commande]);
 
   // Utility functions
   const formatDate = useCallback((dateString) => {
@@ -655,6 +724,8 @@ const CommandeDetails = () => {
           handleOpenBonCommande={handleOpenBonCommande}
           handleSendEmailNotification={handleSendEmailNotification}
           handleDownload={handleDownload}
+          handleOpenCertificat={handleOpenCertificat} // NOUVEAU PROP
+          hasCertificat={hasCertificat} // NOUVEAU PROP
         />
       </div>
 
@@ -671,6 +742,33 @@ const CommandeDetails = () => {
           ref={bonDeCommandeRef}
           onPrint={handleDownloadPDF}
         />
+      )}
+
+      {/* NOUVEAU : Modal pour Certificat de Conformité */}
+      {showCertificat && commande && (
+        <div className="modal-overlay" onClick={() => setShowCertificat(false)}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>
+                <Shield size={20} style={{ marginRight: "10px" }} />
+                Certificat de Conformité
+              </h3>
+              <button
+                className="modal-close-btn"
+                onClick={() => setShowCertificat(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-content">
+              <CertificatConformite
+                commandeId={commande.id}
+                onUpdate={handleCertificatUpdate}
+                commandeTypeAppareil={commande.typeAppareil}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </LayoutWrapper>
   );

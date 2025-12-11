@@ -1,5 +1,15 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
+/* eslint-disable react/display-name */
 import React from "react";
-import { Sparkles, FileText, Mail, Download, CheckCircle } from "lucide-react";
+import {
+  Sparkles,
+  FileText,
+  Mail,
+  Download,
+  CheckCircle,
+  Shield,
+} from "lucide-react";
 
 const ActionCard = React.memo(
   ({ onClick, disabled, icon, title, description, isLoading }) => (
@@ -34,6 +44,8 @@ const CommandeActions = ({
   handleGenerateOrder,
   handleOpenBonCommande,
   handleSendEmailNotification,
+  handleOpenCertificat, // Nouvelle fonction
+  hasCertificat, // Nouveau prop
 }) => {
   return (
     <div className="details-actions-section">
@@ -60,6 +72,23 @@ const CommandeActions = ({
             canDownloadBonCommande
               ? "Ouvrir et télécharger le bon de commande généré"
               : "Le type d'appareil doit être défini pour télécharger le bon de commande"
+          }
+          isLoading={false}
+        />
+
+        <ActionCard
+          onClick={handleOpenCertificat} // Nouveau bouton
+          disabled={!commande || !commande.id}
+          icon={<Shield size={24} />}
+          title={
+            hasCertificat
+              ? "Gérer le certificat"
+              : "Créer certificat de conformité"
+          }
+          description={
+            hasCertificat
+              ? "Gérer ou télécharger le certificat de conformité"
+              : "Créer un certificat de conformité médicale"
           }
           isLoading={false}
         />
