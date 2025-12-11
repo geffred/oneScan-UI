@@ -56,7 +56,7 @@
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   border-radius: 8px;
   margin-bottom: 24px;
-  border-left: 4px solid #007AFF;
+
 }
 
 .certificat-status-info .text-success {
@@ -76,7 +76,7 @@
   padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
 }
 
 /* Grille des détails */
@@ -95,7 +95,7 @@
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
 }
 
 .certificat-detail-item:hover {
@@ -140,7 +140,7 @@
   background: linear-gradient(135deg, #f8faff 0%, #f1f8ff 100%);
   border-radius: 16px;
   border: 2px dashed #d1e7ff;
-  box-shadow: 0 4px 15px rgba(0, 122, 255, 0.05);
+
 }
 
 .certificat-form-container h3 {
@@ -180,7 +180,7 @@
   font-size: 0.95rem;
   transition: all 0.3s ease;
   background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
 }
 
 .form-control-input:focus {
@@ -211,8 +211,8 @@
   padding: 12px 16px;
   background: #fffbeb;
   border-radius: 6px;
-  border-left: 4px solid #f59e0b;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+
 }
 
 .form-info-note small {
@@ -364,5 +364,146 @@
 
   .form-control-input {
     padding: 10px 14px;
+  }
+}
+
+
+/* CertificatConformite.css - Ajouts pour les nouvelles fonctionnalités */
+
+/* Section des informations de base */
+.basic-info-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
+}
+
+.basic-info-section h4 {
+  color: #0369a1;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.device-info-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
+}
+
+.device-info-section h4 {
+  color: #0369a1;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Bouton pour modifier les informations de base */
+.details-btn-outline {
+  background: transparent;
+  border: 2px solid #007AFF;
+  color: #007AFF;
+}
+
+.details-btn-outline:hover:not(:disabled) {
+  background: #007AFF;
+  color: white;
+}
+
+/* Avertissement en rouge */
+.warning-item {
+  background: #fef2f2;
+}
+
+.warning-text {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* Textarea pour l'avertissement */
+textarea.form-control-input {
+  min-height: 80px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* Icônes dans les détails */
+.fabricant-details div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.fabricant-details svg {
+  color: #007AFF;
+  flex-shrink: 0;
+}
+
+/* Bouton info base */
+.certificat-status-info .details-btn-outline {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #007AFF;
+  color: #007AFF;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  margin-left: 10px;
+}
+
+.certificat-status-info .details-btn-outline:hover:not(:disabled) {
+  background: #007AFF;
+  color: white;
+}
+
+/* Form input groups améliorés */
+.form-input-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-input-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Améliorations responsive */
+@media (max-width: 768px) {
+  .basic-info-section,
+  .device-info-section {
+    padding: 1rem;
+  }
+  
+  .certificat-status-info {
+    flex-wrap: wrap;
+  }
+  
+  .certificat-status-info .details-btn-outline {
+    margin-left: 0;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .basic-info-section h4,
+  .device-info-section h4 {
+    font-size: 1rem;
+  }
+  
+  .fabricant-details div {
+    font-size: 0.85rem;
+  }
+  
+  .form-input-group.full-width {
+    margin-top: 0.5rem;
   }
 }
