@@ -719,7 +719,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                           <div className="appareil-card-footer">
                             <button
                               className="select-appareil-btn"
-                              disabled={!appareil.disponible}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (appareil.disponible) {
