@@ -469,7 +469,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       };
 
       const response = await fetch(
-        `${API_BASE_URL}/send-commande-notification`,
+        `${API_BASE_URL}/email/send-commande-notification`,
         {
           method: "POST",
           headers: {
@@ -609,7 +609,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                   setFilters({ ...filters, option: e.target.value })
                 }
               >
-                <br />
                 <option value="">Toutes options</option>
                 {OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
