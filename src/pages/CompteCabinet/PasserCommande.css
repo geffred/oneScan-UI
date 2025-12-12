@@ -1,4 +1,4 @@
-/* PasserCommande.css */
+/* PasserCommande.css - Version nettoyée */
 
 .passer-commande-container {
   width: 100%;
@@ -30,47 +30,364 @@
   line-height: 1.6;
 }
 
-.passer-commande-loading {
+/* Layout principal */
+.commande-layout {
+  display: flex;
+  gap: 2rem;
+  margin-top: 2rem;
+  height: calc(100vh - 200px);
+}
+
+/* Section appareils (côté gauche agrandi) */
+.appareils-section-large {
+  flex: 1.5;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.appareils-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 1rem;
-  color: #64748b;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-/* Form Sections */
-.form-section {
-  background: white;
-  border-radius: 8px;
-  padding: 2.5rem;
-  margin-bottom: 2rem;
-  border: 1px solid #e2e8f0;
-}
-
-.form-section h2 {
+.appareils-header h2 {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   color: #2d3748;
+  margin: 0;
+}
+
+.view-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.view-btn {
+  background: #f1f5f9;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.view-btn.active {
+  background: #3b82f6;
+  color: white;
+}
+
+.view-btn:hover {
+  background: #e2e8f0;
+}
+
+.view-btn.active:hover {
+  background: #2563eb;
+}
+
+/* Recherche et filtres améliorés */
+.search-filter-section {
+  margin-bottom: 1.5rem;
+}
+
+.search-container {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.search-container svg {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+}
+
+.search-input-large {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.search-input-large:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filters-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.filter-group-large {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group-large label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.filter-select-large {
+  padding: 0.625rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.filter-select-large:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+/* Conteneur appareils */
+.appareils-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.appareils-count {
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Affichage grille/liste unifié */
+.appareils-display {
+  display: grid;
+  gap: 1rem;
+}
+
+.appareils-display.grid {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.appareils-display.list {
+  grid-template-columns: 1fr;
+}
+
+/* Item appareil unifié */
+.appareil-display-item {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.appareil-display-item:hover:not(.unavailable) {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+.appareil-display-item.unavailable {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.appareil-display-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.appareil-display-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1f2937;
+  font-weight: 600;
+  flex: 1;
+}
+
+.disponibility-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.disponibility-badge.available {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.disponibility-badge.unavailable {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.appareil-display-info {
+  flex: 1;
+  margin-bottom: 1rem;
+}
+
+.info-line {
+  display: flex;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.info-line strong {
+  color: #4b5563;
+  min-width: 100px;
+}
+
+.info-line span {
+  color: #1f2937;
+  flex: 1;
+}
+
+.info-line.description {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.info-line.description p {
+  margin: 0.25rem 0 0 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.appareil-display-actions {
+  text-align: center;
+}
+
+.select-appareil-btn-large {
+  width: 100%;
+  padding: 0.75rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.select-appareil-btn-large:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.appareil-display-item.unavailable .select-appareil-btn-large {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Aucun appareil */
+.no-appareils-found {
+  text-align: center;
+  padding: 3rem;
+  color: #64748b;
+}
+
+.no-appareils-found h3 {
+  margin: 1rem 0 0.5rem 0;
+  color: #4b5563;
+}
+
+/* Section formulaire (côté droit) */
+.commande-form-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.form-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.form-section-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.3rem;
+  color: #2d3748;
+  margin: 0;
+}
+
+.selected-appareil-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #dcfce7;
+  color: #166534;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Form Sections unifiées */
+.form-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.form-section h2,
+.form-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.2rem;
+  color: #2d3748;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid #f1f5f9;
   font-weight: 600;
 }
 
 .form-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .form-group label {
@@ -79,16 +396,16 @@
   gap: 0.5rem;
   font-weight: 500;
   color: #374151;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .form-input,
 .form-select,
 .form-textarea {
-  padding: 1rem;
+  padding: 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: all 0.2s ease;
   font-family: inherit;
   background: white;
@@ -110,102 +427,97 @@
 
 .form-textarea {
   resize: vertical;
-  min-height: 120px;
+  min-height: 100px;
   line-height: 1.5;
 }
 
 .error-message {
   color: #dc2626;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 500;
   margin-top: 0.25rem;
 }
 
 .character-count {
   text-align: right;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #6b7280;
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
 }
 
-/* Appareils Disponibles */
-.appareils-disponibles {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
+.date-hint {
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* Appareils correspondants */
+.appareils-correspondants {
+  margin-top: 1rem;
+  padding: 1rem;
   background: #f8fafc;
   border-radius: 6px;
   border: 1px solid #e2e8f0;
 }
 
-.appareils-disponibles h3 {
-  margin-bottom: 1rem;
+.appareils-correspondants h4 {
+  margin-bottom: 0.75rem;
   color: #374151;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
-.loading-appareils {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #64748b;
-  font-size: 0.95rem;
-}
-
-.appareils-list {
+.correspondants-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
-.appareil-item {
+.correspondant-item {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1.25rem;
+  gap: 0.5rem;
+  padding: 1rem;
   background: white;
   border-radius: 6px;
   border: 1px solid #e2e8f0;
-  transition: border-color 0.2s ease;
 }
 
-.appareil-item:hover {
-  border-color: #3b82f6;
-}
-
-.appareil-item .check-icon {
+.correspondant-item .check-icon {
   color: #10b981;
   flex-shrink: 0;
   margin-top: 2px;
 }
 
-.appareil-info strong {
+.correspondant-info strong {
   color: #1f2937;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
-.appareil-description {
+.correspondant-description {
   color: #6b7280;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-  line-height: 1.5;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  line-height: 1.4;
 }
 
-.no-appareil {
+.no-correspondant {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem;
+  gap: 0.5rem;
+  padding: 1rem;
   background: #fef3c7;
   border-radius: 6px;
   color: #92400e;
   border: 1px solid #fbbf24;
+  font-size: 0.9rem;
 }
 
 /* Upload Area */
 .upload-area {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .file-input {
@@ -217,7 +529,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2rem;
+  padding: 2rem 1.5rem;
   border: 2px dashed #cbd5e1;
   border-radius: 8px;
   background: #f8fafc;
@@ -232,50 +544,53 @@
 }
 
 .upload-label p {
-  margin: 1rem 0 0.5rem 0;
-  font-size: 1.1rem;
+  margin: 0.75rem 0 0.25rem 0;
+  font-size: 1rem;
   font-weight: 500;
   color: #374151;
 }
 
 .upload-label small {
   color: #64748b;
-  line-height: 1.5;
+  line-height: 1.4;
+  font-size: 0.85rem;
 }
 
 .compression-info {
   color: #3b82f6;
   font-weight: 500;
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
 }
 
 /* Selected Files */
 .selected-files {
-  padding: 1.5rem;
+  padding: 1rem;
   background: #f0f9ff;
   border-radius: 6px;
   border: 1px solid #0ea5e9;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
 }
 
 .selected-files h4 {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   color: #0369a1;
   font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .files-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .file-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: 0.5rem;
+  padding: 0.75rem;
   background: white;
   border-radius: 6px;
   border: 1px solid #e2e8f0;
@@ -284,26 +599,27 @@
 .file-name {
   color: #374151;
   font-weight: 500;
+  font-size: 0.9rem;
 }
 
 .file-size {
   margin-left: auto;
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
 }
 
 .upload-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .upload-btn {
   flex: 1;
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1rem;
   border: none;
   border-radius: 6px;
   font-weight: 500;
-  font-size: 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -338,20 +654,21 @@
 
 /* Uploaded Files */
 .uploaded-files {
-  padding: 1.5rem;
+  padding: 1rem;
   background: #f0fdf4;
   border-radius: 6px;
   border: 1px solid #22c55e;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
 }
 
 .uploaded-files h4 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   color: #15803d;
   font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .success-icon {
@@ -361,12 +678,11 @@
 .uploaded-file-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem;
+  gap: 0.5rem;
+  padding: 1rem;
   background: white;
   border-radius: 6px;
   border: 1px solid #e2e8f0;
-  transition: border-color 0.2s ease;
 }
 
 .uploaded-file-item:hover {
@@ -382,13 +698,13 @@
 
 .file-info strong {
   color: #1f2937;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
 .file-info small {
   color: #6b7280;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .remove-btn {
@@ -411,10 +727,10 @@
 .compression-badge {
   background: #dbeafe;
   color: #1e40af;
-  padding: 0.25rem 0.75rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 12px;
-  font-size: 0.8em;
-  margin-left: 8px;
+  font-size: 0.75rem;
+  margin-left: 6px;
   font-weight: 500;
 }
 
@@ -422,20 +738,20 @@
 .form-actions {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
-  margin-top: 3rem;
-  padding-top: 2rem;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
   border-top: 1px solid #e8e8e8;
 }
 
 .cancel-btn {
-  padding: 1rem 2.5rem;
+  padding: 0.75rem 2rem;
   background: #6b7280;
   color: white;
   border: none;
   border-radius: 6px;
   font-weight: 500;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -445,17 +761,17 @@
 }
 
 .submit-btn {
-  padding: 1rem 3rem;
+  padding: 0.75rem 2.5rem;
   background: #3b82f6;
   color: white;
   border: none;
   border-radius: 6px;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   transition: background-color 0.2s ease;
 }
 
@@ -469,88 +785,26 @@
   cursor: not-allowed;
 }
 
-/* Spinner Animation */
-.spinner {
-  animation: spin 1s linear infinite;
+/* États de chargement */
+.passer-commande-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+  color: #64748b;
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.loading-appareils {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.9rem;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .passer-commande-container {
-    padding: 1rem;
-  }
-
-  .passer-commande-header h1 {
-    font-size: 1.75rem;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .form-section {
-    padding: 1.5rem;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .upload-label {
-    padding: 2rem 1rem;
-  }
-
-  .upload-actions {
-    flex-direction: column;
-  }
-
-  .form-actions {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .cancel-btn,
-  .submit-btn {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .passer-commande-header h1 {
-    font-size: 1.5rem;
-  }
-
-  .form-section h2 {
-    font-size: 1.25rem;
-  }
-
-  .uploaded-file-item {
-    flex-wrap: wrap;
-  }
-
-  .file-info {
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-
-  .remove-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 0.75rem;
-  }
-}
-
-
-/* Styles pour la barre de progression */
+/* Progress bar styles */
 .progress-bar-container {
   width: 100%;
   margin: 1rem 0;
@@ -631,347 +885,174 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 1.5rem;
-  margin: 1.5rem 0;
+  padding: 1rem;
+  margin: 1rem 0;
 }
 
 .progress-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .progress-text {
   font-weight: 500;
   color: #374151;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .progress-percentage {
   font-weight: 600;
   color: #3b82f6;
-  font-size: 0.95rem;
-}
-
-/* États de chargement */
-.passer-commande-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 1rem;
-  color: #64748b;
-}
-
-.loading-appareils {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #64748b;
-  font-size: 0.95rem;
-}
-
-/* Mise à jour des styles existants pour la limite de fichier */
-.upload-label small {
-  color: #64748b;
-  line-height: 1.5;
-}
-
-.compression-info {
-  color: #3b82f6;
-  font-weight: 500;
-  margin-top: 0.5rem;
+  font-size: 0.9rem;
 }
 
 /* Ajustements pour les boutons avec indicateur de progression */
-.upload-btn .progress-bar-container.small.inline {
-  margin-right: 0.5rem;
-}
-
+.upload-btn .progress-bar-container.small.inline,
 .submit-btn .progress-bar-container.small.inline {
   margin-right: 0.5rem;
 }
 
-
-/* Nouveaux styles pour la mise à jour */
-
-.commande-content {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 2rem;
-  margin-top: 2rem;
-}
-
-@media (max-width: 1200px) {
-  .commande-content {
-    grid-template-columns: 1fr;
-  }
-}
-
-.appareils-list-section {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  border: 1px solid #e2e8f0;
-  height: fit-content;
-  position: sticky;
-  top: 1rem;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.section-header h2 {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1.2rem;
-  color: #2d3748;
-  margin: 0;
-  padding: 0;
-  border: none;
-}
-
-.toggle-list-btn {
-  background: none;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.toggle-list-btn:hover {
-  background: #f1f5f9;
-  color: #3b82f6;
-}
-
-.search-filter-container {
-  margin-bottom: 1.5rem;
-}
-
-.search-box {
-  position: relative;
-  margin-bottom: 1rem;
-}
-
-.search-box svg {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #64748b;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.75rem 1rem 0.75rem 3rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.filter-section {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-  background: #f8fafc;
-  padding: 1rem;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.filter-group label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #4b5563;
-}
-
-.filter-select {
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  background: white;
-  transition: all 0.2s ease;
-}
-
-.filter-select:focus {
-  outline: none;
-  border-color: #3b82f6;
-}
-
-.appareils-grid-container {
-  max-height: 500px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-}
-
-.appareils-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-}
-
-.appareil-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 1.25rem;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.appareil-card:hover:not(.unavailable) {
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
-  transform: translateY(-2px);
-}
-
-.appareil-card.unavailable {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.appareil-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
-.appareil-card-header h3 {
-  margin: 0;
-  font-size: 1rem;
-  color: #1f2937;
-  font-weight: 600;
-  flex: 1;
-}
-
-.disponibility-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.disponibility-badge.available {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.disponibility-badge.unavailable {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.appareil-card-body {
-  margin-bottom: 1rem;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.info-row strong {
-  color: #4b5563;
-}
-
-.info-row span {
-  color: #1f2937;
-  text-align: right;
-  max-width: 60%;
-  word-break: break-word;
-}
-
-.info-row.description {
-  flex-direction: column;
-  align-items: flex-start;
-  margin-top: 0.75rem;
-}
-
-.info-row.description p {
-  margin: 0.25rem 0 0 0;
-  color: #6b7280;
-  font-size: 0.85rem;
-  line-height: 1.4;
-}
-
-.appareil-card-footer {
-  text-align: center;
-}
-
-.select-appareil-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.select-appareil-btn:hover:not(:disabled) {
-  background: #2563eb;
-}
-
-.select-appareil-btn:disabled {
-  background: #d1d5db;
-  color: #9ca3af;
-  cursor: not-allowed;
-}
-
-.date-hint {
-  color: #6b7280;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-  display: block;
-}
-
-/* Custom scrollbar for grid */
-.appareils-grid-container::-webkit-scrollbar {
+/* Scrollbar styling */
+.appareils-container::-webkit-scrollbar,
+.commande-form-section::-webkit-scrollbar {
   width: 6px;
 }
 
-.appareils-grid-container::-webkit-scrollbar-track {
+.appareils-container::-webkit-scrollbar-track,
+.commande-form-section::-webkit-scrollbar-track {
   background: #f1f5f9;
   border-radius: 3px;
 }
 
-.appareils-grid-container::-webkit-scrollbar-thumb {
+.appareils-container::-webkit-scrollbar-thumb,
+.commande-form-section::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 3px;
 }
 
-.appareils-grid-container::-webkit-scrollbar-thumb:hover {
+.appareils-container::-webkit-scrollbar-thumb:hover,
+.commande-form-section::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .commande-layout {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .appareils-section-large,
+  .commande-form-section {
+    width: 100%;
+  }
+  
+  .appareils-display.grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .passer-commande-container {
+    padding: 1rem;
+  }
+
+  .passer-commande-header h1 {
+    font-size: 1.75rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .passer-commande-header p {
+    font-size: 1rem;
+  }
+
+  .appareils-header,
+  .form-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .selected-appareil-info {
+    align-self: flex-start;
+  }
+
+  .filters-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .appareils-display.grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-line {
+    flex-direction: column;
+  }
+  
+  .info-line strong {
+    min-width: auto;
+    margin-bottom: 0.25rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .upload-label {
+    padding: 1.5rem 1rem;
+  }
+
+  .upload-actions {
+    flex-direction: column;
+  }
+
+  .uploaded-file-item {
+    flex-wrap: wrap;
+  }
+
+  .file-info {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .remove-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .cancel-btn,
+  .submit-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .passer-commande-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .form-section h2,
+  .form-section h3 {
+    font-size: 1.1rem;
+  }
+
+  .view-controls {
+    align-self: flex-end;
+  }
 }

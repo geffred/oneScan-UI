@@ -23,6 +23,8 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
+  List,
+  Grid,
 } from "lucide-react";
 import { apiGet } from "../../components/Config/apiUtils";
 import { AuthContext } from "../../components/Config/AuthContext";
@@ -88,6 +90,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
   const [currentUploadFile, setCurrentUploadFile] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showAppareilsList, setShowAppareilsList] = useState(true);
+  const [viewMode, setViewMode] = useState("grid"); // "grid" ou "list"
   const [filters, setFilters] = useState({
     categorie: "",
     option: "",
@@ -143,7 +146,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
     return result;
   }, [appareils, searchTerm, filters]);
 
-  // Compresser les fichiers en fichier ZIP
+  // Compresser les fichiers en ZIP
   const compressFilesToZip = async (files) => {
     const zip = new JSZip();
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -395,7 +398,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
         fichierPublicIds: uploadedFiles.map((f) => f.fileId),
         adresseDeLivraison: userData.adresseDeLivraison || "",
         adresseDeFacturation: userData.adresseDeFacturation || "",
-        dateEcheance: values.dateEcheance, // Ajout de la date d'échéance
+        dateEcheance: values.dateEcheance,
       };
 
       // Créer la commande
@@ -451,25 +454,20 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       const token = localStorage.getItem("token");
 
       const emailData = {
-        to: "laboratoire@mysmilelab.be", // Email du laboratoire
-        subject: `Nouvelle commande - ${commande.refPatient}`,
-        template: "commande_notification",
-        data: {
-          commandeId: commande.externalId || commande.id,
-          refPatient: commande.refPatient,
-          cabinetName: cabinet.nom,
-          cabinetEmail: cabinet.email,
-          typeAppareil: commande.typeAppareil,
-          dateEcheance: commande.dateEcheance,
-          commentaire: commande.commentaire,
-          adresseLivraison: commande.adresseDeLivraison,
-          dateCreation: new Date().toLocaleDateString("fr-FR"),
-          nombreFichiers: uploadedFiles.length,
-        },
+        commande_id: commande.externalId || commande.id,
+        patient_ref: commande.refPatient,
+        plateforme: "MYSMILELAB",
+        cabinet: cabinet.nom,
+        date_reception: new Date().toLocaleDateString("fr-FR"),
+        commentaire: commande.commentaire || "Aucun commentaire",
+        type_appareil: commande.typeAppareil,
+        date_echeance: commande.dateEcheance,
+        nombre_fichiers: uploadedFiles.length,
       };
 
+      // Utilisez l'endpoint Brevo existant
       const response = await fetch(
-        `${API_BASE_URL}/email/send-commande-notification`,
+        `${API_BASE_URL}/api/send-new-commande-notification`,
         {
           method: "POST",
           headers: {
@@ -483,13 +481,13 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       if (response.ok) {
         toast.success("Email de notification envoyé au laboratoire");
       } else {
-        console.warn(
-          "Échec de l'envoi de l'email, mais la commande a été créée"
-        );
+        const errorData = await response.json();
+        console.warn("Échec de l'envoi de l'email:", errorData);
+        toast.warning("Commande créée mais email non envoyé");
       }
     } catch (error) {
       console.error("Erreur lors de l'envoi de l'email:", error);
-      // Ne pas bloquer la création de la commande en cas d'erreur d'email
+      toast.warning("Commande créée mais email non envoyé");
     }
   };
 
@@ -550,202 +548,214 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
         </p>
       </div>
 
-      <div className="commande-content">
-        <div className="commande-left-panel">
-          {/* Liste des appareils disponibles */}
-          <div className="appareils-list-section">
-            <div className="section-header">
-              <h2>
-                <Package size={20} />
-                Appareils Disponibles
-              </h2>
+      <div className="commande-layout">
+        {/* Section gauche - Liste des appareils (agrandie) */}
+        <div className="appareils-section-large">
+          <div className="appareils-header">
+            <h2>
+              <Package size={20} />
+              Catalogue des Appareils
+            </h2>
+            <div className="view-controls">
               <button
-                className="toggle-list-btn"
-                onClick={() => setShowAppareilsList(!showAppareilsList)}
+                className={`view-btn ${viewMode === "grid" ? "active" : ""}`}
+                onClick={() => setViewMode("grid")}
+                title="Vue grille"
               >
-                {showAppareilsList ? (
-                  <ChevronUp size={20} />
-                ) : (
-                  <ChevronDown size={20} />
-                )}
+                <Grid size={16} />
+              </button>
+              <button
+                className={`view-btn ${viewMode === "list" ? "active" : ""}`}
+                onClick={() => setViewMode("list")}
+                title="Vue liste"
+              >
+                <List size={16} />
               </button>
             </div>
+          </div>
 
-            {showAppareilsList && (
-              <>
-                <div className="search-filter-container">
-                  <div className="search-box">
-                    <Search size={18} />
-                    <input
-                      type="text"
-                      placeholder="Rechercher un appareil..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="search-input"
-                    />
-                  </div>
+          <div className="search-filter-section">
+            <div className="search-container">
+              <Search size={18} />
+              <input
+                type="text"
+                placeholder="Rechercher un appareil par nom, catégorie, description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input-large"
+              />
+            </div>
 
-                  <div className="filter-section">
-                    <div className="filter-group">
-                      <label>
-                        <Filter size={14} />
-                        Catégorie
-                      </label>
-                      <select
-                        value={filters.categorie}
-                        onChange={(e) =>
-                          setFilters({ ...filters, categorie: e.target.value })
-                        }
-                        className="filter-select"
-                      >
-                        <option value="">Toutes</option>
-                        {CATEGORIES.map((cat) => (
-                          <option key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+            <div className="filters-row">
+              <div className="filter-group-large">
+                <label>Catégorie</label>
+                <select
+                  value={filters.categorie}
+                  onChange={(e) =>
+                    setFilters({ ...filters, categorie: e.target.value })
+                  }
+                  className="filter-select-large"
+                >
+                  <option value="">Toutes les catégories</option>
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                    <div className="filter-group">
-                      <label>
-                        <Filter size={14} />
-                        Option
-                      </label>
-                      <select
-                        value={filters.option}
-                        onChange={(e) =>
-                          setFilters({ ...filters, option: e.target.value })
-                        }
-                        className="filter-select"
-                      >
-                        <option value="">Toutes</option>
-                        {OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+              <div className="filter-group-large">
+                <label>Option</label>
+                <select
+                  value={filters.option}
+                  onChange={(e) =>
+                    setFilters({ ...filters, option: e.target.value })
+                  }
+                  className="filter-select-large"
+                >
+                  <option value="">Toutes les options</option>
+                  {OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                    <div className="filter-group">
-                      <label>
-                        <Filter size={14} />
-                        Disponibilité
-                      </label>
-                      <select
-                        value={filters.disponibilite}
-                        onChange={(e) =>
-                          setFilters({
-                            ...filters,
-                            disponibilite: e.target.value,
-                          })
-                        }
-                        className="filter-select"
-                      >
-                        <option value="all">Tous</option>
-                        <option value="available">Disponibles</option>
-                        <option value="unavailable">Indisponibles</option>
-                      </select>
-                    </div>
+              <div className="filter-group-large">
+                <label>Disponibilité</label>
+                <select
+                  value={filters.disponibilite}
+                  onChange={(e) =>
+                    setFilters({ ...filters, disponibilite: e.target.value })
+                  }
+                  className="filter-select-large"
+                >
+                  <option value="all">Tous</option>
+                  <option value="available">Disponibles</option>
+                  <option value="unavailable">Indisponibles</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="appareils-container">
+            {loadingAppareils ? (
+              <div className="loading-appareils">
+                <div className="progress-bar-container small">
+                  <div className="progress-bar">
+                    <div className="progress-bar-fill indeterminate"></div>
                   </div>
                 </div>
-
-                <div className="appareils-grid-container">
-                  {loadingAppareils ? (
-                    <div className="loading-appareils">
-                      <div className="progress-bar-container small">
-                        <div className="progress-bar">
-                          <div className="progress-bar-fill indeterminate"></div>
-                        </div>
-                      </div>
-                      <span>Chargement des appareils...</span>
-                    </div>
-                  ) : filteredAndSearchedAppareils.length > 0 ? (
-                    <div className="appareils-grid">
-                      {filteredAndSearchedAppareils.map((appareil) => (
-                        <div
-                          key={appareil.id}
-                          className={`appareil-card ${
-                            !appareil.disponible ? "unavailable" : ""
+                <span>Chargement du catalogue...</span>
+              </div>
+            ) : filteredAndSearchedAppareils.length > 0 ? (
+              <>
+                <div className="appareils-count">
+                  {filteredAndSearchedAppareils.length} appareil(s) trouvé(s)
+                </div>
+                <div className={`appareils-display ${viewMode}`}>
+                  {filteredAndSearchedAppareils.map((appareil) => (
+                    <div
+                      key={appareil.id}
+                      className={`appareil-display-item ${
+                        !appareil.disponible ? "unavailable" : ""
+                      } ${viewMode}`}
+                      onClick={() => {
+                        if (appareil.disponible) {
+                          setSelectedCategorie(appareil.categorie);
+                          setSelectedOption(appareil.options);
+                          // Scroll vers le formulaire
+                          document
+                            .querySelector(".commande-form-section")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }
+                      }}
+                    >
+                      <div className="appareil-display-header">
+                        <h3>{appareil.nom}</h3>
+                        <span
+                          className={`disponibility-badge ${
+                            appareil.disponible ? "available" : "unavailable"
                           }`}
-                          onClick={() => {
+                        >
+                          {appareil.disponible ? "Disponible" : "Indisponible"}
+                        </span>
+                      </div>
+
+                      <div className="appareil-display-info">
+                        <div className="info-line">
+                          <strong>Catégorie:</strong>
+                          <span>
+                            {CATEGORIES.find(
+                              (c) => c.value === appareil.categorie
+                            )?.label || appareil.categorie}
+                          </span>
+                        </div>
+                        <div className="info-line">
+                          <strong>Option:</strong>
+                          <span>
+                            {OPTIONS.find((o) => o.value === appareil.options)
+                              ?.label || appareil.options}
+                          </span>
+                        </div>
+                        {appareil.description && (
+                          <div className="info-line description">
+                            <strong>Description:</strong>
+                            <p>{appareil.description}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="appareil-display-actions">
+                        <button
+                          className="select-appareil-btn-large"
+                          onClick={(e) => {
+                            e.stopPropagation();
                             if (appareil.disponible) {
                               setSelectedCategorie(appareil.categorie);
                               setSelectedOption(appareil.options);
+                              document
+                                .querySelector(".commande-form-section")
+                                ?.scrollIntoView({ behavior: "smooth" });
                             }
                           }}
                         >
-                          <div className="appareil-card-header">
-                            <h3>{appareil.nom}</h3>
-                            <span
-                              className={`disponibility-badge ${
-                                appareil.disponible
-                                  ? "available"
-                                  : "unavailable"
-                              }`}
-                            >
-                              {appareil.disponible
-                                ? "Disponible"
-                                : "Indisponible"}
-                            </span>
-                          </div>
-                          <div className="appareil-card-body">
-                            <div className="appareil-info">
-                              <div className="info-row">
-                                <strong>Catégorie:</strong>
-                                <span>
-                                  {CATEGORIES.find(
-                                    (c) => c.value === appareil.categorie
-                                  )?.label || appareil.categorie}
-                                </span>
-                              </div>
-                              <div className="info-row">
-                                <strong>Option:</strong>
-                                <span>
-                                  {OPTIONS.find(
-                                    (o) => o.value === appareil.options
-                                  )?.label || appareil.options}
-                                </span>
-                              </div>
-                              {appareil.description && (
-                                <div className="info-row description">
-                                  <strong>Description:</strong>
-                                  <p>{appareil.description}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="appareil-card-footer">
-                            <button
-                              className="select-appareil-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (appareil.disponible) {
-                                  setSelectedCategorie(appareil.categorie);
-                                  setSelectedOption(appareil.options);
-                                }
-                              }}
-                            >
-                              Sélectionner
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                          Sélectionner pour commande
+                        </button>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="no-appareil">
-                      <AlertCircle size={24} />
-                      <p>Aucun appareil trouvé avec ces critères</p>
-                    </div>
-                  )}
+                  ))}
                 </div>
               </>
+            ) : (
+              <div className="no-appareils-found">
+                <AlertCircle size={48} />
+                <h3>Aucun appareil trouvé</h3>
+                <p>
+                  Modifiez vos critères de recherche ou contactez le support
+                </p>
+              </div>
             )}
           </div>
         </div>
 
-        <div className="commande-right-panel">
+        {/* Section droite - Formulaire de commande */}
+        <div className="commande-form-section">
+          <div className="form-section-header">
+            <h2>
+              <Package size={20} />
+              Formulaire de Commande
+            </h2>
+            {selectedCategorie && selectedOption && (
+              <div className="selected-appareil-info">
+                <CheckCircle size={16} />
+                <span>Appareil sélectionné</span>
+              </div>
+            )}
+          </div>
+
           <Formik
             initialValues={{
               refPatient: "",
@@ -761,10 +771,10 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
               <Form className="passer-commande-form">
                 {/* Section 1: Informations Patient */}
                 <div className="form-section">
-                  <h2>
+                  <h3>
                     <User size={20} />
                     Informations Patient
-                  </h2>
+                  </h3>
                   <div className="form-row">
                     <div className="form-group">
                       <label htmlFor="refPatient">Référence Patient *</label>
@@ -809,10 +819,10 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
 
                 {/* Section 2: Sélection Appareil */}
                 <div className="form-section">
-                  <h2>
+                  <h3>
                     <Package size={20} />
                     Sélection de l'Appareil
-                  </h2>
+                  </h3>
                   <div className="form-row">
                     <div className="form-group">
                       <label htmlFor="categorie">
@@ -878,10 +888,10 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                     </div>
                   </div>
 
-                  {/* Affichage des appareils correspondants */}
+                  {/* Appareils correspondants */}
                   {selectedCategorie && selectedOption && (
-                    <div className="appareils-disponibles">
-                      <h3>Appareils correspondants :</h3>
+                    <div className="appareils-correspondants">
+                      <h4>Appareils correspondants :</h4>
                       {loadingAppareils ? (
                         <div className="loading-appareils">
                           <div className="progress-bar-container small">
@@ -889,17 +899,17 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                               <div className="progress-bar-fill indeterminate"></div>
                             </div>
                           </div>
-                          <span>Chargement des appareils...</span>
+                          <span>Chargement...</span>
                         </div>
                       ) : filteredAppareils.length > 0 ? (
-                        <div className="appareils-list">
+                        <div className="correspondants-list">
                           {filteredAppareils.map((app) => (
-                            <div key={app.id} className="appareil-item">
+                            <div key={app.id} className="correspondant-item">
                               <CheckCircle size={16} className="check-icon" />
-                              <div className="appareil-info">
+                              <div className="correspondant-info">
                                 <strong>{app.nom}</strong>
                                 {app.description && (
-                                  <p className="appareil-description">
+                                  <p className="correspondant-description">
                                     {app.description}
                                   </p>
                                 )}
@@ -908,7 +918,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                           ))}
                         </div>
                       ) : (
-                        <div className="no-appareil">
+                        <div className="no-correspondant">
                           <AlertCircle size={16} />
                           <p>Aucun appareil trouvé pour cette combinaison</p>
                         </div>
@@ -919,10 +929,10 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
 
                 {/* Section 3: Upload Fichiers */}
                 <div className="form-section">
-                  <h2>
+                  <h3>
                     <Archive size={20} />
-                    Fichiers 3D (Stockés sur Google Drive)
-                  </h2>
+                    Fichiers 3D
+                  </h3>
 
                   <div className="upload-area">
                     <input
@@ -938,16 +948,15 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                       <p>Cliquez ou glissez vos fichiers ici</p>
                       <small>
                         Formats acceptés : .stl, .zip, .obj, .3mf, .ply (max
-                        500MB par fichier)
+                        500MB)
                       </small>
                       <small className="compression-info">
-                        Les fichiers seront automatiquement compressés en ZIP et
-                        stockés sur Google Drive
+                        Compression automatique en ZIP et stockage sur Google
+                        Drive
                       </small>
                     </label>
                   </div>
 
-                  {/* Barre de progression */}
                   {(isUploading || isCompressing) && (
                     <div className="upload-progress-section">
                       <div className="progress-info">
@@ -971,7 +980,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                     </div>
                   )}
 
-                  {/* Fichiers sélectionnés */}
                   {selectedFiles.length > 0 && (
                     <div className="selected-files">
                       <h4>Fichiers sélectionnés ({selectedFiles.length}) :</h4>
@@ -1005,7 +1013,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                           ) : (
                             <>
                               <Archive size={16} />
-                              Compresser et Uploader sur Drive
+                              Compresser et Uploader
                             </>
                           )}
                         </button>
@@ -1020,18 +1028,11 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                     </div>
                   )}
 
-                  {/* Fichiers uploadés */}
                   {uploadedFiles.length > 0 && (
                     <div className="uploaded-files">
                       <h4>
                         <CheckCircle size={16} className="success-icon" />
-                        Fichiers uploadés sur Google Drive (
-                        {uploadedFiles.length})
-                        {uploadedFiles.some((f) => f.isCompressed) && (
-                          <span className="compression-badge">
-                            (Compressés)
-                          </span>
-                        )}
+                        Fichiers uploadés ({uploadedFiles.length})
                       </h4>
                       <div className="files-list">
                         {uploadedFiles.map((file, index) => (
@@ -1078,15 +1079,15 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
 
                 {/* Section 4: Commentaire */}
                 <div className="form-section">
-                  <h2>
+                  <h3>
                     <MessageSquare size={20} />
                     Commentaire (Optionnel)
-                  </h2>
+                  </h3>
                   <div className="form-group">
                     <Field
                       as="textarea"
                       name="commentaire"
-                      placeholder="Ajoutez des instructions ou remarques particulières pour le laboratoire..."
+                      placeholder="Instructions ou remarques pour le laboratoire..."
                       className="form-textarea"
                       rows={4}
                     />
@@ -1111,12 +1112,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                       setSelectedFiles([]);
                       setSelectedCategorie("");
                       setSelectedOption("");
-                      setSearchTerm("");
-                      setFilters({
-                        categorie: "",
-                        option: "",
-                        disponibilite: "all",
-                      });
                     }}
                     className="cancel-btn"
                     disabled={isSubmitting}
