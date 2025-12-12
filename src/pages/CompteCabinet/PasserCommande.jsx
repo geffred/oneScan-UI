@@ -467,7 +467,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
 
       // Utilisez l'endpoint Brevo existant
       const response = await fetch(
-        `${API_BASE_URL}/send-commande-notification`,
+        `${API_BASE_URL}/email/send-commande-notification`,
         {
           method: "POST",
           headers: {
