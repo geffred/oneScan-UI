@@ -13,8 +13,6 @@ import {
   Send,
   CheckCircle,
   AlertCircle,
-  Tag,
-  Wrench,
   Trash2,
   Archive,
   ExternalLink,
@@ -66,8 +64,6 @@ const validationSchema = Yup.object({
   refPatient: Yup.string()
     .required("La référence patient est requise")
     .max(100, "Maximum 100 caractères"),
-  categorie: Yup.string().required("La catégorie est requise"),
-  option: Yup.string().required("L'option est requise"),
   commentaire: Yup.string().max(1000, "Maximum 1000 caractères"),
   dateEcheance: Yup.date()
     .min(new Date(), "La date d'échéance doit être dans le futur")
@@ -80,8 +76,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [selectedCategorie, setSelectedCategorie] = useState("");
-  const [selectedOption, setSelectedOption] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentUploadFile, setCurrentUploadFile] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -392,6 +386,12 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       return;
     }
 
+    if (!selectedAppareil) {
+      toast.error("Veuillez sélectionner un appareil");
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
 
@@ -399,9 +399,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
         cabinetId: userData.id,
         cabinetName: userData.nom,
         refPatient: values.refPatient.trim(),
-        typeAppareil: selectedAppareil
-          ? selectedAppareil.nom
-          : `${values.categorie} - ${values.option}`,
+        typeAppareil: selectedAppareil.nom,
         commentaire: values.commentaire?.trim() || "",
         details: selectedAppareil?.description || "",
         fichierUrls: uploadedFiles.map((f) => f.fileUrl),
@@ -439,8 +437,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
         resetForm();
         setUploadedFiles([]);
         setSelectedFiles([]);
-        setSelectedCategorie("");
-        setSelectedOption("");
         setSelectedAppareil(null);
       } else {
         throw new Error(result.error || "Erreur lors de la création");
@@ -473,7 +469,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       };
 
       const response = await fetch(
-        `${API_BASE_URL}/email/send-commande-notification`,
+        `${API_BASE_URL}/send-commande-notification`,
         {
           method: "POST",
           headers: {
@@ -529,10 +525,8 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
 
   const handleSelectAppareil = (appareil) => {
     setSelectedAppareil(appareil);
-    setSelectedCategorie(appareil.categorie);
-    setSelectedOption(appareil.options);
     document
-      .querySelector(".commande-form-section")
+      .querySelector(".form-section")
       ?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -615,6 +609,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                   setFilters({ ...filters, option: e.target.value })
                 }
               >
+                <br />
                 <option value="">Toutes options</option>
                 {OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -711,8 +706,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
           <Formik
             initialValues={{
               refPatient: "",
-              categorie: "",
-              option: "",
               commentaire: "",
               dateEcheance: "",
             }}
@@ -759,77 +752,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                       </small>
                       <ErrorMessage
                         name="dateEcheance"
-                        component="div"
-                        className="error"
-                      />
-                    </div>
-                  </div>
-                </section>
-
-                <section className="form-group-section">
-                  <h3>
-                    <Package size={18} />
-                    Détails de l'Appareil
-                  </h3>
-                  <div className="form-row">
-                    <div className="field">
-                      <label htmlFor="categorie">
-                        <Tag size={14} />
-                        Catégorie *
-                      </label>
-                      <Field
-                        as="select"
-                        id="categorie"
-                        name="categorie"
-                        value={selectedCategorie}
-                        onChange={(e) => {
-                          setFieldValue("categorie", e.target.value);
-                          setSelectedCategorie(e.target.value);
-                          setFieldValue("option", "");
-                          setSelectedOption("");
-                          setSelectedAppareil(null);
-                        }}
-                      >
-                        <option value="">Sélectionnez une catégorie</option>
-                        {CATEGORIES.map((cat) => (
-                          <option key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </option>
-                        ))}
-                      </Field>
-                      <ErrorMessage
-                        name="categorie"
-                        component="div"
-                        className="error"
-                      />
-                    </div>
-
-                    <div className="field">
-                      <label htmlFor="option">
-                        <Wrench size={14} />
-                        Option *
-                      </label>
-                      <Field
-                        as="select"
-                        id="option"
-                        name="option"
-                        disabled={!selectedCategorie}
-                        value={selectedOption}
-                        onChange={(e) => {
-                          setFieldValue("option", e.target.value);
-                          setSelectedOption(e.target.value);
-                          setSelectedAppareil(null);
-                        }}
-                      >
-                        <option value="">Sélectionnez une option</option>
-                        {OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </Field>
-                      <ErrorMessage
-                        name="option"
                         component="div"
                         className="error"
                       />
@@ -999,8 +921,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                       resetForm();
                       setUploadedFiles([]);
                       setSelectedFiles([]);
-                      setSelectedCategorie("");
-                      setSelectedOption("");
                       setSelectedAppareil(null);
                     }}
                     className="btn secondary"
@@ -1025,7 +945,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                     ) : (
                       <>
                         <Send size={18} />
-                        Finaliser la Commande
+                        Commander
                       </>
                     )}
                   </button>
