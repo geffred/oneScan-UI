@@ -143,7 +143,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
     return result;
   }, [appareils, searchTerm, filters]);
 
-  // Compresser les fichiers en ZIP
+  // Compresser les fichiers en fichier ZIP
   const compressFilesToZip = async (files) => {
     const zip = new JSZip();
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
