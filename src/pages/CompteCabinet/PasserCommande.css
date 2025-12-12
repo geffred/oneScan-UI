@@ -1,16 +1,20 @@
-/* PasserCommande.css - Version nettoyée */
+/* PasserCommande.css - Version mise à jour */
 
 .passer-commande-container {
   width: 100%;
   padding: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f8fafc;
+  min-height: 100vh;
 }
 
 .passer-commande-header {
   text-align: center;
-  margin-bottom: 3rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #e8e8e8;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  color: white;
+  border-radius: 0 0 12px 12px;
 }
 
 .passer-commande-header h1 {
@@ -18,36 +22,40 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  font-size: 2rem;
-  color: #1a365d;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
+  font-size: 2.25rem;
+  color: white;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
 }
 
-.passer-commande-header p {
-  color: #64748b;
+.passer-commande-header .subtitle {
+  color: rgba(255, 255, 255, 0.9);
   font-size: 1.1rem;
   line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 /* Layout principal */
 .commande-layout {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
   gap: 2rem;
-  margin-top: 2rem;
-  height: calc(100vh - 200px);
+  padding: 0 2rem 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
-/* Section appareils (côté gauche agrandi) */
+/* Section appareils (côté gauche) */
 .appareils-section-large {
-  flex: 1.5;
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
   border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  height: calc(100vh - 200px);
 }
 
 .appareils-header {
@@ -56,25 +64,29 @@
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 2px solid #f1f5f9;
 }
 
 .appareils-header h2 {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 1.3rem;
-  color: #2d3748;
+  font-size: 1.4rem;
+  color: #1e293b;
   margin: 0;
+  font-weight: 600;
 }
 
 .view-controls {
   display: flex;
   gap: 0.5rem;
+  background: #f8fafc;
+  padding: 0.25rem;
+  border-radius: 8px;
 }
 
 .view-btn {
-  background: #f1f5f9;
+  background: transparent;
   border: none;
   border-radius: 6px;
   padding: 0.5rem;
@@ -86,6 +98,7 @@
 .view-btn.active {
   background: #3b82f6;
   color: white;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
 .view-btn:hover {
@@ -96,7 +109,7 @@
   background: #2563eb;
 }
 
-/* Recherche et filtres améliorés */
+/* Recherche et filtres */
 .search-filter-section {
   margin-bottom: 1.5rem;
 }
@@ -117,15 +130,17 @@
 .search-input-large {
   width: 100%;
   padding: 0.875rem 1rem 0.875rem 3rem;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
   font-size: 1rem;
   transition: all 0.2s ease;
+  background: #f8fafc;
 }
 
 .search-input-large:focus {
   outline: none;
   border-color: #3b82f6;
+  background: white;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -143,22 +158,24 @@
 
 .filter-group-large label {
   font-size: 0.9rem;
-  font-weight: 500;
-  color: #4b5563;
+  font-weight: 600;
+  color: #475569;
 }
 
 .filter-select-large {
   padding: 0.625rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
   font-size: 0.95rem;
   background: white;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .filter-select-large:focus {
   outline: none;
   border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* Conteneur appareils */
@@ -170,13 +187,16 @@
 
 .appareils-count {
   margin-bottom: 1rem;
-  padding: 0.5rem 0;
-  color: #64748b;
+  padding: 0.75rem;
+  background: #f0f9ff;
+  color: #0369a1;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid #bae6fd;
 }
 
-/* Affichage grille/liste unifié */
+/* Affichage grille/liste */
 .appareils-display {
   display: grid;
   gap: 1rem;
@@ -190,92 +210,89 @@
   grid-template-columns: 1fr;
 }
 
-/* Item appareil unifié */
+/* Item appareil */
 .appareil-display-item {
   background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 1.25rem;
-  transition: all 0.2s ease;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
-.appareil-display-item:hover:not(.unavailable) {
+.appareil-display-item:hover {
   border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2);
 }
 
-.appareil-display-item.unavailable {
-  opacity: 0.6;
-  cursor: not-allowed;
+.appareil-display-item.selected {
+  border-color: #10b981;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.2);
 }
 
-.appareil-display-header {
+.appareil-title {
+  color: #1e293b;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.appareil-display-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #1f2937;
-  font-weight: 600;
-  flex: 1;
+.appareil-title::before {
+  content: "•";
+  color: #3b82f6;
+  font-size: 1.5rem;
 }
 
-.disponibility-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.disponibility-badge.available {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.disponibility-badge.unavailable {
-  background: #fee2e2;
-  color: #991b1b;
+.appareil-display-item.selected .appareil-title::before {
+  color: #10b981;
 }
 
 .appareil-display-info {
   flex: 1;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .info-line {
   display: flex;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  align-items: flex-start;
 }
 
 .info-line strong {
-  color: #4b5563;
+  color: #475569;
   min-width: 100px;
+  font-weight: 600;
 }
 
 .info-line span {
-  color: #1f2937;
+  color: #1e293b;
   flex: 1;
+  font-weight: 500;
 }
 
 .info-line.description {
   flex-direction: column;
   align-items: flex-start;
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
 }
 
 .info-line.description p {
-  margin: 0.25rem 0 0 0;
-  color: #6b7280;
+  margin: 0.5rem 0 0 0;
+  color: #64748b;
   font-size: 0.9rem;
-  line-height: 1.4;
+  line-height: 1.6;
 }
 
 .appareil-display-actions {
@@ -284,104 +301,153 @@
 
 .select-appareil-btn-large {
   width: 100%;
-  padding: 0.75rem;
-  background: #3b82f6;
+  padding: 1rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
   border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.9rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
 }
 
-.select-appareil-btn-large:hover:not(:disabled) {
-  background: #2563eb;
+.select-appareil-btn-large:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -2px rgba(59, 130, 246, 0.4);
 }
 
-.appareil-display-item.unavailable .select-appareil-btn-large {
-  background: #d1d5db;
-  color: #9ca3af;
-  cursor: not-allowed;
+.appareil-display-item.selected .select-appareil-btn-large {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
 }
 
-/* Aucun appareil */
-.no-appareils-found {
-  text-align: center;
-  padding: 3rem;
-  color: #64748b;
+.appareil-display-item.selected .select-appareil-btn-large:hover {
+  background: linear-gradient(135deg, #0da271 0%, #047857 100%);
+  box-shadow: 0 6px 12px -2px rgba(16, 185, 129, 0.4);
 }
 
-.no-appareils-found h3 {
-  margin: 1rem 0 0.5rem 0;
-  color: #4b5563;
-}
-
-/* Section formulaire (côté droit) */
+/* Section formulaire (côté droit - mise en avant) */
 .commande-form-section {
-  flex: 1;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  padding-right: 0.5rem;
+  height: calc(100vh - 200px);
+  overflow: hidden;
 }
 
 .form-section-header {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
 }
 
-.form-section-header h2 {
+.header-content h2 {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 1.3rem;
-  color: #2d3748;
+  font-size: 1.5rem;
+  color: #1e293b;
   margin: 0;
+  font-weight: 700;
+}
+
+.header-status {
+  display: flex;
+  align-items: center;
 }
 
 .selected-appareil-info {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  border: 2px solid #3b82f6;
+}
+
+.selected-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.selected-label {
+  color: #1e40af;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.selected-name {
+  color: #1e293b;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+.no-appareil-selected {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
-  background: #dcfce7;
-  color: #166534;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  color: #64748b;
   font-weight: 500;
 }
 
-/* Form Sections unifiées */
-.form-section {
-  background: white;
-  border-radius: 8px;
+/* Conteneur formulaire */
+.form-container {
+  flex: 1;
+  overflow-y: auto;
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid #e2e8f0;
 }
 
-.form-section h2,
-.form-section h3 {
+/* Sections du formulaire */
+.form-section.commande-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 2px solid #f1f5f9;
+  transition: all 0.3s ease;
+}
+
+.form-section.commande-section:hover {
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.form-section.commande-section h3 {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 1.2rem;
-  color: #2d3748;
-  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  color: #1e293b;
+  margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 2px solid #f1f5f9;
   font-weight: 600;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .form-group {
@@ -394,18 +460,18 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-weight: 500;
-  color: #374151;
-  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.95rem;
 }
 
 .form-input,
 .form-select,
 .form-textarea {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.95rem;
+  padding: 0.875rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1rem;
   transition: all 0.2s ease;
   font-family: inherit;
   background: white;
@@ -417,6 +483,7 @@
   outline: none;
   border-color: #3b82f6;
   background: #f8fafc;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .form-select:disabled {
@@ -427,248 +494,223 @@
 
 .form-textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 120px;
   line-height: 1.5;
 }
 
 .error-message {
   color: #dc2626;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 500;
   margin-top: 0.25rem;
+  padding: 0.5rem;
+  background: #fef2f2;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
 }
 
 .character-count {
   text-align: right;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #6b7280;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
 }
 
 .date-hint {
-  color: #6b7280;
-  font-size: 0.8rem;
+  color: #3b82f6;
+  font-size: 0.85rem;
   margin-top: 0.25rem;
+  font-weight: 500;
   display: block;
 }
 
-/* Appareils correspondants */
-.appareils-correspondants {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: #f8fafc;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
+/* Zone d'upload améliorée */
+.upload-area-large {
+  margin-bottom: 1.5rem;
 }
 
-.appareils-correspondants h4 {
-  margin-bottom: 0.75rem;
-  color: #374151;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.correspondants-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.correspondant-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-}
-
-.correspondant-item .check-icon {
-  color: #10b981;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.correspondant-info strong {
-  color: #1f2937;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.correspondant-description {
-  color: #6b7280;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-  line-height: 1.4;
-}
-
-.no-correspondant {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: #fef3c7;
-  border-radius: 6px;
-  color: #92400e;
-  border: 1px solid #fbbf24;
-  font-size: 0.9rem;
-}
-
-/* Upload Area */
-.upload-area {
-  margin-bottom: 1rem;
-}
-
-.file-input {
-  display: none;
-}
-
-.upload-label {
+.upload-label-large {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1.5rem;
-  border: 2px dashed #cbd5e1;
-  border-radius: 8px;
-  background: #f8fafc;
+  padding: 3rem 2rem;
+  border: 3px dashed #cbd5e1;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   text-align: center;
 }
 
-.upload-label:hover {
-  background: #f1f5f9;
+.upload-label-large:hover {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.2);
 }
 
-.upload-label p {
-  margin: 0.75rem 0 0.25rem 0;
-  font-size: 1rem;
-  font-weight: 500;
-  color: #374151;
+.upload-label-large p {
+  margin: 1.5rem 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
 }
 
-.upload-label small {
+.upload-label-large small {
   color: #64748b;
   line-height: 1.4;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
 }
 
 .compression-info {
   color: #3b82f6;
-  font-weight: 500;
-  margin-top: 0.25rem;
-  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
 }
 
-/* Selected Files */
+/* Fichiers sélectionnés */
 .selected-files {
-  padding: 1rem;
-  background: #f0f9ff;
-  border-radius: 6px;
-  border: 1px solid #0ea5e9;
-  margin-top: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 12px;
+  border: 2px solid #0ea5e9;
+  margin-top: 1.5rem;
 }
 
 .selected-files h4 {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
   color: #0369a1;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .files-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .file-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
+  gap: 0.75rem;
+  padding: 1rem;
   background: white;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.file-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
 }
 
 .file-name {
-  color: #374151;
+  color: #1e293b;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  flex: 1;
 }
 
 .file-size {
-  margin-left: auto;
-  color: #6b7280;
-  font-size: 0.8rem;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.remove-selected-btn {
+  padding: 0.5rem;
+  background: #fef2f2;
+  color: #dc2626;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-selected-btn:hover {
+  background: #dc2626;
+  color: white;
 }
 
 .upload-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .upload-btn {
   flex: 1;
-  padding: 0.75rem 1rem;
+  padding: 1rem 1.5rem;
   border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.9rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.2s ease;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .upload-btn.primary {
-  background: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
 }
 
 .upload-btn.primary:hover:not(:disabled) {
-  background: #2563eb;
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -2px rgba(59, 130, 246, 0.4);
 }
 
 .upload-btn.secondary {
-  background: #6b7280;
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
   color: white;
 }
 
 .upload-btn.secondary:hover:not(:disabled) {
-  background: #4b5563;
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -2px rgba(100, 116, 139, 0.4);
 }
 
 .upload-btn:disabled {
   background: #d1d5db;
   color: #9ca3af;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-/* Uploaded Files */
+/* Fichiers uploadés */
 .uploaded-files {
-  padding: 1rem;
-  background: #f0fdf4;
-  border-radius: 6px;
-  border: 1px solid #22c55e;
-  margin-top: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 12px;
+  border: 2px solid #22c55e;
+  margin-top: 1.5rem;
 }
 
 .uploaded-files h4 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
   color: #15803d;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 1.1rem;
 }
 
 .success-icon {
@@ -678,15 +720,17 @@
 .uploaded-file-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
+  gap: 0.75rem;
+  padding: 1.25rem;
   background: white;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.2s ease;
 }
 
 .uploaded-file-item:hover {
   border-color: #d1d5db;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .file-info {
@@ -697,114 +741,152 @@
 }
 
 .file-info strong {
-  color: #1f2937;
-  font-size: 0.9rem;
-  font-weight: 500;
+  color: #1e293b;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .file-info small {
-  color: #6b7280;
-  font-size: 0.8rem;
+  color: #64748b;
+  font-size: 0.85rem;
 }
 
-.remove-btn {
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.view-btn, .remove-btn {
   padding: 0.5rem;
-  background: #ef4444;
-  color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.view-btn {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.view-btn:hover {
+  background: #1d4ed8;
+  color: white;
+}
+
+.remove-btn {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
 .remove-btn:hover {
   background: #dc2626;
+  color: white;
 }
 
 .compression-badge {
   background: #dbeafe;
   color: #1e40af;
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 12px;
-  font-size: 0.75rem;
-  margin-left: 6px;
-  font-weight: 500;
+  font-size: 0.8em;
+  margin-left: 8px;
+  font-weight: 600;
 }
 
-/* Form Actions */
-.form-actions {
+/* Boutons d'action */
+.form-actions.commande-actions {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.5rem;
   margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e8e8e8;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
 }
 
 .cancel-btn {
-  padding: 0.75rem 2rem;
-  background: #6b7280;
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
   color: white;
   border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.95rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(100, 116, 139, 0.3);
 }
 
 .cancel-btn:hover:not(:disabled) {
-  background: #4b5563;
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -2px rgba(100, 116, 139, 0.4);
 }
 
 .submit-btn {
-  padding: 0.75rem 2.5rem;
-  background: #3b82f6;
+  padding: 1rem 3rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 1rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.2rem;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  transition: background-color 0.2s ease;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: #2563eb;
+  background: linear-gradient(135deg, #0da271 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -3px rgba(16, 185, 129, 0.4);
 }
 
 .submit-btn:disabled {
   background: #d1d5db;
   color: #9ca3af;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-/* États de chargement */
-.passer-commande-loading {
+/* Progress bar */
+.upload-progress-section {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.progress-info {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 1rem;
-  color: #64748b;
+  margin-bottom: 1rem;
 }
 
-.loading-appareils {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #64748b;
-  font-size: 0.9rem;
+.progress-text {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1rem;
 }
 
-/* Progress bar styles */
+.progress-percentage {
+  font-weight: 700;
+  color: #3b82f6;
+  font-size: 1.1rem;
+}
+
 .progress-bar-container {
   width: 100%;
   margin: 1rem 0;
@@ -824,35 +906,24 @@
 
 .progress-bar {
   width: 100%;
-  height: 8px;
+  height: 12px;
   background: #e2e8f0;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
   position: relative;
 }
 
 .progress-bar-container.small .progress-bar {
-  height: 4px;
+  height: 6px;
 }
 
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #60a5fa);
-  border-radius: 4px;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
+  border-radius: 6px;
   transition: width 0.3s ease;
   position: relative;
   overflow: hidden;
-}
-
-.progress-bar-fill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-  animation: shimmer 2s infinite;
 }
 
 .progress-bar-fill.indeterminate {
@@ -871,115 +942,90 @@
   }
 }
 
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-
-/* Section de progression d'upload */
-.upload-progress-section {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 1rem;
-  margin: 1rem 0;
-}
-
-.progress-info {
+/* États de chargement */
+.passer-commande-loading {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 0.5rem;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1.5rem;
+  color: #64748b;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 3rem;
 }
 
-.progress-text {
+.loading-appareils {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #64748b;
+  font-size: 1rem;
   font-weight: 500;
-  color: #374151;
-  font-size: 0.9rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
 }
 
-.progress-percentage {
-  font-weight: 600;
-  color: #3b82f6;
-  font-size: 0.9rem;
-}
-
-/* Ajustements pour les boutons avec indicateur de progression */
-.upload-btn .progress-bar-container.small.inline,
-.submit-btn .progress-bar-container.small.inline {
-  margin-right: 0.5rem;
-}
-
-/* Scrollbar styling */
+/* Scrollbars */
 .appareils-container::-webkit-scrollbar,
-.commande-form-section::-webkit-scrollbar {
-  width: 6px;
+.form-container::-webkit-scrollbar {
+  width: 8px;
 }
 
 .appareils-container::-webkit-scrollbar-track,
-.commande-form-section::-webkit-scrollbar-track {
+.form-container::-webkit-scrollbar-track {
   background: #f1f5f9;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .appareils-container::-webkit-scrollbar-thumb,
-.commande-form-section::-webkit-scrollbar-thumb {
+.form-container::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .appareils-container::-webkit-scrollbar-thumb:hover,
-.commande-form-section::-webkit-scrollbar-thumb:hover {
+.form-container::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 1200px) {
   .commande-layout {
-    flex-direction: column;
-    height: auto;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0 1rem 1rem;
   }
   
   .appareils-section-large,
   .commande-form-section {
-    width: 100%;
+    height: auto;
+    max-height: 600px;
   }
   
   .appareils-display.grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .passer-commande-container {
-    padding: 1rem;
+  .passer-commande-header {
+    padding: 1.5rem 1rem;
   }
-
+  
   .passer-commande-header h1 {
     font-size: 1.75rem;
-    flex-direction: column;
-    gap: 0.5rem;
   }
-
-  .passer-commande-header p {
-    font-size: 1rem;
-  }
-
-  .appareils-header,
-  .form-section-header {
+  
+  .header-content {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-
-  .selected-appareil-info {
-    align-self: flex-start;
-  }
-
+  
   .filters-row {
     grid-template-columns: 1fr;
   }
@@ -990,69 +1036,25 @@
   
   .info-line {
     flex-direction: column;
+    align-items: flex-start;
   }
   
   .info-line strong {
     min-width: auto;
     margin-bottom: 0.25rem;
   }
-
-  .form-section {
-    padding: 1rem;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .upload-label {
-    padding: 1.5rem 1rem;
-  }
-
-  .upload-actions {
+  
+  .form-actions.commande-actions {
     flex-direction: column;
+    gap: 1rem;
   }
-
-  .uploaded-file-item {
-    flex-wrap: wrap;
-  }
-
-  .file-info {
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-
-  .remove-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 0.75rem;
-  }
-
-  .form-actions {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
+  
   .cancel-btn,
   .submit-btn {
     width: 100%;
-    justify-content: center;
-    padding: 1rem;
   }
-}
-
-@media (max-width: 480px) {
-  .passer-commande-header h1 {
-    font-size: 1.5rem;
-  }
-
-  .form-section h2,
-  .form-section h3 {
-    font-size: 1.1rem;
-  }
-
-  .view-controls {
-    align-self: flex-end;
+  
+  .upload-actions {
+    flex-direction: column;
   }
 }

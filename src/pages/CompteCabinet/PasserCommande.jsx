@@ -25,6 +25,8 @@ import {
   ChevronUp,
   List,
   Grid,
+  ShoppingCart,
+  UploadCloud,
 } from "lucide-react";
 import { apiGet } from "../../components/Config/apiUtils";
 import { AuthContext } from "../../components/Config/AuthContext";
@@ -90,12 +92,12 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
   const [currentUploadFile, setCurrentUploadFile] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showAppareilsList, setShowAppareilsList] = useState(true);
-  const [viewMode, setViewMode] = useState("grid"); // "grid" ou "list"
+  const [viewMode, setViewMode] = useState("grid");
   const [filters, setFilters] = useState({
     categorie: "",
     option: "",
-    disponibilite: "all",
   });
+  const [selectedAppareil, setSelectedAppareil] = useState(null);
 
   // Récupérer les appareils
   const { data: appareils = [], isLoading: loadingAppareils } = useSWR(
@@ -104,17 +106,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
     { revalidateOnFocus: false }
   );
 
-  // Filtrer les appareils par catégorie et option
-  const filteredAppareils = useMemo(() => {
-    return appareils.filter((app) => {
-      const matchCategorie =
-        !selectedCategorie || app.categorie === selectedCategorie;
-      const matchOption = !selectedOption || app.options === selectedOption;
-      return matchCategorie && matchOption;
-    });
-  }, [appareils, selectedCategorie, selectedOption]);
-
-  // Filtrer et rechercher les appareils pour la liste
+  // Filtrer et rechercher les appareils
   const filteredAndSearchedAppareils = useMemo(() => {
     let result = appareils;
 
@@ -124,11 +116,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
     }
     if (filters.option) {
       result = result.filter((app) => app.options === filters.option);
-    }
-    if (filters.disponibilite === "available") {
-      result = result.filter((app) => app.disponible);
-    } else if (filters.disponibilite === "unavailable") {
-      result = result.filter((app) => !app.disponible);
     }
 
     // Appliquer la recherche
@@ -150,10 +137,16 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
   const compressFilesToZip = async (files) => {
     const zip = new JSZip();
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const zipFileName = `commande_${timestamp}.zip`;
+    const zipFileName = `commande_${timestamp}_${Math.random()
+      .toString(36)
+      .substring(2, 9)}.zip`;
 
     files.forEach((file) => {
-      zip.file(file.name, file);
+      // Utiliser un nom unique pour éviter les conflits
+      const uniqueFileName = `${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(2, 9)}_${file.name}`;
+      zip.file(uniqueFileName, file);
     });
 
     const zipContent = await zip.generateAsync({
@@ -170,7 +163,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
     });
   };
 
-  // Gérer la sélection de fichiers
+  // Gérer la sélection de fichiers (augmenté à 1GB)
   const handleFileSelect = useCallback((e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter((file) => {
@@ -178,21 +171,25 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       const isValidExtension = ["stl", "zip", "obj", "3mf", "ply"].includes(
         extension
       );
-      const isValidSize = file.size <= 500 * 1024 * 1024;
+      const isValidSize = file.size <= 1024 * 1024 * 1024; // 1GB max
+
+      if (!isValidSize) {
+        toast.error(`Fichier ${file.name} trop volumineux (max 1GB)`);
+      }
 
       return isValidExtension && isValidSize;
     });
 
     if (validFiles.length !== files.length) {
       toast.warning(
-        "Seuls les fichiers .stl, .zip, .obj, .3mf, .ply (max 500MB) sont acceptés"
+        "Seuls les fichiers .stl, .zip, .obj, .3mf, .ply (max 1GB par fichier) sont acceptés"
       );
     }
 
-    setSelectedFiles(validFiles);
+    setSelectedFiles((prev) => [...prev, ...validFiles]);
   }, []);
 
-  // Upload des fichiers compressés sur Google Drive
+  // Upload des fichiers compressés sur Google Drive avec retry
   const handleUploadFiles = useCallback(async () => {
     if (selectedFiles.length === 0) {
       toast.warning("Veuillez sélectionner au moins un fichier");
@@ -245,47 +242,32 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("cabinetName", userData.nom);
-        formData.append("commandeRef", `cmd_${Date.now()}`);
+        formData.append(
+          "commandeRef",
+          `cmd_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+        );
 
-        const xhr = new XMLHttpRequest();
+        // Essayer plusieurs fois en cas d'erreur
+        let retries = 3;
+        let result;
 
-        xhr.upload.addEventListener("progress", (e) => {
-          if (e.lengthComputable) {
-            const progress = (e.loaded / e.total) * 100;
-            const globalProgress = 10 + (progress * 90) / filesToUpload.length;
-            setUploadProgress(Math.min(globalProgress, 99));
+        while (retries > 0) {
+          try {
+            result = await uploadFileWithProgress(
+              file,
+              formData,
+              token,
+              i,
+              filesToUpload.length
+            );
+            break; // Sortir de la boucle si réussi
+          } catch (error) {
+            retries--;
+            if (retries === 0) throw error;
+            toast.warning(`Nouvelle tentative d'upload... (${3 - retries}/3)`);
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // Attendre 1s avant de réessayer
           }
-        });
-
-        const uploadPromise = new Promise((resolve, reject) => {
-          xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4) {
-              if (xhr.status === 200) {
-                try {
-                  const result = JSON.parse(xhr.responseText);
-                  resolve(result);
-                } catch (error) {
-                  reject(new Error("Erreur lors du parsing de la réponse"));
-                }
-              } else {
-                try {
-                  const errorData = JSON.parse(xhr.responseText);
-                  reject(
-                    new Error(errorData.error || "Erreur lors de l'upload")
-                  );
-                } catch {
-                  reject(new Error("Erreur lors de l'upload"));
-                }
-              }
-            }
-          };
-
-          xhr.open("POST", `${API_BASE_URL}/files/upload-command`);
-          xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-          xhr.send(formData);
-        });
-
-        const result = await uploadPromise;
+        }
 
         newFiles.push({
           fileName: result.fileName,
@@ -318,9 +300,20 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       setTimeout(() => setUploadProgress(0), 2000);
     } catch (error) {
       console.error("Erreur upload:", error);
-      const errorMessage =
-        error.message ||
-        "Erreur lors de l'upload des fichiers sur Google Drive";
+      let errorMessage =
+        error.message || "Erreur lors de l'upload des fichiers";
+
+      // Messages d'erreur plus spécifiques
+      if (errorMessage.includes("413")) {
+        errorMessage =
+          "Le fichier est trop volumineux pour le serveur. Veuillez contacter l'administrateur.";
+      } else if (
+        errorMessage.includes("network") ||
+        errorMessage.includes("Network")
+      ) {
+        errorMessage = "Erreur réseau. Vérifiez votre connexion internet.";
+      }
+
       toast.error(errorMessage);
       if (onError) onError(errorMessage);
       setUploadProgress(0);
@@ -330,6 +323,50 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       setIsCompressing(false);
     }
   }, [selectedFiles, userData, onError]);
+
+  // Fonction d'upload avec progression
+  const uploadFileWithProgress = (file, formData, token, index, totalFiles) => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener("progress", (e) => {
+        if (e.lengthComputable) {
+          const progress = (e.loaded / e.total) * 100;
+          const globalProgress = 10 + (progress * 90) / totalFiles;
+          setUploadProgress(Math.min(globalProgress, 99));
+        }
+      });
+
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            try {
+              const result = JSON.parse(xhr.responseText);
+              resolve(result);
+            } catch (error) {
+              reject(new Error("Erreur lors du parsing de la réponse"));
+            }
+          } else {
+            try {
+              const errorData = JSON.parse(xhr.responseText);
+              reject(new Error(errorData.error || `Erreur HTTP ${xhr.status}`));
+            } catch {
+              reject(new Error(`Erreur HTTP ${xhr.status}`));
+            }
+          }
+        }
+      };
+
+      xhr.onerror = function () {
+        reject(new Error("Erreur réseau lors de l'upload"));
+      };
+
+      xhr.open("POST", `${API_BASE_URL}/files/upload-command`);
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      xhr.timeout = 300000; // 5 minutes timeout
+      xhr.send(formData);
+    });
+  };
 
   // Supprimer un fichier uploadé
   const handleRemoveFile = useCallback(async (index, fileId) => {
@@ -378,12 +415,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
 
     try {
       const token = localStorage.getItem("token");
-
-      // Trouver l'appareil sélectionné
-      const selectedAppareil = appareils.find(
-        (app) =>
-          app.categorie === values.categorie && app.options === values.option
-      );
 
       const commandeData = {
         cabinetId: userData.id,
@@ -434,6 +465,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
         setSelectedFiles([]);
         setSelectedCategorie("");
         setSelectedOption("");
+        setSelectedAppareil(null);
       } else {
         throw new Error(result.error || "Erreur lors de la création");
       }
@@ -465,9 +497,8 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
         nombre_fichiers: uploadedFiles.length,
       };
 
-      // Utilisez l'endpoint Brevo existant
       const response = await fetch(
-        `${API_BASE_URL}/email/send-commande-notification`,
+        `${API_BASE_URL}/api/send-new-commande-notification`,
         {
           method: "POST",
           headers: {
@@ -481,8 +512,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       if (response.ok) {
         toast.success("Email de notification envoyé au laboratoire");
       } else {
-        const errorData = await response.json();
-        console.warn("Échec de l'envoi de l'email:", errorData);
+        console.warn("Échec de l'envoi de l'email");
         toast.warning("Commande créée mais email non envoyé");
       }
     } catch (error) {
@@ -491,9 +521,14 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
     }
   };
 
-  // Réinitialiser la sélection
+  // Réinitialiser la sélection de fichiers
   const handleResetSelection = useCallback(() => {
     setSelectedFiles([]);
+  }, []);
+
+  // Supprimer un fichier sélectionné
+  const handleRemoveSelectedFile = useCallback((index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   // Formater la taille du fichier
@@ -522,6 +557,16 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
     return formatDateForInput(tomorrow);
   };
 
+  // Sélectionner un appareil
+  const handleSelectAppareil = (appareil) => {
+    setSelectedAppareil(appareil);
+    setSelectedCategorie(appareil.categorie);
+    setSelectedOption(appareil.options);
+    document
+      .querySelector(".commande-form-section")
+      ?.scrollIntoView({ behavior: "smooth" });
+  };
+
   if (!userData) {
     return (
       <div className="passer-commande-loading">
@@ -539,17 +584,17 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
     <div className="passer-commande-container">
       <div className="passer-commande-header">
         <h1>
-          <Package size={32} />
-          Passer une Nouvelle Commande
+          <ShoppingCart size={32} />
+          Nouvelle Commande
         </h1>
-        <p>
-          Remplissez le formulaire et uploadez vos fichiers 3D (automatiquement
-          compressés et stockés sur Google Drive)
+        <p className="subtitle">
+          Sélectionnez un appareil, téléchargez vos fichiers 3D et finalisez
+          votre commande
         </p>
       </div>
 
       <div className="commande-layout">
-        {/* Section gauche - Liste des appareils (agrandie) */}
+        {/* Section gauche - Catalogue des appareils */}
         <div className="appareils-section-large">
           <div className="appareils-header">
             <h2>
@@ -579,7 +624,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
               <Search size={18} />
               <input
                 type="text"
-                placeholder="Rechercher un appareil par nom, catégorie, description..."
+                placeholder="Rechercher un appareil..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input-large"
@@ -622,21 +667,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                   ))}
                 </select>
               </div>
-
-              <div className="filter-group-large">
-                <label>Disponibilité</label>
-                <select
-                  value={filters.disponibilite}
-                  onChange={(e) =>
-                    setFilters({ ...filters, disponibilite: e.target.value })
-                  }
-                  className="filter-select-large"
-                >
-                  <option value="all">Tous</option>
-                  <option value="available">Disponibles</option>
-                  <option value="unavailable">Indisponibles</option>
-                </select>
-              </div>
             </div>
           </div>
 
@@ -653,27 +683,20 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
             ) : filteredAndSearchedAppareils.length > 0 ? (
               <>
                 <div className="appareils-count">
-                  {filteredAndSearchedAppareils.length} appareil(s) trouvé(s)
+                  {filteredAndSearchedAppareils.length} appareil(s)
+                  disponible(s)
                 </div>
                 <div className={`appareils-display ${viewMode}`}>
                   {filteredAndSearchedAppareils.map((appareil) => (
                     <div
                       key={appareil.id}
                       className={`appareil-display-item ${
-                        !appareil.disponible ? "unavailable" : ""
-                      } ${viewMode}`}
-                      onClick={() => {
-                        if (appareil.disponible) {
-                          setSelectedCategorie(appareil.categorie);
-                          setSelectedOption(appareil.options);
-                          // Scroll vers le formulaire
-                          document
-                            .querySelector(".commande-form-section")
-                            ?.scrollIntoView({ behavior: "smooth" });
-                        }
-                      }}
+                        selectedAppareil?.id === appareil.id ? "selected" : ""
+                      }`}
+                      onClick={() => handleSelectAppareil(appareil)}
                     >
                       <div className="appareil-display-info">
+                        <h3 className="appareil-title">{appareil.nom}</h3>
                         <div className="info-line">
                           <strong>Catégorie:</strong>
                           <span>
@@ -702,16 +725,11 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                           className="select-appareil-btn-large"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (appareil.disponible) {
-                              setSelectedCategorie(appareil.categorie);
-                              setSelectedOption(appareil.options);
-                              document
-                                .querySelector(".commande-form-section")
-                                ?.scrollIntoView({ behavior: "smooth" });
-                            }
+                            handleSelectAppareil(appareil);
                           }}
                         >
-                          Sélectionner pour commande
+                          <ShoppingCart size={16} />
+                          Sélectionner
                         </button>
                       </div>
                     </div>
@@ -722,416 +740,416 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
               <div className="no-appareils-found">
                 <AlertCircle size={48} />
                 <h3>Aucun appareil trouvé</h3>
-                <p>
-                  Modifiez vos critères de recherche ou contactez le support
-                </p>
+                <p>Modifiez vos critères de recherche</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Section droite - Formulaire de commande */}
+        {/* Section droite - Formulaire de commande (mise en avant) */}
         <div className="commande-form-section">
           <div className="form-section-header">
-            <h2>
-              <Package size={20} />
-              Formulaire de Commande
-            </h2>
-            {selectedCategorie && selectedOption && (
-              <div className="selected-appareil-info">
-                <CheckCircle size={16} />
-                <span>Appareil sélectionné</span>
+            <div className="header-content">
+              <h2>
+                <ShoppingCart size={20} />
+                Formulaire de Commande
+              </h2>
+              <div className="header-status">
+                {selectedAppareil ? (
+                  <div className="selected-appareil-info">
+                    <CheckCircle size={16} />
+                    <div className="selected-details">
+                      <span className="selected-label">
+                        Appareil sélectionné
+                      </span>
+                      <span className="selected-name">
+                        {selectedAppareil.nom}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="no-appareil-selected">
+                    <AlertCircle size={16} />
+                    <span>Sélectionnez un appareil dans le catalogue</span>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
-          <Formik
-            initialValues={{
-              refPatient: "",
-              categorie: "",
-              option: "",
-              commentaire: "",
-              dateEcheance: "",
-            }}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
-          >
-            {({ isSubmitting, values, setFieldValue, resetForm }) => (
-              <Form className="passer-commande-form">
-                {/* Section 1: Informations Patient */}
-                <div className="form-section">
-                  <h3>
-                    <User size={20} />
-                    Informations Patient
-                  </h3>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="refPatient">Référence Patient *</label>
-                      <Field
-                        id="refPatient"
-                        name="refPatient"
-                        type="text"
-                        placeholder="Ex: PAT-2024-001"
-                        className="form-input"
-                      />
-                      <ErrorMessage
-                        name="refPatient"
-                        component="div"
-                        className="error-message"
-                      />
-                    </div>
+          <div className="form-container">
+            <Formik
+              initialValues={{
+                refPatient: "",
+                categorie: "",
+                option: "",
+                commentaire: "",
+                dateEcheance: "",
+              }}
+              validationSchema={validationSchema}
+              onSubmit={handleSubmit}
+            >
+              {({ isSubmitting, values, setFieldValue, resetForm }) => (
+                <Form className="passer-commande-form">
+                  {/* Section 1: Informations Patient */}
+                  <div className="form-section commande-section">
+                    <h3>
+                      <User size={20} />
+                      Informations Patient
+                    </h3>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="refPatient">Référence Patient *</label>
+                        <Field
+                          id="refPatient"
+                          name="refPatient"
+                          type="text"
+                          placeholder="Ex: PAT-2024-001"
+                          className="form-input"
+                        />
+                        <ErrorMessage
+                          name="refPatient"
+                          component="div"
+                          className="error-message"
+                        />
+                      </div>
 
-                    <div className="form-group">
-                      <label htmlFor="dateEcheance">
-                        <Calendar size={16} />
-                        Date d'échéance souhaitée *
-                      </label>
-                      <Field
-                        id="dateEcheance"
-                        name="dateEcheance"
-                        type="date"
-                        min={getMinDate()}
-                        className="form-input"
-                      />
-                      <small className="date-hint">
-                        Date minimum:{" "}
-                        {getMinDate().split("-").reverse().join("/")}
-                      </small>
-                      <ErrorMessage
-                        name="dateEcheance"
-                        component="div"
-                        className="error-message"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section 2: Sélection Appareil */}
-                <div className="form-section">
-                  <h3>
-                    <Package size={20} />
-                    Sélection de l'Appareil
-                  </h3>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="categorie">
-                        <Tag size={16} />
-                        Catégorie *
-                      </label>
-                      <Field
-                        as="select"
-                        id="categorie"
-                        name="categorie"
-                        className="form-select"
-                        value={selectedCategorie}
-                        onChange={(e) => {
-                          setFieldValue("categorie", e.target.value);
-                          setSelectedCategorie(e.target.value);
-                          setFieldValue("option", "");
-                          setSelectedOption("");
-                        }}
-                      >
-                        <option value="">Sélectionnez une catégorie</option>
-                        {CATEGORIES.map((cat) => (
-                          <option key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </option>
-                        ))}
-                      </Field>
-                      <ErrorMessage
-                        name="categorie"
-                        component="div"
-                        className="error-message"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="option">
-                        <Wrench size={16} />
-                        Option *
-                      </label>
-                      <Field
-                        as="select"
-                        id="option"
-                        name="option"
-                        className="form-select"
-                        disabled={!selectedCategorie}
-                        value={selectedOption}
-                        onChange={(e) => {
-                          setFieldValue("option", e.target.value);
-                          setSelectedOption(e.target.value);
-                        }}
-                      >
-                        <option value="">Sélectionnez une option</option>
-                        {OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </Field>
-                      <ErrorMessage
-                        name="option"
-                        component="div"
-                        className="error-message"
-                      />
+                      <div className="form-group">
+                        <label htmlFor="dateEcheance">
+                          <Calendar size={16} />
+                          Date d'échéance souhaitée *
+                        </label>
+                        <Field
+                          id="dateEcheance"
+                          name="dateEcheance"
+                          type="date"
+                          min={getMinDate()}
+                          className="form-input"
+                        />
+                        <small className="date-hint">
+                          Date minimum:{" "}
+                          {getMinDate().split("-").reverse().join("/")}
+                        </small>
+                        <ErrorMessage
+                          name="dateEcheance"
+                          component="div"
+                          className="error-message"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Appareils correspondants */}
-                  {selectedCategorie && selectedOption && (
-                    <div className="appareils-correspondants">
-                      <h4>Appareils correspondants :</h4>
-                      {loadingAppareils ? (
-                        <div className="loading-appareils">
-                          <div className="progress-bar-container small">
-                            <div className="progress-bar">
-                              <div className="progress-bar-fill indeterminate"></div>
-                            </div>
-                          </div>
-                          <span>Chargement...</span>
+                  {/* Section 2: Sélection Appareil */}
+                  <div className="form-section commande-section">
+                    <h3>
+                      <Package size={20} />
+                      Détails de l'Appareil
+                    </h3>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="categorie">
+                          <Tag size={16} />
+                          Catégorie *
+                        </label>
+                        <Field
+                          as="select"
+                          id="categorie"
+                          name="categorie"
+                          className="form-select"
+                          value={selectedCategorie}
+                          onChange={(e) => {
+                            setFieldValue("categorie", e.target.value);
+                            setSelectedCategorie(e.target.value);
+                            setFieldValue("option", "");
+                            setSelectedOption("");
+                            setSelectedAppareil(null);
+                          }}
+                        >
+                          <option value="">Sélectionnez une catégorie</option>
+                          {CATEGORIES.map((cat) => (
+                            <option key={cat.value} value={cat.value}>
+                              {cat.label}
+                            </option>
+                          ))}
+                        </Field>
+                        <ErrorMessage
+                          name="categorie"
+                          component="div"
+                          className="error-message"
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="option">
+                          <Wrench size={16} />
+                          Option *
+                        </label>
+                        <Field
+                          as="select"
+                          id="option"
+                          name="option"
+                          className="form-select"
+                          disabled={!selectedCategorie}
+                          value={selectedOption}
+                          onChange={(e) => {
+                            setFieldValue("option", e.target.value);
+                            setSelectedOption(e.target.value);
+                            setSelectedAppareil(null);
+                          }}
+                        >
+                          <option value="">Sélectionnez une option</option>
+                          {OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </Field>
+                        <ErrorMessage
+                          name="option"
+                          component="div"
+                          className="error-message"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Upload Fichiers */}
+                  <div className="form-section commande-section">
+                    <h3>
+                      <UploadCloud size={20} />
+                      Fichiers 3D
+                    </h3>
+
+                    <div className="upload-area-large">
+                      <input
+                        type="file"
+                        multiple
+                        accept=".stl,.zip,.obj,.3mf,.ply"
+                        onChange={handleFileSelect}
+                        className="file-input"
+                        id="file-upload"
+                      />
+                      <label
+                        htmlFor="file-upload"
+                        className="upload-label-large"
+                      >
+                        <Upload size={48} />
+                        <p>Cliquez ou glissez vos fichiers 3D ici</p>
+                        <small>
+                          Formats acceptés : .stl, .zip, .obj, .3mf, .ply
+                        </small>
+                        <small className="compression-info">
+                          Compression automatique • Max 1GB par fichier
+                        </small>
+                      </label>
+                    </div>
+
+                    {(isUploading || isCompressing) && (
+                      <div className="upload-progress-section">
+                        <div className="progress-info">
+                          <span className="progress-text">
+                            {isCompressing
+                              ? "Compression en cours..."
+                              : `Upload de ${currentUploadFile}...`}
+                          </span>
+                          <span className="progress-percentage">
+                            {Math.round(uploadProgress)}%
+                          </span>
                         </div>
-                      ) : filteredAppareils.length > 0 ? (
-                        <div className="correspondants-list">
-                          {filteredAppareils.map((app) => (
-                            <div key={app.id} className="correspondant-item">
-                              <CheckCircle size={16} className="check-icon" />
-                              <div className="correspondant-info">
-                                <strong>{app.nom}</strong>
-                                {app.description && (
-                                  <p className="correspondant-description">
-                                    {app.description}
-                                  </p>
-                                )}
+                        <div className="progress-bar-container">
+                          <div className="progress-bar">
+                            <div
+                              className="progress-bar-fill"
+                              style={{ width: `${uploadProgress}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedFiles.length > 0 && (
+                      <div className="selected-files">
+                        <h4>Fichiers à uploader ({selectedFiles.length})</h4>
+                        <div className="files-list">
+                          {selectedFiles.map((file, index) => (
+                            <div
+                              key={`selected-${index}`}
+                              className="file-item"
+                            >
+                              <FileText size={16} />
+                              <span className="file-name">{file.name}</span>
+                              <span className="file-size">
+                                ({formatFileSize(file.size)})
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveSelectedFile(index)}
+                                className="remove-selected-btn"
+                                title="Retirer le fichier"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="upload-actions">
+                          <button
+                            type="button"
+                            onClick={handleUploadFiles}
+                            disabled={isUploading || isCompressing}
+                            className="upload-btn primary"
+                          >
+                            {isCompressing || isUploading ? (
+                              <>
+                                <div className="progress-bar-container small inline">
+                                  <div className="progress-bar">
+                                    <div className="progress-bar-fill indeterminate"></div>
+                                  </div>
+                                </div>
+                                {isCompressing ? "Compression..." : "Upload..."}
+                              </>
+                            ) : (
+                              <>
+                                <Archive size={16} />
+                                Télécharger sur Google Drive
+                              </>
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleResetSelection}
+                            className="upload-btn secondary"
+                          >
+                            Tout retirer
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {uploadedFiles.length > 0 && (
+                      <div className="uploaded-files">
+                        <h4>
+                          <CheckCircle size={16} className="success-icon" />
+                          Fichiers téléchargés ({uploadedFiles.length})
+                        </h4>
+                        <div className="files-list">
+                          {uploadedFiles.map((file, index) => (
+                            <div
+                              key={`uploaded-${index}`}
+                              className="uploaded-file-item"
+                            >
+                              <Archive size={16} />
+                              <div className="file-info">
+                                <strong>{file.fileName}</strong>
+                                <small>
+                                  {formatFileSize(file.fileSize)}
+                                  {file.isCompressed && " (Compressé)"}
+                                </small>
+                              </div>
+                              <div className="file-actions">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleViewFile(
+                                      file.fileViewUrl,
+                                      file.fileId
+                                    )
+                                  }
+                                  className="view-btn"
+                                  title="Voir dans Google Drive"
+                                >
+                                  <ExternalLink size={16} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleRemoveFile(index, file.fileId)
+                                  }
+                                  className="remove-btn"
+                                  title="Supprimer le fichier"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
                               </div>
                             </div>
                           ))}
                         </div>
-                      ) : (
-                        <div className="no-correspondant">
-                          <AlertCircle size={16} />
-                          <p>Aucun appareil trouvé pour cette combinaison</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Section 3: Upload Fichiers */}
-                <div className="form-section">
-                  <h3>
-                    <Archive size={20} />
-                    Fichiers 3D
-                  </h3>
-
-                  <div className="upload-area">
-                    <input
-                      type="file"
-                      multiple
-                      accept=".stl,.zip,.obj,.3mf,.ply"
-                      onChange={handleFileSelect}
-                      className="file-input"
-                      id="file-upload"
-                    />
-                    <label htmlFor="file-upload" className="upload-label">
-                      <Upload size={32} />
-                      <p>Cliquez ou glissez vos fichiers ici</p>
-                      <small>
-                        Formats acceptés : .stl, .zip, .obj, .3mf, .ply (max
-                        500MB)
-                      </small>
-                      <small className="compression-info">
-                        Compression automatique en ZIP et stockage sur Google
-                        Drive
-                      </small>
-                    </label>
-                  </div>
-
-                  {(isUploading || isCompressing) && (
-                    <div className="upload-progress-section">
-                      <div className="progress-info">
-                        <span className="progress-text">
-                          {isCompressing
-                            ? "Compression en cours..."
-                            : `Upload de ${currentUploadFile}...`}
-                        </span>
-                        <span className="progress-percentage">
-                          {Math.round(uploadProgress)}%
-                        </span>
                       </div>
-                      <div className="progress-bar-container">
-                        <div className="progress-bar">
-                          <div
-                            className="progress-bar-fill"
-                            style={{ width: `${uploadProgress}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedFiles.length > 0 && (
-                    <div className="selected-files">
-                      <h4>Fichiers sélectionnés ({selectedFiles.length}) :</h4>
-                      <div className="files-list">
-                        {selectedFiles.map((file, index) => (
-                          <div key={`selected-${index}`} className="file-item">
-                            <FileText size={16} />
-                            <span className="file-name">{file.name}</span>
-                            <span className="file-size">
-                              ({formatFileSize(file.size)})
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="upload-actions">
-                        <button
-                          type="button"
-                          onClick={handleUploadFiles}
-                          disabled={isUploading || isCompressing}
-                          className="upload-btn primary"
-                        >
-                          {isCompressing || isUploading ? (
-                            <>
-                              <div className="progress-bar-container small inline">
-                                <div className="progress-bar">
-                                  <div className="progress-bar-fill indeterminate"></div>
-                                </div>
-                              </div>
-                              {isCompressing ? "Compression..." : "Upload..."}
-                            </>
-                          ) : (
-                            <>
-                              <Archive size={16} />
-                              Compresser et Uploader
-                            </>
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleResetSelection}
-                          className="upload-btn secondary"
-                        >
-                          Annuler
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {uploadedFiles.length > 0 && (
-                    <div className="uploaded-files">
-                      <h4>
-                        <CheckCircle size={16} className="success-icon" />
-                        Fichiers uploadés ({uploadedFiles.length})
-                      </h4>
-                      <div className="files-list">
-                        {uploadedFiles.map((file, index) => (
-                          <div
-                            key={`uploaded-${index}`}
-                            className="uploaded-file-item"
-                          >
-                            <Archive size={16} />
-                            <div className="file-info">
-                              <strong>{file.fileName}</strong>
-                              <small>
-                                {formatFileSize(file.fileSize)}
-                                {file.isCompressed && " (Compressé)"}
-                              </small>
-                            </div>
-                            <div className="file-actions">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleViewFile(file.fileViewUrl, file.fileId)
-                                }
-                                className="view-btn"
-                                title="Voir dans Google Drive"
-                              >
-                                <ExternalLink size={16} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleRemoveFile(index, file.fileId)
-                                }
-                                className="remove-btn"
-                                title="Supprimer le fichier"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Section 4: Commentaire */}
-                <div className="form-section">
-                  <h3>
-                    <MessageSquare size={20} />
-                    Commentaire (Optionnel)
-                  </h3>
-                  <div className="form-group">
-                    <Field
-                      as="textarea"
-                      name="commentaire"
-                      placeholder="Instructions ou remarques pour le laboratoire..."
-                      className="form-textarea"
-                      rows={4}
-                    />
-                    <div className="character-count">
-                      {values.commentaire?.length || 0}/1000 caractères
-                    </div>
-                    <ErrorMessage
-                      name="commentaire"
-                      component="div"
-                      className="error-message"
-                    />
-                  </div>
-                </div>
-
-                {/* Boutons d'action */}
-                <div className="form-actions">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      resetForm();
-                      setUploadedFiles([]);
-                      setSelectedFiles([]);
-                      setSelectedCategorie("");
-                      setSelectedOption("");
-                    }}
-                    className="cancel-btn"
-                    disabled={isSubmitting}
-                  >
-                    Réinitialiser
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || uploadedFiles.length === 0}
-                    className="submit-btn"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="progress-bar-container small inline">
-                          <div className="progress-bar">
-                            <div className="progress-bar-fill indeterminate"></div>
-                          </div>
-                        </div>
-                        Création en cours...
-                      </>
-                    ) : (
-                      <>
-                        <Send size={18} />
-                        Envoyer la Commande
-                      </>
                     )}
-                  </button>
-                </div>
-              </Form>
-            )}
-          </Formik>
+                  </div>
+
+                  {/* Section 4: Commentaire */}
+                  <div className="form-section commande-section">
+                    <h3>
+                      <MessageSquare size={20} />
+                      Instructions supplémentaires
+                    </h3>
+                    <div className="form-group">
+                      <Field
+                        as="textarea"
+                        name="commentaire"
+                        placeholder="Ajoutez des instructions ou remarques particulières pour le laboratoire..."
+                        className="form-textarea"
+                        rows={4}
+                      />
+                      <div className="character-count">
+                        {values.commentaire?.length || 0}/1000 caractères
+                      </div>
+                      <ErrorMessage
+                        name="commentaire"
+                        component="div"
+                        className="error-message"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Boutons d'action */}
+                  <div className="form-actions commande-actions">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        resetForm();
+                        setUploadedFiles([]);
+                        setSelectedFiles([]);
+                        setSelectedCategorie("");
+                        setSelectedOption("");
+                        setSelectedAppareil(null);
+                      }}
+                      className="cancel-btn"
+                      disabled={isSubmitting}
+                    >
+                      Réinitialiser
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={
+                        isSubmitting ||
+                        uploadedFiles.length === 0 ||
+                        !selectedAppareil
+                      }
+                      className="submit-btn"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="progress-bar-container small inline">
+                            <div className="progress-bar">
+                              <div className="progress-bar-fill indeterminate"></div>
+                            </div>
+                          </div>
+                          Création en cours...
+                        </>
+                      ) : (
+                        <>
+                          <Send size={18} />
+                          Finaliser la Commande
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </Form>
+              )}
+            </Formik>
+          </div>
         </div>
       </div>
     </div>
