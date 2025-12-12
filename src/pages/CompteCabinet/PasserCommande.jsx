@@ -467,7 +467,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
 
       // Utilisez l'endpoint Brevo existant
       const response = await fetch(
-        `${API_BASE_URL}/send-new-commande-notification`,
+        `${API_BASE_URL}/send-commande-notification`,
         {
           method: "POST",
           headers: {
@@ -673,17 +673,6 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
                         }
                       }}
                     >
-                      <div className="appareil-display-header">
-                        <h3>{appareil.nom}</h3>
-                        <span
-                          className={`disponibility-badge ${
-                            appareil.disponible ? "available" : "unavailable"
-                          }`}
-                        >
-                          {appareil.disponible ? "Disponible" : "Indisponible"}
-                        </span>
-                      </div>
-
                       <div className="appareil-display-info">
                         <div className="info-line">
                           <strong>Catégorie:</strong>
