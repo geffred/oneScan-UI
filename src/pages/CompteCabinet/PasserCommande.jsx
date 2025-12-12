@@ -469,7 +469,7 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       };
 
       const response = await fetch(
-        `${API_BASE_URL}/api/email/send-commande-notification`,
+        `${API_BASE_URL}/email/send-commande-notification`,
         {
           method: "POST",
           headers: {
