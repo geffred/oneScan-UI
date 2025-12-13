@@ -169,15 +169,6 @@ const CompteCabinet = () => {
             <div className="compte-cabinet-tabs">
               <button
                 className={`compte-cabinet-tab ${
-                  activeTab === "profile" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("profile")}
-              >
-                <Users size={18} />
-                Profil
-              </button>
-              <button
-                className={`compte-cabinet-tab ${
                   activeTab === "nouvelle-commande" ? "active" : ""
                 }`}
                 onClick={() => setActiveTab("nouvelle-commande")}
@@ -193,6 +184,16 @@ const CompteCabinet = () => {
               >
                 <Package size={18} />
                 Mes Commandes ({filteredCommandes.length})
+              </button>
+
+              <button
+                className={`compte-cabinet-tab ${
+                  activeTab === "profile" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("profile")}
+              >
+                <Users size={18} />
+                Profil
               </button>
             </div>
 
