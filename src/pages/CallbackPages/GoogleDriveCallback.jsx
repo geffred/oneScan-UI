@@ -14,10 +14,11 @@ import "./Callback.css";
 
 // ⏱️ CONFIGURATION DES DÉLAIS (en millisecondes)
 const DELAYS = {
-  POPUP_SUCCESS_CLOSE: 2000, // 2 secondes - fermeture popup succès
+  POPUP_SUCCESS_CLOSE: 2500, // 2.5 secondes - fermeture popup succès
   POPUP_ERROR_CLOSE: 3000, // 3 secondes - fermeture popup erreur
   WINDOW_SUCCESS_REDIRECT: 3000, // 3 secondes - redirection fenêtre succès
   WINDOW_ERROR_REDIRECT: 4000, // 4 secondes - redirection fenêtre erreur
+  POST_MESSAGE_DELAY: 100, //  100ms avant d'envoyer le postMessage
 };
 
 const GoogleDriveCallback = () => {
@@ -36,31 +37,20 @@ const GoogleDriveCallback = () => {
   const hasRedirectedRef = useRef(false);
   const timeoutRef = useRef(null);
   const countdownIntervalRef = useRef(null);
+  const postMessageSentRef = useRef(false);
 
-  // Fonction pour actualiser la page parente
-  const refreshParentPage = () => {
-    if (window.opener) {
+  //  Fonction pour envoyer le postMessage de manière sécurisée
+  const sendPostMessage = (messageData) => {
+    if (window.opener && !window.opener.closed) {
       try {
-        // Envoyer un message pour demander le rechargement
-        window.opener.postMessage(
-          {
-            type: "GOOGLE_DRIVE_AUTH_COMPLETE",
-            action: "refresh",
-            timestamp: Date.now(),
-          },
-          window.location.origin
-        );
-
-        // Alternative: forcer le rechargement si la page parente est sur le même domaine
-        if (window.opener.location && !window.opener.closed) {
-          try {
-            window.opener.location.reload();
-          } catch (e) {
-            console.log("Rechargement automatique bloqué par le navigateur");
-          }
-        }
+        // Attendre un peu pour s'assurer que le parent est prêt
+        setTimeout(() => {
+          window.opener.postMessage(messageData, window.location.origin);
+          console.log(" PostMessage envoyé:", messageData.type);
+          postMessageSentRef.current = true;
+        }, DELAYS.POST_MESSAGE_DELAY);
       } catch (error) {
-        console.warn("Impossible d'actualiser la page parente:", error);
+        console.warn(" Impossible d'envoyer le postMessage:", error);
       }
     }
   };
@@ -91,14 +81,14 @@ const GoogleDriveCallback = () => {
       hasSucceededRef.current ||
       hasRedirectedRef.current
     ) {
-      console.log("Appel bloqué - déjà en cours, réussi ou redirigé");
+      console.log("⏭️ Appel bloqué - déjà en cours, réussi ou redirigé");
       return;
     }
 
     isProcessingRef.current = true;
 
     try {
-      // Si succès OAuth
+      //  CAS 1 : Succès OAuth
       if (success === "true") {
         hasSucceededRef.current = true;
         setStatus("success");
@@ -106,25 +96,22 @@ const GoogleDriveCallback = () => {
 
         // Notifier la fenêtre parente si popup
         if (window.opener) {
-          window.opener.postMessage(
-            {
-              type: "GOOGLE_DRIVE_AUTH_SUCCESS",
-              data: {
-                authenticated: true,
-                timestamp: Date.now(),
-              },
-              action: "refresh", // Indiquer qu'il faut actualiser
+          sendPostMessage({
+            type: "GOOGLE_DRIVE_AUTH_SUCCESS",
+            data: {
+              authenticated: true,
+              timestamp: Date.now(),
             },
-            window.location.origin
-          );
+            action: "refresh",
+          });
 
           // Démarrer le compte à rebours
           const delay = DELAYS.POPUP_SUCCESS_CLOSE / 1000;
           startCountdown(delay);
 
-          // Fermer la popup après délai avec actualisation de la page parente
+          //  Fermer la popup après que le message ait été envoyé
           timeoutRef.current = setTimeout(() => {
-            refreshParentPage(); // Actualiser avant fermeture
+            console.log("🔒 Fermeture de la popup de succès");
             window.close();
           }, DELAYS.POPUP_SUCCESS_CLOSE);
         } else {
@@ -135,13 +122,12 @@ const GoogleDriveCallback = () => {
           startCountdown(delay);
 
           timeoutRef.current = setTimeout(() => {
-            // Actualiser la page courante avant redirection
             window.location.reload();
             navigate("/Dashboard/Platform", { replace: true });
           }, DELAYS.WINDOW_SUCCESS_REDIRECT);
         }
       }
-      // Si erreur OAuth
+      //  CAS 2 : Erreur OAuth
       else if (error) {
         setStatus("error");
         const errorMsg =
@@ -150,20 +136,17 @@ const GoogleDriveCallback = () => {
 
         // Notifier la fenêtre parente si popup
         if (window.opener) {
-          window.opener.postMessage(
-            {
-              type: "GOOGLE_DRIVE_AUTH_ERROR",
-              error: errorMsg,
-              action: "refresh", // Indiquer qu'il faut actualiser même en cas d'erreur
-            },
-            window.location.origin
-          );
+          sendPostMessage({
+            type: "GOOGLE_DRIVE_AUTH_ERROR",
+            error: errorMsg,
+            action: "refresh",
+          });
 
           const delay = DELAYS.POPUP_ERROR_CLOSE / 1000;
           startCountdown(delay);
 
           timeoutRef.current = setTimeout(() => {
-            refreshParentPage(); // Actualiser avant fermeture
+            console.log(" Fermeture de la popup d'erreur");
             window.close();
           }, DELAYS.POPUP_ERROR_CLOSE);
         } else {
@@ -171,13 +154,12 @@ const GoogleDriveCallback = () => {
           startCountdown(delay);
 
           timeoutRef.current = setTimeout(() => {
-            // Actualiser la page courante avant redirection
             window.location.reload();
             navigate("/Dashboard/Platform", { replace: true });
           }, DELAYS.WINDOW_ERROR_REDIRECT);
         }
       }
-      // Paramètres manquants
+      //  CAS 3 : Paramètres manquants
       else {
         throw new Error("Paramètres de callback manquants");
       }
@@ -186,14 +168,11 @@ const GoogleDriveCallback = () => {
       setMessage(`Erreur inattendue : ${err.message}`);
 
       if (window.opener) {
-        window.opener.postMessage(
-          {
-            type: "GOOGLE_DRIVE_AUTH_ERROR",
-            error: err.message,
-            action: "refresh",
-          },
-          window.location.origin
-        );
+        sendPostMessage({
+          type: "GOOGLE_DRIVE_AUTH_ERROR",
+          error: err.message,
+          action: "refresh",
+        });
       }
     } finally {
       isProcessingRef.current = false;
@@ -232,10 +211,15 @@ const GoogleDriveCallback = () => {
     }
 
     if (window.opener) {
-      refreshParentPage(); // Actualiser avant fermeture
+      // Envoyer un dernier message avant fermeture
+      if (!postMessageSentRef.current) {
+        sendPostMessage({
+          type: "GOOGLE_DRIVE_AUTH_COMPLETE",
+          action: "refresh",
+        });
+      }
       window.close();
     } else {
-      // Actualiser la page avant redirection
       window.location.reload();
       navigate("/Dashboard/Platform", { replace: true });
     }
@@ -246,6 +230,8 @@ const GoogleDriveCallback = () => {
     const success = queryParams.get("success");
     const error = queryParams.get("error");
     const errorDescription = queryParams.get("error_description");
+
+    console.log("🔍 Callback détecté:", { success, error });
 
     // Ne rien faire si déjà réussi ou redirigé
     if (hasSucceededRef.current || hasRedirectedRef.current) {
