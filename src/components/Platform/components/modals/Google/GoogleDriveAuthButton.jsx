@@ -11,7 +11,7 @@ const GoogleDriveAuthButton = () => {
   const authPopupRef = useRef(null);
   const checkIntervalRef = useRef(null);
 
-  // ✅ Fonction pour vérifier le statut d'authentification
+  // Fonction pour vérifier le statut d'authentification
   const checkAuthStatus = useCallback(async () => {
     try {
       const response = await axios.get(
@@ -19,15 +19,15 @@ const GoogleDriveAuthButton = () => {
         { withCredentials: true }
       );
 
-      const wasAuthenticated = isAuthenticated;
       const nowAuthenticated = response.data.authenticated;
 
-      setIsAuthenticated(nowAuthenticated);
-
-      // Si l'authentification vient de réussir, afficher un toast
-      if (!wasAuthenticated && nowAuthenticated) {
-        toast.success("✅ Connecté à Google Drive avec succès");
-      }
+      setIsAuthenticated((prevAuth) => {
+        // Si l'authentification vient de réussir, afficher un toast
+        if (!prevAuth && nowAuthenticated) {
+          toast.success("Connecté à Google Drive avec succès");
+        }
+        return nowAuthenticated;
+      });
 
       return nowAuthenticated;
     } catch (error) {
@@ -37,14 +37,14 @@ const GoogleDriveAuthButton = () => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, []); // Pas de dépendances car on utilise setIsAuthenticated en mode callback
 
-  // ✅ Vérification initiale au montage
+  // Vérification initiale au montage
   useEffect(() => {
     checkAuthStatus();
-  }, []);
+  }, [checkAuthStatus]);
 
-  // ✅ Listener pour les messages postMessage du callback
+  // Listener pour les messages postMessage du callback
   useEffect(() => {
     const handleAuthMessage = async (event) => {
       // Sécurité : vérifier l'origine
@@ -52,7 +52,7 @@ const GoogleDriveAuthButton = () => {
         return;
       }
 
-      const { type, action } = event.data;
+      const { type } = event.data;
 
       if (type === "GOOGLE_DRIVE_AUTH_SUCCESS") {
         console.log("Message de succès reçu du callback");
@@ -86,7 +86,7 @@ const GoogleDriveAuthButton = () => {
           authPopupRef.current = null;
         }
       } else if (type === "GOOGLE_DRIVE_AUTH_ERROR") {
-        console.error("❌ Erreur d'authentification reçue:", event.data.error);
+        console.error("Erreur d'authentification reçue:", event.data.error);
         toast.error(`Erreur : ${event.data.error}`);
         setIsAuthenticating(false);
 
@@ -111,8 +111,8 @@ const GoogleDriveAuthButton = () => {
     };
   }, [checkAuthStatus]);
 
-  // ✅ Ouvrir la popup d'authentification
-  const handleAuthClick = async () => {
+  // Ouvrir la popup d'authentification
+  const handleAuthClick = useCallback(async () => {
     try {
       setIsAuthenticating(true);
 
@@ -148,7 +148,7 @@ const GoogleDriveAuthButton = () => {
         return;
       }
 
-      // ✅ Vérification périodique en backup (au cas où postMessage échoue)
+      // Vérification périodique en backup (au cas où postMessage échoue)
       checkIntervalRef.current = setInterval(async () => {
         // Vérifier si la popup est fermée
         if (authPopupRef.current && authPopupRef.current.closed) {
@@ -176,10 +176,10 @@ const GoogleDriveAuthButton = () => {
       toast.error("Erreur lors de la connexion à Google Drive");
       setIsAuthenticating(false);
     }
-  };
+  }, [checkAuthStatus]);
 
-  // ✅ Déconnexion
-  const handleLogout = async () => {
+  // Déconnexion
+  const handleLogout = useCallback(async () => {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/drive/logout`,
@@ -195,7 +195,7 @@ const GoogleDriveAuthButton = () => {
       console.error("Erreur lors de la déconnexion:", error);
       toast.error("Erreur lors de la déconnexion");
     }
-  };
+  }, []);
 
   if (loading) {
     return (

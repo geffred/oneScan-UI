@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Cloud,
@@ -12,13 +12,13 @@ import {
 } from "lucide-react";
 import "./Callback.css";
 
-// ⏱️ CONFIGURATION DES DÉLAIS (en millisecondes)
+// CONFIGURATION DES DELAIS (en millisecondes)
 const DELAYS = {
-  POPUP_SUCCESS_CLOSE: 2500, // 2.5 secondes - fermeture popup succès
-  POPUP_ERROR_CLOSE: 3000, // 3 secondes - fermeture popup erreur
-  WINDOW_SUCCESS_REDIRECT: 3000, // 3 secondes - redirection fenêtre succès
-  WINDOW_ERROR_REDIRECT: 4000, // 4 secondes - redirection fenêtre erreur
-  POST_MESSAGE_DELAY: 100, //  100ms avant d'envoyer le postMessage
+  POPUP_SUCCESS_CLOSE: 2500,
+  POPUP_ERROR_CLOSE: 3000,
+  WINDOW_SUCCESS_REDIRECT: 3000,
+  WINDOW_ERROR_REDIRECT: 4000,
+  POST_MESSAGE_DELAY: 100,
 };
 
 const GoogleDriveCallback = () => {
@@ -39,24 +39,24 @@ const GoogleDriveCallback = () => {
   const countdownIntervalRef = useRef(null);
   const postMessageSentRef = useRef(false);
 
-  //  Fonction pour envoyer le postMessage de manière sécurisée
-  const sendPostMessage = (messageData) => {
+  // Fonction pour envoyer le postMessage de manière sécurisée
+  const sendPostMessage = useCallback((messageData) => {
     if (window.opener && !window.opener.closed) {
       try {
         // Attendre un peu pour s'assurer que le parent est prêt
         setTimeout(() => {
           window.opener.postMessage(messageData, window.location.origin);
-          console.log(" PostMessage envoyé:", messageData.type);
+          console.log("PostMessage envoyé:", messageData.type);
           postMessageSentRef.current = true;
         }, DELAYS.POST_MESSAGE_DELAY);
       } catch (error) {
-        console.warn(" Impossible d'envoyer le postMessage:", error);
+        console.warn("Impossible d'envoyer le postMessage:", error);
       }
     }
-  };
+  }, []);
 
   // Fonction pour démarrer le compte à rebours
-  const startCountdown = (seconds) => {
+  const startCountdown = useCallback((seconds) => {
     setCountdown(seconds);
 
     if (countdownIntervalRef.current) {
@@ -72,114 +72,117 @@ const GoogleDriveCallback = () => {
         return prev - 1;
       });
     }, 1000);
-  };
+  }, []);
 
-  const handleCallback = async (success, error, errorDescription) => {
-    // Éviter les appels multiples
-    if (
-      isProcessingRef.current ||
-      hasSucceededRef.current ||
-      hasRedirectedRef.current
-    ) {
-      console.log("⏭️ Appel bloqué - déjà en cours, réussi ou redirigé");
-      return;
-    }
-
-    isProcessingRef.current = true;
-
-    try {
-      //  CAS 1 : Succès OAuth
-      if (success === "true") {
-        hasSucceededRef.current = true;
-        setStatus("success");
-        setMessage("Authentification Google Drive réussie ! Accès activé.");
-
-        // Notifier la fenêtre parente si popup
-        if (window.opener) {
-          sendPostMessage({
-            type: "GOOGLE_DRIVE_AUTH_SUCCESS",
-            data: {
-              authenticated: true,
-              timestamp: Date.now(),
-            },
-            action: "refresh",
-          });
-
-          // Démarrer le compte à rebours
-          const delay = DELAYS.POPUP_SUCCESS_CLOSE / 1000;
-          startCountdown(delay);
-
-          //  Fermer la popup après que le message ait été envoyé
-          timeoutRef.current = setTimeout(() => {
-            console.log("🔒 Fermeture de la popup de succès");
-            window.close();
-          }, DELAYS.POPUP_SUCCESS_CLOSE);
-        } else {
-          // Redirection dans la fenêtre principale
-          hasRedirectedRef.current = true;
-
-          const delay = DELAYS.WINDOW_SUCCESS_REDIRECT / 1000;
-          startCountdown(delay);
-
-          timeoutRef.current = setTimeout(() => {
-            window.location.reload();
-            navigate("/Dashboard/Platform", { replace: true });
-          }, DELAYS.WINDOW_SUCCESS_REDIRECT);
-        }
+  const handleCallback = useCallback(
+    async (success, error, errorDescription) => {
+      // Éviter les appels multiples
+      if (
+        isProcessingRef.current ||
+        hasSucceededRef.current ||
+        hasRedirectedRef.current
+      ) {
+        console.log("Appel bloqué - déjà en cours, réussi ou redirigé");
+        return;
       }
-      //  CAS 2 : Erreur OAuth
-      else if (error) {
-        setStatus("error");
-        const errorMsg =
-          errorDescription || error || "Erreur d'authentification";
-        setMessage(`Erreur : ${errorMsg}`);
 
-        // Notifier la fenêtre parente si popup
+      isProcessingRef.current = true;
+
+      try {
+        // CAS 1 : Succès OAuth
+        if (success === "true") {
+          hasSucceededRef.current = true;
+          setStatus("success");
+          setMessage("Authentification Google Drive réussie ! Accès activé.");
+
+          // Notifier la fenêtre parente si popup
+          if (window.opener) {
+            sendPostMessage({
+              type: "GOOGLE_DRIVE_AUTH_SUCCESS",
+              data: {
+                authenticated: true,
+                timestamp: Date.now(),
+              },
+              action: "refresh",
+            });
+
+            // Démarrer le compte à rebours
+            const delay = DELAYS.POPUP_SUCCESS_CLOSE / 1000;
+            startCountdown(delay);
+
+            // Fermer la popup après que le message ait été envoyé
+            timeoutRef.current = setTimeout(() => {
+              console.log("Fermeture de la popup de succès");
+              window.close();
+            }, DELAYS.POPUP_SUCCESS_CLOSE);
+          } else {
+            // Redirection dans la fenêtre principale
+            hasRedirectedRef.current = true;
+
+            const delay = DELAYS.WINDOW_SUCCESS_REDIRECT / 1000;
+            startCountdown(delay);
+
+            timeoutRef.current = setTimeout(() => {
+              window.location.reload();
+              navigate("/Dashboard/Platform", { replace: true });
+            }, DELAYS.WINDOW_SUCCESS_REDIRECT);
+          }
+        }
+        // CAS 2 : Erreur OAuth
+        else if (error) {
+          setStatus("error");
+          const errorMsg =
+            errorDescription || error || "Erreur d'authentification";
+          setMessage(`Erreur : ${errorMsg}`);
+
+          // Notifier la fenêtre parente si popup
+          if (window.opener) {
+            sendPostMessage({
+              type: "GOOGLE_DRIVE_AUTH_ERROR",
+              error: errorMsg,
+              action: "refresh",
+            });
+
+            const delay = DELAYS.POPUP_ERROR_CLOSE / 1000;
+            startCountdown(delay);
+
+            timeoutRef.current = setTimeout(() => {
+              console.log("Fermeture de la popup d'erreur");
+              window.close();
+            }, DELAYS.POPUP_ERROR_CLOSE);
+          } else {
+            const delay = DELAYS.WINDOW_ERROR_REDIRECT / 1000;
+            startCountdown(delay);
+
+            timeoutRef.current = setTimeout(() => {
+              window.location.reload();
+              navigate("/Dashboard/Platform", { replace: true });
+            }, DELAYS.WINDOW_ERROR_REDIRECT);
+          }
+        }
+        // CAS 3 : Paramètres manquants
+        else {
+          throw new Error("Paramètres de callback manquants");
+        }
+      } catch (err) {
+        setStatus("error");
+        setMessage(`Erreur inattendue : ${err.message}`);
+
         if (window.opener) {
           sendPostMessage({
             type: "GOOGLE_DRIVE_AUTH_ERROR",
-            error: errorMsg,
+            error: err.message,
             action: "refresh",
           });
-
-          const delay = DELAYS.POPUP_ERROR_CLOSE / 1000;
-          startCountdown(delay);
-
-          timeoutRef.current = setTimeout(() => {
-            console.log(" Fermeture de la popup d'erreur");
-            window.close();
-          }, DELAYS.POPUP_ERROR_CLOSE);
-        } else {
-          const delay = DELAYS.WINDOW_ERROR_REDIRECT / 1000;
-          startCountdown(delay);
-
-          timeoutRef.current = setTimeout(() => {
-            window.location.reload();
-            navigate("/Dashboard/Platform", { replace: true });
-          }, DELAYS.WINDOW_ERROR_REDIRECT);
         }
+      } finally {
+        isProcessingRef.current = false;
       }
-      //  CAS 3 : Paramètres manquants
-      else {
-        throw new Error("Paramètres de callback manquants");
-      }
-    } catch (err) {
-      setStatus("error");
-      setMessage(`Erreur inattendue : ${err.message}`);
+    },
+    [navigate, sendPostMessage, startCountdown]
+  );
 
-      if (window.opener) {
-        sendPostMessage({
-          type: "GOOGLE_DRIVE_AUTH_ERROR",
-          error: err.message,
-          action: "refresh",
-        });
-      }
-    } finally {
-      isProcessingRef.current = false;
-    }
-  };
-
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     // Empêcher les nouvelles tentatives si déjà réussi
     if (hasSucceededRef.current || hasRedirectedRef.current) {
       return;
@@ -199,9 +202,9 @@ const GoogleDriveCallback = () => {
     } else {
       navigate("/Dashboard/Platform", { replace: true });
     }
-  };
+  }, [location.search, handleCallback, navigate]);
 
-  const handleGoHome = () => {
+  const handleGoHome = useCallback(() => {
     // Nettoyer les timeouts et rediriger
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -223,7 +226,7 @@ const GoogleDriveCallback = () => {
       window.location.reload();
       navigate("/Dashboard/Platform", { replace: true });
     }
-  };
+  }, [navigate, sendPostMessage]);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -231,7 +234,7 @@ const GoogleDriveCallback = () => {
     const error = queryParams.get("error");
     const errorDescription = queryParams.get("error_description");
 
-    console.log("🔍 Callback détecté:", { success, error });
+    console.log("Callback détecté:", { success, error });
 
     // Ne rien faire si déjà réussi ou redirigé
     if (hasSucceededRef.current || hasRedirectedRef.current) {
@@ -254,7 +257,7 @@ const GoogleDriveCallback = () => {
         clearInterval(countdownIntervalRef.current);
       }
     };
-  }, [location.search]);
+  }, [location.search, handleCallback]);
 
   const getStatusIcon = () => {
     switch (status) {
