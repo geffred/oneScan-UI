@@ -1,101 +1,140 @@
-/* Platforms Section */
-.platforms-section {
+/* --- Variables locales pour faciliter la modification --- */
+.ip-section {
+  --ip-primary: #007AFF;
+  --ip-bg: #f8fafc;
+  --ip-card-bg: #ffffff;
+  --ip-text-main: #1e293b;
+  --ip-text-sub: #64748b;
+  --ip-border: #e2e8f0;
+  --ip-success-bg: #dcfce7;
+  --ip-success-text: #166534;
+  
   padding: 6rem 0;
-  background: white;
+  background-color: var(--ip-bg);
+  /* Optionnel: un motif de fond subtil */
+  background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
-.container {
+.ip-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 1.5rem;
 }
 
-.section-header {
+/* --- Header Section --- */
+.ip-header {
   text-align: center;
   margin-bottom: 4rem;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.section-title {
+.ip-title {
   font-size: 2.5rem;
-  font-weight: 700;
-  color: #1e293b;
+  font-weight: 800;
+  color: var(--ip-text-main);
   margin-bottom: 1rem;
+  letter-spacing: -0.02em;
 }
 
-.section-subtitle {
-  font-size: 1.25rem;
-  color: #64748b;
-  max-width: 600px;
-  margin: 0 auto;
+.ip-subtitle {
+  font-size: 1.125rem;
+  color: var(--ip-text-sub);
+  line-height: 1.6;
 }
 
-.platforms-grid {
+/* --- Grid --- */
+.ip-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 2rem;
-  margin-top: 3rem;
+  justify-content: center;
 }
 
-.platforms-grid .platform-card {
-  background: #ffffff;
-  padding: 2rem;
-  border-radius: 16px;
-  text-align: center;
-  transition: all 0.3s ease;
-  border: 2px solid #e2e8f0;
-}
-
-.platforms-grid .platform-card:hover {
-  background: white;
-  border-color: #007AFF;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 30px rgba(0, 122, 255, 0.15);
-}
-
-.platform-logo {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+/* --- Card Design --- */
+.ip-card {
+  background: var(--ip-card-bg);
+  border: 1px solid var(--ip-border);
   border-radius: 20px;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+}
+
+
+
+.ip-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px -8px rgba(0, 122, 255, 0.12);
+  border-color: rgba(0, 122, 255, 0.3);
+}
+
+
+
+/* --- Logo Wrapper --- */
+.ip-logo-wrapper {
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 1.5rem auto;
+  background: #ffffff;
+  border-radius: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1rem auto;
-  color: white;
+  /* Ombre douce interne pour donner de la profondeur */
+
+  border: 1px solid #f1f5f9;
+  padding: 15px;
+}
+
+.ip-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Empêche la déformation des logos */
+  filter: grayscale(0%); /* Change à 100% si tu veux qu'ils soient gris par défaut */
+  transition: filter 0.3s ease;
+  border-radius: 5px;
+}
+
+/* --- Typography & Badges --- */
+.ip-name {
+  font-size: 1.25rem;
   font-weight: 700;
-  font-size: 1.2rem;
+  color: var(--ip-text-main);
+  margin-bottom: 0.75rem;
 }
 
-.platform-name {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
-}
-
-.platform-status {
+.ip-status {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #dcfce7;
-  color: #166534;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  background-color: var(--ip-success-bg);
+  color: var(--ip-success-text);
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: 1px solid rgba(22, 101, 52, 0.1);
 }
 
-/* Responsive Design */
+/* --- Responsive --- */
 @media (max-width: 768px) {
-  .section-title {
+  .ip-title {
     font-size: 2rem;
   }
-
-  .platforms-grid {
-    grid-template-columns: 1fr;
+  
+  .ip-section {
+    padding: 4rem 0;
   }
-
-  .container {
-    padding: 0 1rem;
+  
+  .ip-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 }

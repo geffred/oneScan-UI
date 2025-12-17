@@ -10,419 +10,320 @@ import {
   AlertCircle,
   MapPin,
   Calendar,
-  User,
-  Building,
+  Building2,
+  ArrowRight,
 } from "lucide-react";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./SuiviCommandes.css";
-import { ToastContainer } from "react-toastify";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Fonction pour récupérer les détails d'une commande par numéro de suivi
-const fetchCommandeByNumeroSuivi = async (numeroSuivi) => {
-  // Cette route est publique, pas besoin de token
-  const response = await fetch(
-    `${API_BASE_URL}/public/commandes/suivi/${numeroSuivi}`
-  );
-
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error("Aucune commande trouvée avec ce numéro de suivi");
-    }
-    if (response.status === 401) {
-      throw new Error("Accès non autorisé à cette commande");
-    }
-    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
-  }
-
-  return response.json();
-};
-
-// Configuration des étapes de suivi avec descriptions détaillées
+// --- CONFIGURATION ---
 const ETAPES_SUIVI = [
   {
     status: "EN_ATTENTE",
-    label: "En attente",
-    description: "Réception et analyse de votre commande",
+    label: "Réception & Analyse",
+    description: "Votre commande est arrivée au laboratoire.",
     detail:
-      "Votre commande a été reçue et est en cours de validation. Nos équipes vérifient les spécifications techniques et préparent le processus de fabrication.",
+      "Nous vérifions les fichiers numériques et les spécifications techniques avant de lancer la production.",
     icon: Clock,
-    color: "#3b82f6",
   },
   {
     status: "EN_COURS",
-    label: "En cours de fabrication",
-    description: "Conception et fabrication de l'appareil",
+    label: "Fabrication",
+    description: "Production de l'appareil en cours.",
     detail:
-      "Votre appareil dentaire est actuellement en cours de fabrication dans nos ateliers spécialisés. Nos techniciens suivent rigoureusement les spécifications de votre commande.",
+      "Impression 3D, usinage ou montage manuel selon les spécificités de votre commande.",
     icon: Settings,
-    color: "#3b82f6",
   },
   {
     status: "TERMINEE",
-    label: "Fabrication terminée",
-    description: "Contrôle qualité et finalisation",
+    label: "Contrôle Qualité",
+    description: "Vérification finale avant emballage.",
     detail:
-      "La fabrication de votre appareil est terminée. Nos équipes procèdent aux derniers contrôles qualité avant conditionnement et expédition.",
+      "Nos experts s'assurent que la prothèse correspond parfaitement aux exigences cliniques.",
     icon: CheckCircle2,
-    color: "#3b82f6",
   },
   {
     status: "EXPEDIEE",
-    label: "Expédiée",
-    description: "Commande expédiée vers votre cabinet",
-    detail:
-      "Votre commande a été expédiée et est en route vers votre cabinet dentaire. Vous recevrez bientôt un avis de livraison.",
+    label: "Expédition",
+    description: "En route vers votre cabinet.",
+    detail: "Remis au transporteur. Vous recevrez le colis sous 24h à 48h.",
     icon: Truck,
-    color: "#3b82f6",
   },
 ];
 
-const StatusIndicator = ({
-  status,
-  currentStatus,
-  index,
-  isActive,
-  isPassed,
-}) => {
-  const etape = ETAPES_SUIVI.find((e) => e.status === status);
-  if (!etape) return null;
+const fetchCommandeByNumeroSuivi = async (numeroSuivi) => {
+  // Simulation d'appel API pour l'exemple si l'URL n'est pas définie
+  if (!API_BASE_URL) {
+    // A SUPPRIMER EN PROD : Simulation de délai
+    await new Promise((r) => setTimeout(r, 800));
+    // Mock data pour test
+    if (numeroSuivi === "123456") {
+      return {
+        externalId: "CMD-8829",
+        cabinet: "Cabinet Dr. Martin",
+        dateReception: new Date().toISOString(),
+        dateEcheance: new Date(Date.now() + 86400000 * 5).toISOString(),
+        typeAppareil: "Gouttière de contention",
+        statut: "EN_COURS",
+        numeroSuivi: "TRACK-9922",
+      };
+    }
+    throw new Error("Aucune commande trouvée (Test: essayez 123456)");
+  }
 
-  const IconComponent = etape.icon;
+  const response = await fetch(
+    `${API_BASE_URL}/public/commandes/suivi/${numeroSuivi}`
+  );
+  if (!response.ok) {
+    if (response.status === 404) throw new Error("Numéro de suivi inconnu.");
+    throw new Error("Impossible d'accéder aux informations.");
+  }
+  return response.json();
+};
+
+// --- SOUS-COMPOSANTS ---
+
+const TimelineItem = ({ step, index, currentStepIndex }) => {
+  const isCompleted = index < currentStepIndex;
+  const isActive = index === currentStepIndex;
+  const isPending = index > currentStepIndex;
+  const Icon = step.icon;
+
+  let statusClass = "sc-pending";
+  if (isActive) statusClass = "sc-active";
+  if (isCompleted) statusClass = "sc-completed";
 
   return (
-    <div
-      className={`suivi-step ${isActive ? "active" : ""} ${
-        isPassed ? "completed" : ""
-      }`}
-    >
-      <div className="suivi-step-connector">
-        {index > 0 && (
-          <div className={`suivi-connector ${isPassed ? "completed" : ""}`} />
-        )}
-      </div>
-
-      <div className="suivi-step-icon-container">
+    <div className={`sc-timeline-item ${statusClass}`}>
+      {/* Connecteur Ligne */}
+      {index < ETAPES_SUIVI.length - 1 && (
         <div
-          className={`suivi-step-icon ${isActive ? "active" : ""} ${
-            isPassed ? "completed" : ""
-          }`}
-          style={{
-            backgroundColor: isActive || isPassed ? etape.color : "#ffffffff",
-            borderColor: etape.color,
-          }}
-        >
-          <IconComponent
-            size={20}
-            color={isActive || isPassed ? "white" : "#9ca3af"}
-          />
-        </div>
+          className={`sc-connector ${index < currentStepIndex ? "filled" : ""}`}
+        ></div>
+      )}
+
+      <div className="sc-icon-wrapper">
+        <Icon size={20} />
       </div>
 
-      <div className="suivi-step-content">
-        <h3
-          className={`suivi-step-title ${isActive ? "active" : ""} ${
-            isPassed ? "completed" : ""
-          }`}
-        >
-          {etape.label}
-        </h3>
-        <p className="suivi-step-description">{etape.description}</p>
-        <p className="suivi-step-detail">{etape.detail}</p>
-        {isActive && (
-          <div className="suivi-step-current-badge">
-            <div className="suivi-pulse" />
-            Étape en cours
-          </div>
+      <div className="sc-content-wrapper">
+        <div className="sc-step-header">
+          <h4>{step.label}</h4>
+          {isActive && <span className="sc-badge-live">En cours</span>}
+          {isCompleted && <span className="sc-badge-done">Terminé</span>}
+        </div>
+        <p className="sc-step-desc">{step.description}</p>
+        {(isActive || isCompleted) && (
+          <p className="sc-step-detail">{step.detail}</p>
         )}
       </div>
     </div>
   );
 };
 
-const CommandeInfo = ({ commande }) => {
-  const formatDate = (dateString) => {
-    if (!dateString) return "Non spécifiée";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
-
-  return (
-    <div className="suivi-commande-info">
-      <div className="suivi-info-header">
-        <Package size={24} className="suivi-info-icon" />
-        <h3>Informations de la commande</h3>
-      </div>
-
-      <div className="suivi-info-grid">
-        <div className="suivi-info-item">
-          <div className="suivi-info-label">
-            <MapPin size={16} />
-            Numéro de commande
-          </div>
-          <div className="suivi-info-value">#{commande.externalId}</div>
-        </div>
-
-        <div className="suivi-info-item">
-          <div className="suivi-info-label">
-            <Building size={16} />
-            Cabinet
-          </div>
-          <div className="suivi-info-value">{commande.cabinet}</div>
-        </div>
-
-        <div className="suivi-info-item">
-          <div className="suivi-info-label">
-            <Calendar size={16} />
-            Date de réception
-          </div>
-          <div className="suivi-info-value">
-            {formatDate(commande.dateReception)}
-          </div>
-        </div>
-
-        <div className="suivi-info-item">
-          <div className="suivi-info-label">
-            <Calendar size={16} />
-            Date d'échéance
-          </div>
-          <div className="suivi-info-value">
-            {formatDate(commande.dateEcheance)}
-          </div>
-        </div>
-
-        {commande.typeAppareil && (
-          <div className="suivi-info-item">
-            <div className="suivi-info-label">
-              <Settings size={16} />
-              Type d'appareil
-            </div>
-            <div className="suivi-info-value">{commande.typeAppareil}</div>
-          </div>
-        )}
-
-        {commande.numeroSuivi && (
-          <div className="suivi-info-item">
-            <div className="suivi-info-label">
-              <Truck size={16} />
-              Numéro de suivi
-            </div>
-            <div className="suivi-info-value">{commande.numeroSuivi}</div>
-          </div>
-        )}
-      </div>
+const InfoCard = ({ icon: Icon, label, value }) => (
+  <div className="sc-info-card">
+    <div className="sc-info-icon">
+      <Icon size={18} />
     </div>
-  );
-};
-
-const LoadingState = () => (
-  <div className="suivi-loading-state">
-    <div className="suivi-loading-spinner" />
-    <p>Recherche de votre commande...</p>
+    <div className="sc-info-text">
+      <span className="sc-label">{label}</span>
+      <span className="sc-value">{value || "Non spécifié"}</span>
+    </div>
   </div>
 );
 
-const ErrorState = ({ error, onReset }) => (
-  <div className="suivi-error-state">
-    <AlertCircle size={48} className="suivi-error-icon" />
-    <h3>Commande non trouvée</h3>
-    <p>{error}</p>
-    <button className="suivi-btn suivi-btn-primary" onClick={onReset}>
-      Nouvelle recherche
-    </button>
-  </div>
-);
+// --- COMPOSANT PRINCIPAL ---
 
-function SuiviCommandes() {
+const SuiviCommandes = () => {
   const [numeroSuivi, setNumeroSuivi] = useState("");
   const [commande, setCommande] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSearch = useCallback(async () => {
-    if (!numeroSuivi.trim()) {
-      toast.warning("Veuillez saisir un numéro de suivi");
-      return;
-    }
+  const handleSearch = useCallback(
+    async (e) => {
+      e?.preventDefault();
+      if (!numeroSuivi.trim()) {
+        toast.warning("Veuillez saisir un numéro.");
+        return;
+      }
 
-    setIsLoading(true);
-    setError(null);
-    setCommande(null);
+      setIsLoading(true);
+      setError(null);
+      setCommande(null);
 
-    try {
-      const commandeData = await fetchCommandeByNumeroSuivi(numeroSuivi.trim());
-      setCommande(commandeData);
-      toast.success("Commande trouvée avec succès");
-    } catch (err) {
-      setError(err.message);
-      toast.error(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [numeroSuivi]);
-
-  const handleReset = useCallback(() => {
-    setNumeroSuivi("");
-    setCommande(null);
-    setError(null);
-  }, []);
-
-  const handleKeyPress = useCallback(
-    (e) => {
-      if (e.key === "Enter") {
-        handleSearch();
+      try {
+        const data = await fetchCommandeByNumeroSuivi(numeroSuivi.trim());
+        setCommande(data);
+      } catch (err) {
+        setError(err.message);
+        toast.error(err.message);
+      } finally {
+        setIsLoading(false);
       }
     },
-    [handleSearch]
+    [numeroSuivi]
   );
 
-  // Déterminer l'étape actuelle et les étapes passées
-  const getCurrentStepIndex = (status) => {
-    return ETAPES_SUIVI.findIndex((etape) => etape.status === status);
+  const resetSearch = () => {
+    setCommande(null);
+    setNumeroSuivi("");
+    setError(null);
   };
 
   const currentStepIndex = commande
-    ? getCurrentStepIndex(commande.statut || commande.status)
+    ? ETAPES_SUIVI.findIndex(
+        (e) => e.status === (commande.statut || commande.status)
+      )
     : -1;
 
+  const formatDate = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   return (
-    <div className="suivi-commandes-container">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-      <div className="suivi-header">
-        <div className="suivi-header-content">
-          <h1 className="suivi-title">Suivi de commande</h1>
-          <p className="suivi-subtitle">
-            Suivez l'état d'avancement de votre commande d'appareil dentaire en
-            temps réel
+    <div className="sc-page">
+      <ToastContainer position="bottom-right" theme="colored" />
+
+      <div className="sc-container">
+        {/* HEADER */}
+        <div className="sc-header">
+          <h1 className="sc-title">Suivi de commande</h1>
+          <p className="sc-subtitle">
+            Consultez l'avancement de vos prothèses en temps réel grâce à votre
+            numéro de suivi unique.
           </p>
         </div>
-      </div>
 
-      <div className="suivi-search-section">
-        <div className="suivi-search-container">
-          <div className="suivi-search-header">
-            <h2>Rechercher votre commande</h2>
-            <p>
-              Saisissez votre numéro de suivi pour connaître l'état de votre
-              commande
-            </p>
-          </div>
-
-          <div className="suivi-search-form">
-            <div className="suivi-search-input-wrapper">
-              <Search className="suivi-search-icon" size={20} />
-              <input
-                type="text"
-                className="suivi-search-input"
-                placeholder="Entrez votre numéro de suivi (ex: 623456)"
-                value={numeroSuivi}
-                onChange={(e) => setNumeroSuivi(e.target.value)}
-                onKeyPress={handleKeyPress}
+        {/* SEARCH BAR */}
+        <div className={`sc-search-wrapper ${commande ? "compact" : ""}`}>
+          <form onSubmit={handleSearch} className="sc-search-box">
+            <Search className="sc-search-icon" size={20} />
+            <input
+              type="text"
+              className="sc-input"
+              placeholder="Ex: CMD-8829 ou Track ID..."
+              value={numeroSuivi}
+              onChange={(e) => setNumeroSuivi(e.target.value)}
+              disabled={isLoading || commande}
+            />
+            {commande ? (
+              <button
+                type="button"
+                className="sc-btn-reset"
+                onClick={resetSearch}
+              >
+                <X size={18} />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="sc-btn-submit"
                 disabled={isLoading}
-              />
-            </div>
-            <button
-              className="suivi-btn suivi-btn-primary"
-              onClick={handleSearch}
-              disabled={isLoading || !numeroSuivi.trim()}
-            >
-              {isLoading ? (
-                <>
-                  <div className="suivi-btn-spinner" />
-                  Recherche...
-                </>
-              ) : (
-                <>
-                  <Search size={16} />
-                  Rechercher
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {isLoading && <LoadingState />}
-
-      {error && !isLoading && (
-        <ErrorState error={error} onReset={handleReset} />
-      )}
-
-      {commande && !isLoading && !error && (
-        <div className="suivi-results-section">
-          <div className="suivi-results-header">
-            <div className="suivi-results-title">
-              <CheckCircle2 size={24} className="suivi-success-icon" />
-              <h2>Commande trouvée</h2>
-            </div>
-            <button
-              className="suivi-btn suivi-btn-secondary"
-              onClick={handleReset}
-            >
-              <X size={16} />
-              Nouvelle recherche
-            </button>
-          </div>
-
-          <CommandeInfo commande={commande} />
-
-          <div className="suivi-timeline-section">
-            <div className="suivi-timeline-header">
-              <h3>Suivi de fabrication</h3>
-              <p>Suivez l'avancement de votre commande étape par étape</p>
-            </div>
-
-            <div className="suivi-timeline">
-              {ETAPES_SUIVI.map((etape, index) => {
-                const isActive = index === currentStepIndex;
-                const isPassed = index < currentStepIndex;
-
-                return (
-                  <StatusIndicator
-                    key={etape.status}
-                    status={etape.status}
-                    currentStatus={commande.statut || commande.status}
-                    index={index}
-                    isActive={isActive}
-                    isPassed={isPassed}
-                  />
-                );
-              })}
-            </div>
-
-            {commande.statut === "ANNULEE" && (
-              <div className="suivi-cancelled-notice">
-                <X size={20} />
-                <div>
-                  <h4>Commande annulée</h4>
-                  <p>
-                    Cette commande a été annulée. Contactez votre cabinet pour
-                    plus d'informations.
-                  </p>
-                </div>
-              </div>
+              >
+                {isLoading ? (
+                  <div className="sc-spinner" />
+                ) : (
+                  <ArrowRight size={20} />
+                )}
+              </button>
             )}
-          </div>
+          </form>
         </div>
-      )}
+
+        {/* LOADING */}
+        {isLoading && (
+          <div className="sc-loading-state">
+            <div className="sc-spinner-large"></div>
+            <p>Recherche des informations...</p>
+          </div>
+        )}
+
+        {/* ERROR */}
+        {error && !isLoading && (
+          <div className="sc-error-state">
+            <AlertCircle size={40} />
+            <h3>Commande introuvable</h3>
+            <p>{error}</p>
+            <button onClick={() => setError(null)} className="sc-btn-retry">
+              Réessayer
+            </button>
+          </div>
+        )}
+
+        {/* RESULTS */}
+        {commande && !isLoading && (
+          <div className="sc-results animate-in">
+            {/* GRID INFO */}
+            <div className="sc-details-grid">
+              <div className="sc-main-info">
+                <h2>Commande #{commande.externalId}</h2>
+                <span className={`sc-status-pill ${commande.statut}`}>
+                  {commande.statut?.replace("_", " ")}
+                </span>
+              </div>
+
+              <div className="sc-cards-row">
+                <InfoCard
+                  icon={Building2}
+                  label="Cabinet"
+                  value={commande.cabinet}
+                />
+                <InfoCard
+                  icon={Package}
+                  label="Appareil"
+                  value={commande.typeAppareil}
+                />
+                <InfoCard
+                  icon={Calendar}
+                  label="Réception"
+                  value={formatDate(commande.dateReception)}
+                />
+                <InfoCard
+                  icon={Clock}
+                  label="Livraison Est."
+                  value={formatDate(commande.dateEcheance)}
+                />
+              </div>
+            </div>
+
+            {/* TIMELINE */}
+            <div className="sc-timeline-container">
+              <h3>Progression</h3>
+              <div className="sc-timeline">
+                {ETAPES_SUIVI.map((step, idx) => (
+                  <TimelineItem
+                    key={step.status}
+                    step={step}
+                    index={idx}
+                    currentStepIndex={currentStepIndex}
+                  />
+                ))}
+              </div>
+
+              {commande.statut === "ANNULEE" && (
+                <div className="sc-alert-cancelled">
+                  <AlertCircle size={20} />
+                  <span>
+                    Cette commande a été annulée. Veuillez contacter le support.
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
-}
+};
 
 export default SuiviCommandes;

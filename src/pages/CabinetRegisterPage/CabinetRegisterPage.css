@@ -1,410 +1,287 @@
-/* CabinetRegisterPage.css */
+/* --- Variables Scope (crp-) --- */
+.crp-page {
+  --crp-primary: #007AFF;
+  --crp-primary-dark: #0056CC;
+  --crp-bg: #f8fafc;
+  --crp-card-bg: #ffffff;
+  --crp-text: #1e293b;
+  --crp-text-sub: #64748b;
+  --crp-border: #e2e8f0;
+  --crp-error: #ef4444;
+  --crp-focus-ring: rgba(0, 122, 255, 0.15);
 
-.cabinet-register-auth-wrapper {
-  margin-top: 5rem;
   min-height: 100vh;
-  background: #ffffff;
+  padding: 8rem 1rem 4rem 1rem;
+  background-color: var(--crp-bg);
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 2rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  align-items: flex-start;
 }
 
-.cabinet-register-auth-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
+.crp-container {
   width: 100%;
-  max-width: 1200px;
-  min-height: 800px;
-  border: 1px solid #e8ecef;
+  max-width: 600px; /* Plus large pour le confort */
+  background: var(--crp-card-bg);
+  border-radius: 24px;
+  box-shadow: 0 10px 40px -5px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--crp-border);
+  overflow: hidden;
 }
 
-.cabinet-register-auth-header {
-  background: #f8fafc;
-  padding: 2rem;
-  border-bottom: 1px solid #e8ecef;
+/* --- Header Carte --- */
+.crp-card-header {
+  padding: 1.5rem;
+  background: #f1f5f9;
+  border-bottom: 1px solid var(--crp-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.cabinet-register-back-link {
+.crp-back-link {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #64748b;
+  color: var(--crp-text-sub);
   text-decoration: none;
+  font-size: 0.9rem;
   font-weight: 500;
-  transition: color 0.2s ease;
+  transition: color 0.2s;
 }
 
-.cabinet-register-back-link:hover {
-  color: #007AFF;
+.crp-back-link:hover {
+  color: var(--crp-primary);
 }
 
-.cabinet-register-logo-section {
+.crp-logo-block {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
-.cabinet-register-logo-icon {
-  width: 50px;
-  height: 50px;
-  background: #007AFF;
-  border-radius: 10px;
+.crp-logo-circle {
+  width: 36px;
+  height: 36px;
+  background: white;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+  color: var(--crp-primary);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.cabinet-register-brand-title {
-  font-size: 1.5rem;
+.crp-logo-block h1 {
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--crp-text);
   margin: 0;
 }
 
-.cabinet-register-main-content {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  min-height: 700px;
+/* --- Content --- */
+.crp-content {
+  padding: 2.5rem;
 }
 
-.cabinet-register-form-container {
-  padding: 3rem;
-  overflow-y: auto;
-}
-
-.cabinet-register-form-header {
-  margin-bottom: 2.5rem;
+.crp-intro {
   text-align: center;
+  margin-bottom: 2rem;
 }
 
-.cabinet-register-main-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
+.crp-intro h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--crp-text);
   margin-bottom: 0.5rem;
 }
 
-.cabinet-register-subtitle {
-  color: #64748b;
-  font-size: 1.1rem;
-  line-height: 1.6;
+.crp-intro p {
+  color: var(--crp-text-sub);
 }
 
-.cabinet-register-form {
+/* --- Alerts --- */
+.crp-alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  border: 1px solid #fecaca;
+}
+
+/* --- Form --- */
+.crp-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
-.cabinet-register-form-group {
+.crp-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.crp-form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
-.cabinet-register-form-label {
+.crp-label {
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #374151;
-  font-size: 0.95rem;
+  color: var(--crp-text);
 }
 
-.cabinet-register-input-wrapper {
+.crp-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.cabinet-register-input-icon {
+.crp-input-icon {
   position: absolute;
   left: 1rem;
   color: #94a3b8;
-  z-index: 1;
+  pointer-events: none;
 }
 
-.cabinet-register-form-input {
+.crp-input {
   width: 100%;
-  padding: 1rem 1rem 1rem 3rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  background: white;
-  color: #1e293b;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border: 2px solid var(--crp-border);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  color: var(--crp-text);
 }
 
-.cabinet-register-form-input:focus {
+.crp-input:focus {
   outline: none;
-  border-color: #007AFF;
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+  border-color: var(--crp-primary);
+  box-shadow: 0 0 0 4px var(--crp-focus-ring);
 }
 
-.cabinet-register-input-error {
-  border-color: #ef4444;
+.crp-error-border .crp-input {
+  border-color: var(--crp-error);
 }
 
-.cabinet-register-error-message {
-  color: #ef4444;
-  font-size: 0.875rem;
+.crp-error-msg {
+  color: var(--crp-error);
+  font-size: 0.8rem;
   font-weight: 500;
 }
 
-.cabinet-register-password-toggle {
+/* --- Password Toggle --- */
+.crp-password-toggle {
   position: absolute;
-  right: 1rem;
+  right: 0.75rem;
   background: none;
   border: none;
   color: #94a3b8;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  z-index: 1;
+  padding: 0.25rem;
+  transition: color 0.2s;
 }
 
-.cabinet-register-password-toggle:hover {
-  color: #007AFF;
-  background: rgba(0, 122, 255, 0.1);
+.crp-password-toggle:hover {
+  color: var(--crp-text);
 }
 
-.cabinet-register-checkbox-wrapper {
+/* --- Checkbox Terms --- */
+.crp-terms-group {
+  margin-top: 0.5rem;
+}
+
+.crp-checkbox-label {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--crp-text-sub);
   cursor: pointer;
 }
 
-.cabinet-register-checkbox {
-  width: 18px;
-  height: 18px;
-  accent-color: #007AFF;
-  margin-top: 0.125rem;
+.crp-checkbox {
+  margin-top: 0.2rem;
+  accent-color: var(--crp-primary);
+  width: 16px;
+  height: 16px;
 }
 
-.cabinet-register-checkbox-label {
-  font-size: 0.95rem;
-  color: #374151;
-  line-height: 1.5;
-}
-
-.cabinet-register-terms-link {
-  color: #007AFF;
+.crp-checkbox-label a {
+  color: var(--crp-primary);
+  font-weight: 600;
   text-decoration: none;
-  font-weight: 500;
 }
 
-.cabinet-register-terms-link:hover {
-  text-decoration: underline;
-}
-
-.cabinet-register-submit-btn {
-  background: #007AFF;
+/* --- Submit Button --- */
+.crp-submit-btn {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 1rem;
+  background: var(--crp-primary);
   color: white;
   border: none;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.cabinet-register-submit-btn:hover:not(:disabled) {
-  background: #0056CC;
-  transform: translateY(-1px);
+  gap: 0.75rem;
+  transition: all 0.2s;
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 
-.cabinet-register-submit-btn:disabled {
-  opacity: 0.6;
+.crp-submit-btn:hover:not(:disabled) {
+  background: var(--crp-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 122, 255, 0.4);
+}
+
+.crp-submit-btn:disabled {
+  opacity: 0.7;
   cursor: not-allowed;
-  transform: none;
 }
 
-.cabinet-register-loading-spinner {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+.crp-spin {
+  animation: crp-rotate 1s linear infinite;
 }
 
-.cabinet-register-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: cabinet-register-spin 1s linear infinite;
-}
+@keyframes crp-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-@keyframes cabinet-register-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.cabinet-register-login-section {
+/* --- Footer Link --- */
+.crp-footer-link {
   text-align: center;
   margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid #e8ecef;
+  font-size: 0.95rem;
+  color: var(--crp-text-sub);
 }
 
-.cabinet-register-login-text {
-  color: #64748b;
-  margin: 0;
-}
-
-.cabinet-register-login-link {
-  color: #007AFF;
-  text-decoration: none;
-  font-weight: 600;
-  margin-left: 0.25rem;
-}
-
-.cabinet-register-login-link:hover {
-  text-decoration: underline;
-}
-
-/* Section image de couverture */
-.cabinet-register-cover-section {
-  background: #f8fafc;
-  border-left: 1px solid #e8ecef;
-}
-
-.cabinet-register-cover-image {
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cabinet-register-cover-overlay {
-  background: rgb(0, 0, 0);
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 100% !important;
-  height: 100% !important;
-  text-align: center;
-  /* backdrop-filter: blur(10px); */
-  opacity: 0.6;
-}
-
-.cabinet-register-cover-title {
-  font-size: 1.75rem;
+.crp-footer-link a {
+  color: var(--crp-primary);
   font-weight: 700;
-  margin-bottom: 1rem;
-  color: white;
+  text-decoration: none;
 }
 
-.cabinet-register-cover-subtitle {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  line-height: 1.5;
-  margin: 0;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .cabinet-register-main-content {
+/* --- Responsive --- */
+@media (max-width: 600px) {
+  .crp-page {
+    padding: 6rem 1rem 2rem 1rem;
+  }
+  
+  .crp-row {
     grid-template-columns: 1fr;
   }
   
-  .cabinet-register-cover-section {
-    order: -1;
-    border-left: none;
-    border-bottom: 1px solid #e8ecef;
-    height: 300px;
-  }
-  
-  .cabinet-register-cover-image {
-    height: 300px;
-  }
-  
-  .cabinet-register-form-container {
-    padding: 2rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .cabinet-register-auth-wrapper {
-    padding: 1rem;
-  }
-  
-  .cabinet-register-auth-header {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-  
-  .cabinet-register-form-container {
+  .crp-content {
     padding: 1.5rem;
-  }
-  
-  .cabinet-register-main-title {
-    font-size: 1.5rem;
-  }
-  
-  .cabinet-register-cover-section {
-    height: 250px;
-  }
-  
-  .cabinet-register-cover-image {
-    height: 250px;
-  }
-  
-  .cabinet-register-cover-overlay {
-    margin: 1rem;
-    padding: 1.5rem;
-  }
-  
-  .cabinet-register-cover-title {
-    font-size: 1.5rem;
-  }
-  
-  .cabinet-register-cover-subtitle {
-    font-size: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .cabinet-register-form-input {
-    padding: 0.875rem 0.875rem 0.875rem 2.75rem;
-  }
-  
-  .cabinet-register-input-icon {
-    left: 0.875rem;
-  }
-  
-  .cabinet-register-submit-btn {
-    padding: 0.875rem 1.5rem;
-    font-size: 1rem;
-  }
-  
-  .cabinet-register-cover-overlay {
-    padding: 1rem;
-    margin: 0.5rem;
-  }
-  
-  .cabinet-register-cover-title {
-    font-size: 1.3rem;
   }
 }

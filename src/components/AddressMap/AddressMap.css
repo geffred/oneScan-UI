@@ -1,82 +1,162 @@
-.simple-map-container {
-  background: white;
-  box-shadow: 0 4px 12px rgba(22, 22, 22, 0.1);
-  overflow: hidden;
+/* --- Variables Scope (am-) --- */
+.am-section {
+  --am-primary: #007AFF;
+  --am-primary-dark: #0056CC;
+  --am-text-main: #1e293b;
+  --am-text-sub: #64748b;
+  --am-bg: #f8fafc;
+  --am-card-bg: rgba(255, 255, 255, 0.95);
+  --am-radius: 24px;
+  
+  padding: 2rem;
+  background-color: var(--am-bg);
+  display: flex;
+  justify-content: center;
 }
 
-.map-header {
-  padding: 1.5rem;
-  background: #ffffff ;
-  color: rgb(0, 0, 0);
-  text-align: center;
-}
-
-.map-header h2 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.map-header p {
-  margin: 0;
-  opacity: 0.9;
-  font-size: 1.1rem;
-}
-
-.map-wrapper {
+.am-container {
   position: relative;
-  height: 400px;
+  width: 100%;
+  max-width: 1200px;
+  height: 500px; /* Hauteur fixe pour la zone carte */
+  border-radius: var(--am-radius);
+  overflow: hidden;
+  box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
 }
 
-.google-map-iframe {
+/* --- Map Wrapper --- */
+.am-map-wrapper {
+  width: 100%;
+  height: 100%;
+  filter: grayscale(0%); /* Change à 100% si tu veux une carte en noir et blanc */
+  transition: filter 0.3s ease;
+}
+
+.am-iframe {
   width: 100%;
   height: 100%;
   border: none;
+  display: block;
 }
 
-.map-actions {
-
-  text-align: center;
-  background: #f8fafc;
+/* --- Info Card (Flottante) --- */
+.am-info-card {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  background: var(--am-card-bg);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  max-width: 350px;
+  width: calc(100% - 4rem);
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  animation: am-fade-in 0.6s ease-out;
 }
 
-.action-btn {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: white;
-  color: #1e293b ;
+@keyframes am-fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.am-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.am-icon-circle {
+  width: 48px;
+  height: 48px;
+  background: #eff6ff;
+  color: var(--am-primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.am-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--am-text-main);
+  line-height: 1.2;
+}
+
+.am-address {
+  margin-bottom: 2rem;
+  padding-left: 0.5rem;
+  border-left: 3px solid #e2e8f0;
+}
+
+.am-street {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--am-text-main);
+}
+
+.am-city {
+  margin: 0.25rem 0 0 0;
+  color: var(--am-text-sub);
+  font-size: 1rem;
+}
+
+/* --- Button --- */
+.am-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem;
+  background: var(--am-primary);
+  color: white;
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: 12px;
   font-weight: 600;
   transition: all 0.3s ease;
-  margin-top: 25px;
-  border: 1px solid rgb(0, 0, 0);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 
-.action-btn:hover {
-  background: #1e293b ;
-  color: white ;
-  border-color: white;
-  transform: translateY(-1px);
+.am-btn:hover {
+  background: var(--am-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 122, 255, 0.4);
 }
 
-/* Responsive */
+/* --- Responsive --- */
 @media (max-width: 768px) {
-
-  
-  .map-wrapper {
-    height: 300px;
-  }
-  
-  .map-header {
+  .am-section {
     padding: 1rem;
   }
   
-  .map-header h2 {
-    font-size: 1.3rem;
+  .am-container {
+    height: auto;
+    display: flex;
+    flex-direction: column-reverse; /* Met la carte en bas, infos en haut */
   }
-  
-  .map-header p {
-    font-size: 1rem;
+
+  .am-map-wrapper {
+    height: 300px; /* Hauteur réduite sur mobile */
+  }
+
+  .am-info-card {
+    position: relative; /* Plus de position absolue */
+    top: auto;
+    left: auto;
+    width: 100%;
+    max-width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    backdrop-filter: none;
+    background: white;
   }
 }

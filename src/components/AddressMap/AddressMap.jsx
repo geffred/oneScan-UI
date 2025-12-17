@@ -1,38 +1,57 @@
 import React from "react";
+import { MapPin, Navigation, ExternalLink } from "lucide-react";
 import "./AddressMap.css";
 
 const AddressMap = () => {
   const address = "Boulevard Roosevelt 23, 7060 Soignies, Belgique";
+  // Encodage pour l'URL
   const encodedAddress = encodeURIComponent(address);
+  // URL standard pour l'iframe Google Maps (souvent fonctionne sans API key pour affichage simple)
+  const mapSrc = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  // Lien pour ouvrir l'application GPS externe
+  const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
 
   return (
-    <div className="simple-map-container">
-      <div className="map-wrapper">
-        <iframe
-          className="google-map-iframe"
-          src={`https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2537.123456789012!2d4.0713!3d50.5790!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNTDCsDM0JzQ0LjQiTiA0wrAwNCcyNS43IkU!5e0!3m2!1sfr!2sbe!4v1234567890!5m2!1sfr!2sbe`}
-          allowFullScreen
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          title="Localisation MySmileLab Soignies"
-        ></iframe>
-      </div>
+    <section className="am-section">
+      <div className="am-container">
+        {/* Wrapper de la carte */}
+        <div className="am-map-wrapper">
+          <iframe
+            className="am-iframe"
+            src={mapSrc}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="Localisation MySmileLab Soignies"
+          ></iframe>
+        </div>
 
-      <div className="map-actions"></div>
-      <div className="map-header">
-        <h2>Notre localisation</h2>
-        <p>Boulevard Roosevelt 23, 7060 Soignies</p>
+        {/* Carte d'information flottante */}
+        <div className="am-info-card">
+          <div className="am-header">
+            <div className="am-icon-circle">
+              <MapPin size={24} />
+            </div>
+            <h2>Notre localisation</h2>
+          </div>
 
-        <a
-          href={`https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="action-btn"
-        >
-          Obtenir l'itinéraire
-        </a>
+          <div className="am-address">
+            <p className="am-street">Boulevard Roosevelt 23</p>
+            <p className="am-city">7060 Soignies, Belgique</p>
+          </div>
+
+          <a
+            href={mapsLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="am-btn"
+          >
+            <Navigation size={18} />
+            Obtenir l'itinéraire
+          </a>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 

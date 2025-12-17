@@ -14,10 +14,6 @@ import {
   Info,
   AlertCircle,
   Shield,
-  Bot,
-  Link2,
-  BarChart2,
-  Zap,
 } from "lucide-react";
 
 import { Link, useNavigate } from "react-router-dom";
@@ -71,7 +67,7 @@ const LoginPage = () => {
       }
 
       const data = await response.json();
-      console.log("✅ Connexion réussie, données:", data);
+      console.log("Connexion réussie, données:", data);
 
       // Vérifier la présence du token
       if (!data.token) {
@@ -100,7 +96,7 @@ const LoginPage = () => {
         throw new Error("Erreur lors de l'initialisation de la session");
       }
     } catch (error) {
-      console.error("❌ Erreur lors de la connexion:", error);
+      console.error("Erreur lors de la connexion:", error);
       setFieldError("email", error.message);
     } finally {
       setIsLoading(false);
@@ -132,14 +128,15 @@ const LoginPage = () => {
               <ArrowLeft size={20} />
               Retour à l'accueil
             </Link>
-            <div className="login-logo-section">
-              <div className="login-logo-icon">
-                <span className="login-logo-text">S</span>
-              </div>
-              <h1 className="login-brand-title">
-                <span className="lab">My</span>smilelab
-              </h1>
+          </div>
+
+          <div className="login-logo-section">
+            <div className="login-logo-icon">
+              <span className="login-logo-text">S</span>
             </div>
+            <h1 className="login-brand-title">
+              <span className="lab">My</span>smilelab
+            </h1>
           </div>
 
           <div className="login-main-content">
@@ -147,10 +144,7 @@ const LoginPage = () => {
               <div className="login-form-header">
                 <h2 className="login-main-title">Connexion</h2>
                 <p className="login-subtitle">
-                  Accédez à votre plateforme Mysmilelab pour gérer vos{" "}
-                  {loginType === "laboratoire"
-                    ? "laboratoires dentaires"
-                    : "dossiers patients"}
+                  Accédez à votre espace sécurisé
                 </p>
               </div>
 
@@ -162,8 +156,8 @@ const LoginPage = () => {
                   }`}
                   onClick={() => setLoginType("laboratoire")}
                 >
-                  <Building2 size={20} />
-                  Laboratoire Dentaire
+                  <Building2 size={18} />
+                  Laboratoire
                 </button>
                 <button
                   type="button"
@@ -172,55 +166,47 @@ const LoginPage = () => {
                   }`}
                   onClick={() => setLoginType("cabinet")}
                 >
-                  <Users size={20} />
-                  Cabinet Dentaire
+                  <Users size={18} />
+                  Cabinet
                 </button>
               </div>
 
               {loginType === "cabinet" && (
                 <div className="login-cabinet-notice">
                   <div className="login-notice-header">
-                    <Info size={20} className="login-notice-icon" />
-                    <span className="login-notice-title">
-                      Information importante
-                    </span>
+                    <div className="login-notice-title-wrapper">
+                      <Info size={18} className="login-notice-icon" />
+                      <span className="login-notice-title">
+                        Information d'accès
+                      </span>
+                    </div>
                     <button
                       type="button"
                       className="login-notice-toggle"
                       onClick={() => setShowCabinetInfo(!showCabinetInfo)}
                     >
-                      {showCabinetInfo ? "Masquer" : "En savoir plus"}
+                      {showCabinetInfo ? "Masquer" : "Lire"}
                     </button>
                   </div>
 
                   {showCabinetInfo && (
                     <div className="login-notice-content">
                       <div className="login-notice-item">
-                        <AlertCircle size={16} className="text-blue-500" />
+                        <AlertCircle size={16} className="icon-blue" />
                         <span>
-                          Les cabinets dentaires doivent être ajoutés par un
-                          laboratoire partenaire
+                          Les cabinets sont ajoutés par un laboratoire
+                          partenaire.
                         </span>
                       </div>
                       <div className="login-notice-item">
-                        <Mail size={16} className="text-green-500" />
+                        <Shield size={16} className="icon-orange" />
                         <span>
-                          Vos identifiants vous seront envoyés par email par
-                          votre laboratoire
-                        </span>
-                      </div>
-                      <div className="login-notice-item">
-                        <Shield size={16} className="text-orange-500" />
-                        <span>
-                          Seuls les laboratoires peuvent créer des comptes sur
-                          cette plateforme
+                          Vos identifiants vous sont transmis par email.
                         </span>
                       </div>
                       <div className="login-notice-contact">
-                        <strong>Vous n'avez pas vos identifiants ?</strong>
-                        <br />
-                        Contactez votre laboratoire dentaire partenaire qui vous
-                        donnera accès à la plateforme.
+                        <strong>Identifiants perdus ?</strong> Contactez votre
+                        laboratoire.
                       </div>
                     </div>
                   )}
@@ -320,21 +306,16 @@ const LoginPage = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting || isLoading}
-                      className={`login-submit-btn ${
-                        isLoading ? "login-btn-loading" : ""
-                      } ${loginType === "cabinet" ? "login-btn-cabinet" : ""}`}
+                      className="login-submit-btn"
                     >
                       {isLoading ? (
                         <div className="login-loading-spinner">
                           <div className="login-spinner"></div>
-                          Connexion en cours...
+                          Connexion...
                         </div>
                       ) : (
                         <>
-                          Se connecter{" "}
-                          {loginType === "cabinet"
-                            ? "au cabinet"
-                            : "au laboratoire"}
+                          Se connecter
                           <ArrowRight size={20} />
                         </>
                       )}
@@ -346,7 +327,7 @@ const LoginPage = () => {
               {loginType === "cabinet" && (
                 <div className="login-signup-section">
                   <p className="login-signup-text">
-                    Vous n'avez pas encore de compte ?{" "}
+                    Vous n'avez pas encore de compte ?
                     <HashLink
                       to="/cabinet/register#header-register"
                       className="login-signup-link"
@@ -356,56 +337,6 @@ const LoginPage = () => {
                   </p>
                 </div>
               )}
-            </div>
-
-            <div className="login-info-section">
-              <div className="login-info-card">
-                <h3 className="login-info-title">
-                  {loginType === "laboratoire"
-                    ? "Pourquoi choisir Mysmilelab ?"
-                    : "Avantages pour votre cabinet"}
-                </h3>
-                <ul className="login-info-list">
-                  <li className="login-info-item">
-                    <span className="login-info-icon">
-                      <Bot size={20} className="text-blue-500" />
-                    </span>
-                    {loginType === "laboratoire"
-                      ? "IA générative pour automatiser vos processus"
-                      : "Suivi en temps réel de vos commandes"}
-                  </li>
-                  <li className="login-info-item">
-                    <span className="login-info-icon">
-                      <Link2 size={20} className="text-green-500" />
-                    </span>
-                    {loginType === "laboratoire"
-                      ? "Intégration avec Itero, 3Shape, MedditLink"
-                      : "Communication directe avec votre laboratoire"}
-                  </li>
-                  <li className="login-info-item">
-                    <span className="login-info-icon">
-                      <BarChart2 size={20} className="text-purple-500" />
-                    </span>
-                    {loginType === "laboratoire"
-                      ? "Analytics avancés et reporting en temps réel"
-                      : "Historique détaillé de vos patients"}
-                  </li>
-                  <li className="login-info-item">
-                    <span className="login-info-icon">
-                      <Shield size={20} className="text-red-500" />
-                    </span>
-                    Sécurité médicale et conformité HIPAA
-                  </li>
-                  <li className="login-info-item">
-                    <span className="login-info-icon">
-                      <Zap size={20} className="text-yellow-500" />
-                    </span>
-                    {loginType === "laboratoire"
-                      ? "Gain de temps significatif (-75% de temps perdu)"
-                      : "Interface simplifiée et intuitive"}
-                  </li>
-                </ul>
-              </div>
             </div>
           </div>
         </div>

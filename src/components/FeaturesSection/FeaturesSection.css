@@ -1,41 +1,41 @@
-/* Features Section */
-.features-section {
+/* Features Section - Classes Uniques */
+.features-unique-section {
   padding: 6rem 0;
   background: #f8fafc;
 }
 
-.container {
+.features-content-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
 }
 
-.section-header {
+.features-header-wrapper {
   text-align: center;
   margin-bottom: 4rem;
 }
 
-.section-title {
+.features-main-title {
   font-size: 2.5rem;
   font-weight: 700;
   color: #1e293b;
   margin-bottom: 1rem;
 }
 
-.section-subtitle {
+.features-main-subtitle {
   font-size: 1.25rem;
   color: #64748b;
   max-width: 600px;
   margin: 0 auto;
 }
 
-.features-grid {
+.features-grid-layout {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
 
-.feature-card {
+.features-item-card {
   background: white;
   padding: 2rem;
   border-radius: 16px;
@@ -46,14 +46,12 @@
   overflow: hidden;
 }
 
-
-
-.feature-card:hover {
+.features-item-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
-.feature-icon {
+.features-item-icon {
   width: 60px;
   height: 60px;
   background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
@@ -65,29 +63,29 @@
   color: white;
 }
 
-.feature-title {
+.features-item-title {
   font-size: 1.25rem;
   font-weight: 600;
   color: #1e293b;
   margin-bottom: 1rem;
 }
 
-.feature-description {
+.features-item-description {
   color: #64748b;
   line-height: 1.6;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .section-title {
+  .features-main-title {
     font-size: 2rem;
   }
 
-  .features-grid {
+  .features-grid-layout {
     grid-template-columns: 1fr;
   }
 
-  .container {
+  .features-content-container {
     padding: 0 1rem;
   }
 }

@@ -1,135 +1,132 @@
-import React, { useState } from "react";
+import React from "react";
+import { Link } from "react-router-dom";
 import {
   Search,
   Clock,
-  Settings,
-  CheckCircle2,
+  PackageCheck,
   Truck,
   ArrowRight,
+  CheckCircle2,
+  MapPin,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
 import "./TrackingSection.css";
 
-const ETAPES_SUIVI = [
-  { status: "EN_ATTENTE", label: "En attente", color: "#3b82f6", icon: Clock },
+// Données simulées pour le visuel du téléphone
+const DEMO_STEPS = [
   {
-    status: "EN_COURS",
-    label: "En cours de fabrication",
-    color: "#3b82f6",
-    icon: Settings,
+    status: "done",
+    label: "Commande reçue",
+    time: "09:00",
+    icon: <CheckCircle2 size={16} />,
   },
   {
-    status: "TERMINEE",
-    label: "Contrôle qualité",
-    color: "#3b82f6",
-    icon: CheckCircle2,
+    status: "done",
+    label: "Fabrication terminée",
+    time: "14:30",
+    icon: <PackageCheck size={16} />,
   },
-  { status: "EXPEDIEE", label: "Expédition", color: "#3b82f6", icon: Truck },
+  {
+    status: "active",
+    label: "En cours de livraison",
+    time: "En cours",
+    icon: <Truck size={16} />,
+  },
+  {
+    status: "pending",
+    label: "Livraison Cabinet",
+    time: "Est. 18:00",
+    icon: <MapPin size={16} />,
+  },
 ];
 
 const TrackingSection = () => {
-  const [numeroSuivi, setNumeroSuivi] = useState("");
-  const navigate = useNavigate();
-
-  const handleFollow = () => {
-    if (numeroSuivi.trim()) {
-      navigate(`/suivi-commandes?numero=${numeroSuivi.trim()}`);
-    }
-  };
-
   return (
-    <section className="tracking-section">
-      <div className="tracking-container">
-        {/* Visual mockup */}
-        <div className="tracking-visual">
-          <div className="tracking-mockup">
-            <div className="mockup-header">
-              <div className="mockup-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-              <div className="mockup-title">Suivi de commande</div>
+    <section className="ts-section">
+      <div className="ts-container">
+        {/* Partie Visuelle (Mockup iPhone) */}
+        <div className="ts-visual-wrapper">
+          <div className="ts-phone-mockup">
+            <div className="ts-phone-notch"></div>
+            <div className="ts-app-header">
+              <span className="ts-app-title">Commande #892265</span>
+              <span className="ts-live-badge">En direct</span>
             </div>
-            <div className="mockup-content">
-              <div className="mockup-search">
-                <Search size={16} />
-                892265
+
+            <div className="ts-app-body">
+              <div className="ts-map-placeholder">
+                <div className="ts-map-route"></div>
+                <div className="ts-map-marker"></div>
               </div>
-              <div className="mockup-status">
-                {ETAPES_SUIVI.map((etape, index) => (
-                  <div
-                    key={index}
-                    className={`status-step ${index === 1 ? "active" : ""}`}
-                  >
-                    <div
-                      className="status-dot"
-                      style={{ backgroundColor: etape.color }}
-                    />
-                    <span>{etape.label}</span>
+
+              <div className="ts-timeline-card">
+                <div className="ts-timeline-line"></div>
+                {DEMO_STEPS.map((step, index) => (
+                  <div key={index} className={`ts-step ${step.status}`}>
+                    <div className="ts-step-icon">{step.icon}</div>
+                    <div className="ts-step-content">
+                      <span className="ts-step-label">{step.label}</span>
+                      <span className="ts-step-time">{step.time}</span>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
+
+          {/* Cercles décoratifs d'arrière-plan */}
+          <div className="ts-blob ts-blob-1"></div>
+          <div className="ts-blob ts-blob-2"></div>
         </div>
 
-        {/* Content */}
-        <div className="tracking-content">
-          <div className="tracking-header">
-            <h2 className="tracking-title">Suivez votre commande MySmileLab</h2>
-            <p className="tracking-subtitle">
-              Consultez l'état d'avancement de votre appareil dentaire en temps
-              réel. De la réception à la livraison, restez informé à chaque
-              étape.
+        {/* Partie Contenu Texte */}
+        <div className="ts-content">
+          <div className="ts-header">
+            <div className="ts-badge">Temps réel</div>
+            <h2 className="ts-title">Suivez vos commandes à la trace</h2>
+            <p className="ts-subtitle">
+              Fini l'incertitude. De la réception de l'empreinte à la livraison
+              au cabinet, visualisez l'avancement de vos prothèses en temps
+              réel.
             </p>
           </div>
 
-          <div className="tracking-features">
-            <div className="tracking-feature">
-              <div className="feature-icon">
-                <Search size={24} />
+          <div className="ts-features-grid">
+            <div className="ts-feature">
+              <div className="ts-feature-icon">
+                <Search size={20} />
               </div>
-              <h3>Recherche instantanée</h3>
-              <p>Trouvez votre commande avec votre numéro de suivi</p>
+              <div>
+                <h3>Recherche Simple</h3>
+                <p>Retrouvez tout via le n° de patient ou de commande.</p>
+              </div>
             </div>
 
-            <div className="tracking-feature">
-              <div className="feature-icon">
-                <div className="pulse-dot"></div>
+            <div className="ts-feature">
+              <div className="ts-feature-icon">
+                <Clock size={20} />
               </div>
-              <h3>Suivi en temps réel</h3>
-              <p>Mises à jour automatiques du statut de fabrication</p>
+              <div>
+                <h3>Délais Garantis</h3>
+                <p>Date de livraison estimée dès la validation.</p>
+              </div>
             </div>
 
-            <div className="tracking-feature">
-              <div className="feature-icon">
-                <Clock size={24} />
+            <div className="ts-feature">
+              <div className="ts-feature-icon">
+                <CheckCircle2 size={20} />
               </div>
-              <h3>Notification à la réception</h3>
-              <p>
-                Recevez une alerte dès que votre commande est reçue par le
-                laboratoire
-              </p>
-            </div>
-
-            <div className="tracking-feature">
-              <div className="feature-icon">
-                <CheckCircle2 size={24} />
+              <div>
+                <h3>Traçabilité Totale</h3>
+                <p>Historique complet des étapes de fabrication.</p>
               </div>
-              <h3>Contrôle qualité garanti</h3>
-              <p>
-                Suivez les vérifications et validations de vos appareils à
-                chaque étape
-              </p>
             </div>
           </div>
 
-          <div className="tracking-cta">
-            <Link to="/suivi-commandes" className="tracking-button">
-              <Search className="tracking-button-icon" size={20} />
-              <span>Suivre ma commande</span>
-              <ArrowRight className="tracking-button-arrow" size={18} />
+          <div className="ts-action">
+            <Link to="/suivi-commandes" className="ts-btn-primary">
+              <Search size={18} />
+              Accéder au suivi
+              <ArrowRight size={18} className="ts-arrow" />
             </Link>
           </div>
         </div>

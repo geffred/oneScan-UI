@@ -15,6 +15,7 @@ import CompteCabinet from "./CompteCabinet/CompteCabinet";
 import MeditLinkCallback from "./CallbackPages/MeditLinkCallback";
 import ThreeShapeCallback from "./CallbackPages/ThreeShapeCallback";
 import CabinetRegisterPage from "./CabinetRegisterPage/CabinetRegisterPage";
+import EmailVerificationPage from "./EmailVerificationPage/EmailVerificationPage";
 import GuideCommande from "./GuideCommande/GuideCommande";
 import GoogleDriveCallback from "./CallbackPages/GoogleDriveCallback";
 
@@ -34,6 +35,10 @@ function App() {
 
           {/* ==================== PUBLIC ROUTES ==================== */}
           <Route path="/cabinet/register" element={<CabinetRegisterPage />} />
+          <Route
+            path="/cabinet/verify-email"
+            element={<EmailVerificationPage />}
+          />
           <Route path="/compte/cabinet" element={<CompteCabinet />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
