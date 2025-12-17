@@ -1,6 +1,12 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState, useContext, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useContext,
+  useRef,
+  useCallback,
+} from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Shield,
@@ -33,9 +39,10 @@ const MeditLinkCallback = () => {
   const timeoutRef = useRef(null);
   const refreshIntervalRef = useRef(null);
 
-  // Fonction pour rafraîchir la session
-  const refreshSession = useRef(async () => {
+  // Fonction pour rafraîchir la session MeditLink
+  const refreshMeditLinkSession = useCallback(async () => {
     try {
+      // IMPORTANT : Toujours envoyer le JWT principal
       const token = localStorage.getItem("token");
       const headers = {
         "Content-Type": "application/json",
@@ -49,17 +56,17 @@ const MeditLinkCallback = () => {
         credentials: "include",
         headers,
       });
-      console.log("Session rafraîchie");
+      console.log("Session MeditLink rafraîchie");
     } catch (e) {
-      console.error("Erreur de rafraîchissement", e);
+      console.error("Erreur de rafraîchissement MeditLink", e);
     }
-  });
+  }, []);
 
   useEffect(() => {
     // Démarrer le rafraîchissement automatique seulement après succès
     if (status === "success" && !refreshIntervalRef.current) {
       refreshIntervalRef.current = setInterval(() => {
-        refreshSession.current();
+        refreshMeditLinkSession();
       }, 30 * 1000); // Toutes les 30 secondes
     }
 
@@ -70,117 +77,123 @@ const MeditLinkCallback = () => {
         refreshIntervalRef.current = null;
       }
     };
-  }, [status]);
+  }, [status, refreshMeditLinkSession]);
 
-  const handleCallback = async (code, state = null, isRetry = false) => {
-    // Éviter les appels multiples
-    if (
-      isProcessingRef.current ||
-      hasSucceededRef.current ||
-      hasRedirectedRef.current
-    ) {
-      console.log("Appel bloqué - déjà en cours, réussi ou redirigé");
-      return;
-    }
-
-    isProcessingRef.current = true;
-
-    try {
-      // RESTAURER LE JWT AVANT L'APPEL
-      const savedToken = sessionStorage.getItem("preserve_jwt");
-      if (savedToken) {
-        localStorage.setItem("token", savedToken);
-        sessionStorage.removeItem("preserve_jwt");
-        console.debug("Token JWT restauré dans Callback");
+  const handleCallback = useCallback(
+    async (code, state = null) => {
+      // Éviter les appels multiples
+      if (
+        isProcessingRef.current ||
+        hasSucceededRef.current ||
+        hasRedirectedRef.current
+      ) {
+        console.log("Appel bloqué - déjà en cours, réussi ou redirigé");
+        return;
       }
 
-      const params = new URLSearchParams();
-      params.append("code", code);
+      isProcessingRef.current = true;
 
-      if (state && state.trim() !== "" && state !== "null") {
-        params.append("state", state);
-      }
+      try {
+        // CRITIQUE : NE PAS TOUCHER AU JWT PRINCIPAL
+        // Le JWT de l'utilisateur principal doit rester dans localStorage
+        const mainToken = localStorage.getItem("token");
 
-      // Préparer les headers avec JWT
-      const headers = {
-        "Content-Type": "application/x-www-form-urlencoded",
-      };
+        if (!mainToken) {
+          console.warn(
+            "Aucun JWT principal trouvé - l'utilisateur doit se reconnecter"
+          );
+        }
 
-      const token = localStorage.getItem("token");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
+        const params = new URLSearchParams();
+        params.append("code", code);
 
-      const response = await fetch(`${API_BASE_URL}/meditlink/auth/callback`, {
-        method: "POST",
-        headers,
-        credentials: "include", // IMPORTANT : envoyer les cookies MeditLink
-        body: params.toString(),
-      });
+        if (state && state.trim() !== "" && state !== "null") {
+          params.append("state", state);
+        }
 
-      // Gestion spéciale du 401 transitoire
-      if (response.status === 401) {
-        if (retryCount < 3) {
-          setMessage(`Tentative en cours... (${retryCount + 1}/3)`);
-          setRetryCount((prev) => prev + 1);
+        // IMPORTANT : Envoyer le JWT principal dans toutes les requêtes
+        const headers = {
+          "Content-Type": "application/x-www-form-urlencoded",
+        };
 
-          timeoutRef.current = setTimeout(() => {
-            isProcessingRef.current = false;
-            handleCallback(code, state, true);
-          }, 1000);
-          return;
+        if (mainToken) {
+          headers["Authorization"] = `Bearer ${mainToken}`;
+        }
+
+        console.log("Envoi de la requête callback avec JWT principal");
+
+        const response = await fetch(
+          `${API_BASE_URL}/meditlink/auth/callback`,
+          {
+            method: "POST",
+            headers,
+            credentials: "include", // Pour les cookies MeditLink
+            body: params.toString(),
+          }
+        );
+
+        // Gestion des erreurs HTTP
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Erreur HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Marquer comme réussi
+          hasSucceededRef.current = true;
+          setStatus("success");
+          setMessage(
+            `Authentification réussie ! Bienvenue ${
+              data.user?.name || "utilisateur"
+            }`
+          );
+          setUserInfo(data.user);
+
+          // Mettre à jour le contexte d'auth SANS toucher au JWT principal
+          if (setAuthData && data.user) {
+            setAuthData((prev) => ({
+              ...prev, // Garder les données existantes
+              meditlinkUser: data.user,
+              meditlinkAuthenticated: true,
+            }));
+          }
+
+          // Rafraîchir immédiatement la session MeditLink
+          await refreshMeditLinkSession();
+
+          // Planifier la redirection une seule fois
+          if (!hasRedirectedRef.current) {
+            hasRedirectedRef.current = true;
+            timeoutRef.current = setTimeout(() => {
+              navigate("/Dashboard/Platform", { replace: true });
+            }, 3000);
+          }
         } else {
-          setStatus("error");
-          setMessage("Impossible de finaliser l'authentification (401).");
-          isProcessingRef.current = false;
-          return;
+          throw new Error(
+            data.error || data.message || "Erreur d'authentification"
+          );
         }
+      } catch (error) {
+        console.error("Erreur lors du callback MeditLink:", error);
+        setStatus("error");
+        setMessage(`Erreur d'authentification: ${error.message}`);
+
+        // Si c'est une erreur 500, suggérer de vérifier les logs backend
+        if (error.message.includes("500")) {
+          setMessage(
+            "Erreur serveur (500). Vérifiez que votre JWT principal est valide."
+          );
+        }
+      } finally {
+        isProcessingRef.current = false;
       }
+    },
+    [navigate, setAuthData, refreshMeditLinkSession]
+  );
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        // Marquer comme réussi
-        hasSucceededRef.current = true;
-        setStatus("success");
-        setMessage(
-          `Authentification réussie ! Bienvenue ${
-            data.user?.name || "utilisateur"
-          }`
-        );
-        setUserInfo(data.user);
-
-        if (setAuthData && data.user) {
-          setAuthData({
-            meditlinkUser: data.user,
-            meditlinkAuthenticated: true,
-          });
-        }
-
-        // Rafraîchir immédiatement la session après succès
-        refreshSession.current();
-
-        // Planifier la redirection une seule fois
-        if (!hasRedirectedRef.current) {
-          hasRedirectedRef.current = true;
-          timeoutRef.current = setTimeout(() => {
-            navigate("/Dashboard/Platform", { replace: true });
-          }, 3000);
-        }
-      } else {
-        throw new Error(
-          data.error || data.message || "Erreur d'authentification"
-        );
-      }
-    } catch (error) {
-      setStatus("error");
-      setMessage(`Erreur d'authentification: ${error.message}`);
-    } finally {
-      isProcessingRef.current = false;
-    }
-  };
-
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     if (hasSucceededRef.current || hasRedirectedRef.current) {
       return;
     }
@@ -190,16 +203,16 @@ const MeditLinkCallback = () => {
     const state = queryParams.get("state");
 
     if (code) {
-      setRetryCount(0);
+      setRetryCount((prev) => prev + 1);
       setStatus("loading");
-      setMessage("Nouvelle tentative...");
+      setMessage(`Nouvelle tentative (${retryCount + 1}/3)...`);
       handleCallback(code, state);
     } else {
       navigate("/Dashboard/Platform", { replace: true });
     }
-  };
+  }, [location.search, retryCount, handleCallback, navigate]);
 
-  const handleGoHome = () => {
+  const handleGoHome = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -208,7 +221,7 @@ const MeditLinkCallback = () => {
       refreshIntervalRef.current = null;
     }
     navigate("/Dashboard/Platform", { replace: true });
-  };
+  }, [navigate]);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -242,7 +255,7 @@ const MeditLinkCallback = () => {
         refreshIntervalRef.current = null;
       }
     };
-  }, [location.search]);
+  }, [location.search, handleCallback]);
 
   const getStatusIcon = () => {
     switch (status) {
@@ -269,20 +282,22 @@ const MeditLinkCallback = () => {
           <p className="callback-message">{message}</p>
 
           {userInfo && status === "success" && (
-            <div className="callback-user-info">
-              <h3>Informations utilisateur</h3>
-              <div className="user-details">
-                <p>
-                  <strong>Nom:</strong> {userInfo.name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {userInfo.email}
-                </p>
-                {userInfo.group && (
+            <div className="callback-success-info">
+              <div className="success-details">
+                <CheckCircle size={20} className="text-green" />
+                <div>
                   <p>
-                    <strong>Groupe:</strong> {userInfo.group.name}
+                    <strong>Nom:</strong> {userInfo.name}
                   </p>
-                )}
+                  <p>
+                    <strong>Email:</strong> {userInfo.email}
+                  </p>
+                  {userInfo.group && (
+                    <p>
+                      <strong>Groupe:</strong> {userInfo.group.name}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -296,25 +311,33 @@ const MeditLinkCallback = () => {
               </div>
             </div>
           )}
+
+          {status === "error" && retryCount < 3 && (
+            <div className="callback-error-info">
+              <p className="error-subtext">Tentative {retryCount}/3</p>
+            </div>
+          )}
         </div>
 
         <div className="callback-actions">
           {status === "success" && (
             <div className="success-actions">
-              <p>Redirection automatique...</p>
+              <p>Redirection automatique dans 3 secondes...</p>
               <button onClick={handleGoHome} className="btn primary">
                 <Home size={18} />
-                Accéder aux plateformes
+                Accéder maintenant
               </button>
             </div>
           )}
 
           {status === "error" && (
             <div className="error-actions">
-              <button onClick={handleRetry} className="btn retry">
-                <RefreshCw size={18} />
-                Réessayer
-              </button>
+              {retryCount < 3 && (
+                <button onClick={handleRetry} className="btn retry">
+                  <RefreshCw size={18} />
+                  Réessayer
+                </button>
+              )}
               <button onClick={handleGoHome} className="btn secondary">
                 <Home size={18} />
                 Retour aux plateformes
