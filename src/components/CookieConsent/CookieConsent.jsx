@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { Cookie, X } from "lucide-react";
 import { Link } from "react-router-dom"; // Si tu utilises React Router

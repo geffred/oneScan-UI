@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React from "react";
 import { Building2, FileCheck, BrainCircuit, Zap } from "lucide-react";
 import "./StatsSection.css";
