@@ -20,7 +20,7 @@ const CompteCabinet = () => {
   const { isAuthenticated, userData, userType, logout } =
     useContext(AuthContext);
   const [cabinetData, setCabinetData] = useState(null);
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState("commandes");
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
@@ -169,21 +169,22 @@ const CompteCabinet = () => {
             <div className="compte-cabinet-tabs">
               <button
                 className={`compte-cabinet-tab ${
-                  activeTab === "nouvelle-commande" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("nouvelle-commande")}
-              >
-                <PlusCircle size={18} />
-                Nouvelle Commande
-              </button>
-              <button
-                className={`compte-cabinet-tab ${
                   activeTab === "commandes" ? "active" : ""
                 }`}
                 onClick={() => setActiveTab("commandes")}
               >
                 <Package size={18} />
                 Mes Commandes ({filteredCommandes.length})
+              </button>
+
+              <button
+                className={`compte-cabinet-tab ${
+                  activeTab === "nouvelle-commande" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("nouvelle-commande")}
+              >
+                <PlusCircle size={18} />
+                Nouvelle Commande
               </button>
 
               <button

@@ -60,21 +60,21 @@
 }
 
 .crp-logo-circle {
-  width: 36px;
-  height: 36px;
-  background: white;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  background: var(--crp-primary);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--crp-primary);
+  color: var(--crp-bg);
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .crp-logo-block h1 {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--crp-text);
+  color: var(--crp-primary);
   margin: 0;
 }
 
