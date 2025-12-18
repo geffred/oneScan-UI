@@ -12,10 +12,12 @@ import "./HomePage.css"; // Assuming you have a CSS file for styling
 import AvisSection from "../../components/AvisSection/AvisSection";
 import TrackingSection from "../../components/TrackingSection/TrackingSection";
 import AddressMap from "../../components/AddressMap/AddressMap";
+import CookieConsent from "../../components/CookieConsent/CookieConsent";
 
 const Homepage = () => {
   return (
     <div className="homepage">
+      <CookieConsent />
       <Header />
       <HeroSection />
       <TrackingSection />
