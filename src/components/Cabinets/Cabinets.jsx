@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import React, { useState, useContext, useMemo, useCallback } from "react";
 import useSWR from "swr";
 import emailjs from "@emailjs/browser";

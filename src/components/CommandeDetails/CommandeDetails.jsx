@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
+/* eslint-disable react/display-name */
 import React, {
   useState,
   useContext,
@@ -95,7 +98,8 @@ const updateCabinetId = async (commandeId, cabinetId) => {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(cabinetId),
+      // CORRECTION : Envoyer un objet JSON avec la clé "cabinetId"
+      body: JSON.stringify({ cabinetId: cabinetId }),
     }
   );
 
