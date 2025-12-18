@@ -182,8 +182,11 @@ const CabinetFormModal = ({ isOpen, onClose, cabinetToEdit, onSuccess }) => {
                           className="cabinet-checkbox-input"
                         />
                         <span className="cabinet-checkbox-text">
-                          <CheckCircle2 size={16} /> Accès immédiat (sans
-                          validation email)
+                          <CheckCircle2
+                            size={16}
+                            color="var(--cabinet-primary)"
+                          />{" "}
+                          Accès immédiat (sans validation email)
                         </span>
                       </label>
                     </div>
