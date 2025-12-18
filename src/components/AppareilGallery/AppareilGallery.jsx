@@ -158,14 +158,14 @@ const AppareilCard = React.memo(({ appareil, onViewDetails }) => {
 AppareilCard.displayName = "AppareilCard";
 
 // Composant pour le viewer d'image avec zoom optimisé
-// Composant pour le viewer d'image avec zoom optimisé
 const ImageViewer = React.memo(
   ({ images, currentImageIndex, onNext, onPrev, onThumbnailClick }) => {
     const [zoomLevel, setZoomLevel] = useState(1);
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
     const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
-    const [showZoomControls, setShowZoomControls] = useState(true); // ← AJOUT: Contrôles visibles par défaut
+    // eslint-disable-next-line no-unused-vars
+    const [showZoomControls, setShowZoomControls] = useState(true);
 
     const currentImage = images[currentImageIndex];
 
@@ -305,8 +305,6 @@ const ImageViewer = React.memo(
           {/* Contrôles de zoom - TOUJOURS VISIBLES */}
           {currentImage && (
             <div className="image-zoom-controls visible">
-              {" "}
-              {/* ← AJOUT de la classe 'visible' */}
               <button
                 onClick={handleZoomOut}
                 disabled={zoomLevel <= 1}
@@ -563,7 +561,7 @@ const AppareilGallery = () => {
   // Gestion des erreurs
   React.useEffect(() => {
     if (error) {
-      console.error("Erreur lors de la récupération des appareils:", error);
+      // Suppression du console.error pour la production
       toast.error("Erreur lors de la récupération des appareils");
     }
   }, [error]);

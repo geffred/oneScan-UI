@@ -16,7 +16,7 @@ import { AuthContext } from "../../components/Config/AuthContext";
 import Navbar from "../../components/Navbar/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import BonCommande from "../BonDeCommande/BonDeCommande";
-import CertificatConformite from "./CertificatConformite"; // NOUVEAU IMPORT
+import CertificatConformite from "./CertificatConformite";
 import { useReactToPrint } from "react-to-print";
 import { AlertCircle, ArrowLeft, Shield } from "lucide-react";
 
@@ -98,7 +98,6 @@ const updateCabinetId = async (commandeId, cabinetId) => {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      // CORRECTION : Envoyer un objet JSON avec la clé "cabinetId"
       body: JSON.stringify({ cabinetId: cabinetId }),
     }
   );
@@ -181,7 +180,7 @@ const checkCertificatExists = async (commandeId) => {
     const data = await response.json();
     return data.exists || false;
   } catch (error) {
-    console.error("Erreur lors de la vérification du certificat:", error);
+    // Gestion silencieuse de l'erreur pour ne pas polluer la console
     return false;
   }
 };
@@ -224,8 +223,8 @@ const CommandeDetails = () => {
   const [activeComponent, setActiveComponent] = useState("commandes");
   const [showBonDeCommande, setShowBonDeCommande] = useState(false);
   const [showCabinetSearch, setShowCabinetSearch] = useState(false);
-  const [showCertificat, setShowCertificat] = useState(false); // NOUVEAU ÉTAT
-  const [hasCertificat, setHasCertificat] = useState(false); // NOUVEAU ÉTAT
+  const [showCertificat, setShowCertificat] = useState(false);
+  const [hasCertificat, setHasCertificat] = useState(false);
 
   const bonDeCommandeRef = useRef();
 
@@ -274,7 +273,6 @@ const CommandeDetails = () => {
           const exists = await checkCertificatExists(commande.id);
           setHasCertificat(exists);
         } catch (error) {
-          console.error("Erreur vérification certificat:", error);
           setHasCertificat(false);
         }
       }
@@ -362,7 +360,6 @@ const CommandeDetails = () => {
       }
     } catch (error) {
       toast.error("Erreur de connexion lors du téléchargement");
-      console.error("Erreur:", error);
     } finally {
       setActionStates((prev) => ({ ...prev, download: false }));
     }
@@ -388,10 +385,7 @@ const CommandeDetails = () => {
         return;
       }
 
-      const analysisResult = await analyseCommentaireDeepSeek(
-        finalCommentaire,
-        commande.id
-      );
+      await analyseCommentaireDeepSeek(finalCommentaire, commande.id);
 
       toast.success("Analyse terminée ! Bon de commande généré avec succès.");
 
@@ -406,7 +400,6 @@ const CommandeDetails = () => {
         `Bon de commande généré avec succès pour la commande #${commande.externalId}`
       );
     } catch (error) {
-      console.error("Erreur lors de la génération:", error);
       toast.error(
         "Erreur lors de l'analyse du commentaire ou de la génération du bon de commande"
       );
@@ -458,7 +451,6 @@ const CommandeDetails = () => {
         `Notification envoyée avec succès à ${cabinet.nom} (${cabinet.email})`
       );
     } catch (error) {
-      console.error("Erreur lors de l'envoi de l'email:", error);
       toast.error(
         `Erreur lors de l'envoi de la notification: ${error.message}`
       );
@@ -492,7 +484,6 @@ const CommandeDetails = () => {
           `Statut mis à jour vers "${statusLabels[newStatus]}" avec succès`
         );
       } catch (error) {
-        console.error("Erreur lors de la mise à jour du statut:", error);
         toast.error("Erreur lors de la mise à jour du statut");
       } finally {
         setActionStates((prev) => ({ ...prev, updateStatus: false }));
@@ -514,7 +505,6 @@ const CommandeDetails = () => {
 
         toast.success("Cabinet associé avec succès");
       } catch (error) {
-        console.error("Erreur lors de l'association du cabinet:", error);
         toast.error("Erreur lors de l'association du cabinet");
       }
     },
@@ -559,7 +549,11 @@ const CommandeDetails = () => {
         label: `${diffDays}j restant`,
         class: "yellow",
       };
-    return { status: "normal", label: `${diffDays}j restant`, class: "green" };
+    return {
+      status: "normal",
+      label: `${diffDays}j restant`,
+      class: "green",
+    };
   }, []);
 
   const getPlateformeColor = useCallback((plateforme) => {
@@ -583,8 +577,7 @@ const CommandeDetails = () => {
     [commande, getPlateformeColor]
   );
 
-  // Plus besoin de logique spécifique pour Itero - le commentaire vient directement de la commande
-  const isCommentLoading = false; // Le commentaire est inclus dans les données de la commande
+  const isCommentLoading = false;
 
   const canDownloadBonCommande = useMemo(() => {
     return commande && commande.typeAppareil && commande.typeAppareil !== null;
@@ -599,7 +592,6 @@ const CommandeDetails = () => {
     );
   }, [commande]);
 
-  // Le commentaire final est directement celui de la commande
   const finalCommentaire = useMemo(() => {
     return commande?.commentaire || null;
   }, [commande]);
@@ -613,7 +605,7 @@ const CommandeDetails = () => {
           mutateCommande({ ...commande, vu: true }, false);
           mutateCommandes();
         } catch (error) {
-          console.error("Erreur lors du marquage comme lu:", error);
+          // Erreur silencieuse
         }
       };
 
@@ -728,8 +720,8 @@ const CommandeDetails = () => {
           handleOpenBonCommande={handleOpenBonCommande}
           handleSendEmailNotification={handleSendEmailNotification}
           handleDownload={handleDownload}
-          handleOpenCertificat={handleOpenCertificat} // NOUVEAU PROP
-          hasCertificat={hasCertificat} // NOUVEAU PROP
+          handleOpenCertificat={handleOpenCertificat}
+          hasCertificat={hasCertificat}
         />
       </div>
 

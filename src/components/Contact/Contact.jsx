@@ -18,6 +18,7 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
 
+  // Note : Idéalement, placez ces clés dans votre fichier .env (ex: import.meta.env.VITE_EMAILJS_SERVICE_ID)
   const EMAILJS_SERVICE_ID = "service_ag5llz9";
   const EMAILJS_TEMPLATE_ID = "template_3qv5owv";
   const EMAILJS_PUBLIC_KEY = "rfexuIcDBNIIdOsf2";
@@ -51,7 +52,6 @@ const Contact = () => {
     setSubmitStatus(null);
 
     try {
-      // Configuration EmailJS - remplacez par vos propres IDs
       const templateParams = {
         from_name: `${values.firstName} ${values.lastName}`,
         from_email: values.email,
@@ -59,21 +59,22 @@ const Contact = () => {
         phone: values.phone || "Non spécifié",
         subject: values.subject,
         message: values.message,
-        to_email: "contact@smilelabortho.be", // Remplacez par votre email
+        to_email: "contact@smilelabortho.be",
       };
 
       await emailjs.send(
-        EMAILJS_SERVICE_ID, // Remplacez par votre Service ID
-        "template_iivosnl", // Remplacez par votre Template ID
+        EMAILJS_SERVICE_ID,
+        "template_iivosnl", // Attention : Assurez-vous que cet ID correspond bien à celui défini ou à la constante ci-dessus
         templateParams,
-        EMAILJS_PUBLIC_KEY // Remplacez par votre Public Key
+        EMAILJS_PUBLIC_KEY
       );
 
       setSubmitStatus("success");
       resetForm();
       setTimeout(() => setSubmitStatus(null), 5000);
     } catch (error) {
-      console.error("Erreur lors de l'envoi:", error);
+      // Suppression du console.error pour la production
+      // L'utilisateur est notifié via l'état "submitStatus"
       setSubmitStatus("error");
       setTimeout(() => setSubmitStatus(null), 5000);
     } finally {

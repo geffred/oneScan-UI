@@ -67,7 +67,6 @@ const LoginPage = () => {
       }
 
       const data = await response.json();
-      console.log("Connexion réussie, données:", data);
 
       // Vérifier la présence du token
       if (!data.token) {
@@ -96,7 +95,7 @@ const LoginPage = () => {
         throw new Error("Erreur lors de l'initialisation de la session");
       }
     } catch (error) {
-      console.error("Erreur lors de la connexion:", error);
+      // Gestion de l'erreur via l'UI uniquement, pas de log
       setFieldError("email", error.message);
     } finally {
       setIsLoading(false);
