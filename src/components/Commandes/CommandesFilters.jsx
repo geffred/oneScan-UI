@@ -54,6 +54,7 @@ const CommandesFilters = ({
             <option value="DEXIS">Dexis</option>
             <option value="CSCONNECT">CS Connect</option>
             <option value="GOOGLE_DRIVE">Google Drive</option>
+            <option value="MYSMILELAB">Mysmilelab</option>
           </select>
         </div>
 
