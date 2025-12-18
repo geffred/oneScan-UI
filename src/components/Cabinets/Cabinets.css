@@ -232,7 +232,7 @@
 }
 
 .cabinet-icon, .cabinet-info-icon {
-  color: var(--cabinet-gray-400);
+  color: var(--cabinet-primary);
   flex-shrink: 0;
 }
 
