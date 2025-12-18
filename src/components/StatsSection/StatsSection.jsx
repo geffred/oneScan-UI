@@ -5,14 +5,14 @@ import "./StatsSection.css";
 const stats = [
   {
     id: 1,
-    value: "10+",
+    value: "50+",
     label: "Cabinets partenaires",
     icon: <Building2 size={24} />,
     delay: "0.1s",
   },
   {
     id: 2,
-    value: "1k+",
+    value: "10k+",
     label: "Commandes traitées",
     icon: <FileCheck size={24} />,
     delay: "0.2s",
