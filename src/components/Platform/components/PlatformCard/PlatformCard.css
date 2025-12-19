@@ -56,9 +56,9 @@
 }
 
 .platform-card-component__status--disconnected {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+  background: #fffaf0;
+  color: #ff9100;
+  border: 1px solid #ffdf9a;
 }
 
 .platform-card-component__status-icon {
