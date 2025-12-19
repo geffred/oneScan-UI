@@ -444,3 +444,24 @@
   background: var(--commandes-border-light);
   color: var(--commandes-text-secondary);
 }
+
+
+
+.commandes-btn-blue {
+  background-color: var(--commandes-primary); /* Un bleu clair doux */
+  color: white; /* Texte/Icône en bleu foncé */
+  border: 1px solid #bae6fd;
+  transition: all 0.2s ease;
+}
+
+.commandes-btn-blue:hover {
+  background-color: white; /* Bleu plus vif au survol */
+  color:var(--commandes-primary); /* Icône devient blanche */
+  border-color: #0ea5e9;
+}
+
+.commandes-btn-white {
+  background-color: white; /* Bleu plus vif au survol */
+  color:var(--commandes-primary); /* Icône devient blanche */
+  border-color: #0ea5e9;
+}

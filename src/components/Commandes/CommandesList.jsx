@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React from "react";
+import React, { useMemo } from "react";
 import { FileText, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import CommandeRow from "./CommandeRow";
 import "./CommandesList.css";
@@ -8,6 +8,7 @@ const CommandesList = ({
   commandes,
   totalCommandes,
   onViewDetails,
+  onToggleVu, // Nouvelle prop reçue
   onSyncAll,
   connectedPlatformsCount,
   currentPage,
@@ -15,6 +16,17 @@ const CommandesList = ({
   onPageChange,
   itemsPerPage = 25,
 }) => {
+  const sortedCommandes = useMemo(() => {
+    return [...commandes].sort((a, b) => {
+      if (typeof a.id === "number" && typeof b.id === "number") {
+        return b.id - a.id;
+      }
+      if (a.id < b.id) return 1;
+      if (a.id > b.id) return -1;
+      return 0;
+    });
+  }, [commandes]);
+
   const startIndex = (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, commandes.length);
   const totalFilteredCommandes = commandes.length;
@@ -34,19 +46,14 @@ const CommandesList = ({
   const getVisiblePages = () => {
     const pages = [];
     const maxVisiblePages = 5;
-
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    // Ajuster si on est proche de la fin
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
-
     return pages;
   };
 
@@ -86,13 +93,16 @@ const CommandesList = ({
             </div>
 
             <div className="commandes-table-body">
-              {commandes.slice(startIndex - 1, endIndex).map((commande) => (
-                <CommandeRow
-                  key={commande.id}
-                  commande={commande}
-                  onViewDetails={onViewDetails}
-                />
-              ))}
+              {sortedCommandes
+                .slice(startIndex - 1, endIndex)
+                .map((commande) => (
+                  <CommandeRow
+                    key={commande.id}
+                    commande={commande}
+                    onViewDetails={onViewDetails}
+                    onToggleVu={onToggleVu} // Passer la fonction à la ligne
+                  />
+                ))}
             </div>
           </div>
 

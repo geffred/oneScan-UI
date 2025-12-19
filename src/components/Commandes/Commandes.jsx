@@ -56,7 +56,6 @@ const Commandes = () => {
   const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1);
   const [itemsPerPage] = useState(25);
 
-  //  Flag pour éviter le reset après restauration
   const hasRestoredState = React.useRef(false);
 
   // --- Sauvegarde automatique dans le localStorage ---
@@ -81,7 +80,7 @@ const Commandes = () => {
     currentPage,
   ]);
 
-  // --- Reset pagination uniquement si filtres changent APRÈS restauration ---
+  // --- Reset pagination ---
   const previousFiltersRef = React.useRef({
     searchTerm,
     selectedPlateforme,
@@ -92,7 +91,6 @@ const Commandes = () => {
   });
 
   useEffect(() => {
-    // Ignorer la première exécution (montage)
     if (!hasRestoredState.current) {
       hasRestoredState.current = true;
       previousFiltersRef.current = {
@@ -187,7 +185,6 @@ const Commandes = () => {
     }
   );
 
-  // Hooks de synchronisation
   const {
     syncMeditLinkCommandes,
     syncOtherPlatform,
@@ -199,7 +196,40 @@ const Commandes = () => {
     setIsSyncing,
   });
 
-  // Raccourcis pour les handlers
+  // --- CORRECTION DU TOGGLE VU/NON-VU ---
+  const handleToggleVu = async (commande) => {
+    try {
+      const endpoint = commande.vu ? "non-vu" : "vu";
+      const url = `${import.meta.env.VITE_API_BASE_URL}/public/commandes/${
+        commande.id
+      }/${endpoint}`;
+
+      // Récupération du token (ajuste selon où tu stockes ton token, souvent localStorage ou AuthContext)
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // AJOUT ESSENTIEL POUR L'ERREUR 401
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // Rafraîchir les données
+        mutateCommandes();
+      } else {
+        console.error(
+          `Erreur ${response.status}: Impossible de changer le statut.`
+        );
+      }
+    } catch (error) {
+      console.error("Erreur API:", error);
+    }
+  };
+  // ----------------------------------------------
+
   const handlers = useMemo(
     () => ({
       search: (e) => {
@@ -226,6 +256,7 @@ const Commandes = () => {
         setCustomDateTo(e.target.value);
         setCurrentPage(1);
       },
+      // Le clic sur la ligne continue de faire ça
       viewDetails: (commande) =>
         navigate(`/dashboard/commande/${commande.externalId}`, {
           state: { commande },
@@ -235,7 +266,6 @@ const Commandes = () => {
     [navigate]
   );
 
-  // Calculs mémorisés
   const { stats, filteredCommandes, connectionStatus } = useCommandesData({
     commandes,
     userPlatforms,
@@ -250,12 +280,10 @@ const Commandes = () => {
     googleDriveStatus,
   });
 
-  // Pagination
   const totalPages = useMemo(() => {
     return Math.ceil(filteredCommandes.length / itemsPerPage);
   }, [filteredCommandes.length, itemsPerPage]);
 
-  // Synchronisation
   const handleSyncPlatform = useCallback(
     (platformName) => {
       syncPlatformCommandes(platformName, connectionStatus.get);
@@ -267,14 +295,12 @@ const Commandes = () => {
     syncAllPlatforms(userPlatforms, connectionStatus.get);
   }, [syncAllPlatforms, userPlatforms, connectionStatus.get]);
 
-  // Redirection si non authentifié
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login");
     }
   }, [isAuthenticated, navigate]);
 
-  // Gestion des erreurs
   if (commandesError) {
     return (
       <div className="commandes-card">
@@ -328,6 +354,7 @@ const Commandes = () => {
         commandes={filteredCommandes}
         totalCommandes={stats.totalCommandes}
         onViewDetails={handlers.viewDetails}
+        onToggleVu={handleToggleVu}
         onSyncAll={handleSyncAllPlatforms}
         connectedPlatformsCount={stats.connectedPlatformsCount}
         currentPage={currentPage}

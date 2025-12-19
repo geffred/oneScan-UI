@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import React from "react";
-import { Calendar, Clock, Eye } from "lucide-react";
+import { Calendar, Clock, Eye, EyeOff } from "lucide-react";
 
-const CommandeRow = ({ commande, onViewDetails }) => {
+const CommandeRow = ({ commande, onViewDetails, onToggleVu }) => {
   const formatDate = (dateString) => {
     if (!dateString) return "Non spécifiée";
     const date = new Date(dateString);
@@ -43,7 +43,7 @@ const CommandeRow = ({ commande, onViewDetails }) => {
       ITERO: "green",
       THREESHAPE: "purple",
       DEXIS: "orange",
-      CSCONNECT: "cyan", // NOUVEAU : Ajout de CS Connect
+      CSCONNECT: "cyan",
       GOOGLE_DRIVE: "red",
     };
     return colors[plateforme] || "gray";
@@ -56,7 +56,7 @@ const CommandeRow = ({ commande, onViewDetails }) => {
       case "GOOGLE_DRIVE":
         return "Google Drive";
       case "CSCONNECT":
-        return "CS Connect"; // NOUVEAU : Nom d'affichage pour CS Connect
+        return "CS Connect";
       default:
         return platformName;
     }
@@ -76,7 +76,7 @@ const CommandeRow = ({ commande, onViewDetails }) => {
     >
       <div className="commandes-table-cell" data-label="ID">
         <span className="commandes-external-id">
-          #{commande.externalId ? commande.externalId.substring(0, 9) : "N/A"}
+          #{commande.externalId ? commande.id : "N/A"}
         </span>
       </div>
 
@@ -131,17 +131,19 @@ const CommandeRow = ({ commande, onViewDetails }) => {
 
       <div className="commandes-table-cell" data-label="Actions">
         <div className="commandes-actions">
+          {/* Ajout de la classe 'commandes-btn-blue' ici */}
           <button
-            className={`commandes-action-btn ${
-              !commande.vu ? "commandes-action-view" : ""
-            }`}
-            title="Voir les détails"
+            className={
+              "commandes-action-btn" +
+              (commande.vu ? " .commandes-btn-white" : " commandes-btn-blue")
+            }
+            title={commande.vu ? "Marquer comme non lu" : "Marquer comme lu"}
             onClick={(e) => {
               e.stopPropagation();
-              onViewDetails(commande);
+              onToggleVu(commande);
             }}
           >
-            <Eye size={16} />
+            {commande.vu ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
       </div>
