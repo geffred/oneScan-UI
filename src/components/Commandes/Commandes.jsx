@@ -196,39 +196,57 @@ const Commandes = () => {
     setIsSyncing,
   });
 
-  // --- CORRECTION DU TOGGLE VU/NON-VU ---
-  const handleToggleVu = async (commande) => {
-    try {
-      const endpoint = commande.vu ? "non-vu" : "vu";
-      const url = `${import.meta.env.VITE_API_BASE_URL}/public/commandes/${
-        commande.id
-      }/${endpoint}`;
+  // --- TOGGLE VU/NON-VU OPTIMISÉ (Optimistic UI) ---
+  const handleToggleVu = async (commandeCible) => {
+    // 1. Déterminer le nouveau statut attendu
+    const nouveauStatutVu = !commandeCible.vu;
 
-      // Récupération du token (ajuste selon où tu stockes ton token, souvent localStorage ou AuthContext)
+    // 2. Créer une copie optimiste de la liste des commandes
+    // On met à jour l'élément modifié localement tout de suite
+    const commandesOptimistes = commandes.map((c) =>
+      c.id === commandeCible.id ? { ...c, vu: nouveauStatutVu } : c
+    );
+
+    // 3. Appliquer la mise à jour immédiate à SWR
+    // Le 'false' en 2ème argument empêche le rechargement immédiat (revalidation)
+    await mutateCommandes(commandesOptimistes, false);
+
+    try {
+      const endpoint = commandeCible.vu ? "non-vu" : "vu";
+      const url = `${import.meta.env.VITE_API_BASE_URL}/public/commandes/${
+        commandeCible.id
+      }/${endpoint}`;
       const token = localStorage.getItem("token");
 
+      // 4. Envoyer la requête au serveur
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // AJOUT ESSENTIEL POUR L'ERREUR 401
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (response.ok) {
-        // Rafraîchir les données
-        mutateCommandes();
-      } else {
-        console.error(
-          `Erreur ${response.status}: Impossible de changer le statut.`
-        );
+      if (!response.ok) {
+        throw new Error("Erreur serveur");
       }
+
+      // 5. Succès silencieux : on peut lancer une revalidation en arrière-plan
+      // pour être sûr que tout est synchro, mais l'utilisateur a déjà vu le résultat.
+      mutateCommandes();
     } catch (error) {
       console.error("Erreur API:", error);
+
+      // 6. EN CAS D'ERREUR : On annule tout !
+      // On force SWR à re-télécharger les vraies données du serveur
+      // pour remettre l'état correct (rollback)
+      mutateCommandes();
+
+      // Optionnel : Afficher une notification d'erreur à l'utilisateur ici
+      alert("Impossible de modifier le statut. Veuillez réessayer.");
     }
   };
-  // ----------------------------------------------
+  // --------------------------------------------------
 
   const handlers = useMemo(
     () => ({
