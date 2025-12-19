@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { Users, Package, LogOut, PlusCircle } from "lucide-react";
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../components/Config/AuthContext";
 import useSWR from "swr";
@@ -9,7 +9,7 @@ import Footer from "../../components/Footer/Footer";
 import ProfileCabinet from "./ProfileCabinet";
 import CommandesCabinet from "./CommandesCabinet";
 import PasserCommande from "./PasserCommande";
-import { cabinetApi, apiGet } from "../../components/Config/apiUtils";
+import { apiGet } from "../../components/Config/apiUtils";
 import { ToastContainer } from "react-toastify";
 import "./CompteCabinet.css";
 
@@ -53,10 +53,13 @@ const CompteCabinet = () => {
     revalidateInterval: 30000,
   });
 
-  // Filtrer les commandes pour ce cabinet
-  const filteredCommandes =
-    commandes?.filter((commande) => commande.cabinetId === cabinetData?.id) ||
-    [];
+  // Filtrer les commandes pour ce cabinet (optimisé avec useMemo)
+  const filteredCommandes = React.useMemo(() => {
+    if (!commandes || !cabinetData?.id) return [];
+    return commandes.filter(
+      (commande) => commande.cabinetId === cabinetData.id
+    );
+  }, [commandes, cabinetData?.id]);
 
   useEffect(() => {
     if (!isAuthenticated || userType !== "cabinet") {
@@ -75,40 +78,45 @@ const CompteCabinet = () => {
     }
   }, [profileError]);
 
-  const handleLogout = () => {
+  // Optimisation: useCallback pour éviter les re-créations de fonctions
+  const handleLogout = useCallback(() => {
     logout();
     navigate("/login");
-  };
+  }, [logout, navigate]);
 
-  const handleProfileUpdate = (updatedData) => {
-    setCabinetData(updatedData);
-    mutateProfile(updatedData);
-    setSuccess("Vos informations ont été mises à jour avec succès");
-    setTimeout(() => setSuccess(null), 3000);
-  };
+  const handleProfileUpdate = useCallback(
+    (updatedData) => {
+      setCabinetData(updatedData);
+      mutateProfile(updatedData, false);
+      setSuccess("Vos informations ont été mises à jour avec succès");
+      setTimeout(() => setSuccess(null), 3000);
+    },
+    [mutateProfile]
+  );
 
-  const handleError = (errorMessage) => {
+  const handleError = useCallback((errorMessage) => {
     setError(errorMessage);
     setTimeout(() => setError(null), 5000);
-  };
+  }, []);
 
-  const handleSuccess = (successMessage) => {
+  const handleSuccess = useCallback((successMessage) => {
     setSuccess(successMessage);
     setTimeout(() => setSuccess(null), 3000);
-  };
+  }, []);
 
-  // Callback après création d'une commande
-  const handleCommandeCreated = () => {
-    // Recharger les commandes
+  const handleCommandeCreated = useCallback(() => {
     mutateCommandes();
-    // Afficher un message de succès
     setSuccess("Commande créée avec succès !");
     setTimeout(() => setSuccess(null), 3000);
-    // Changer d'onglet pour voir les commandes
     setTimeout(() => {
       setActiveTab("commandes");
     }, 1500);
-  };
+  }, [mutateCommandes]);
+
+  // Optimisation: useCallback pour les changements d'onglets
+  const handleTabChange = useCallback((tab) => {
+    setActiveTab(tab);
+  }, []);
 
   if (loadingProfile || !cabinetData) {
     return (
@@ -171,7 +179,7 @@ const CompteCabinet = () => {
                 className={`compte-cabinet-tab ${
                   activeTab === "commandes" ? "active" : ""
                 }`}
-                onClick={() => setActiveTab("commandes")}
+                onClick={() => handleTabChange("commandes")}
               >
                 <Package size={18} />
                 Mes Commandes ({filteredCommandes.length})
@@ -181,7 +189,7 @@ const CompteCabinet = () => {
                 className={`compte-cabinet-tab ${
                   activeTab === "nouvelle-commande" ? "active" : ""
                 }`}
-                onClick={() => setActiveTab("nouvelle-commande")}
+                onClick={() => handleTabChange("nouvelle-commande")}
               >
                 <PlusCircle size={18} />
                 Nouvelle Commande
@@ -191,7 +199,7 @@ const CompteCabinet = () => {
                 className={`compte-cabinet-tab ${
                   activeTab === "profile" ? "active" : ""
                 }`}
-                onClick={() => setActiveTab("profile")}
+                onClick={() => handleTabChange("profile")}
               >
                 <Users size={18} />
                 Profil

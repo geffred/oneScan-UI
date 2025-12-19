@@ -1,4 +1,4 @@
-/* CompteCabinet.css - Styles pour le composant principal */
+/* CompteCabinet.css - Styles optimisés pour performance */
 
 /* Variables CSS pour la cohérence */
 :root {
@@ -19,9 +19,6 @@
   --gray-800: #1e293b;
   --gray-900: #0f172a;
   --white: #ffffff;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 30px rgba(0, 122, 255, 0.15);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -38,16 +35,6 @@
   min-height: 100vh;
   padding: 2rem;
   position: relative;
-  overflow: hidden;
-}
-
-.compte-cabinet-main-wrapper::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
 }
 
 .compte-cabinet-content-container {
@@ -62,8 +49,6 @@
 .compte-cabinet-profile-card {
   background: rgba(255, 255, 255, 0.95);
   border-radius: var(--radius-xl);
-  backdrop-filter: blur(20px);
-  overflow: hidden;
   padding: 2.5rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -115,7 +100,6 @@
   border-radius: var(--radius-md);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
 }
 
 .compte-cabinet-logout-btn:hover {
@@ -130,7 +114,6 @@
   border-radius: var(--radius-lg);
   padding: 0.5rem;
   margin-bottom: 2rem;
-  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -144,38 +127,20 @@
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
   font-size: 1.3em;
   margin-right: 10px;
+  /* Transition uniquement sur le hover pour feedback immédiat */
+  transition: background-color 0.15s ease;
 }
 
-.compte-cabinet-tab::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.2) 0%, rgba(0, 86, 204, 0.1) 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  border-radius: var(--radius-md);
-}
-
-.compte-cabinet-tab:hover::before {
-  opacity: 1;
+.compte-cabinet-tab:hover {
+  background: rgba(0, 122, 255, 0.05);
 }
 
 .compte-cabinet-tab.active {
   background: rgba(255, 255, 255, 0.95);
   color: var(--primary-blue);
   border: 1px solid rgba(0, 122, 255, 0.3);
-}
-
-.compte-cabinet-tab.active::before {
-  opacity: 0;
 }
 
 /* Messages de notification */
@@ -206,12 +171,11 @@
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top: 2px solid var(--white);
   border-radius: 50%;
-  animation: compte-cabinet-spinner-rotation 1s linear infinite;
+  animation: compte-cabinet-spinner-rotation 0.6s linear infinite;
 }
 
 @keyframes compte-cabinet-spinner-rotation {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Loading State Initial */
@@ -297,5 +261,16 @@
   .compte-cabinet-tab svg {
     width: 16px;
     height: 16px;
+  }
+}
+
+/* Optimisation pour les appareils à préférence de mouvement réduit */
+@media (prefers-reduced-motion: reduce) {
+  .compte-cabinet-tab {
+    transition: none;
+  }
+  
+  .compte-cabinet-loading-spinner {
+    animation-duration: 1s;
   }
 }

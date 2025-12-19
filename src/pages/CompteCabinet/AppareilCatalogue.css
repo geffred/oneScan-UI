@@ -1,0 +1,793 @@
+/* AppareilCatalogue.css - Styles pour le catalogue d'appareils */
+
+/* ==================== SECTION CATALOGUE ==================== */
+.catalogue-section {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 200px);
+  min-height: 600px;
+}
+
+/* ==================== HEADER ==================== */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  flex-shrink: 0;
+}
+
+.section-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: #111827;
+}
+
+/* ==================== CONTRÔLES DE VUE ==================== */
+.view-controls {
+  display: flex;
+  gap: 0.25rem;
+  background: #e5e7eb;
+  padding: 0.25rem;
+  border-radius: 6px;
+}
+
+.view-btn {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-btn:hover {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+.view-btn.active {
+  background: #2563eb;
+  color: white;
+}
+
+/* ==================== RECHERCHE ET FILTRES ==================== */
+.search-filters {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex-shrink: 0;
+  background: white;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-box svg {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  pointer-events: none;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.625rem 0.75rem 0.625rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-box input::placeholder {
+  color: #9ca3af;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.filters select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  color: #374151;
+}
+
+.filters select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ==================== CONTENU DU CATALOGUE ==================== */
+.catalogue-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background: #f9fafb;
+}
+
+/* Scrollbar personnalisée */
+.catalogue-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.catalogue-content::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.catalogue-content::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.catalogue-content::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* ==================== COMPTEUR DE RÉSULTATS ==================== */
+.results-count {
+  margin-bottom: 1rem;
+  padding: 0.625rem 0.875rem;
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid #93c5fd;
+  display: inline-block;
+}
+
+/* ==================== GRILLE D'APPAREILS ==================== */
+.appareils-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Vue grille - 3 colonnes */
+.appareils-grid.grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Vue liste - 1 colonne */
+.appareils-grid.list {
+  grid-template-columns: 1fr;
+}
+
+/* ==================== CARTE D'APPAREIL ==================== */
+.appareil-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  height: 100%;
+}
+
+.appareil-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+  transform: translateY(-2px);
+}
+
+.appareil-card.selected {
+  border-color: #10b981;
+  background: #f0fdf4;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  transform: translateY(-2px);
+}
+
+.appareil-card.selected:hover {
+  border-color: #059669;
+}
+
+/* ==================== IMAGE DE COUVERTURE ==================== */
+.appareil-image-wrapper {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.appareil-cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.appareil-card:hover .appareil-cover-image {
+  transform: scale(1.08);
+}
+
+.appareil-no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #9ca3af;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+.appareil-no-image svg {
+  opacity: 0.5;
+}
+
+.appareil-no-image span {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+/* ==================== CONTENU DE LA CARTE ==================== */
+.appareil-card-content {
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+flex-direction: column;
+  background: white;
+}
+
+.appareil-card.selected .appareil-card-content {
+  background: #f0fdf4;
+}
+
+.appareil-card-content h3 {
+  color: #111827;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.6em;
+}
+
+.appareil-card-content dl {
+  margin: 0 0 1rem 0;
+  font-size: 0.85rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.appareil-card-content dt {
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.appareil-card-content dd {
+  color: #374151;
+  margin: 0.125rem 0 0 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==================== BOUTON DE SÉLECTION ==================== */
+.select-btn {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  margin-top: auto;
+}
+
+.select-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.select-btn:active {
+  transform: translateY(0);
+}
+
+.appareil-card.selected .select-btn {
+  background: #10b981;
+}
+
+.appareil-card.selected .select-btn:hover {
+  background: #059669;
+}
+
+/* ==================== ÉTATS DE CHARGEMENT ==================== */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem;
+  gap: 1rem;
+  color: #6b7280;
+}
+
+.loading-state span {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.spinner.small {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==================== ÉTAT VIDE ==================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem;
+  gap: 1rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.empty-state svg {
+  color: #d1d5db;
+  opacity: 0.7;
+}
+
+.empty-state h3 {
+  color: #374151;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0 0;
+}
+
+.empty-state p {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.95rem;
+  max-width: 400px;
+}
+
+/* ==================== VUE LISTE - ADAPTATIONS ==================== */
+.appareils-grid.list .appareil-card {
+  flex-direction: row;
+  height: auto;
+}
+
+.appareils-grid.list .appareil-image-wrapper {
+  width: 220px;
+  height: 200px;
+  flex-shrink: 0;
+}
+
+.appareils-grid.list .appareil-card-content {
+  flex: 1;
+  padding: 1.25rem;
+}
+
+.appareils-grid.list .appareil-card-content h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  min-height: auto;
+}
+
+.appareils-grid.list .appareil-card-content dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 1rem;
+  align-items: start;
+}
+
+.appareils-grid.list .appareil-card-content dt {
+  text-align: right;
+}
+
+.appareils-grid.list .appareil-card-content dd {
+  -webkit-line-clamp: 3;
+}
+
+.appareils-grid.list .select-btn {
+  max-width: 200px;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+/* Tablettes larges et petits écrans (1200px - 1024px) */
+@media (max-width: 1200px) {
+  .catalogue-section {
+    height: auto;
+    max-height: 600px;
+    min-height: 500px;
+  }
+
+  .appareils-grid.grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tablettes (1024px - 768px) */
+@media (max-width: 1024px) {
+  .section-header {
+    padding: 1rem;
+  }
+
+  .search-filters {
+    padding: 0.875rem;
+  }
+
+  .catalogue-content {
+    padding: 0.875rem;
+  }
+
+  .appareil-image-wrapper {
+    height: 160px;
+  }
+
+  .appareils-grid.list .appareil-image-wrapper {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+/* Tablettes portrait (768px - 640px) */
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .view-controls {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .appareils-grid.grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .appareils-grid.list .appareil-card {
+    flex-direction: column;
+  }
+
+  .appareils-grid.list .appareil-image-wrapper {
+    width: 100%;
+    height: 160px;
+  }
+
+  .appareils-grid.list .appareil-card-content dl {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .appareils-grid.list .appareil-card-content dt {
+    text-align: left;
+  }
+
+  .appareils-grid.list .select-btn {
+    max-width: 100%;
+  }
+
+  .appareil-card-content {
+    padding: 0.875rem;
+  }
+}
+
+/* Mobile large (640px - 480px) */
+@media (max-width: 640px) {
+  .appareils-grid.grid {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogue-section {
+    border-radius: 6px;
+  }
+
+  .appareil-image-wrapper {
+    height: 180px;
+  }
+
+  .results-count {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Mobile (480px et moins) */
+@media (max-width: 480px) {
+  .section-header {
+    padding: 0.875rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .search-filters {
+    padding: 0.75rem;
+  }
+
+  .catalogue-content {
+    padding: 0.75rem;
+  }
+
+  .appareil-card-content h3 {
+    font-size: 0.95rem;
+  }
+
+  .appareil-card-content dl {
+    font-size: 0.8rem;
+  }
+
+  .select-btn {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.825rem;
+  }
+
+  .empty-state {
+    padding: 3rem 1rem;
+  }
+
+  .empty-state h3 {
+    font-size: 1.1rem;
+  }
+
+  .loading-state {
+    padding: 3rem 1rem;
+  }
+}
+
+/* ==================== OPTIMISATIONS PERFORMANCE ==================== */
+@media (prefers-reduced-motion: reduce) {
+  .appareil-card,
+  .appareil-cover-image,
+  .select-btn,
+  .view-btn {
+    transition: none;
+  }
+
+  .spinner.small {
+    animation-duration: 1s;
+  }
+
+  .appareil-card:hover {
+    transform: none;
+  }
+
+  .appareil-card:hover .appareil-cover-image {
+    transform: none;
+  }
+}
+
+/* ==================== ACCESSIBILITÉ ==================== */
+.view-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.select-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.search-box input:focus-visible,
+.filters select:focus-visible {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.appareil-card:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* ==================== HOVER STATES AMÉLIORÉS ==================== */
+@media (hover: hover) {
+  .appareil-card {
+    position: relative;
+  }
+
+  .appareil-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(37, 99, 235, 0.02) 100%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .appareil-card:hover::before {
+    opacity: 1;
+  }
+
+  .appareil-card.selected::before {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%);
+    opacity: 1;
+  }
+
+  .appareil-card-content {
+    position: relative;
+    z-index: 2;
+  }
+}
+
+/* ==================== PRINT STYLES ==================== */
+@media print {
+  .catalogue-section {
+    box-shadow: none;
+    border: 1px solid #000;
+    height: auto;
+  }
+
+  .section-header {
+    background: white;
+    border-bottom: 2px solid #000;
+  }
+
+  .view-controls,
+  .search-filters {
+    display: none;
+  }
+
+  .appareils-grid.grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .appareil-card {
+    page-break-inside: avoid;
+    border: 1px solid #000;
+  }
+
+  .appareil-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .select-btn {
+    display: none;
+  }
+}
+
+/* ==================== DARK MODE SUPPORT (optionnel) ==================== */
+@media (prefers-color-scheme: dark) {
+  .catalogue-section {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .section-header {
+    background: #111827;
+    border-color: #374151;
+  }
+
+  .section-header h2 {
+    color: #f9fafb;
+  }
+
+  .search-filters {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .search-box input,
+  .filters select {
+    background: #111827;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+
+  .catalogue-content {
+    background: #111827;
+  }
+
+  .appareil-card {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .appareil-card-content {
+    background: #1f2937;
+  }
+
+  .appareil-card.selected {
+    background: #064e3b;
+    border-color: #10b981;
+  }
+
+  .appareil-card.selected .appareil-card-content {
+    background: #064e3b;
+  }
+
+  .appareil-card-content h3 {
+    color: #f9fafb;
+  }
+
+  .appareil-card-content dd {
+    color: #e5e7eb;
+  }
+
+  .results-count {
+    background: #1e3a8a;
+    color: #dbeafe;
+    border-color: #3b82f6;
+  }
+}
