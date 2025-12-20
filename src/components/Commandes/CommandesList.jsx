@@ -8,7 +8,8 @@ const CommandesList = ({
   commandes,
   totalCommandes,
   onViewDetails,
-  onToggleVu, // Nouvelle prop reçue
+  onToggleVu,
+  onUpdateStatus,
   onSyncAll,
   connectedPlatformsCount,
   currentPage,
@@ -16,7 +17,15 @@ const CommandesList = ({
   onPageChange,
   itemsPerPage = 25,
 }) => {
+  // --- CORRECTION ICI ---
   const sortedCommandes = useMemo(() => {
+    // 1. Sécurité : Si 'commandes' est undefined ou null, on renvoie un tableau vide
+    // Cela empêche l'erreur "not iterable"
+    if (!commandes || !Array.isArray(commandes)) {
+      return [];
+    }
+
+    // 2. Le tri s'effectue sur une copie sécurisée
     return [...commandes].sort((a, b) => {
       if (typeof a.id === "number" && typeof b.id === "number") {
         return b.id - a.id;
@@ -26,10 +35,16 @@ const CommandesList = ({
       return 0;
     });
   }, [commandes]);
+  // ----------------------
 
-  const startIndex = (currentPage - 1) * itemsPerPage + 1;
-  const endIndex = Math.min(currentPage * itemsPerPage, commandes.length);
-  const totalFilteredCommandes = commandes.length;
+  // Sécurité pour startIndex au cas où le tableau est vide
+  const safeLength = sortedCommandes.length;
+  const startIndex =
+    safeLength === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, safeLength);
+
+  // Utiliser la longueur sécurisée ou celle passée en props
+  const totalFilteredCommandes = safeLength;
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
@@ -59,7 +74,8 @@ const CommandesList = ({
 
   return (
     <div className="commandes-list-section">
-      {commandes.length === 0 ? (
+      {/* Vérification sur sortedCommandes au lieu de commandes directement */}
+      {sortedCommandes.length === 0 ? (
         <div className="commandes-empty-state">
           <FileText className="commandes-empty-icon" size={48} />
           <h3 className="commandes-empty-title">Aucune commande trouvée</h3>
@@ -93,20 +109,21 @@ const CommandesList = ({
             </div>
 
             <div className="commandes-table-body">
+              {/* Utilisation de startIndex sécurisé (avec -1 si > 0) */}
               {sortedCommandes
-                .slice(startIndex - 1, endIndex)
+                .slice(startIndex > 0 ? startIndex - 1 : 0, endIndex)
                 .map((commande) => (
                   <CommandeRow
                     key={commande.id}
                     commande={commande}
                     onViewDetails={onViewDetails}
-                    onToggleVu={onToggleVu} // Passer la fonction à la ligne
+                    onToggleVu={onToggleVu}
+                    onUpdateStatus={onUpdateStatus}
                   />
                 ))}
             </div>
           </div>
 
-          {/* Pagination */}
           <div className="commandes-pagination">
             <div className="commandes-pagination-info">
               <span className="commandes-pagination-text">
