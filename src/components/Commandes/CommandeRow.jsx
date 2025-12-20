@@ -1,8 +1,45 @@
 /* eslint-disable react/prop-types */
-import React from "react";
-import { Calendar, Clock, Eye, EyeOff } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Calendar,
+  Clock,
+  Eye,
+  EyeOff,
+  MoreVertical,
+  CheckCircle,
+  XCircle,
+  PlayCircle,
+} from "lucide-react";
 
-const CommandeRow = ({ commande, onViewDetails, onToggleVu }) => {
+const CommandeRow = ({
+  commande,
+  onViewDetails,
+  onToggleVu,
+  onUpdateStatus,
+}) => {
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  // Fermer le menu si on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleStatusChange = (newStatus) => {
+    if (onUpdateStatus) {
+      onUpdateStatus(commande.id, newStatus);
+    }
+    setShowMenu(false);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "Non spécifiée";
     const date = new Date(dateString);
@@ -62,15 +99,22 @@ const CommandeRow = ({ commande, onViewDetails, onToggleVu }) => {
     }
   };
 
+  // --- LOGIQUE DES BORDURES ---
+  const getRowBorderClass = () => {
+    if (commande.statut === "ANNULEE") return "commandes-row-cancelled";
+    if (commande.statut === "TERMINEE") return "commandes-row-completed";
+    if (!commande.vu) return "commandes-row-unread"; // Fallback sur non lu si pas de statut critique
+    return "";
+  };
+
   const echeanceStatus = getEcheanceStatus(commande.dateEcheance);
   const plateformeColor = getPlateformeColor(commande.plateforme);
   const platformDisplayName = getPlatformDisplayName(commande.plateforme);
+  const rowBorderClass = getRowBorderClass();
 
   return (
     <div
-      className={`commandes-table-row ${
-        !commande.vu ? "commandes-row-unread" : ""
-      }`}
+      className={`commandes-table-row ${rowBorderClass}`}
       onClick={() => onViewDetails(commande)}
       style={{ cursor: "pointer" }}
     >
@@ -82,7 +126,12 @@ const CommandeRow = ({ commande, onViewDetails, onToggleVu }) => {
 
       <div className="commandes-table-cell" data-label="Patient">
         <div className="commandes-patient-info">
-          {!commande.vu && <span className="commandes-unread-badge"></span>}
+          {/* On affiche le point bleu seulement si ce n'est pas annulé/terminé pour ne pas surcharger */}
+          {!commande.vu &&
+            commande.statut !== "ANNULEE" &&
+            commande.statut !== "TERMINEE" && (
+              <span className="commandes-unread-badge"></span>
+            )}
           <span className="commandes-patient-name">
             {commande.refPatient || "Non spécifié"}
           </span>
@@ -131,7 +180,7 @@ const CommandeRow = ({ commande, onViewDetails, onToggleVu }) => {
 
       <div className="commandes-table-cell" data-label="Actions">
         <div className="commandes-actions">
-          {/* Ajout de la classe 'commandes-btn-blue' ici */}
+          {/* Bouton Oeil */}
           <button
             className={
               "commandes-action-btn" +
@@ -145,6 +194,44 @@ const CommandeRow = ({ commande, onViewDetails, onToggleVu }) => {
           >
             {commande.vu ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
+
+          {/* Bouton Menu (3 points) */}
+          <div
+            className="commandes-menu-container"
+            ref={menuRef}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="commandes-action-btn commandes-btn-ghost"
+              onClick={() => setShowMenu(!showMenu)}
+              title="Modifier le statut"
+            >
+              <MoreVertical size={16} />
+            </button>
+
+            {showMenu && (
+              <div className="commandes-dropdown-menu">
+                <button
+                  onClick={() => handleStatusChange("EN_COURS")}
+                  className="commandes-dropdown-item"
+                >
+                  <PlayCircle size={14} className="text-blue" /> En cours
+                </button>
+                <button
+                  onClick={() => handleStatusChange("TERMINEE")}
+                  className="commandes-dropdown-item"
+                >
+                  <CheckCircle size={14} className="text-green" /> Terminée
+                </button>
+                <button
+                  onClick={() => handleStatusChange("ANNULEE")}
+                  className="commandes-dropdown-item"
+                >
+                  <XCircle size={14} className="text-red" /> Annulée
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
