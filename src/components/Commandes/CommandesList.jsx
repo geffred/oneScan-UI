@@ -17,15 +17,15 @@ const CommandesList = ({
   onPageChange,
   itemsPerPage = 25,
 }) => {
-  // --- CORRECTION ICI ---
+  // --- CORRECTION ET SÉCURISATION ---
   const sortedCommandes = useMemo(() => {
-    // 1. Sécurité : Si 'commandes' est undefined ou null, on renvoie un tableau vide
-    // Cela empêche l'erreur "not iterable"
+    // 1. Sécurité : Si 'commandes' n'est pas prêt, on renvoie un tableau vide
+    // Ceci empêche le crash de l'application au chargement
     if (!commandes || !Array.isArray(commandes)) {
       return [];
     }
 
-    // 2. Le tri s'effectue sur une copie sécurisée
+    // 2. Copie et Tri
     return [...commandes].sort((a, b) => {
       if (typeof a.id === "number" && typeof b.id === "number") {
         return b.id - a.id;
@@ -37,13 +37,11 @@ const CommandesList = ({
   }, [commandes]);
   // ----------------------
 
-  // Sécurité pour startIndex au cas où le tableau est vide
+  // Sécurité pour la pagination
   const safeLength = sortedCommandes.length;
   const startIndex =
     safeLength === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, safeLength);
-
-  // Utiliser la longueur sécurisée ou celle passée en props
   const totalFilteredCommandes = safeLength;
 
   const handlePreviousPage = () => {
@@ -74,7 +72,6 @@ const CommandesList = ({
 
   return (
     <div className="commandes-list-section">
-      {/* Vérification sur sortedCommandes au lieu de commandes directement */}
       {sortedCommandes.length === 0 ? (
         <div className="commandes-empty-state">
           <FileText className="commandes-empty-icon" size={48} />
@@ -109,7 +106,6 @@ const CommandesList = ({
             </div>
 
             <div className="commandes-table-body">
-              {/* Utilisation de startIndex sécurisé (avec -1 si > 0) */}
               {sortedCommandes
                 .slice(startIndex > 0 ? startIndex - 1 : 0, endIndex)
                 .map((commande) => (
