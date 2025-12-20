@@ -5,7 +5,8 @@ import CommandeRow from "./CommandeRow";
 import "./CommandesList.css";
 
 const CommandesList = ({
-  commandes,
+  // CORRECTION 1 : Ajout d'une valeur par défaut ici (= [])
+  commandes = [],
   totalCommandes,
   onViewDetails,
   onToggleVu,
@@ -17,25 +18,33 @@ const CommandesList = ({
   onPageChange,
   itemsPerPage = 25,
 }) => {
-  // --- CORRECTION ET SÉCURISATION ---
+  // --- CORRECTION 2 : Sécurisation absolue du tri ---
   const sortedCommandes = useMemo(() => {
-    // 1. Sécurité : Si 'commandes' n'est pas prêt, on renvoie un tableau vide
-    // Ceci empêche le crash de l'application au chargement
-    if (!commandes || !Array.isArray(commandes)) {
+    // Si ce n'est pas strictement un tableau, on arrête tout de suite
+    if (!Array.isArray(commandes)) {
+      console.warn(
+        "CommandesList: 'commandes' n'est pas un tableau",
+        commandes
+      );
       return [];
     }
 
-    // 2. Copie et Tri
+    // On effectue la copie et le tri seulement si c'est un tableau valide
     return [...commandes].sort((a, b) => {
-      if (typeof a.id === "number" && typeof b.id === "number") {
-        return b.id - a.id;
+      // Gestion robuste des IDs (number ou string)
+      const idA = a.id ? a.id : 0;
+      const idB = b.id ? b.id : 0;
+
+      if (typeof idA === "number" && typeof idB === "number") {
+        return idB - idA;
       }
-      if (a.id < b.id) return 1;
-      if (a.id > b.id) return -1;
+      // Comparaison String
+      if (idA < idB) return 1;
+      if (idA > idB) return -1;
       return 0;
     });
   }, [commandes]);
-  // ----------------------
+  // ----------------------------------------------------
 
   // Sécurité pour la pagination
   const safeLength = sortedCommandes.length;
@@ -110,7 +119,7 @@ const CommandesList = ({
                 .slice(startIndex > 0 ? startIndex - 1 : 0, endIndex)
                 .map((commande) => (
                   <CommandeRow
-                    key={commande.id}
+                    key={commande.id || Math.random()} // Fallback key si pas d'ID
                     commande={commande}
                     onViewDetails={onViewDetails}
                     onToggleVu={onToggleVu}
