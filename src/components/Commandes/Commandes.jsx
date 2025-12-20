@@ -198,11 +198,17 @@ const Commandes = () => {
 
   // --- TOGGLE VU/NON-VU OPTIMISÉ (Optimistic UI) ---
   const handleToggleVu = async (commandeCible) => {
+    // 1. Déterminer le nouveau statut attendu
     const nouveauStatutVu = !commandeCible.vu;
+
+    // 2. Créer une copie optimiste de la liste des commandes
+    // On met à jour l'élément modifié localement tout de suite
     const commandesOptimistes = commandes.map((c) =>
       c.id === commandeCible.id ? { ...c, vu: nouveauStatutVu } : c
     );
 
+    // 3. Appliquer la mise à jour immédiate à SWR
+    // Le 'false' en 2ème argument empêche le rechargement immédiat (revalidation)
     await mutateCommandes(commandesOptimistes, false);
 
     try {
@@ -212,6 +218,7 @@ const Commandes = () => {
       }/${endpoint}`;
       const token = localStorage.getItem("token");
 
+      // 4. Envoyer la requête au serveur
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -220,51 +227,26 @@ const Commandes = () => {
         },
       });
 
-      if (!response.ok) throw new Error("Erreur serveur");
+      if (!response.ok) {
+        throw new Error("Erreur serveur");
+      }
+
+      // 5. Succès silencieux : on peut lancer une revalidation en arrière-plan
+      // pour être sûr que tout est synchro, mais l'utilisateur a déjà vu le résultat.
       mutateCommandes();
     } catch (error) {
       console.error("Erreur API:", error);
+
+      // 6. EN CAS D'ERREUR : On annule tout !
+      // On force SWR à re-télécharger les vraies données du serveur
+      // pour remettre l'état correct (rollback)
       mutateCommandes();
+
+      // Optionnel : Afficher une notification d'erreur à l'utilisateur ici
+      alert("Impossible de modifier le statut. Veuillez réessayer.");
     }
   };
-
-  // --- NOUVEAU : MISE À JOUR DU STATUT (Optimistic UI) ---
-  const handleUpdateStatus = async (commandeId, newStatus) => {
-    // 1. Mise à jour Optimiste (Immédiate)
-    const commandesOptimistes = commandes.map((c) =>
-      c.id === commandeId ? { ...c, statut: newStatus } : c
-    );
-    // On met à jour l'interface tout de suite
-    await mutateCommandes(commandesOptimistes, false);
-
-    try {
-      const token = localStorage.getItem("token");
-      const url = `${
-        import.meta.env.VITE_API_BASE_URL
-      }/public/commandes/statut/${commandeId}`;
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ statut: newStatus }),
-      });
-
-      if (!response.ok)
-        throw new Error("Erreur lors de la mise à jour du statut");
-
-      // Succès : on revalide pour être sûr
-      mutateCommandes();
-    } catch (error) {
-      console.error("Erreur API Statut:", error);
-      // Rollback en cas d'erreur
-      mutateCommandes();
-      alert("Erreur lors de la mise à jour du statut.");
-    }
-  };
-  // -------------------------------------------------------
+  // --------------------------------------------------
 
   const handlers = useMemo(
     () => ({
@@ -292,6 +274,7 @@ const Commandes = () => {
         setCustomDateTo(e.target.value);
         setCurrentPage(1);
       },
+      // Le clic sur la ligne continue de faire ça
       viewDetails: (commande) =>
         navigate(`/dashboard/commande/${commande.externalId}`, {
           state: { commande },
@@ -390,7 +373,6 @@ const Commandes = () => {
         totalCommandes={stats.totalCommandes}
         onViewDetails={handlers.viewDetails}
         onToggleVu={handleToggleVu}
-        onUpdateStatus={handleUpdateStatus} // AJOUT IMPORTANT ICI
         onSyncAll={handleSyncAllPlatforms}
         connectedPlatformsCount={stats.connectedPlatformsCount}
         currentPage={currentPage}

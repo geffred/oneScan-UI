@@ -5,12 +5,10 @@ import CommandeRow from "./CommandeRow";
 import "./CommandesList.css";
 
 const CommandesList = ({
-  // CORRECTION 1 : Ajout d'une valeur par défaut ici (= [])
-  commandes = [],
+  commandes,
   totalCommandes,
   onViewDetails,
-  onToggleVu,
-  onUpdateStatus,
+  onToggleVu, // Nouvelle prop reçue
   onSyncAll,
   connectedPlatformsCount,
   currentPage,
@@ -18,40 +16,20 @@ const CommandesList = ({
   onPageChange,
   itemsPerPage = 25,
 }) => {
-  // --- CORRECTION 2 : Sécurisation absolue du tri ---
   const sortedCommandes = useMemo(() => {
-    // Si ce n'est pas strictement un tableau, on arrête tout de suite
-    if (!Array.isArray(commandes)) {
-      console.warn(
-        "CommandesList: 'commandes' n'est pas un tableau",
-        commandes
-      );
-      return [];
-    }
-
-    // On effectue la copie et le tri seulement si c'est un tableau valide
     return [...commandes].sort((a, b) => {
-      // Gestion robuste des IDs (number ou string)
-      const idA = a.id ? a.id : 0;
-      const idB = b.id ? b.id : 0;
-
-      if (typeof idA === "number" && typeof idB === "number") {
-        return idB - idA;
+      if (typeof a.id === "number" && typeof b.id === "number") {
+        return b.id - a.id;
       }
-      // Comparaison String
-      if (idA < idB) return 1;
-      if (idA > idB) return -1;
+      if (a.id < b.id) return 1;
+      if (a.id > b.id) return -1;
       return 0;
     });
   }, [commandes]);
-  // ----------------------------------------------------
 
-  // Sécurité pour la pagination
-  const safeLength = sortedCommandes.length;
-  const startIndex =
-    safeLength === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
-  const endIndex = Math.min(currentPage * itemsPerPage, safeLength);
-  const totalFilteredCommandes = safeLength;
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, commandes.length);
+  const totalFilteredCommandes = commandes.length;
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
@@ -81,7 +59,7 @@ const CommandesList = ({
 
   return (
     <div className="commandes-list-section">
-      {sortedCommandes.length === 0 ? (
+      {commandes.length === 0 ? (
         <div className="commandes-empty-state">
           <FileText className="commandes-empty-icon" size={48} />
           <h3 className="commandes-empty-title">Aucune commande trouvée</h3>
@@ -116,19 +94,19 @@ const CommandesList = ({
 
             <div className="commandes-table-body">
               {sortedCommandes
-                .slice(startIndex > 0 ? startIndex - 1 : 0, endIndex)
+                .slice(startIndex - 1, endIndex)
                 .map((commande) => (
                   <CommandeRow
-                    key={commande.id || Math.random()} // Fallback key si pas d'ID
+                    key={commande.id}
                     commande={commande}
                     onViewDetails={onViewDetails}
-                    onToggleVu={onToggleVu}
-                    onUpdateStatus={onUpdateStatus}
+                    onToggleVu={onToggleVu} // Passer la fonction à la ligne
                   />
                 ))}
             </div>
           </div>
 
+          {/* Pagination */}
           <div className="commandes-pagination">
             <div className="commandes-pagination-info">
               <span className="commandes-pagination-text">
