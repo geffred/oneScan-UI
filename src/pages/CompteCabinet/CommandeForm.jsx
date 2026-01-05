@@ -248,11 +248,11 @@ const CommandeForm = ({
 
       if (filesToUpload.length < selectedFiles.length) {
         toast.success(
-          `${selectedFiles.length} fichier(s) compressés et uploadés avec succès sur Google Drive`
+          `${selectedFiles.length} fichier(s) compressés et uploadés avec succès sur le Drive`
         );
       } else {
         toast.success(
-          `${newFiles.length} fichier(s) uploadé(s) avec succès sur Google Drive`
+          `${newFiles.length} fichier(s) uploadé(s) avec succès sur le Drive`
         );
       }
 
@@ -302,7 +302,7 @@ const CommandeForm = ({
       }
 
       setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
-      toast.success("Fichier supprimé avec succès de Google Drive");
+      toast.success("Fichier supprimé avec succès du Drive");
     } catch (error) {
       console.error("Erreur suppression:", error);
       toast.error("Erreur lors de la suppression du fichier");
@@ -642,7 +642,7 @@ const CommandeForm = ({
                       ) : (
                         <>
                           <Archive size={16} />
-                          Télécharger sur Google Drive
+                          Télécharger sur dans le Drive
                         </>
                       )}
                     </button>
