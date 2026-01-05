@@ -23,7 +23,7 @@ import CommandesList from "./CommandesList";
 // Import des hooks personnalisés
 import useCommandesData from "./hooks/useCommandesData";
 import useSyncPlatforms from "./hooks/useSyncPlatforms";
-import useGoogleDriveStatus from "./hooks/useGoogleDriveStatus";
+import useBackblazeStatus from "./hooks/useBackblazeStatus";
 import "./Commandes.css";
 import "./ui/UIStates.css";
 
@@ -134,7 +134,7 @@ const Commandes = () => {
   ]);
 
   // Hooks d'authentification
-  const googleDriveStatus = useGoogleDriveStatus(isAuthenticated);
+  const backblazeStatus = useBackblazeStatus(isAuthenticated);
   const meditlinkAuth = useMeditLinkAuth({
     autoRefresh: false,
     refreshInterval: 0,
@@ -198,17 +198,12 @@ const Commandes = () => {
 
   // --- TOGGLE VU/NON-VU OPTIMISÉ (Optimistic UI) ---
   const handleToggleVu = async (commandeCible) => {
-    // 1. Déterminer le nouveau statut attendu
     const nouveauStatutVu = !commandeCible.vu;
 
-    // 2. Créer une copie optimiste de la liste des commandes
-    // On met à jour l'élément modifié localement tout de suite
     const commandesOptimistes = commandes.map((c) =>
       c.id === commandeCible.id ? { ...c, vu: nouveauStatutVu } : c
     );
 
-    // 3. Appliquer la mise à jour immédiate à SWR
-    // Le 'false' en 2ème argument empêche le rechargement immédiat (revalidation)
     await mutateCommandes(commandesOptimistes, false);
 
     try {
@@ -218,7 +213,6 @@ const Commandes = () => {
       }/${endpoint}`;
       const token = localStorage.getItem("token");
 
-      // 4. Envoyer la requête au serveur
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -231,22 +225,13 @@ const Commandes = () => {
         throw new Error("Erreur serveur");
       }
 
-      // 5. Succès silencieux : on peut lancer une revalidation en arrière-plan
-      // pour être sûr que tout est synchro, mais l'utilisateur a déjà vu le résultat.
       mutateCommandes();
     } catch (error) {
       console.error("Erreur API:", error);
-
-      // 6. EN CAS D'ERREUR : On annule tout !
-      // On force SWR à re-télécharger les vraies données du serveur
-      // pour remettre l'état correct (rollback)
       mutateCommandes();
-
-      // Optionnel : Afficher une notification d'erreur à l'utilisateur ici
       alert("Impossible de modifier le statut. Veuillez réessayer.");
     }
   };
-  // --------------------------------------------------
 
   const handlers = useMemo(
     () => ({
@@ -274,7 +259,6 @@ const Commandes = () => {
         setCustomDateTo(e.target.value);
         setCurrentPage(1);
       },
-      // Le clic sur la ligne continue de faire ça
       viewDetails: (commande) =>
         navigate(`/dashboard/commande/${commande.externalId}`, {
           state: { commande },
@@ -295,7 +279,7 @@ const Commandes = () => {
     customDateTo,
     meditlinkAuth,
     threeshapeAuth,
-    googleDriveStatus,
+    backblazeStatus,
   });
 
   const totalPages = useMemo(() => {

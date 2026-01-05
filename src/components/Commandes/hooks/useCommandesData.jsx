@@ -12,7 +12,7 @@ export const useCommandesData = ({
   customDateTo,
   meditlinkAuth,
   threeshapeAuth,
-  googleDriveStatus,
+  backblazeStatus,
   iteroStatus,
   dexisStatus,
   csconnectStatus,
@@ -51,11 +51,13 @@ export const useCommandesData = ({
             loading: csconnectStatus?.loading || false,
             error: csconnectStatus?.error || null,
           };
-        case "GOOGLE_DRIVE":
+        case "MYSMILELAB":
+          // MySmileLab utilise Backblaze B2 pour le stockage
           return {
-            authenticated: googleDriveStatus.authenticated,
-            loading: googleDriveStatus.loading,
-            error: googleDriveStatus.error,
+            authenticated: backblazeStatus.authenticated,
+            loading: backblazeStatus.loading,
+            error: backblazeStatus.error,
+            provider: backblazeStatus.provider,
           };
         default:
           return { authenticated: false };
@@ -71,7 +73,7 @@ export const useCommandesData = ({
       iteroStatus,
       dexisStatus,
       csconnectStatus,
-      googleDriveStatus,
+      backblazeStatus,
     ]
   );
 
@@ -119,7 +121,7 @@ export const useCommandesData = ({
         return echeance < today;
       }).length || 0;
 
-    // Compter les plateformes connectées (inclure Google Drive)
+    // Compter les plateformes connectées (sans Google Drive)
     const connectedPlatformsCount = userPlatforms.filter((platform) => {
       const connectionStatus = getConnectionStatus(platform.name);
       return connectionStatus.authenticated;

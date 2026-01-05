@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, {
   useState,
   useContext,
@@ -11,8 +12,6 @@ import useSWR from "swr";
 import { Server, Plus, Search, Monitor, Mail } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
-// SUPPRIMEZ CryptoJS car vous n'avez plus besoin d'encrypter/décrypter
-// import CryptoJS from "crypto-js ";
 
 import PlatformCard from "./components/PlatformCard/PlatformCard";
 import PlatformModal from "./components/PlatformModal/PlatformModal";
@@ -20,7 +19,6 @@ import ThreeShapeOAuthModal from "./components/modals/3shape/ThreeShapeOAuthModa
 import MeditLinkOAuthModal from "./components/modals/MeditLink/MeditLinkOAuthModal";
 import IteroOAuthModal from "./components/modals/Itero/IteroOAuthModal";
 import DexisOAuthModal from "./components/modals/Dexis/DexisOAuthModal";
-import GoogleDriveOAuthModal from "./components/modals/Google/GoogleDriveOAuthModal";
 import Csconnect from "./components/modals/Csconnect";
 import ThreeShapeDashboardModal from "./components/modals/3shape/ThreeShapeDashboardModal";
 import MeditLinkDashboardModal from "./components/modals/MeditLink/MeditLinkDashboardModal";
@@ -54,14 +52,8 @@ const Platform = () => {
   const [isMeditLinkModalOpen, setIsMeditLinkModalOpen] = useState(false);
   const [isIteroModalOpen, setIsIteroModalOpen] = useState(false);
   const [isDexisModalOpen, setIsDexisModalOpen] = useState(false);
-  const [isGoogleDriveModalOpen, setIsGoogleDriveModalOpen] = useState(false);
   const [isCsConnectModalOpen, setIsCsConnectModalOpen] = useState(false);
 
-  const [googleDriveStatus, setGoogleDriveStatus] = useState({
-    authenticated: false,
-    loading: false,
-    error: null,
-  });
   const [iteroStatus, setIteroStatus] = useState({
     authenticated: false,
     loading: false,
@@ -135,7 +127,7 @@ const Platform = () => {
       refreshInterval: 30000,
       errorRetryCount: 3,
       onSuccess: (data) => {
-        console.log("✅ Plateformes chargées:", data);
+        console.log(" Plateformes chargées:", data);
         console.log(
           "🔍 CSCONNECT présent?",
           data.filter((p) => p.name === "CSCONNECT")
@@ -149,13 +141,8 @@ const Platform = () => {
 
   const handleStartThreeShapeAuth = useCallback(async () => {
     try {
-      // Fermer la modale immédiatement
       setIs3ShapeModalOpen(false);
-
-      // Lancer l'authentification
       await startThreeshapeAuth();
-
-      // Optionnel: afficher un message de succès
       setSuccess("Authentification 3Shape lancée - vérifiez le nouvel onglet");
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
@@ -167,56 +154,6 @@ const Platform = () => {
   }, [startThreeshapeAuth]);
 
   // Fonctions pour vérifier les statuts
-  const checkGoogleDriveStatus = useCallback(async () => {
-    try {
-      setGoogleDriveStatus((prev) => ({ ...prev, loading: true, error: null }));
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setGoogleDriveStatus({
-          authenticated: false,
-          loading: false,
-          error: "Token manquant",
-        });
-        return;
-      }
-
-      const response = await fetch(`${API_BASE_URL}/drive/status`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setGoogleDriveStatus({
-          authenticated: data.authenticated || false,
-          loading: false,
-          error: null,
-        });
-      } else if (response.status === 401) {
-        setGoogleDriveStatus({
-          authenticated: false,
-          loading: false,
-          error: null,
-        });
-      } else {
-        setGoogleDriveStatus({
-          authenticated: false,
-          loading: false,
-          error: "Erreur de vérification",
-        });
-      }
-    } catch (error) {
-      setGoogleDriveStatus({
-        authenticated: false,
-        loading: false,
-        error: error.message,
-      });
-    }
-  }, []);
-
   const checkIteroStatus = useCallback(async () => {
     try {
       setIteroStatus((prev) => ({ ...prev, loading: true, error: null }));
@@ -515,125 +452,6 @@ const Platform = () => {
     }
   }, []);
 
-  // Handlers pour Google Drive
-  const handleStartGoogleDriveAuth = useCallback(async () => {
-    try {
-      setIsGoogleDriveModalOpen(false);
-      setGoogleDriveStatus((prev) => ({ ...prev, loading: true }));
-
-      // Récupérer l'URL d'authentification
-      const response = await fetch(`${API_BASE_URL}/drive/auth`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération de l'URL");
-      }
-
-      const data = await response.json();
-
-      if (data.authenticated) {
-        setSuccess("Déjà connecté à Google Drive");
-        setGoogleDriveStatus({
-          authenticated: true,
-          loading: false,
-          error: null,
-        });
-        setTimeout(() => setSuccess(null), 3000);
-        return;
-      }
-
-      // Ouvrir la popup
-      const width = 600;
-      const height = 700;
-      const left = window.screen.width / 2 - width / 2;
-      const top = window.screen.height / 2 - height / 2;
-
-      const authWindow = window.open(
-        data.authUrl,
-        "google-drive-auth",
-        `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
-      );
-
-      if (!authWindow) {
-        setError("Veuillez autoriser les popups");
-        setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
-        setTimeout(() => setError(null), 5000);
-        return;
-      }
-
-      // Attendre le message de succès
-      const handleMessage = (event) => {
-        if (event.origin !== window.location.origin) return;
-
-        if (event.data?.type === "GOOGLE_DRIVE_AUTH_SUCCESS") {
-          console.log("✅ Auth réussie !");
-          checkGoogleDriveStatus();
-          setSuccess("Connexion Google Drive établie !");
-          setTimeout(() => setSuccess(null), 5000);
-          window.removeEventListener("message", handleMessage);
-        } else if (event.data?.type === "GOOGLE_DRIVE_AUTH_ERROR") {
-          console.error("❌ Erreur:", event.data.error);
-          setError("Erreur: " + event.data.error);
-          setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
-          setTimeout(() => setError(null), 5000);
-          window.removeEventListener("message", handleMessage);
-        }
-      };
-
-      window.addEventListener("message", handleMessage);
-
-      // Cleanup après 5 minutes
-      setTimeout(() => {
-        window.removeEventListener("message", handleMessage);
-        setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
-      }, 300000);
-    } catch (err) {
-      setError("Erreur: " + err.message);
-      setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
-      setTimeout(() => setError(null), 5000);
-    }
-  }, [checkGoogleDriveStatus]);
-
-  const handleGoogleDriveDisconnect = useCallback(async (platform) => {
-    if (
-      !window.confirm("Êtes-vous sûr de vouloir déconnecter Google Drive ?")
-    ) {
-      return;
-    }
-
-    try {
-      setGoogleDriveStatus((prev) => ({ ...prev, loading: true }));
-
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE_URL}/drive/logout`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        setGoogleDriveStatus({
-          authenticated: false,
-          loading: false,
-          error: null,
-        });
-        setSuccess("Déconnexion Google Drive réussie");
-        setTimeout(() => setSuccess(null), 3000);
-      } else {
-        throw new Error("Erreur lors de la déconnexion");
-      }
-    } catch (err) {
-      setError("Erreur lors de la déconnexion Google Drive: " + err.message);
-      setGoogleDriveStatus((prev) => ({ ...prev, loading: false }));
-      setTimeout(() => setError(null), 5000);
-    }
-  }, []);
-
   // Handler pour MeditLink Disconnect
   const handleMeditLinkDisconnect = useCallback(
     async (platform) => {
@@ -700,7 +518,6 @@ const Platform = () => {
     );
   }, [platforms, searchTerm]);
 
-  // CORRECTION IMPORTANTE : Mettez à jour handleSubmit
   const handleSubmit = useCallback(
     async (values, { setSubmitting, resetForm }) => {
       try {
@@ -710,7 +527,6 @@ const Platform = () => {
           : `${API_BASE_URL}/platforms`;
         const method = editingPlatform ? "PUT" : "POST";
 
-        // SUPPRIMEZ le champ password
         const platformData = {
           name: values.name,
           email: values.email,
@@ -766,14 +582,11 @@ const Platform = () => {
     [editingPlatform, userData?.id, platforms, mutatePlatforms]
   );
 
-  // CORRECTION IMPORTANTE : Mettez à jour handleEdit
   const handleEdit = useCallback((platform) => {
-    // SUPPRIMEZ la décryption du password
     const platformToEdit = {
       id: platform.id,
       name: platform.name,
       email: platform.email,
-      // NE PAS inclure password
     };
     setEditingPlatform(platformToEdit);
     setIsModalOpen(true);
@@ -831,46 +644,6 @@ const Platform = () => {
     setSearchTerm(e.target.value);
   }, []);
 
-  // Gestion des messages entre fenêtres
-  useEffect(() => {
-    const handleMessage = (event) => {
-      const allowedOrigins = [
-        "https://mysmilelab.be",
-        "https://www.mysmilelab.be",
-        "http://localhost:5173",
-      ];
-
-      if (!allowedOrigins.includes(event.origin)) {
-        console.warn(
-          "⚠️ Message reçu d'une origine non autorisée:",
-          event.origin
-        );
-        return;
-      }
-
-      console.log("✅ Message reçu d'une origine autorisée:", event.origin);
-
-      if (event.data?.type === "GOOGLE_DRIVE_AUTH_SUCCESS") {
-        console.log("✅ Auth Google Drive réussie depuis le popup !");
-        checkGoogleDriveStatus();
-        setSuccess("Connexion Google Drive établie avec succès !");
-        setTimeout(() => setSuccess(null), 5000);
-      } else if (event.data?.type === "GOOGLE_DRIVE_AUTH_ERROR") {
-        console.error(
-          "❌ Erreur Google Drive depuis le popup:",
-          event.data.error
-        );
-        setError(
-          "Erreur lors de l'authentification Google Drive: " + event.data.error
-        );
-        setTimeout(() => setError(null), 5000);
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [checkGoogleDriveStatus]);
-
   // Redirection si non authentifié
   useEffect(() => {
     if (!isAuthenticated) {
@@ -881,14 +654,12 @@ const Platform = () => {
   // Vérifier les statuts au chargement
   useEffect(() => {
     if (isAuthenticated) {
-      checkGoogleDriveStatus();
       checkIteroStatus();
       checkDexisStatus();
       checkCsConnectStatus();
     }
   }, [
     isAuthenticated,
-    checkGoogleDriveStatus,
     checkIteroStatus,
     checkDexisStatus,
     checkCsConnectStatus,
@@ -975,9 +746,7 @@ const Platform = () => {
                     onConnectMeditLink={() => setIsMeditLinkModalOpen(true)}
                     onConnectItero={() => setIsIteroModalOpen(true)}
                     onConnectDexis={() => setIsDexisModalOpen(true)}
-                    onConnectGoogleDrive={() => setIsGoogleDriveModalOpen(true)}
                     onConnectCsConnect={() => setIsCsConnectModalOpen(true)}
-                    onDisconnectGoogleDrive={handleGoogleDriveDisconnect}
                     onDisconnectMeditLink={handleMeditLinkDisconnect}
                     onDisconnectCsConnect={handleCsConnectDisconnect}
                     onShowMeditLinkDashboard={() =>
@@ -990,7 +759,6 @@ const Platform = () => {
                     meditlinkStatus={combinedMeditlinkStatus}
                     iteroStatus={iteroStatus}
                     dexisStatus={dexisStatus}
-                    googledriveStatus={googleDriveStatus}
                     csconnectStatus={csConnectStatus}
                   />
                 ))}
@@ -1009,7 +777,6 @@ const Platform = () => {
           initialValues={{
             name: editingPlatform?.name || "",
             email: editingPlatform?.email || "",
-            // SUPPRIMEZ password
           }}
           onSubmit={handleSubmit}
         />
@@ -1051,13 +818,6 @@ const Platform = () => {
         onClose={() => setIsDexisModalOpen(false)}
         onStartAuth={handleStartDexisAuth}
         isLoading={dexisStatus.loading}
-      />
-
-      <GoogleDriveOAuthModal
-        isOpen={isGoogleDriveModalOpen}
-        onClose={() => setIsGoogleDriveModalOpen(false)}
-        onStartAuth={handleStartGoogleDriveAuth}
-        isLoading={googleDriveStatus.loading}
       />
 
       <Csconnect

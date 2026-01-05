@@ -1,24 +1,4 @@
-import CryptoJS from "crypto-js";
-import { API_BASE_URL, SECRET_KEY } from "../constants/platformConstants";
-
-export const encryptPassword = (password) => {
-  try {
-    return CryptoJS.AES.encrypt(password, SECRET_KEY).toString();
-  } catch (error) {
-    console.error("Erreur lors du chiffrement:", error);
-    return password;
-  }
-};
-
-export const decryptPassword = (encryptedPassword) => {
-  try {
-    const bytes = CryptoJS.AES.decrypt(encryptedPassword, SECRET_KEY);
-    return bytes.toString(CryptoJS.enc.Utf8);
-  } catch (error) {
-    console.error("Erreur lors du déchiffrement:", error);
-    return encryptedPassword;
-  }
-};
+import { API_BASE_URL } from "../constants/platformConstants";
 
 export const fetchWithAuth = async (url) => {
   const token = localStorage.getItem("token");
@@ -52,7 +32,7 @@ export const getUserPlatforms = async (userId) => {
 };
 
 /**
- * Vérifie le statut d’une plateforme externe
+ * Vérifie le statut d'une plateforme externe
  */
 export const checkPlatformStatus = async (platformType) => {
   try {
@@ -60,10 +40,10 @@ export const checkPlatformStatus = async (platformType) => {
     if (!token) throw new Error("Token manquant");
 
     const endpoints = {
-      GOOGLE_DRIVE: `${API_BASE_URL}/drive/status`,
       ITERO: `${API_BASE_URL}/itero/status`,
       DEXIS: `${API_BASE_URL}/dexis/status`,
       CSCONNECT: `${API_BASE_URL}/csconnect/status`,
+      MYSMILELAB: `${API_BASE_URL}/drive/status`, // Backblaze B2 backend
     };
 
     const endpoint = endpoints[platformType];

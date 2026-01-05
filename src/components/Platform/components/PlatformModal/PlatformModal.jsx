@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
+/* eslint-disable react/no-unescaped-entities */
 import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -11,6 +14,7 @@ import {
   Cpu,
   HardDrive,
   Cloud,
+  Building,
 } from "lucide-react";
 import "./PlatformModal.css";
 
@@ -20,13 +24,12 @@ const platformTypes = [
   { value: "MEDITLINK", label: "MeditLink" },
   { value: "ITERO", label: "Itero" },
   { value: "DEXIS", label: "Dexis" },
-  { value: "GOOGLE_DRIVE", label: "Google Drive" },
+  { value: "MYSMILELAB", label: "MySmileLab" },
 ];
 
 const validationSchema = Yup.object({
   name: Yup.string().required("Le nom de la plateforme est requis"),
   email: Yup.string().email("Email invalide").required("L'email est requis"),
-  // SUPPRIMEZ le champ password
 });
 
 const PlatformModal = ({
@@ -141,20 +144,6 @@ const PlatformModal = ({
                   </div>
                 )}
 
-                {values.name === "GOOGLE_DRIVE" && (
-                  <div className="platform-info-banner">
-                    <Cloud size={16} />
-                    <div>
-                      <strong>Plateforme Google Drive :</strong>
-                      <p>
-                        Après création, utilisez le bouton "Connecter OAuth"
-                        pour vous authentifier avec votre compte Google et
-                        activer le stockage des fichiers.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
                 {values.name === "CSCONNECT" && (
                   <div className="platform-info-banner">
                     <Link2 size={16} />
@@ -163,6 +152,20 @@ const PlatformModal = ({
                       <p>
                         Après création, utilisez le bouton "Connecter" pour vous
                         connecter à l'API CS Connect.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {values.name === "MYSMILELAB" && (
+                  <div className="platform-info-banner">
+                    <Building size={16} />
+                    <div>
+                      <strong>Plateforme MySmileLab :</strong>
+                      <p>
+                        Plateforme interne pour la gestion des commandes. Le
+                        stockage des fichiers est géré automatiquement via
+                        Backblaze B2. Aucune connexion externe requise.
                       </p>
                     </div>
                   </div>

@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/display-name */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
@@ -15,7 +17,6 @@ import {
   ChevronDown,
   Download,
   RefreshCw,
-  ExternalLink,
 } from "lucide-react";
 import CommentSection from "./CommentSection";
 import "./CommandeInfoGrid.css";
@@ -24,7 +25,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const ITERO_API_BASE_URL =
   "https://smilelabitero-api-production.up.railway.app";
 
-// Fonction pour récupérer les données de génération de bon de commande
 const fetchCommandeData = async (externalId) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
@@ -45,7 +45,6 @@ const fetchCommandeData = async (externalId) => {
   return response.json();
 };
 
-// Fonction pour récupérer les données de fichiers (MeditLink)
 const fetchMeditLinkOrderData = async (externalId) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
@@ -67,7 +66,6 @@ const fetchMeditLinkOrderData = async (externalId) => {
   return response.json();
 };
 
-// Fonction pour récupérer les données de fichiers (3Shape)
 const fetchThreeShapeOrderData = async (externalId) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
@@ -89,13 +87,13 @@ const fetchThreeShapeOrderData = async (externalId) => {
   return response.json();
 };
 
-// Composant pour télécharger les fichiers Itero
+// --- LOGIQUE ITERO ORIGINALE ---
 const IteroFileDownloadButton = React.memo(
   ({ externalId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
 
     const downloadIteroFile = async (externalId) => {
-      console.log(`📥 Début du téléchargement Itero: ${externalId}`);
+      console.log(`Debut du telechargement Itero: ${externalId}`);
 
       try {
         const response = await fetch(
@@ -112,11 +110,10 @@ const IteroFileDownloadButton = React.memo(
         const blob = await response.blob();
 
         if (blob.size === 0) {
-          throw new Error("Le fichier téléchargé est vide (0 bytes)");
+          throw new Error("Le fichier téléchargé est vide");
         }
 
-        // Extraire le nom de fichier du header Content-Disposition
-        let downloadFilename = `scan-itero-${externalId}.zip`; // Extension par défaut .zip
+        let downloadFilename = `scan-itero-${externalId}.zip`;
         const contentDisposition = response.headers.get("content-disposition");
 
         if (contentDisposition) {
@@ -128,9 +125,8 @@ const IteroFileDownloadButton = React.memo(
           }
         }
 
-        console.log(`💾 Nom de fichier final: ${downloadFilename}`);
+        console.log(`Nom de fichier final: ${downloadFilename}`);
 
-        // Déclencher le téléchargement
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.style.display = "none";
@@ -140,19 +136,15 @@ const IteroFileDownloadButton = React.memo(
         document.body.appendChild(a);
         a.click();
 
-        // Nettoyer
         setTimeout(() => {
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
         }, 100);
 
-        console.log("✅ Téléchargement Itero terminé avec succès");
+        console.log("Telechargement Itero termine avec succes");
         return blob;
       } catch (error) {
-        console.error(
-          "❌ Erreur détaillée lors du téléchargement Itero:",
-          error
-        );
+        console.error("Erreur lors du telechargement Itero:", error);
         throw error;
       }
     };
@@ -163,10 +155,10 @@ const IteroFileDownloadButton = React.memo(
       setIsDownloading(true);
       try {
         await downloadIteroFile(externalId);
-        console.log(`✅ Fichier Itero ${externalId} téléchargé avec succès`);
+        console.log(`Fichier Itero ${externalId} telecharge avec succes`);
       } catch (error) {
         console.error(
-          `❌ Erreur lors du téléchargement du fichier Itero ${externalId}:`,
+          `Erreur lors du telechargement du fichier Itero ${externalId}:`,
           error
         );
       } finally {
@@ -194,141 +186,21 @@ const IteroFileDownloadButton = React.memo(
   }
 );
 
-// Composant pour télécharger les fichiers MySmileLab
-// eslint-disable-next-line react/display-name
+// --- LOGIQUE MYSMILELAB MODIFIÉE (Query Param) ---
 const MySmileLabFileDownloadButton = React.memo(
-  ({ fileUrl, fileName, publicId, disabled, isLoading }) => {
+  ({ fileKey, fileName, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
 
-    const downloadMySmileLabFile = async (fileUrl, fileName) => {
-      console.log(`📥 Début du téléchargement MySmileLab: ${fileName}`);
-
-      try {
-        const response = await fetch(fileUrl);
-
-        if (!response.ok) {
-          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
-        }
-
-        const blob = await response.blob();
-
-        if (blob.size === 0) {
-          throw new Error("Le fichier téléchargé est vide (0 bytes)");
-        }
-
-        // Déterminer le nom de fichier final
-        let downloadFilename = fileName;
-
-        // Vérifier l'extension du fichier
-        if (
-          !downloadFilename.toLowerCase().endsWith(".stl") &&
-          !downloadFilename.toLowerCase().endsWith(".zip")
-        ) {
-          // Essayer d'extraire l'extension de l'URL ou utiliser .stl par défaut
-          const urlExtension = fileUrl.split(".").pop().toLowerCase();
-          if (urlExtension === "stl" || urlExtension === "zip") {
-            downloadFilename =
-              downloadFilename.replace(/\.[^/.]+$/, "") + "." + urlExtension;
-          } else {
-            downloadFilename =
-              downloadFilename.replace(/\.[^/.]+$/, "") + ".stl";
-          }
-        }
-
-        console.log(`💾 Nom de fichier final: ${downloadFilename}`);
-
-        // Déclencher le téléchargement
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
-        a.href = url;
-        a.download = downloadFilename;
-
-        document.body.appendChild(a);
-        a.click();
-
-        // Nettoyer
-        setTimeout(() => {
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-        }, 100);
-
-        console.log("✅ Téléchargement MySmileLab terminé avec succès");
-        return blob;
-      } catch (error) {
-        console.error(
-          "❌ Erreur détaillée lors du téléchargement MySmileLab:",
-          error
-        );
-        throw error;
-      }
-    };
-
-    const handleDownload = async () => {
-      if (!fileUrl || disabled) return;
-
-      setIsDownloading(true);
-      try {
-        await downloadMySmileLabFile(fileUrl, fileName);
-        console.log(`✅ Fichier MySmileLab ${fileName} téléchargé avec succès`);
-      } catch (error) {
-        console.error(
-          `❌ Erreur lors du téléchargement du fichier MySmileLab ${fileName}:`,
-          error
-        );
-      } finally {
-        setIsDownloading(false);
-      }
-    };
-
-    const getFileTypeFromName = (filename) => {
-      if (filename.toLowerCase().endsWith(".stl")) return "Fichier STL";
-      if (filename.toLowerCase().endsWith(".zip")) return "Archive ZIP";
-      return "Fichier 3D";
-    };
-
-    const formatFileSize = (bytes) => {
-      if (!bytes || bytes === 0) return "Taille inconnue";
-      const k = 1024;
-      const sizes = ["B", "KB", "MB", "GB"];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-    };
-
-    return (
-      <button
-        className="details-scan-download-btn mysmilelab-file-btn"
-        onClick={handleDownload}
-        disabled={disabled || isLoading || isDownloading}
-        title={`Télécharger ${fileName} - ${getFileTypeFromName(fileName)}`}
-      >
-        <Download size={16} />
-        <div className="file-info">
-          <span className="file-name">{fileName}</span>
-          <span className="file-details">{getFileTypeFromName(fileName)}</span>
-        </div>
-        {isDownloading && (
-          <div className="details-download-spinner-small"></div>
-        )}
-      </button>
-    );
-  }
-);
-
-// eslint-disable-next-line react/display-name
-const GoogleDriveFileDownloadButton = React.memo(
-  ({ fileUrl, fileName, fileId, disabled, isLoading }) => {
-    const [isDownloading, setIsDownloading] = useState(false);
-
-    const downloadGoogleDriveFile = async (fileId, fileName) => {
-      console.log(
-        `📥 Début du téléchargement Google Drive via proxy: ${fileName}`
-      );
+    const downloadMySmileLabFile = async (fileKey, fileName) => {
+      console.log(`Debut du telechargement MySmileLab: ${fileName}`);
 
       try {
         const token = localStorage.getItem("token");
+        // MODIFICATION ICI : Utilisation de Query Param pour éviter les erreurs 400/404 avec les slashs
+        const encodedFileKey = encodeURIComponent(fileKey);
+
         const response = await fetch(
-          `${API_BASE_URL}/files/download-drive/${fileId}`,
+          `${API_BASE_URL}/files/download?fileKey=${encodedFileKey}`,
           {
             method: "GET",
             headers: {
@@ -344,18 +216,15 @@ const GoogleDriveFileDownloadButton = React.memo(
         const blob = await response.blob();
 
         if (blob.size === 0) {
-          throw new Error("Le fichier téléchargé est vide (0 bytes)");
+          throw new Error("Le fichier téléchargé est vide");
         }
 
-        // Déterminer le nom de fichier final
         let downloadFilename = fileName;
 
-        // Vérifier l'extension du fichier
         if (
           !downloadFilename.toLowerCase().endsWith(".stl") &&
           !downloadFilename.toLowerCase().endsWith(".zip")
         ) {
-          // Essayer d'extraire l'extension du Content-Disposition header
           const contentDisposition = response.headers.get(
             "content-disposition"
           );
@@ -367,15 +236,13 @@ const GoogleDriveFileDownloadButton = React.memo(
               downloadFilename = filenameMatch[1].replace(/['"]/g, "");
             }
           } else {
-            // Fallback: utiliser .stl par défaut
             downloadFilename =
               downloadFilename.replace(/\.[^/.]+$/, "") + ".stl";
           }
         }
 
-        console.log(`💾 Nom de fichier final: ${downloadFilename}`);
+        console.log(`Nom de fichier final: ${downloadFilename}`);
 
-        // Déclencher le téléchargement
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.style.display = "none";
@@ -385,46 +252,33 @@ const GoogleDriveFileDownloadButton = React.memo(
         document.body.appendChild(a);
         a.click();
 
-        // Nettoyer
         setTimeout(() => {
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
         }, 100);
 
-        console.log("✅ Téléchargement Google Drive terminé avec succès");
+        console.log("Telechargement MySmileLab termine avec succes");
         return blob;
       } catch (error) {
-        console.error("❌ Erreur détaillée lors du téléchargement:", error);
+        console.error("Erreur lors du telechargement MySmileLab:", error);
         throw error;
       }
     };
 
     const handleDownload = async () => {
-      if (!fileId || disabled) return;
+      if (!fileKey || disabled) return;
 
       setIsDownloading(true);
       try {
-        await downloadGoogleDriveFile(fileId, fileName);
-        console.log(
-          `✅ Fichier Google Drive ${fileName} téléchargé avec succès`
-        );
+        await downloadMySmileLabFile(fileKey, fileName);
+        console.log(`Fichier MySmileLab ${fileName} telecharge avec succes`);
       } catch (error) {
         console.error(
-          `❌ Erreur lors du téléchargement du fichier Google Drive ${fileName}:`,
+          `Erreur lors du telechargement du fichier MySmileLab ${fileName}:`,
           error
         );
-        // Fallback: ouvrir dans un nouvel onglet
-        if (fileUrl) {
-          window.open(fileUrl, "_blank");
-        }
       } finally {
         setIsDownloading(false);
-      }
-    };
-
-    const handleViewInDrive = () => {
-      if (fileId) {
-        window.open(`https://drive.google.com/file/d/${fileId}/view`, "_blank");
       }
     };
 
@@ -434,41 +288,38 @@ const GoogleDriveFileDownloadButton = React.memo(
       return "Fichier 3D";
     };
 
-    return (
-      <div className="google-drive-file-item">
-        <button
-          className="details-scan-download-btn google-drive-download-btn"
-          onClick={handleDownload}
-          disabled={disabled || isLoading || isDownloading}
-          title={`Télécharger ${fileName}`}
-        >
-          <Download size={16} />
-          <div className="file-info">
-            <span className="file-name">{fileName}</span>
-            <span className="file-details">
-              {getFileTypeFromName(fileName)}
-            </span>
-          </div>
-          {isDownloading && (
-            <div className="details-download-spinner-small"></div>
-          )}
-        </button>
+    const truncateFileName = (name, maxLength = 50) => {
+      if (name.length <= maxLength) return name;
+      const extension = name.split(".").pop();
+      const nameWithoutExt = name.substring(0, name.lastIndexOf("."));
+      const truncatedName = nameWithoutExt.substring(
+        0,
+        maxLength - extension.length - 4
+      );
+      return `${truncatedName}...${extension}`;
+    };
 
-        {fileId && (
-          <button
-            className="google-drive-view-btn"
-            onClick={handleViewInDrive}
-            title="Voir dans Google Drive"
-          >
-            <ExternalLink size={14} />
-          </button>
+    return (
+      <button
+        className="details-scan-download-btn mysmilelab-file-btn"
+        onClick={handleDownload}
+        disabled={disabled || isLoading || isDownloading}
+        title={`Télécharger ${fileName} - ${getFileTypeFromName(fileName)}`}
+      >
+        <Download size={16} />
+        <div className="file-info">
+          <span className="file-name">{truncateFileName(fileName)}</span>
+          <span className="file-details">{getFileTypeFromName(fileName)}</span>
+        </div>
+        {isDownloading && (
+          <div className="details-download-spinner-small"></div>
         )}
-      </div>
+      </button>
     );
   }
 );
 
-// eslint-disable-next-line react/display-name
+// --- LOGIQUE MEDITLINK ORIGINALE ---
 const MeditLinkFileDownloadButton = React.memo(
   ({ file, externalId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -478,11 +329,10 @@ const MeditLinkFileDownloadButton = React.memo(
       if (!token) throw new Error("Token manquant");
 
       console.log(
-        `📥 Début du téléchargement MeditLink: ${fileName} (UUID: ${fileUuid})`
+        `Debut du telechargement MeditLink: ${fileName} (UUID: ${fileUuid})`
       );
 
       try {
-        // Étape 1: Récupérer les informations de téléchargement
         const infoResponse = await fetch(
           `${API_BASE_URL}/meditlink/files/${fileUuid}?type=stl`,
           {
@@ -496,7 +346,7 @@ const MeditLinkFileDownloadButton = React.memo(
         if (!infoResponse.ok) {
           const errorText = await infoResponse.text();
           console.error(
-            `❌ Erreur info fichier: ${infoResponse.status}`,
+            `Erreur info fichier: ${infoResponse.status}`,
             errorText
           );
           throw new Error(
@@ -505,46 +355,35 @@ const MeditLinkFileDownloadButton = React.memo(
         }
 
         const fileInfo = await infoResponse.json();
-        console.log("📄 Infos fichier reçues:", fileInfo);
+        console.log("Infos fichier recues:", fileInfo);
 
-        // CORRECTION ICI : Utiliser 'url' au lieu de 'downloadUrl'
         const downloadUrl = fileInfo.url || fileInfo.downloadUrl;
 
         if (!downloadUrl) {
-          console.error(
-            "❌ Aucune URL de téléchargement dans la réponse:",
-            fileInfo
-          );
-          throw new Error(
-            "URL de téléchargement non disponible dans la réponse"
-          );
+          console.error("Aucune URL de telechargement:", fileInfo);
+          throw new Error("URL de téléchargement non disponible");
         }
 
-        console.log(`🔗 Téléchargement depuis: ${downloadUrl}`);
+        console.log(`Telechargement depuis: ${downloadUrl}`);
 
-        // Étape 2: Télécharger le fichier depuis l'URL fournie
         const downloadResponse = await fetch(downloadUrl);
 
         if (!downloadResponse.ok) {
-          console.error(`❌ Erreur téléchargement: ${downloadResponse.status}`);
+          console.error(`Erreur telechargement: ${downloadResponse.status}`);
           throw new Error(
-            `Erreur de téléchargement ${downloadResponse.status}: ${downloadResponse.statusText}`
+            `Erreur de téléchargement ${downloadResponse.status}`
           );
         }
 
         const blob = await downloadResponse.blob();
-        console.log(
-          `✅ Blob créé - Taille: ${blob.size} bytes, Type: ${blob.type}`
-        );
+        console.log(`Blob cree - Taille: ${blob.size} bytes`);
 
         if (blob.size === 0) {
-          throw new Error("Le fichier téléchargé est vide (0 bytes)");
+          throw new Error("Le fichier téléchargé est vide");
         }
 
-        // Étape 3: Créer le nom de fichier final
         let downloadFilename = fileInfo.downloadFileName || fileName;
 
-        // Vérifier l'extension du fichier
         if (
           !downloadFilename.toLowerCase().endsWith(".stl") &&
           !downloadFilename.toLowerCase().endsWith(".7z") &&
@@ -553,9 +392,8 @@ const MeditLinkFileDownloadButton = React.memo(
           downloadFilename = downloadFilename.replace(/\.[^/.]+$/, "") + ".stl";
         }
 
-        console.log(`💾 Nom de fichier final: ${downloadFilename}`);
+        console.log(`Nom de fichier final: ${downloadFilename}`);
 
-        // Étape 4: Déclencher le téléchargement
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.style.display = "none";
@@ -565,16 +403,15 @@ const MeditLinkFileDownloadButton = React.memo(
         document.body.appendChild(a);
         a.click();
 
-        // Nettoyer
         setTimeout(() => {
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
         }, 100);
 
-        console.log("✅ Téléchargement terminé avec succès");
+        console.log("Telechargement termine avec succes");
         return blob;
       } catch (error) {
-        console.error("❌ Erreur détaillée lors du téléchargement:", error);
+        console.error("Erreur lors du telechargement:", error);
         throw error;
       }
     };
@@ -585,10 +422,10 @@ const MeditLinkFileDownloadButton = React.memo(
       setIsDownloading(true);
       try {
         await downloadMeditLinkFile(file.uuid, file.name, externalId);
-        console.log(`✅ Fichier ${file.name} téléchargé avec succès`);
+        console.log(`Fichier ${file.name} telecharge avec succes`);
       } catch (error) {
         console.error(
-          `❌ Erreur lors du téléchargement du fichier ${file.name}:`,
+          `Erreur lors du telechargement du fichier ${file.name}:`,
           error
         );
       } finally {
@@ -615,6 +452,17 @@ const MeditLinkFileDownloadButton = React.memo(
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
 
+    const truncateFileName = (name, maxLength = 50) => {
+      if (name.length <= maxLength) return name;
+      const extension = name.split(".").pop();
+      const nameWithoutExt = name.substring(0, name.lastIndexOf("."));
+      const truncatedName = nameWithoutExt.substring(
+        0,
+        maxLength - extension.length - 4
+      );
+      return `${truncatedName}...${extension}`;
+    };
+
     return (
       <button
         className="details-scan-download-btn meditlink-file-btn"
@@ -626,7 +474,7 @@ const MeditLinkFileDownloadButton = React.memo(
       >
         <Download size={16} />
         <div className="file-info">
-          <span className="file-name">{file.name}</span>
+          <span className="file-name">{truncateFileName(file.name)}</span>
           <span className="file-details">
             {getFileTypeLabel(file.fileType)} - {formatFileSize(file.size)}
           </span>
@@ -639,6 +487,7 @@ const MeditLinkFileDownloadButton = React.memo(
   }
 );
 
+// --- LOGIQUE THREESHAPE ORIGINALE ---
 const ThreeShapeFileDownloadButton = React.memo(
   ({ hash, label, externalId, disabled, isLoading }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -647,9 +496,7 @@ const ThreeShapeFileDownloadButton = React.memo(
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Token manquant");
 
-      console.log(
-        `📥 Début du téléchargement 3Shape: ${label} (Hash: ${hash})`
-      );
+      console.log(`Debut du telechargement 3Shape: ${label} (Hash: ${hash})`);
 
       const response = await fetch(
         `${API_BASE_URL}/threeshape/files/${externalId}/${hash}`,
@@ -719,12 +566,9 @@ const ThreeShapeFileDownloadButton = React.memo(
         )}.stl`;
 
         await downloadThreeShapeFile(externalId, hash, filename);
-        console.log(`✅ Scan ${label} téléchargé avec succès`);
+        console.log(`Scan ${label} telecharge avec succes`);
       } catch (error) {
-        console.error(
-          `❌ Erreur lors du téléchargement du scan ${label}:`,
-          error
-        );
+        console.error(`Erreur lors du telechargement du scan ${label}:`, error);
       } finally {
         setIsDownloading(false);
       }
@@ -848,32 +692,26 @@ const CommandeInfoGrid = ({
   const isMySmileLab = commande && commande.plateforme === "MYSMILELAB";
   const isItero = commande && commande.plateforme === "ITERO";
 
-  // Fonction pour récupérer les fichiers MeditLink
   const fetchMeditLinkFiles = async () => {
     if (!isMeditLink || !commande.externalId) return;
 
     setIsLoadingFiles(true);
     try {
       console.log(
-        `🔍 Récupération des fichiers MeditLink pour: ${commande.externalId}`
+        `Recuperation des fichiers MeditLink pour: ${commande.externalId}`
       );
       const orderData = await fetchMeditLinkOrderData(commande.externalId);
 
-      console.log("📦 Données de commande MeditLink reçues:", orderData);
+      console.log("Donnees de commande MeditLink recues:", orderData);
 
-      // Extraire les fichiers du cas
       if (
         orderData.order &&
         orderData.order.case &&
         orderData.order.case.files
       ) {
         const files = orderData.order.case.files;
-        console.log(
-          `📁 ${files.length} fichier(s) trouvé(s) dans la commande:`,
-          files
-        );
+        console.log(`${files.length} fichier(s) trouve(s)`, files);
 
-        // Filtrer les fichiers pertinents (SCAN_DATA et ATTACHED_DATA avec STL)
         const relevantFiles = files.filter(
           (file) =>
             file.fileType === "SCAN_DATA" ||
@@ -883,61 +721,52 @@ const CommandeInfoGrid = ({
         );
 
         console.log(
-          `🔧 ${relevantFiles.length} fichier(s) pertinent(s) après filtrage:`,
+          `${relevantFiles.length} fichier(s) pertinent(s)`,
           relevantFiles
         );
         setMeditLinkFiles(relevantFiles);
       } else {
-        console.warn("⚠️ Aucun fichier trouvé dans la commande MeditLink");
+        console.warn("Aucun fichier trouve dans la commande MeditLink");
         setMeditLinkFiles([]);
       }
     } catch (error) {
-      console.error(
-        "❌ Erreur lors de la récupération des fichiers MeditLink:",
-        error
-      );
+      console.error("Erreur lors de la recuperation des fichiers:", error);
       setMeditLinkFiles([]);
     } finally {
       setIsLoadingFiles(false);
     }
   };
 
-  // Fonction pour récupérer les fichiers 3Shape
   const fetchThreeShapeFiles = async () => {
     if (!isThreeShape || !commande.externalId) return;
 
     setIsLoadingFiles(true);
     try {
       console.log(
-        `🔍 Récupération des fichiers 3Shape pour: ${commande.externalId}`
+        `Recuperation des fichiers 3Shape pour: ${commande.externalId}`
       );
       const orderData = await fetchThreeShapeOrderData(commande.externalId);
 
-      console.log("📦 Données de commande 3Shape reçues:", orderData);
+      console.log("Donnees de commande 3Shape recues:", orderData);
 
-      // Traiter les fichiers 3Shape selon la structure de l'API
       if (orderData.files && Array.isArray(orderData.files)) {
         console.log(
-          `📁 ${orderData.files.length} fichier(s) 3Shape trouvé(s):`,
+          `${orderData.files.length} fichier(s) 3Shape trouve(s)`,
           orderData.files
         );
         setThreeShapeFiles(orderData.files);
       } else {
-        console.warn("⚠️ Aucun fichier trouvé dans la commande 3Shape");
+        console.warn("Aucun fichier trouve dans la commande 3Shape");
         setThreeShapeFiles([]);
       }
     } catch (error) {
-      console.error(
-        "❌ Erreur lors de la récupération des fichiers 3Shape:",
-        error
-      );
+      console.error("Erreur lors de la recuperation des fichiers:", error);
       setThreeShapeFiles([]);
     } finally {
       setIsLoadingFiles(false);
     }
   };
 
-  // Charger les fichiers selon la plateforme
   useEffect(() => {
     if (isMeditLink) {
       fetchMeditLinkFiles();
@@ -946,47 +775,32 @@ const CommandeInfoGrid = ({
     }
   }, [isMeditLink, isThreeShape, commande.externalId, fileLoadKey]);
 
-  // Fonction pour recharger les fichiers
   const handleReloadFiles = () => {
-    console.log("🔄 Rechargement des fichiers demandé");
+    console.log("Rechargement des fichiers demande");
     setFileLoadKey((prev) => prev + 1);
   };
 
-  // Fonction pour extraire les fichiers MySmileLab de la commande
   const getMySmileLabFiles = () => {
     if (
       !isMySmileLab ||
-      !commande.fichierUrls ||
-      !Array.isArray(commande.fichierUrls)
+      !commande.fichierPublicIds ||
+      !Array.isArray(commande.fichierPublicIds)
     ) {
       return [];
     }
 
-    return commande.fichierUrls.map((fileUrl, index) => {
-      // Extraire le nom de fichier de l'URL ou utiliser un nom par défaut
+    return commande.fichierPublicIds.map((fileKey, index) => {
       let fileName = `fichier-${index + 1}`;
       try {
-        const urlParts = fileUrl.split("/");
-        fileName = urlParts[urlParts.length - 1];
-        // Nettoyer le nom de fichier (supprimer les paramètres d'URL)
-        fileName = fileName.split("?")[0];
+        const pathParts = fileKey.split("/");
+        fileName = pathParts[pathParts.length - 1];
       } catch (error) {
-        console.warn(
-          "Impossible d'extraire le nom de fichier de l'URL:",
-          fileUrl
-        );
+        console.warn("Impossible d'extraire le nom de fichier:", fileKey);
       }
 
-      // Récupérer le publicId correspondant s'il existe
-      const publicId =
-        commande.fichierPublicIds && Array.isArray(commande.fichierPublicIds)
-          ? commande.fichierPublicIds[index]
-          : null;
-
       return {
-        url: fileUrl,
+        fileKey: fileKey,
         name: fileName,
-        publicId: publicId,
         index: index,
       };
     });
@@ -996,7 +810,6 @@ const CommandeInfoGrid = ({
 
   return (
     <div className="details-info-grid">
-      {/* Informations patient */}
       <div className="details-info-card">
         <div className="details-card-header">
           <User size={20} />
@@ -1012,7 +825,6 @@ const CommandeInfoGrid = ({
         </div>
       </div>
 
-      {/* Informations cabinet */}
       <div className="details-info-card">
         <div className="details-card-header">
           <Building size={20} />
@@ -1026,7 +838,6 @@ const CommandeInfoGrid = ({
         </div>
       </div>
 
-      {/* Plateforme */}
       <div className="details-info-card">
         <div className="details-card-header">
           <Server size={20} />
@@ -1044,7 +855,6 @@ const CommandeInfoGrid = ({
         </div>
       </div>
 
-      {/* Dates importantes */}
       <div className="details-info-card">
         <div className="details-card-header">
           <Calendar size={20} />
@@ -1064,7 +874,6 @@ const CommandeInfoGrid = ({
         </div>
       </div>
 
-      {/* Statut avec dropdown */}
       <div className="details-info-card">
         <div className="details-card-header">
           <Clock size={20} />
@@ -1106,7 +915,6 @@ const CommandeInfoGrid = ({
         </div>
       </div>
 
-      {/* Commentaire avec édition */}
       <CommentSection
         commentaire={finalCommentaire}
         isLoading={isCommentLoading}
@@ -1117,7 +925,6 @@ const CommandeInfoGrid = ({
         showNotification={showNotification}
       />
 
-      {/* Informations techniques */}
       <div className="details-info-card">
         <div className="details-card-header">
           <div className="details-card-header-title">
@@ -1163,7 +970,6 @@ const CommandeInfoGrid = ({
             </div>
           )}
 
-          {/* Affichage des fichiers Itero */}
           {isItero && (
             <div className="details-item">
               <span className="details-item-label">
@@ -1179,7 +985,6 @@ const CommandeInfoGrid = ({
             </div>
           )}
 
-          {/* Affichage des fichiers 3Shape */}
           {isThreeShape && (
             <div className="details-item">
               <span className="details-item-label">
@@ -1230,7 +1035,6 @@ const CommandeInfoGrid = ({
             </div>
           )}
 
-          {/* Affichage des fichiers MeditLink */}
           {isMeditLink && (
             <div className="details-item">
               <span className="details-item-label">
@@ -1259,22 +1063,20 @@ const CommandeInfoGrid = ({
             </div>
           )}
 
-          {/* Affichage des fichiers MySmileLab */}
           {isMySmileLab && (
             <div className="details-item">
               <span className="details-item-label">
-                Fichiers 3D disponibles sur Google Drive :
+                Fichiers 3D disponibles :
                 {mySmileLabFiles.length > 0 &&
                   ` (${mySmileLabFiles.length} fichier(s))`}
               </span>
-              <div className="details-scans-container google-drive-files-container">
+              <div className="details-scans-container mysmilelab-files-container">
                 {mySmileLabFiles.length > 0 ? (
                   mySmileLabFiles.map((file, index) => (
-                    <GoogleDriveFileDownloadButton
+                    <MySmileLabFileDownloadButton
                       key={index}
-                      fileUrl={file.url}
+                      fileKey={file.fileKey}
                       fileName={file.name}
-                      fileId={file.publicId} // Ici publicId contient l'ID Google Drive
                       disabled={false}
                       isLoading={false}
                     />

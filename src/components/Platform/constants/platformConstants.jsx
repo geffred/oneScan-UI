@@ -4,12 +4,10 @@ export const platformTypes = [
   { value: "ITERO", label: "Itero" },
   { value: "DEXIS", label: "Dexis" },
   { value: "CSCONNECT", label: "CS Connect" },
-  { value: "GOOGLE_DRIVE", label: "Google Drive" },
+  { value: "MYSMILELAB", label: "MySmileLab" },
 ];
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-export const SECRET_KEY = "MaCleSecrete12345";
 
 export const STATUS_TYPES = {
   CONNECTED: "connected",
@@ -24,7 +22,7 @@ export const PLATFORM_NAMES = {
   ITERO: "ITERO",
   DEXIS: "DEXIS",
   CSCONNECT: "CSCONNECT",
-  GOOGLE_DRIVE: "GOOGLE_DRIVE",
+  MYSMILELAB: "MYSMILELAB",
 };
 
 export const PLATFORM_DISPLAY_NAMES = {
@@ -33,5 +31,5 @@ export const PLATFORM_DISPLAY_NAMES = {
   [PLATFORM_NAMES.ITERO]: "Itero",
   [PLATFORM_NAMES.DEXIS]: "Dexis",
   [PLATFORM_NAMES.CSCONNECT]: "CS Connect",
-  [PLATFORM_NAMES.GOOGLE_DRIVE]: "Google Drive",
+  [PLATFORM_NAMES.MYSMILELAB]: "MySmileLab",
 };

@@ -60,23 +60,19 @@ export const useSyncPlatforms = ({
           let totalCount = 0;
 
           if (platformName === "DEXIS") {
-            // Pour Dexis, utiliser savedCount directement depuis l'objet résultat
             savedCount = result.savedCount || result.count || 0;
             updatedCount = result.updatedCount || 0;
             totalCount = savedCount + updatedCount;
           } else if (platformName === "CSCONNECT") {
-            // Pour CS Connect, compter les commandes dans le tableau
             const commandes = result.commandes || result;
             totalCount = Array.isArray(commandes) ? commandes.length : 0;
-            savedCount = totalCount; // CS Connect ne distingue pas encore
+            savedCount = totalCount;
             updatedCount = 0;
           } else if (platformName === "THREESHAPE") {
-            // Pour 3Shape, utiliser les nouvelles statistiques détaillées
             savedCount = result.savedCount || 0;
             updatedCount = result.updatedCount || 0;
             totalCount = result.totalProcessed || savedCount + updatedCount;
           } else {
-            // Pour les autres plateformes (MEDITLINK, ITERO)
             savedCount = result.savedCount || result.count || 0;
             updatedCount = result.updatedCount || 0;
             totalCount = savedCount + updatedCount;
@@ -198,11 +194,6 @@ export const useSyncPlatforms = ({
   // Fonction pour synchroniser une plateforme spécifique
   const syncPlatformCommandes = useCallback(
     (platformName, getConnectionStatus) => {
-      // Ignorer Google Drive (plateforme de stockage uniquement)
-      if (platformName === "GOOGLE_DRIVE") {
-        return;
-      }
-
       // Vérifier si la plateforme est connectée
       const connectionStatus = getConnectionStatus(platformName);
       if (!connectionStatus.authenticated) {
@@ -243,9 +234,8 @@ export const useSyncPlatforms = ({
 
       setIsSyncing(true);
 
-      // Filtrer les plateformes connectées (exclure Google Drive)
+      // Filtrer les plateformes connectées
       const connectedPlatforms = userPlatforms.filter((platform) => {
-        if (platform.name === "GOOGLE_DRIVE") return false;
         const connectionStatus = getConnectionStatus(platform.name);
         return connectionStatus.authenticated;
       });

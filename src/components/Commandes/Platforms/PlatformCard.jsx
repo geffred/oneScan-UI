@@ -3,12 +3,10 @@ import React from "react";
 import {
   RefreshCw,
   Loader2,
-  HardDrive,
-  WifiOff,
   Link2,
-  Cloud,
   AlertCircle,
   CheckCircle,
+  WifiOff,
 } from "lucide-react";
 
 const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
@@ -31,50 +29,17 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
     if (!connectionStatus)
       return <WifiOff size={16} className="commandes-connection-unknown" />;
 
-    switch (platform.name) {
-      case "MEDITLINK":
-        return connectionStatus.authenticated ? (
-          <Link2 size={16} className="commandes-connection-success" />
-        ) : (
-          <Link2 size={16} className="commandes-connection-error" />
-        );
-      case "THREESHAPE":
-        return connectionStatus.authenticated ? (
-          <Link2 size={16} className="commandes-connection-success" />
-        ) : (
-          <Link2 size={16} className="commandes-connection-error" />
-        );
-      case "ITERO":
-        return connectionStatus.authenticated ? (
-          <Link2 size={16} className="commandes-connection-success" />
-        ) : (
-          <Link2 size={16} className="commandes-connection-error" />
-        );
-      case "DEXIS":
-        return connectionStatus.authenticated ? (
-          <Link2 size={16} className="commandes-connection-success" />
-        ) : (
-          <Link2 size={16} className="commandes-connection-error" />
-        );
-      case "CSCONNECT":
-        return connectionStatus.authenticated ? (
-          <Link2 size={16} className="commandes-connection-success" />
-        ) : (
-          <Link2 size={16} className="commandes-connection-error" />
-        );
-      case "GOOGLE_DRIVE":
-        return connectionStatus.authenticated ? (
-          <Cloud size={16} className="commandes-connection-success" />
-        ) : (
-          <Cloud size={16} className="commandes-connection-error" />
-        );
-      default:
-        return connectionStatus.authenticated ? (
-          <Link2 size={16} className="commandes-connection-success" />
-        ) : (
-          <Link2 size={16} className="commandes-connection-error" />
-        );
-    }
+    const isConnected = connectionStatus.authenticated;
+    return (
+      <Link2
+        size={16}
+        className={
+          isConnected
+            ? "commandes-connection-success"
+            : "commandes-connection-error"
+        }
+      />
+    );
   };
 
   const getConnectionStatusText = () => {
@@ -101,8 +66,6 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
         return connectionStatus.authenticated
           ? "Connecté à l'API"
           : "Non connecté";
-      case "GOOGLE_DRIVE":
-        return connectionStatus.authenticated ? "Drive activé" : "Non connecté";
       default:
         return connectionStatus.authenticated ? "Connecté" : "Non connecté";
     }
@@ -118,8 +81,8 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
         return "Dexis";
       case "CSCONNECT":
         return "CS Connect";
-      case "GOOGLE_DRIVE":
-        return "Google Drive";
+      case "MYSMILELAB":
+        return "MySmileLab";
       default:
         return name;
     }
@@ -178,34 +141,26 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
           </div>
         )}
 
-        {/* Désactiver le bouton de sync pour Google Drive */}
-        {platform.name === "GOOGLE_DRIVE" ? (
-          <div className="commandes-platform-note">
-            <HardDrive size={14} />
-            <span className="commandes-note-text">Stockage fichiers</span>
-          </div>
-        ) : (
-          <button
-            className={`commandes-btn ${
-              isConnected ? "commandes-btn-primary" : "commandes-btn-disabled"
-            }`}
-            onClick={() => onSync(platform.name)}
-            disabled={syncStatus?.status === "loading" || !isConnected}
-            title={!isConnected ? "Connexion requise" : "Récupérer les données"}
-          >
-            {syncStatus?.status === "loading" ? (
-              <>
-                <Loader2 size={14} className="commandes-sync-loading-spinner" />
-                Sync...
-              </>
-            ) : (
-              <>
-                <RefreshCw size={14} />
-                {isConnected ? "Synchroniser" : "Non connecté"}
-              </>
-            )}
-          </button>
-        )}
+        <button
+          className={`commandes-btn ${
+            isConnected ? "commandes-btn-primary" : "commandes-btn-disabled"
+          }`}
+          onClick={() => onSync(platform.name)}
+          disabled={syncStatus?.status === "loading" || !isConnected}
+          title={!isConnected ? "Connexion requise" : "Récupérer les données"}
+        >
+          {syncStatus?.status === "loading" ? (
+            <>
+              <Loader2 size={14} className="commandes-sync-loading-spinner" />
+              Sync...
+            </>
+          ) : (
+            <>
+              <RefreshCw size={14} />
+              {isConnected ? "Synchroniser" : "Non connecté"}
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

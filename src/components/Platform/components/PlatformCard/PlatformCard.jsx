@@ -9,7 +9,6 @@ import {
   Trash2,
   Link2,
   Shield,
-  Cloud,
   Activity,
   X,
   RefreshCw,
@@ -25,10 +24,8 @@ const PlatformCard = React.memo(
     onConnectMeditLink,
     onConnectItero,
     onConnectDexis,
-    onConnectGoogleDrive,
     onConnectCsConnect,
     onDisconnectMeditLink,
-    onDisconnectGoogleDrive,
     onDisconnectCsConnect,
     onShowMeditLinkDashboard,
     onShowThreeShapeDashboard,
@@ -36,24 +33,23 @@ const PlatformCard = React.memo(
     meditlinkStatus,
     iteroStatus,
     dexisStatus,
-    googledriveStatus,
     csconnectStatus,
   }) => {
     const is3Shape = platform.name === "THREESHAPE";
     const isMeditLink = platform.name === "MEDITLINK";
     const isItero = platform.name === "ITERO";
     const isDexis = platform.name === "DEXIS";
-    const isGoogleDrive = platform.name === "GOOGLE_DRIVE";
     const isCsConnect = platform.name === "CSCONNECT";
+    const isMySmileLab = platform.name === "MYSMILELAB";
 
     const getPlatformDisplayName = () => {
       switch (platform.name) {
         case "THREESHAPE":
           return "3Shape";
-        case "GOOGLE_DRIVE":
-          return "Google Drive";
         case "CSCONNECT":
           return "CS Connect";
+        case "MYSMILELAB":
+          return "MySmileLab";
         default:
           return platform.name;
       }
@@ -64,8 +60,9 @@ const PlatformCard = React.memo(
       if (isMeditLink) return meditlinkStatus;
       if (isItero) return iteroStatus;
       if (isDexis) return dexisStatus;
-      if (isGoogleDrive) return googledriveStatus;
       if (isCsConnect) return csconnectStatus;
+      // MySmileLab n'a pas besoin de statut de connexion
+      if (isMySmileLab) return { authenticated: true, loading: false };
       return null;
     };
 
@@ -156,16 +153,6 @@ const PlatformCard = React.memo(
             </div>
           )}
 
-          {isGoogleDrive && isConnected && (
-            <div className="platform-card-component__user-info">
-              <Cloud
-                size={14}
-                className="platform-card-component__user-info-icon"
-              />
-              <span>Accès Drive activé</span>
-            </div>
-          )}
-
           {isCsConnect && isConnected && (
             <div className="platform-card-component__user-info">
               <Link2
@@ -173,6 +160,16 @@ const PlatformCard = React.memo(
                 className="platform-card-component__user-info-icon"
               />
               <span>Connecté à l'API CS Connect</span>
+            </div>
+          )}
+
+          {isMySmileLab && (
+            <div className="platform-card-component__user-info">
+              <CheckCircle
+                size={14}
+                className="platform-card-component__user-info-icon"
+              />
+              <span>Plateforme interne - Stockage Backblaze B2</span>
             </div>
           )}
         </div>
@@ -335,48 +332,12 @@ const PlatformCard = React.memo(
               </>
             )}
 
-            {/* Google Drive Actions */}
-            {isGoogleDrive && (
-              <>
-                {isConnected ? (
-                  <>
-                    <button
-                      onClick={() => onConnectGoogleDrive(platform)}
-                      className="platform-card-component__connect-btn platform-card-component__connect-btn--connected"
-                      aria-label="Reconnecter à Google Drive"
-                    >
-                      <Cloud size={16} />
-                      Reconnecter
-                    </button>
-                    <button
-                      onClick={() => onDisconnectGoogleDrive(platform)}
-                      className="platform-card-component__disconnect-btn"
-                      aria-label="Déconnecter Google Drive"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <RefreshCw
-                          size={16}
-                          className="platform-card-component__spinner"
-                        />
-                      ) : (
-                        <X size={16} />
-                      )}
-                      Déconnecter
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => onConnectGoogleDrive(platform)}
-                    className="platform-card-component__connect-btn"
-                    disabled={isLoading}
-                    aria-label="Connecter à Google Drive"
-                  >
-                    <Cloud size={16} />
-                    {isLoading ? "Connexion..." : "Connecter OAuth"}
-                  </button>
-                )}
-              </>
+            {/* MySmileLab - Pas d'action de connexion nécessaire */}
+            {isMySmileLab && (
+              <div className="platform-card-component__platform-note">
+                <CheckCircle size={16} />
+                <span>Plateforme active - Aucune action requise</span>
+              </div>
             )}
           </div>
 

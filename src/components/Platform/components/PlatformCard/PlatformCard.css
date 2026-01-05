@@ -129,6 +129,26 @@
   height: 14px;
 }
 
+/* Note pour plateformes internes (MySmileLab) */
+.platform-card-component__platform-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #166534;
+  font-weight: 500;
+  flex: 1;
+}
+
+.platform-card-component__platform-note svg {
+  flex-shrink: 0;
+  color: #10b981;
+}
+
 /* Zone d'actions */
 .platform-card-component__actions {
   display: flex;
@@ -350,6 +370,11 @@
     padding: 10px 14px;
   }
   
+  .platform-card-component__platform-note {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  
   .platform-card-component__edit-btn,
   .platform-card-component__delete-btn {
     align-self: stretch;
@@ -380,7 +405,8 @@
   
   .platform-card-component__connect-btn,
   .platform-card-component__dashboard-btn,
-  .platform-card-component__disconnect-btn {
+  .platform-card-component__disconnect-btn,
+  .platform-card-component__platform-note {
     width: 100%;
     justify-content: center;
   }

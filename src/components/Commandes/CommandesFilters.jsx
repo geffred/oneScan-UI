@@ -3,6 +3,7 @@
 import React from "react";
 import { Search, Filter, CalendarDays, X } from "lucide-react";
 import "./CommandesFilters.css";
+
 const CommandesFilters = ({
   searchTerm,
   onSearchChange,
@@ -53,8 +54,7 @@ const CommandesFilters = ({
             <option value="THREESHAPE">3Shape</option>
             <option value="DEXIS">Dexis</option>
             <option value="CSCONNECT">CS Connect</option>
-            <option value="GOOGLE_DRIVE">Google Drive</option>
-            <option value="MYSMILELAB">Mysmilelab</option>
+            <option value="MYSMILELAB">MySmileLab</option>
           </select>
         </div>
 
