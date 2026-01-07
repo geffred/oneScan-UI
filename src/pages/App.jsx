@@ -18,6 +18,8 @@ import CabinetRegisterPage from "./CabinetRegisterPage/CabinetRegisterPage";
 import EmailVerificationPage from "./EmailVerificationPage/EmailVerificationPage";
 import GuideCommande from "./GuideCommande/GuideCommande";
 import GoogleDriveCallback from "./CallbackPages/GoogleDriveCallback";
+import ForgotPasswordPage from "./ForgotPasswordPage/ForgotPasswordPage";
+import ResetPasswordPage from "./ResetPasswordPage/ResetPasswordPage";
 
 function App() {
   return (
@@ -27,12 +29,10 @@ function App() {
           <Route path="/" element={<Homepage />}>
             <Route index element={<Homepage />} />
           </Route>
-
           {/* ==================== CALLBACK ROUTES ==================== */}
           <Route path="/meditLink/callback" element={<MeditLinkCallback />} />
           <Route path="/3shapde/callback" element={<ThreeShapeCallback />} />
           <Route path="/3shape/callback" element={<ThreeShapeCallback />} />
-
           {/* ==================== PUBLIC ROUTES ==================== */}
           <Route path="/cabinet/register" element={<CabinetRegisterPage />} />
           <Route
@@ -48,10 +48,14 @@ function App() {
           <Route path="/compte" element={<Compte />} />
           <Route path="/suivi-commandes" element={<SuiviCommandesPage />} />
           <Route path="/appareils" element={<AppareilGalleryPage />} />
-
           <Route path="/drive/callback" element={<GoogleDriveCallback />} />
           <Route path="/" element={<GoogleDriveCallback />} />
 
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route
+            path="/cabinet/reset-password"
+            element={<ResetPasswordPage />}
+          />
           {/* ==================== PROTECTED ROUTES ==================== */}
           <Route element={<PrivateRoute />}>
             <Route
