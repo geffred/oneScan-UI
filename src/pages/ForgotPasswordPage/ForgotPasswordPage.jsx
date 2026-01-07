@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 // src/pages/ForgotPasswordPage/ForgotPasswordPage.jsx
 import React, { useState } from "react";
@@ -53,14 +54,14 @@ const ForgotPasswordPage = () => {
         <Header />
         <div className="forgot-password-wrapper">
           <div className="forgot-password-container">
-            <div className="success-message">
-              <CheckCircle size={64} className="success-icon" />
+            <div className="forgot-password-success-message">
+              <CheckCircle size={64} className="forgot-password-success-icon" />
               <h2>Email envoyé !</h2>
               <p>
                 Si un compte existe avec cette adresse email, vous recevrez un
                 lien de réinitialisation dans quelques instants.
               </p>
-              <Link to="/login" className="back-to-login">
+              <Link to="/login" className="forgot-password-back-to-login">
                 Retour à la connexion
               </Link>
             </div>
@@ -77,18 +78,18 @@ const ForgotPasswordPage = () => {
       <div className="forgot-password-wrapper">
         <div className="forgot-password-container">
           <div className="forgot-password-header">
-            <Link to="/login" className="back-link">
+            <Link to="/login" className="forgot-password-back-link">
               <ArrowLeft size={20} />
               Retour à la connexion
             </Link>
           </div>
 
           <div className="forgot-password-content">
-            <div className="icon-wrapper">
+            <div className="forgot-password-icon-wrapper">
               <Mail size={32} />
             </div>
             <h1>Mot de passe oublié ?</h1>
-            <p className="subtitle">
+            <p className="forgot-password-subtitle">
               Entrez votre adresse email et nous vous enverrons un lien pour
               réinitialiser votre mot de passe.
             </p>
@@ -100,16 +101,16 @@ const ForgotPasswordPage = () => {
             >
               {({ isSubmitting, touched, errors }) => (
                 <Form className="forgot-password-form">
-                  <div className="form-group">
+                  <div className="forgot-password-form-group">
                     <label htmlFor="email">Email du cabinet</label>
-                    <div className="input-wrapper">
-                      <Mail className="input-icon" size={20} />
+                    <div className="forgot-password-input-wrapper">
+                      <Mail className="forgot-password-input-icon" size={20} />
                       <Field
                         type="email"
                         id="email"
                         name="email"
                         placeholder="cabinet@exemple.com"
-                        className={`form-input ${
+                        className={`forgot-password-form-input ${
                           touched.email && errors.email ? "input-error" : ""
                         }`}
                       />
@@ -117,18 +118,18 @@ const ForgotPasswordPage = () => {
                     <ErrorMessage
                       name="email"
                       component="div"
-                      className="error-message"
+                      className="forgot-password-error-message"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={isSubmitting || isLoading}
-                    className="submit-btn"
+                    className="forgot-password-submit-btn"
                   >
                     {isLoading ? (
-                      <div className="loading-spinner">
-                        <div className="spinner"></div>
+                      <div className="forgot-password-loading-spinner">
+                        <div className="forgot-password-spinner"></div>
                         Envoi en cours...
                       </div>
                     ) : (

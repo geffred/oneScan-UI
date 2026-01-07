@@ -115,8 +115,8 @@ const ResetPasswordPage = () => {
         <Header />
         <div className="reset-password-wrapper">
           <div className="reset-password-container">
-            <div className="loading-state">
-              <div className="spinner-large"></div>
+            <div className="reset-password-loading-state">
+              <div className="reset-password-spinner-large"></div>
               <p>Vérification du lien...</p>
             </div>
           </div>
@@ -132,14 +132,14 @@ const ResetPasswordPage = () => {
         <Header />
         <div className="reset-password-wrapper">
           <div className="reset-password-container">
-            <div className="error-state">
-              <AlertCircle size={64} className="error-icon" />
+            <div className="reset-password-error-state">
+              <AlertCircle size={64} className="reset-password-error-icon" />
               <h2>Lien invalide ou expiré</h2>
               <p>
                 Ce lien de réinitialisation a expiré ou n'est plus valide.
                 Veuillez demander un nouveau lien.
               </p>
-              <Link to="/forgot-password" className="action-btn">
+              <Link to="/forgot-password" className="reset-password-action-btn">
                 Demander un nouveau lien
               </Link>
             </div>
@@ -156,8 +156,8 @@ const ResetPasswordPage = () => {
         <Header />
         <div className="reset-password-wrapper">
           <div className="reset-password-container">
-            <div className="success-state">
-              <CheckCircle size={64} className="success-icon" />
+            <div className="reset-password-success-state">
+              <CheckCircle size={64} className="reset-password-success-icon" />
               <h2>Mot de passe réinitialisé !</h2>
               <p>
                 Votre mot de passe a été modifié avec succès. Vous allez être
@@ -177,16 +177,16 @@ const ResetPasswordPage = () => {
       <div className="reset-password-wrapper">
         <div className="reset-password-container">
           <div className="reset-password-content">
-            <div className="icon-wrapper">
+            <div className="reset-password-icon-wrapper">
               <Lock size={32} />
             </div>
             <h1>Nouveau mot de passe</h1>
             {cabinetInfo && (
-              <p className="cabinet-info">
+              <p className="reset-password-cabinet-info">
                 Cabinet : <strong>{cabinetInfo.nom}</strong>
               </p>
             )}
-            <p className="subtitle">
+            <p className="reset-password-subtitle">
               Choisissez un mot de passe sécurisé pour votre compte.
             </p>
 
@@ -197,16 +197,16 @@ const ResetPasswordPage = () => {
             >
               {({ isSubmitting, touched, errors }) => (
                 <Form className="reset-password-form">
-                  <div className="form-group">
+                  <div className="reset-password-form-group">
                     <label htmlFor="newPassword">Nouveau mot de passe</label>
-                    <div className="input-wrapper">
-                      <Lock className="input-icon" size={20} />
+                    <div className="reset-password-input-wrapper">
+                      <Lock className="reset-password-input-icon" size={20} />
                       <Field
                         type={showPassword ? "text" : "password"}
                         id="newPassword"
                         name="newPassword"
                         placeholder="Au moins 8 caractères"
-                        className={`form-input ${
+                        className={`reset-password-form-input ${
                           touched.newPassword && errors.newPassword
                             ? "input-error"
                             : ""
@@ -214,7 +214,7 @@ const ResetPasswordPage = () => {
                       />
                       <button
                         type="button"
-                        className="password-toggle"
+                        className="reset-password-toggle"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
@@ -227,22 +227,22 @@ const ResetPasswordPage = () => {
                     <ErrorMessage
                       name="newPassword"
                       component="div"
-                      className="error-message"
+                      className="reset-password-error-message"
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className="reset-password-form-group">
                     <label htmlFor="confirmPassword">
                       Confirmer le mot de passe
                     </label>
-                    <div className="input-wrapper">
-                      <Lock className="input-icon" size={20} />
+                    <div className="reset-password-input-wrapper">
+                      <Lock className="reset-password-input-icon" size={20} />
                       <Field
                         type={showConfirmPassword ? "text" : "password"}
                         id="confirmPassword"
                         name="confirmPassword"
                         placeholder="Confirmer votre mot de passe"
-                        className={`form-input ${
+                        className={`reset-password-form-input ${
                           touched.confirmPassword && errors.confirmPassword
                             ? "input-error"
                             : ""
@@ -250,7 +250,7 @@ const ResetPasswordPage = () => {
                       />
                       <button
                         type="button"
-                        className="password-toggle"
+                        className="reset-password-toggle"
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
@@ -265,18 +265,18 @@ const ResetPasswordPage = () => {
                     <ErrorMessage
                       name="confirmPassword"
                       component="div"
-                      className="error-message"
+                      className="reset-password-error-message"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={isSubmitting || isLoading}
-                    className="submit-btn"
+                    className="reset-password-submit-btn"
                   >
                     {isLoading ? (
-                      <div className="loading-spinner">
-                        <div className="spinner"></div>
+                      <div className="reset-password-loading-spinner">
+                        <div className="reset-password-spinner"></div>
                         Réinitialisation...
                       </div>
                     ) : (
