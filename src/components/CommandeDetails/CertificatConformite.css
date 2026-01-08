@@ -566,3 +566,129 @@ textarea.form-control-input {
     grid-column: 1;
   }
 }
+
+/* Matériaux pré-encodés */
+.materiaux-preencodes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.materiau-preencode-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.materiau-preencode-item:hover {
+  border-color: #007AFF;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.1);
+}
+
+.materiau-preencode-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.materiau-type {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+
+.materiau-lot {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.materiau-preencode-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Formulaire matériau pré-encodé */
+.materiau-preencode-form {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  padding: 16px;
+  border-radius: 8px;
+  border: 2px dashed #93c5fd;
+}
+
+.materiau-preencode-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.materiau-preencode-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Badge pour les matériaux récents */
+.form-input-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Responsive pour matériaux pré-encodés */
+@media (max-width: 768px) {
+  .materiau-preencode-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .materiau-preencode-actions {
+    justify-content: stretch;
+  }
+
+  .materiau-preencode-actions button {
+    flex: 1;
+  }
+
+  .materiau-preencode-inputs {
+    gap: 10px;
+  }
+
+  .materiau-preencode-form-actions {
+    flex-direction: column;
+  }
+
+  .materiau-preencode-form-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .materiaux-preencodes-list {
+    padding: 8px;
+  }
+
+  .materiau-preencode-item {
+    padding: 10px;
+  }
+
+  .materiau-type {
+    font-size: 0.9rem;
+  }
+
+  .materiau-lot {
+    font-size: 0.8rem;
+  }
+}

@@ -15,7 +15,11 @@ import {
   AlertTriangle,
   Plus,
   Minus,
+  Clock,
+  BookmarkPlus,
 } from "lucide-react";
+import { useAuth } from "../../components/Config/AuthContext";
+import { getUserIdFromToken } from "../../utils/authUtils";
 import "./CertificatConformite.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -59,18 +63,39 @@ const CertificatConformite = ({
   commandeTypeAppareil,
   commandeRefPatient,
 }) => {
+  const { userData } = useAuth();
+
+  // Utiliser la fonction utilitaire pour récupérer l'userId
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const id = getUserIdFromToken();
+    if (id) {
+      setUserId(id);
+      console.log("UserId récupéré:", id);
+    } else {
+      console.error("Impossible de récupérer l'userId");
+    }
+  }, []);
+
   const [certificat, setCertificat] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editingBasicInfo, setEditingBasicInfo] = useState(false);
+  const [materiauxPreencodes, setMateriauxPreencodes] = useState([]);
+  const [showMateriauPreencodeForm, setShowMateriauPreencodeForm] =
+    useState(false);
+  const [newMateriauPreencode, setNewMateriauPreencode] = useState({
+    typeMateriau: "",
+    numeroLot: "",
+  });
+
   const [formData, setFormData] = useState({
     typeDispositif: commandeTypeAppareil || "",
-    ancrage: "",
     materiaux: [{ type: "", numeroLot: "" }],
   });
 
-  // Données de base modifiables
   const [basicInfo, setBasicInfo] = useState({
     fabricantNom: "LABORATOIRE D'ORTHODONTIE Smile lab",
     fabricantAdresse: "Boulevard Roosevelt 23, 7060 Soignies",
@@ -79,19 +104,21 @@ const CertificatConformite = ({
     fabricantTVA: "BE0794998835",
     avertissement:
       "Attention: Il peut exister une incompatibilité possible avec des métaux ou alliages déjà présents en bouche.",
-    methodeFabrication:
-      "Conception numérique et impression 3D / frittage laser",
     sterilisation: "À réaliser par le praticien avant mise en bouche",
   });
 
-  // Charger le certificat existant
   useEffect(() => {
     if (commandeId) {
       loadCertificat();
     }
   }, [commandeId]);
 
-  // Mettre à jour le type de dispositif quand la commande change
+  useEffect(() => {
+    if (userId) {
+      loadMateriauxPreencodes();
+    }
+  }, [userId]);
+
   useEffect(() => {
     if (commandeTypeAppareil && !certificat?.typeDispositif) {
       setFormData((prev) => ({
@@ -101,6 +128,22 @@ const CertificatConformite = ({
     }
   }, [commandeTypeAppareil, certificat]);
 
+  const loadMateriauxPreencodes = async () => {
+    if (!userId) {
+      console.warn("UserId non disponible pour charger les matériaux");
+      return;
+    }
+
+    try {
+      const materiaux = await apiRequest(
+        `/materiaux-preencodes/user/${userId}/recent`
+      );
+      setMateriauxPreencodes(materiaux);
+    } catch (error) {
+      console.error("Erreur lors du chargement des matériaux:", error);
+    }
+  };
+
   const loadCertificat = async () => {
     try {
       setLoading(true);
@@ -109,14 +152,12 @@ const CertificatConformite = ({
         setCertificat(response);
         setFormData({
           typeDispositif: response.typeDispositif || commandeTypeAppareil || "",
-          ancrage: response.ancrage || "",
           materiaux:
             response.materiaux && response.materiaux.length > 0
               ? response.materiaux
               : [{ type: "", numeroLot: "" }],
         });
 
-        // Charger les informations de base si elles existent
         if (response.fabricantNom) {
           setBasicInfo((prev) => ({
             ...prev,
@@ -128,8 +169,6 @@ const CertificatConformite = ({
             fabricantEmail: response.fabricantEmail || prev.fabricantEmail,
             fabricantTVA: response.fabricantTVA || prev.fabricantTVA,
             avertissement: response.avertissement || prev.avertissement,
-            methodeFabrication:
-              response.methodeFabrication || prev.methodeFabrication,
             sterilisation: response.sterilisation || prev.sterilisation,
           }));
         }
@@ -137,7 +176,6 @@ const CertificatConformite = ({
         if (onUpdate) onUpdate();
       }
     } catch (error) {
-      // Certificat non trouvé, c'est normal
       console.log("Aucun certificat trouvé pour cette commande");
       setCertificat(null);
     } finally {
@@ -147,7 +185,6 @@ const CertificatConformite = ({
 
   const handleCreate = async () => {
     if (!showForm) {
-      // Charger les valeurs par défaut
       try {
         const defaults = await apiRequest("/certificats/defaults");
         setFormData((prev) => ({
@@ -159,14 +196,12 @@ const CertificatConformite = ({
             },
           ],
           typeDispositif: commandeTypeAppareil || prev.typeDispositif || "",
-          ancrage: prev.ancrage || "",
         }));
       } catch (error) {
         console.error(
           "Erreur lors du chargement des valeurs par défaut:",
           error
         );
-        // Valeurs par défaut en dur
         setFormData((prev) => ({
           ...prev,
           materiaux: [
@@ -184,12 +219,11 @@ const CertificatConformite = ({
   };
 
   const handleSave = async () => {
-    if (!formData.typeDispositif || !formData.ancrage) {
-      alert("Les champs 'Type de dispositif' et 'Ancrage' sont obligatoires");
+    if (!formData.typeDispositif) {
+      alert("Le champ 'Type de dispositif' est obligatoire");
       return;
     }
 
-    // Vérifier qu'il y a au moins un matériau avec un type
     const materiauxValides = formData.materiaux.filter(
       (m) => m.type && m.type.trim() !== ""
     );
@@ -198,11 +232,17 @@ const CertificatConformite = ({
       return;
     }
 
+    if (!userId) {
+      alert(
+        "Impossible de déterminer l'utilisateur. Veuillez vous reconnecter."
+      );
+      return;
+    }
+
     try {
       setLoading(true);
       let response;
 
-      // Préparer les données à sauvegarder
       const dataToSave = {
         ...formData,
         materiaux: materiauxValides,
@@ -210,17 +250,17 @@ const CertificatConformite = ({
         referencePatient: commandeRefPatient || "Non spécifié",
       };
 
+      console.log("UserId utilisé pour la sauvegarde:", userId);
+
       if (certificat) {
-        // Mise à jour
         response = await apiRequest(
-          `/certificats/${certificat.id}`,
+          `/certificats/${certificat.id}/user/${userId}`,
           "PUT",
           dataToSave
         );
       } else {
-        // Création
         response = await apiRequest(
-          `/certificats/commande/${commandeId}`,
+          `/certificats/commande/${commandeId}/user/${userId}`,
           "POST",
           dataToSave
         );
@@ -230,6 +270,11 @@ const CertificatConformite = ({
       setShowForm(false);
       setEditing(false);
       setEditingBasicInfo(false);
+
+      if (userId) {
+        await loadMateriauxPreencodes();
+      }
+
       if (onUpdate) onUpdate();
       alert(
         certificat
@@ -258,7 +303,6 @@ const CertificatConformite = ({
         setShowForm(false);
         setFormData({
           typeDispositif: commandeTypeAppareil || "",
-          ancrage: "",
           materiaux: [{ type: "", numeroLot: "" }],
         });
         if (onUpdate) onUpdate();
@@ -273,7 +317,6 @@ const CertificatConformite = ({
   const handlePrint = () => {
     if (!certificat) return;
 
-    // Construire le HTML des matériaux
     let materiauxHtml = "";
     if (certificat.materiaux && certificat.materiaux.length > 0) {
       materiauxHtml = certificat.materiaux
@@ -289,7 +332,6 @@ const CertificatConformite = ({
         '<div class="value">Alliage métallique fritté de qualité médicale</div>';
     }
 
-    // Créer un iframe caché pour l'impression
     const iframe = document.createElement("iframe");
     iframe.style.position = "absolute";
     iframe.style.width = "0";
@@ -301,7 +343,6 @@ const CertificatConformite = ({
 
     const iframeDoc = iframe.contentWindow.document;
 
-    // Construire le HTML du certificat avec le CSS d'origine
     const html = `
       <!DOCTYPE html>
       <html>
@@ -368,15 +409,9 @@ const CertificatConformite = ({
               <div class="value">Type : ${
                 certificat.typeDispositif || "Non spécifié"
               }</div>
-              <div class="value">Ancrage : ${
-                certificat.ancrage || "Non spécifié"
-              }</div>
               <div class="label" style="margin-top: 10px;">Matériaux utilisés:</div>
               ${materiauxHtml}
-              <div class="value" style="margin-top: 10px;">Méthode de fabrication : ${
-                basicInfo.methodeFabrication
-              }</div>
-              <div class="value">Stérilisation : ${
+              <div class="value" style="margin-top: 10px;">Stérilisation : ${
                 basicInfo.sterilisation
               }</div>
           </div>
@@ -407,18 +442,15 @@ const CertificatConformite = ({
           </div>
           
           <script>
-              // Imprimer automatiquement après chargement
               window.onload = function() {
                 setTimeout(function() {
                   window.print();
-                  // Fermer la fenêtre après impression
                   setTimeout(function() {
                     window.close();
                   }, 1000);
                 }, 500);
               };
               
-              // Gestion de la fermeture après impression
               window.onafterprint = function() {
                 setTimeout(function() {
                   window.close();
@@ -433,12 +465,10 @@ const CertificatConformite = ({
     iframeDoc.write(html);
     iframeDoc.close();
 
-    // Démarrer l'impression automatiquement
     setTimeout(() => {
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
 
-      // Nettoyer après impression
       setTimeout(() => {
         document.body.removeChild(iframe);
       }, 1000);
@@ -461,7 +491,6 @@ const CertificatConformite = ({
     }));
   };
 
-  // Gestion des matériaux
   const handleMateriauChange = (index, field, value) => {
     const newMateriaux = [...formData.materiaux];
     newMateriaux[index][field] = value;
@@ -488,15 +517,67 @@ const CertificatConformite = ({
     }
   };
 
+  const useMateriauPreencode = (materiau) => {
+    setFormData((prev) => ({
+      ...prev,
+      materiaux: [
+        ...prev.materiaux,
+        { type: materiau.typeMateriau, numeroLot: materiau.numeroLot },
+      ],
+    }));
+  };
+
+  const handleSaveMateriauPreencode = async () => {
+    if (!newMateriauPreencode.typeMateriau.trim()) {
+      alert("Le type de matériau est obligatoire");
+      return;
+    }
+
+    if (!userId) {
+      alert(
+        "Impossible de déterminer l'utilisateur. Veuillez vous reconnecter."
+      );
+      return;
+    }
+
+    try {
+      await apiRequest(`/materiaux-preencodes/user/${userId}`, "POST", {
+        typeMateriau: newMateriauPreencode.typeMateriau,
+        numeroLot: newMateriauPreencode.numeroLot,
+      });
+
+      await loadMateriauxPreencodes();
+
+      setNewMateriauPreencode({ typeMateriau: "", numeroLot: "" });
+      setShowMateriauPreencodeForm(false);
+
+      alert("Matériau pré-encodé sauvegardé avec succès");
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde:", error);
+      alert("Erreur lors de la sauvegarde: " + error.message);
+    }
+  };
+
+  const handleDeleteMateriauPreencode = async (materiauId) => {
+    if (window.confirm("Voulez-vous supprimer ce matériau pré-encodé ?")) {
+      try {
+        await apiRequest(`/materiaux-preencodes/${materiauId}`, "DELETE");
+        await loadMateriauxPreencodes();
+        alert("Matériau supprimé avec succès");
+      } catch (error) {
+        console.error("Erreur lors de la suppression:", error);
+        alert("Erreur lors de la suppression: " + error.message);
+      }
+    }
+  };
+
   const handleCancel = () => {
     if (certificat) {
-      // Recharger les données originales
       loadCertificat();
       setEditing(false);
       setShowForm(false);
       setEditingBasicInfo(false);
     } else {
-      // Si on était en création, on annule
       setShowForm(false);
       setEditing(false);
       setEditingBasicInfo(false);
@@ -598,10 +679,6 @@ const CertificatConformite = ({
                 <label>Type de dispositif:</label>
                 <span>{certificat.typeDispositif || "Non spécifié"}</span>
               </div>
-              <div className="certificat-detail-item">
-                <label>Ancrage:</label>
-                <span>{certificat.ancrage || "Non spécifié"}</span>
-              </div>
 
               <div className="certificat-detail-item full-width">
                 <label>Matériaux utilisés:</label>
@@ -650,11 +727,6 @@ const CertificatConformite = ({
               </div>
 
               <div className="certificat-detail-item full-width">
-                <label>Méthode de fabrication:</label>
-                <span>{basicInfo.methodeFabrication}</span>
-              </div>
-
-              <div className="certificat-detail-item full-width">
                 <label>Stérilisation:</label>
                 <span>{basicInfo.sterilisation}</span>
               </div>
@@ -679,7 +751,6 @@ const CertificatConformite = ({
                 : "Nouveau certificat de conformité"}
             </h3>
 
-            {/* Formulaire pour les informations de base */}
             <div className="basic-info-section">
               <h4>
                 <Building size={18} />
@@ -753,18 +824,6 @@ const CertificatConformite = ({
                 </div>
 
                 <div className="form-input-group">
-                  <label>Méthode de fabrication</label>
-                  <textarea
-                    name="methodeFabrication"
-                    value={basicInfo.methodeFabrication}
-                    onChange={handleBasicInfoChange}
-                    placeholder="Méthode de fabrication"
-                    className="form-control-input"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="form-input-group">
                   <label>Procédure de stérilisation</label>
                   <textarea
                     name="sterilisation"
@@ -790,7 +849,6 @@ const CertificatConformite = ({
               </div>
             </div>
 
-            {/* Formulaire pour les informations spécifiques au dispositif */}
             {!editingBasicInfo && (
               <div className="device-info-section">
                 <h4>
@@ -799,7 +857,7 @@ const CertificatConformite = ({
                 </h4>
 
                 <div className="form-inputs-grid">
-                  <div className="form-input-group">
+                  <div className="form-input-group full-width">
                     <label>Type de dispositif *</label>
                     <input
                       type="text"
@@ -812,21 +870,118 @@ const CertificatConformite = ({
                     />
                   </div>
 
-                  <div className="form-input-group">
-                    <label>Ancrage *</label>
-                    <input
-                      type="text"
-                      name="ancrage"
-                      value={formData.ancrage}
-                      onChange={handleInputChange}
-                      placeholder="Ex: Sur molaires (selon prescription)"
-                      required
-                      className="form-control-input"
-                    />
-                  </div>
+                  {materiauxPreencodes.length > 0 && (
+                    <div className="form-input-group full-width">
+                      <label>
+                        <Clock size={16} /> Matériaux récemment utilisés
+                      </label>
+                      <div className="materiaux-preencodes-list">
+                        {materiauxPreencodes.map((materiau) => (
+                          <div
+                            key={materiau.id}
+                            className="materiau-preencode-item"
+                          >
+                            <div className="materiau-preencode-info">
+                              <span className="materiau-type">
+                                {materiau.typeMateriau}
+                              </span>
+                              <span className="materiau-lot">
+                                Lot: {materiau.numeroLot || "Non spécifié"}
+                              </span>
+                            </div>
+                            <div className="materiau-preencode-actions">
+                              <button
+                                type="button"
+                                onClick={() => useMateriauPreencode(materiau)}
+                                className="details-btn details-btn-sm details-btn-primary"
+                                title="Utiliser ce matériau"
+                              >
+                                <Plus size={14} /> Utiliser
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleDeleteMateriauPreencode(materiau.id)
+                                }
+                                className="details-btn details-btn-sm details-btn-danger"
+                                title="Supprimer"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {!showMateriauPreencodeForm ? (
+                    <div className="form-input-group full-width">
+                      <button
+                        type="button"
+                        onClick={() => setShowMateriauPreencodeForm(true)}
+                        className="details-btn details-btn-sm details-btn-secondary"
+                      >
+                        <BookmarkPlus size={16} /> Ajouter un matériau
+                        pré-encodé
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="form-input-group full-width materiau-preencode-form">
+                      <label>Nouveau matériau pré-encodé</label>
+                      <div className="materiau-preencode-inputs">
+                        <input
+                          type="text"
+                          value={newMateriauPreencode.typeMateriau}
+                          onChange={(e) =>
+                            setNewMateriauPreencode((prev) => ({
+                              ...prev,
+                              typeMateriau: e.target.value,
+                            }))
+                          }
+                          placeholder="Type de matériau *"
+                          className="form-control-input"
+                        />
+                        <input
+                          type="text"
+                          value={newMateriauPreencode.numeroLot}
+                          onChange={(e) =>
+                            setNewMateriauPreencode((prev) => ({
+                              ...prev,
+                              numeroLot: e.target.value,
+                            }))
+                          }
+                          placeholder="Numéro de lot"
+                          className="form-control-input"
+                        />
+                        <div className="materiau-preencode-form-actions">
+                          <button
+                            type="button"
+                            onClick={handleSaveMateriauPreencode}
+                            className="details-btn details-btn-sm details-btn-primary"
+                          >
+                            <Save size={14} /> Sauvegarder
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowMateriauPreencodeForm(false);
+                              setNewMateriauPreencode({
+                                typeMateriau: "",
+                                numeroLot: "",
+                              });
+                            }}
+                            className="details-btn details-btn-sm details-btn-secondary"
+                          >
+                            <X size={14} /> Annuler
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="form-input-group full-width">
-                    <label>Matériaux utilisés *</label>
+                    <label>Matériaux pour ce certificat *</label>
                     {formData.materiaux.map((materiau, index) => (
                       <div key={index} className="materiau-input-row">
                         <input
@@ -902,7 +1057,8 @@ const CertificatConformite = ({
               <div className="form-info-note">
                 <small>
                   <strong>Note :</strong> Tous les champs marqués d'un * sont
-                  obligatoires.
+                  obligatoires. Les matériaux utilisés seront automatiquement
+                  sauvegardés pour une utilisation future.
                 </small>
               </div>
             </div>

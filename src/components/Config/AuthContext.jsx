@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+// src/components/Config/AuthContext.jsx
 import {
   createContext,
   useState,
@@ -10,7 +12,7 @@ import { jwtDecode } from "jwt-decode";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const APP_VERSION = "v1.0.0.2"; // Change à chaque release
+  const APP_VERSION = "v1.0.0.2";
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userType, setUserType] = useState(null);
@@ -29,7 +31,11 @@ export const AuthProvider = ({ children }) => {
       setUserType(storedUserType);
 
       if (storedUserType === "laboratoire") {
-        setUserData({ email: decoded.sub, role: "laboratoire" });
+        setUserData({
+          id: decoded.userId || decoded.id || decoded.sub, // Récupérer l'ID depuis le token
+          email: decoded.sub,
+          role: "laboratoire",
+        });
       } else if (storedUserType === "cabinet") {
         setUserData({
           id: decoded.cabinetId,
@@ -39,7 +45,8 @@ export const AuthProvider = ({ children }) => {
         });
       }
       return true;
-    } catch {
+    } catch (error) {
+      console.error("Erreur lors de la restauration de la session:", error);
       localStorage.removeItem("token");
       localStorage.removeItem("userType");
       return false;
@@ -51,7 +58,6 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false);
   }, [restoreSession]);
 
-  // ⚙️ Gestion de version (ne supprime plus tout localStorage)
   useEffect(() => {
     const storedVersion = localStorage.getItem("app_version");
     if (storedVersion !== APP_VERSION) {
@@ -70,14 +76,24 @@ export const AuthProvider = ({ children }) => {
 
       setIsAuthenticated(true);
       setUserType(type);
-      setUserData({
-        id: decoded.cabinetId || cabinetData?.id,
-        email: decoded.sub,
-        nom: decoded.cabinetNom || cabinetData?.nom,
-        role: type,
-      });
+
+      if (type === "laboratoire") {
+        setUserData({
+          id: decoded.userId || decoded.id || decoded.sub,
+          email: decoded.sub,
+          role: "laboratoire",
+        });
+      } else {
+        setUserData({
+          id: decoded.cabinetId || cabinetData?.id,
+          email: decoded.sub,
+          nom: decoded.cabinetNom || cabinetData?.nom,
+          role: type,
+        });
+      }
       return true;
-    } catch {
+    } catch (error) {
+      console.error("Erreur lors de la connexion:", error);
       return false;
     }
   }, []);
