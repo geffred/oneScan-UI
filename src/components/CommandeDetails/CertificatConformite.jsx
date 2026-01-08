@@ -9,11 +9,12 @@ import {
   X,
   Printer,
   Building,
-  User,
   Phone,
   Mail,
   FileDigit,
   AlertTriangle,
+  Plus,
+  Minus,
 } from "lucide-react";
 import "./CertificatConformite.css";
 
@@ -66,9 +67,7 @@ const CertificatConformite = ({
   const [formData, setFormData] = useState({
     typeDispositif: commandeTypeAppareil || "",
     ancrage: "",
-    materiau: "",
-    activation: "",
-    technicienResponsable: "",
+    materiaux: [{ type: "", numeroLot: "" }],
   });
 
   // Données de base modifiables
@@ -111,9 +110,10 @@ const CertificatConformite = ({
         setFormData({
           typeDispositif: response.typeDispositif || commandeTypeAppareil || "",
           ancrage: response.ancrage || "",
-          materiau: response.materiau || "",
-          activation: response.activation || "",
-          technicienResponsable: response.technicienResponsable || "",
+          materiaux:
+            response.materiaux && response.materiaux.length > 0
+              ? response.materiaux
+              : [{ type: "", numeroLot: "" }],
         });
 
         // Charger les informations de base si elles existent
@@ -152,13 +152,12 @@ const CertificatConformite = ({
         const defaults = await apiRequest("/certificats/defaults");
         setFormData((prev) => ({
           ...prev,
-          materiau:
-            defaults.materiau ||
-            "Alliage métallique fritté de qualité médicale",
-          activation:
-            defaults.activation ||
-            "Vis centrale à pas progressif (1/4 tour = 0,25 mm)",
-          technicienResponsable: defaults.technicienResponsable || "Stéphane",
+          materiaux: defaults.materiaux || [
+            {
+              type: "Alliage métallique fritté de qualité médicale",
+              numeroLot: "",
+            },
+          ],
           typeDispositif: commandeTypeAppareil || prev.typeDispositif || "",
           ancrage: prev.ancrage || "",
         }));
@@ -170,9 +169,12 @@ const CertificatConformite = ({
         // Valeurs par défaut en dur
         setFormData((prev) => ({
           ...prev,
-          materiau: "Alliage métallique fritté de qualité médicale",
-          activation: "Vis centrale à pas progressif (1/4 tour = 0,25 mm)",
-          technicienResponsable: "Stéphane",
+          materiaux: [
+            {
+              type: "Alliage métallique fritté de qualité médicale",
+              numeroLot: "",
+            },
+          ],
           typeDispositif: commandeTypeAppareil || prev.typeDispositif || "",
         }));
       }
@@ -187,6 +189,15 @@ const CertificatConformite = ({
       return;
     }
 
+    // Vérifier qu'il y a au moins un matériau avec un type
+    const materiauxValides = formData.materiaux.filter(
+      (m) => m.type && m.type.trim() !== ""
+    );
+    if (materiauxValides.length === 0) {
+      alert("Veuillez ajouter au moins un matériau");
+      return;
+    }
+
     try {
       setLoading(true);
       let response;
@@ -194,6 +205,7 @@ const CertificatConformite = ({
       // Préparer les données à sauvegarder
       const dataToSave = {
         ...formData,
+        materiaux: materiauxValides,
         ...basicInfo,
         referencePatient: commandeRefPatient || "Non spécifié",
       };
@@ -247,9 +259,7 @@ const CertificatConformite = ({
         setFormData({
           typeDispositif: commandeTypeAppareil || "",
           ancrage: "",
-          materiau: "",
-          activation: "",
-          technicienResponsable: "",
+          materiaux: [{ type: "", numeroLot: "" }],
         });
         if (onUpdate) onUpdate();
         alert("Certificat supprimé avec succès");
@@ -262,6 +272,22 @@ const CertificatConformite = ({
 
   const handlePrint = () => {
     if (!certificat) return;
+
+    // Construire le HTML des matériaux
+    let materiauxHtml = "";
+    if (certificat.materiaux && certificat.materiaux.length > 0) {
+      materiauxHtml = certificat.materiaux
+        .map(
+          (m) =>
+            `<div class="value">• ${m.type || "Non spécifié"} (Lot: ${
+              m.numeroLot || "Non spécifié"
+            })</div>`
+        )
+        .join("");
+    } else {
+      materiauxHtml =
+        '<div class="value">Alliage métallique fritté de qualité médicale</div>';
+    }
 
     // Créer un iframe caché pour l'impression
     const iframe = document.createElement("iframe");
@@ -288,7 +314,7 @@ const CertificatConformite = ({
               .title { font-size: 24px; font-weight: bold; margin-bottom: 30px; }
               .section { margin-bottom: 25px; }
               .label { font-weight: bold; margin-bottom: 5px; }
-              .value { margin-left: 10px; }
+              .value { margin-left: 10px; margin-bottom: 5px; }
               .footer { margin-top: 50px; font-size: 12px; color: #666; }
               .signature { margin-top: 50px; border-top: 1px solid #000; width: 300px; padding-top: 10px; }
               @media print {
@@ -310,13 +336,6 @@ const CertificatConformite = ({
               <div class="value">${basicInfo.fabricantTelephone}</div>
               <div class="value">${basicInfo.fabricantEmail}</div>
               <div class="value">TVA : ${basicInfo.fabricantTVA}</div>
-          </div>
-          
-          <div class="section">
-              <div class="label">Technicien responsable:</div>
-              <div class="value">${
-                certificat.technicienResponsable || "Stéphane"
-              }</div>
           </div>
           
           <div class="section">
@@ -352,15 +371,9 @@ const CertificatConformite = ({
               <div class="value">Ancrage : ${
                 certificat.ancrage || "Non spécifié"
               }</div>
-              <div class="value">Matériau : ${
-                certificat.materiau ||
-                "Alliage métallique fritté de qualité médicale"
-              }</div>
-              <div class="value">Activation : ${
-                certificat.activation ||
-                "Vis centrale à pas progressif (1/4 tour = 0,25 mm)"
-              }</div>
-              <div class="value">Méthode de fabrication : ${
+              <div class="label" style="margin-top: 10px;">Matériaux utilisés:</div>
+              ${materiauxHtml}
+              <div class="value" style="margin-top: 10px;">Méthode de fabrication : ${
                 basicInfo.methodeFabrication
               }</div>
               <div class="value">Stérilisation : ${
@@ -446,6 +459,33 @@ const CertificatConformite = ({
       ...prev,
       [name]: value,
     }));
+  };
+
+  // Gestion des matériaux
+  const handleMateriauChange = (index, field, value) => {
+    const newMateriaux = [...formData.materiaux];
+    newMateriaux[index][field] = value;
+    setFormData((prev) => ({
+      ...prev,
+      materiaux: newMateriaux,
+    }));
+  };
+
+  const addMateriau = () => {
+    setFormData((prev) => ({
+      ...prev,
+      materiaux: [...prev.materiaux, { type: "", numeroLot: "" }],
+    }));
+  };
+
+  const removeMateriau = (index) => {
+    if (formData.materiaux.length > 1) {
+      const newMateriaux = formData.materiaux.filter((_, i) => i !== index);
+      setFormData((prev) => ({
+        ...prev,
+        materiaux: newMateriaux,
+      }));
+    }
   };
 
   const handleCancel = () => {
@@ -562,24 +602,25 @@ const CertificatConformite = ({
                 <label>Ancrage:</label>
                 <span>{certificat.ancrage || "Non spécifié"}</span>
               </div>
-              <div className="certificat-detail-item">
-                <label>Matériau:</label>
-                <span>
-                  {certificat.materiau ||
-                    "Alliage métallique fritté de qualité médicale"}
-                </span>
+
+              <div className="certificat-detail-item full-width">
+                <label>Matériaux utilisés:</label>
+                <div className="materiaux-list">
+                  {certificat.materiaux && certificat.materiaux.length > 0 ? (
+                    certificat.materiaux.map((materiau, index) => (
+                      <div key={index} className="materiau-item">
+                        <span>• {materiau.type || "Non spécifié"}</span>
+                        <span className="numero-lot">
+                          (Lot: {materiau.numeroLot || "Non spécifié"})
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <span>Alliage métallique fritté de qualité médicale</span>
+                  )}
+                </div>
               </div>
-              <div className="certificat-detail-item">
-                <label>Activation:</label>
-                <span>
-                  {certificat.activation ||
-                    "Vis centrale à pas progressif (1/4 tour = 0,25 mm)"}
-                </span>
-              </div>
-              <div className="certificat-detail-item">
-                <label>Technicien responsable:</label>
-                <span>{certificat.technicienResponsable || "Stéphane"}</span>
-              </div>
+
               <div className="certificat-detail-item">
                 <label>Date de déclaration:</label>
                 <span>
@@ -784,40 +825,51 @@ const CertificatConformite = ({
                     />
                   </div>
 
-                  <div className="form-input-group">
-                    <label>Matériau</label>
-                    <input
-                      type="text"
-                      name="materiau"
-                      value={formData.materiau}
-                      onChange={handleInputChange}
-                      placeholder="Alliage métallique fritté de qualité médicale"
-                      className="form-control-input"
-                    />
-                  </div>
-
-                  <div className="form-input-group">
-                    <label>Activation</label>
-                    <input
-                      type="text"
-                      name="activation"
-                      value={formData.activation}
-                      onChange={handleInputChange}
-                      placeholder="Vis centrale à pas progressif (1/4 tour = 0,25 mm)"
-                      className="form-control-input"
-                    />
-                  </div>
-
-                  <div className="form-input-group">
-                    <label>Technicien responsable</label>
-                    <input
-                      type="text"
-                      name="technicienResponsable"
-                      value={formData.technicienResponsable}
-                      onChange={handleInputChange}
-                      placeholder="Stéphane"
-                      className="form-control-input"
-                    />
+                  <div className="form-input-group full-width">
+                    <label>Matériaux utilisés *</label>
+                    {formData.materiaux.map((materiau, index) => (
+                      <div key={index} className="materiau-input-row">
+                        <input
+                          type="text"
+                          value={materiau.type}
+                          onChange={(e) =>
+                            handleMateriauChange(index, "type", e.target.value)
+                          }
+                          placeholder="Type de matériau"
+                          className="form-control-input materiau-type-input"
+                        />
+                        <input
+                          type="text"
+                          value={materiau.numeroLot}
+                          onChange={(e) =>
+                            handleMateriauChange(
+                              index,
+                              "numeroLot",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Numéro de lot"
+                          className="form-control-input materiau-lot-input"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeMateriau(index)}
+                          className="details-btn details-btn-sm details-btn-danger"
+                          disabled={formData.materiaux.length === 1}
+                          title="Retirer ce matériau"
+                        >
+                          <Minus size={16} />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addMateriau}
+                      className="details-btn details-btn-sm details-btn-secondary"
+                      style={{ marginTop: "10px" }}
+                    >
+                      <Plus size={16} /> Ajouter un matériau
+                    </button>
                   </div>
                 </div>
               </div>

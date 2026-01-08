@@ -507,3 +507,62 @@ textarea.form-control-input {
     margin-top: 0.5rem;
   }
 }
+
+
+/* Styles pour les matériaux */
+.materiaux-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.materiau-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.materiau-item span:first-child {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.numero-lot {
+  color: #64748b;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* Formulaire des matériaux */
+.materiau-input-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.materiau-type-input {
+  grid-column: 1;
+}
+
+.materiau-lot-input {
+  grid-column: 2;
+}
+
+@media (max-width: 768px) {
+  .materiau-input-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .materiau-type-input,
+  .materiau-lot-input {
+    grid-column: 1;
+  }
+}
