@@ -51,6 +51,15 @@ const Commandes = () => {
   const [customDateTo, setCustomDateTo] = useState(
     savedState.customDateTo || ""
   );
+  const [deadlineFilter, setDeadlineFilter] = useState(
+    savedState.deadlineFilter || "all"
+  );
+  const [customDeadlineFrom, setCustomDeadlineFrom] = useState(
+    savedState.customDeadlineFrom || ""
+  );
+  const [customDeadlineTo, setCustomDeadlineTo] = useState(
+    savedState.customDeadlineTo || ""
+  );
   const [syncStatus, setSyncStatus] = useState({});
   const [isSyncing, setIsSyncing] = useState(false);
   const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1);
@@ -67,6 +76,9 @@ const Commandes = () => {
       dateFilter,
       customDateFrom,
       customDateTo,
+      deadlineFilter,
+      customDeadlineFrom,
+      customDeadlineTo,
       currentPage,
     };
     localStorage.setItem("commandesState", JSON.stringify(stateToSave));
@@ -77,6 +89,9 @@ const Commandes = () => {
     dateFilter,
     customDateFrom,
     customDateTo,
+    deadlineFilter,
+    customDeadlineFrom,
+    customDeadlineTo,
     currentPage,
   ]);
 
@@ -88,6 +103,9 @@ const Commandes = () => {
     dateFilter,
     customDateFrom,
     customDateTo,
+    deadlineFilter,
+    customDeadlineFrom,
+    customDeadlineTo,
   });
 
   useEffect(() => {
@@ -100,6 +118,9 @@ const Commandes = () => {
         dateFilter,
         customDateFrom,
         customDateTo,
+        deadlineFilter,
+        customDeadlineFrom,
+        customDeadlineTo,
       };
       return;
     }
@@ -111,7 +132,10 @@ const Commandes = () => {
       prev.showOnlyUnread !== showOnlyUnread ||
       prev.dateFilter !== dateFilter ||
       prev.customDateFrom !== customDateFrom ||
-      prev.customDateTo !== customDateTo;
+      prev.customDateTo !== customDateTo ||
+      prev.deadlineFilter !== deadlineFilter ||
+      prev.customDeadlineFrom !== customDeadlineFrom ||
+      prev.customDeadlineTo !== customDeadlineTo;
 
     if (filtersChanged) {
       setCurrentPage(1);
@@ -122,6 +146,9 @@ const Commandes = () => {
         dateFilter,
         customDateFrom,
         customDateTo,
+        deadlineFilter,
+        customDeadlineFrom,
+        customDeadlineTo,
       };
     }
   }, [
@@ -131,6 +158,9 @@ const Commandes = () => {
     dateFilter,
     customDateFrom,
     customDateTo,
+    deadlineFilter,
+    customDeadlineFrom,
+    customDeadlineTo,
   ]);
 
   // Hooks d'authentification
@@ -259,6 +289,18 @@ const Commandes = () => {
         setCustomDateTo(e.target.value);
         setCurrentPage(1);
       },
+      deadlineFilter: (e) => {
+        setDeadlineFilter(e.target.value);
+        setCurrentPage(1);
+      },
+      customDeadlineFrom: (e) => {
+        setCustomDeadlineFrom(e.target.value);
+        setCurrentPage(1);
+      },
+      customDeadlineTo: (e) => {
+        setCustomDeadlineTo(e.target.value);
+        setCurrentPage(1);
+      },
       viewDetails: (commande) =>
         navigate(`/dashboard/commande/${commande.externalId}`, {
           state: { commande },
@@ -277,6 +319,9 @@ const Commandes = () => {
     dateFilter,
     customDateFrom,
     customDateTo,
+    deadlineFilter,
+    customDeadlineFrom,
+    customDeadlineTo,
     meditlinkAuth,
     threeshapeAuth,
     backblazeStatus,
@@ -348,6 +393,12 @@ const Commandes = () => {
         onCustomDateFromChange={handlers.customDateFrom}
         customDateTo={customDateTo}
         onCustomDateToChange={handlers.customDateTo}
+        deadlineFilter={deadlineFilter}
+        onDeadlineFilterChange={handlers.deadlineFilter}
+        customDeadlineFrom={customDeadlineFrom}
+        onCustomDeadlineFromChange={handlers.customDeadlineFrom}
+        customDeadlineTo={customDeadlineTo}
+        onCustomDeadlineToChange={handlers.customDeadlineTo}
         showOnlyUnread={showOnlyUnread}
         onUnreadToggle={handlers.unread}
       />

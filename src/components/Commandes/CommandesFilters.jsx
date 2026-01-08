@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 import React from "react";
-import { Search, Filter, CalendarDays, X } from "lucide-react";
+import { Search, Filter, CalendarDays, Clock, X } from "lucide-react";
 import "./CommandesFilters.css";
 
 const CommandesFilters = ({
@@ -15,6 +15,12 @@ const CommandesFilters = ({
   onCustomDateFromChange,
   customDateTo,
   onCustomDateToChange,
+  deadlineFilter,
+  onDeadlineFilterChange,
+  customDeadlineFrom,
+  onCustomDeadlineFromChange,
+  customDeadlineTo,
+  onCustomDeadlineToChange,
   showOnlyUnread,
   onUnreadToggle,
 }) => {
@@ -89,6 +95,43 @@ const CommandesFilters = ({
               onChange={onCustomDateToChange}
               className="commandes-date-input"
               placeholder="Au"
+            />
+          </div>
+        )}
+
+        <div className="commandes-filter-group">
+          <Clock size={16} />
+          <select
+            value={deadlineFilter}
+            onChange={onDeadlineFilterChange}
+            className="commandes-filter-select"
+          >
+            <option value="all">Toutes les échéances</option>
+            <option value="expired">Échues</option>
+            <option value="today">Aujourd'hui</option>
+            <option value="tomorrow">Demain</option>
+            <option value="week">Cette semaine</option>
+            <option value="month">Ce mois</option>
+            <option value="custom">Période personnalisée</option>
+          </select>
+        </div>
+
+        {deadlineFilter === "custom" && (
+          <div className="commandes-date-range">
+            <input
+              type="date"
+              value={customDeadlineFrom}
+              onChange={onCustomDeadlineFromChange}
+              className="commandes-date-input"
+              placeholder="Échéance du"
+            />
+            <span className="commandes-date-separator">au</span>
+            <input
+              type="date"
+              value={customDeadlineTo}
+              onChange={onCustomDeadlineToChange}
+              className="commandes-date-input"
+              placeholder="Échéance au"
             />
           </div>
         )}

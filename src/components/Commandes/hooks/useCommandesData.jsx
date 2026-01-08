@@ -10,6 +10,9 @@ export const useCommandesData = ({
   dateFilter,
   customDateFrom,
   customDateTo,
+  deadlineFilter,
+  customDeadlineFrom,
+  customDeadlineTo,
   meditlinkAuth,
   threeshapeAuth,
   backblazeStatus,
@@ -77,9 +80,10 @@ export const useCommandesData = ({
     ]
   );
 
-  // Fonction pour filtrer par date
+  // Fonction pour filtrer par date de réception
   const filterByDate = useCallback(
     (commande) => {
+      if (dateFilter === "all") return true;
       if (!commande.dateReception) return false;
 
       const receptionDate = new Date(commande.dateReception);
@@ -107,6 +111,70 @@ export const useCommandesData = ({
       }
     },
     [dateFilter, customDateFrom, customDateTo]
+  );
+
+  // Fonction pour filtrer par date d'échéance
+  const filterByDeadline = useCallback(
+    (commande) => {
+      // Si le filtre est "all", on inclut toutes les commandes
+      if (deadlineFilter === "all") return true;
+
+      // Si la commande n'a pas d'échéance, on l'exclut (sauf si filtre = "all")
+      if (!commande.dateEcheance) return false;
+
+      const echeance = new Date(commande.dateEcheance);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      switch (deadlineFilter) {
+        case "expired":
+          // Échéances passées (avant aujourd'hui)
+          return echeance < today;
+
+        case "today":
+          // Échéances aujourd'hui
+          return echeance.toDateString() === today.toDateString();
+
+        case "tomorrow":
+          // Échéances demain
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          return echeance.toDateString() === tomorrow.toDateString();
+
+        case "week":
+          // Échéances dans les 7 prochains jours
+          const weekEnd = new Date(today);
+          weekEnd.setDate(weekEnd.getDate() + 7);
+          weekEnd.setHours(23, 59, 59, 999);
+          return echeance >= today && echeance <= weekEnd;
+
+        case "month":
+          // Échéances dans le mois en cours
+          const monthEnd = new Date(
+            today.getFullYear(),
+            today.getMonth() + 1,
+            0
+          );
+          monthEnd.setHours(23, 59, 59, 999);
+          return echeance >= today && echeance <= monthEnd;
+
+        case "custom":
+          // Période personnalisée
+          if (!customDeadlineFrom && !customDeadlineTo) return true;
+          const fromDate = customDeadlineFrom
+            ? new Date(customDeadlineFrom)
+            : new Date(0);
+          const toDate = customDeadlineTo
+            ? new Date(customDeadlineTo)
+            : new Date();
+          toDate.setHours(23, 59, 59, 999);
+          return echeance >= fromDate && echeance <= toDate;
+
+        default:
+          return true;
+      }
+    },
+    [deadlineFilter, customDeadlineFrom, customDeadlineTo]
   );
 
   // Calcul des statistiques mémorisées
@@ -157,34 +225,59 @@ export const useCommandesData = ({
 
   // Filtrage et tri des commandes mémorisés
   const filteredCommandes = useMemo(() => {
-    return (
-      commandes
-        ?.filter((commande) => {
-          const matchesSearch =
-            commande.refPatient
-              ?.toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            commande.cabinet
-              ?.toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            commande.externalId?.toString().includes(searchTerm);
+    // 1. FILTRAGE
+    const filtered =
+      commandes?.filter((commande) => {
+        const matchesSearch =
+          commande.refPatient
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          commande.cabinet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          commande.externalId?.toString().includes(searchTerm);
 
-          const matchesPlateforme =
-            selectedPlateforme === "" ||
-            commande.plateforme === selectedPlateforme;
-          const matchesUnread = !showOnlyUnread || !commande.vu;
-          const matchesDate = filterByDate(commande);
+        const matchesPlateforme =
+          selectedPlateforme === "" ||
+          commande.plateforme === selectedPlateforme;
+        const matchesUnread = !showOnlyUnread || !commande.vu;
+        const matchesDate = filterByDate(commande);
+        const matchesDeadline = filterByDeadline(commande);
 
-          return (
-            matchesSearch && matchesPlateforme && matchesUnread && matchesDate
-          );
-        })
-        .sort(
-          (a, b) =>
-            new Date(b.dateReception || 0) - new Date(a.dateReception || 0)
-        ) || []
-    );
-  }, [commandes, searchTerm, selectedPlateforme, showOnlyUnread, filterByDate]);
+        return (
+          matchesSearch &&
+          matchesPlateforme &&
+          matchesUnread &&
+          matchesDate &&
+          matchesDeadline
+        );
+      }) || [];
+
+    // 2. TRI
+    return filtered.sort((a, b) => {
+      // Si un filtre d'échéance est actif (autre que "all"), trier par échéance
+      if (deadlineFilter !== "all") {
+        const echeanceA = a.dateEcheance
+          ? new Date(a.dateEcheance).getTime()
+          : Infinity;
+        const echeanceB = b.dateEcheance
+          ? new Date(b.dateEcheance).getTime()
+          : Infinity;
+
+        // Tri par échéance : du plus proche au plus éloigné
+        return echeanceA - echeanceB;
+      }
+
+      // Sinon, tri par date de réception : du plus récent au plus ancien
+      return new Date(b.dateReception || 0) - new Date(a.dateReception || 0);
+    });
+  }, [
+    commandes,
+    searchTerm,
+    selectedPlateforme,
+    showOnlyUnread,
+    filterByDate,
+    filterByDeadline,
+    deadlineFilter,
+  ]);
 
   return {
     stats,
