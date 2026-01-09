@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
+/* eslint-disable react/no-unescaped-entities */
 import React, { useState, useContext, useMemo, useCallback } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -38,129 +41,167 @@ const CATEGORIES = [
   { value: "CONTENTIONS", label: "Contentions" },
 ];
 
-const OPTIONS = [
-  // --- Disjoncteurs ---
-  { value: "DISJONCTEUR_FRITTE", label: "Disjoncteur Fritté" },
-  { value: "DISJONCTEUR_NON_FRITTE", label: "Disjoncteur Non Fritté" },
-  { value: "DISJONCTEUR_MIXTE", label: "Disjoncteur Mixte" },
-
-  // --- Tubes ---
-  { value: "TUBES_SUR_16_ET_26", label: "Tubes sur 16 et 26" },
-  { value: "TUBE_SUR_36_ET_46", label: "Tube sur 36 et 46" },
-  { value: "AVEC_TUBE_SUR_LES_6", label: "Avec tube sur les 6" },
-  { value: "SANS_TUBE_SUR_LES_6", label: "Sans tube sur les 6" },
-  { value: "SANS_LES_TUBES_SUR_LES_6", label: "Sans les tubes sur les 6" },
-  { value: "TUBES_26_ET_26", label: "Tubes 26 et 26" },
+// --- OPTION 2 : Liste Groupée ---
+const GROUPED_OPTIONS = [
   {
-    value: "TUBES_16_ET_26_PASTILLE_DE_NANCE",
-    label: "Tubes 16 et 26 + Pastille de Nance",
-  },
-  { value: "TUBE_16_ET_16", label: "Tube 16 et 16" },
-
-  // --- Bras ---
-  { value: "BRAS_DE_DELAIRE", label: "Bras de Delaire" },
-  { value: "TUBE_ET_BRAS_DE_DELAIRE", label: "Tube et Bras de Delaire" },
-  {
-    value: "BRAS_CREATION_ESPACE_33_ET_43",
-    label: "Bras création espace 33 et 43",
-  },
-  { value: "BRAS_ANTERIEUR", label: "Bras Antérieur" },
-  { value: "BRAS_DE_BANACH", label: "Bras de Banach" },
-  { value: "BRAS_DE_TRACTION_CANINE", label: "Bras de traction canine" },
-  {
-    value: "INGRESSION_VIA_BRAS_EN_ACIER",
-    label: "Ingression via bras en acier",
-  },
-
-  // --- Taquets ---
-  { value: "TAQUETS_SUR_LES_6", label: "Taquets sur les 6" },
-  { value: "TAQUET", label: "Taquet" },
-  { value: "TAQUET_VESTIBULAIRE", label: "Taquet Vestibulaire" },
-
-  // --- Smart Bands ---
-  { value: "SMART_BANDS", label: "Smart Bands" },
-
-  // --- Vérins ---
-  { value: "VERIN_SUPERIEUR", label: "Vérin Supérieur" },
-  { value: "VERIN_INFERIEUR", label: "Vérin Inférieur" },
-
-  // --- Plaquettes ---
-  { value: "PLAQUETTES_SUR_14_ET_24", label: "Plaquettes sur 14 et 24" },
-
-  // --- Pastilles ---
-  { value: "PASTILLE_DE_NANCE", label: "Pastille de Nance" },
-
-  // --- Bagues ---
-  { value: "BAGUES_STANDARD", label: "Bagues Standard" },
-  { value: "BAGUES_DIRECT", label: "Bagues Direct" },
-  { value: "BAGUES", label: "Bagues" },
-
-  // --- Tubes standards/directs ---
-  { value: "TUBE_DE_16_ET_26_STANDARD", label: "Tube de 16 et 26 Standard" },
-  { value: "TUBES_16_ET_26_DIRECT", label: "Tubes 16 et 26 Direct" },
-  { value: "BRAS_DE_DELAIRE_STANDARD", label: "Bras de Delaire Standard" },
-  { value: "BRAS_DE_DELAIRE_DIRECT", label: "Bras de Delaire Direct" },
-  {
-    value: "TUBE_ET_BRAS_DE_DELAIRE_STANDARD",
-    label: "Tube et Bras de Delaire Standard",
+    label: "Disjoncteurs",
+    options: [
+      { value: "DISJONCTEUR_FRITTE", label: "Disjoncteur Fritté" },
+      { value: "DISJONCTEUR_NON_FRITTE", label: "Disjoncteur Non Fritté" },
+      { value: "DISJONCTEUR_MIXTE", label: "Disjoncteur Mixte" },
+    ],
   },
   {
-    value: "TUBE_ET_BRAS_DE_DELAIRE_DIRECT",
-    label: "Tube et Bras de Delaire Direct",
+    label: "Tubes",
+    options: [
+      { value: "TUBES_SUR_16_ET_26", label: "Tubes sur 16 et 26" },
+      { value: "TUBE_SUR_36_ET_46", label: "Tube sur 36 et 46" },
+      { value: "AVEC_TUBE_SUR_LES_6", label: "Avec tube sur les 6" },
+      { value: "SANS_TUBE_SUR_LES_6", label: "Sans tube sur les 6" },
+      { value: "SANS_LES_TUBES_SUR_LES_6", label: "Sans les tubes sur les 6" },
+      { value: "TUBES_26_ET_26", label: "Tubes 26 et 26" },
+      {
+        value: "TUBES_16_ET_26_PASTILLE_DE_NANCE",
+        label: "Tubes 16 et 26 + Pastille de Nance",
+      },
+      { value: "TUBE_16_ET_16", label: "Tube 16 et 16" },
+    ],
   },
   {
-    value: "TAQUET_VESTIBULAIRE_STANDARD",
-    label: "Taquet Vestibulaire Standard",
+    label: "Bras",
+    options: [
+      { value: "BRAS_DE_DELAIRE", label: "Bras de Delaire" },
+      { value: "TUBE_ET_BRAS_DE_DELAIRE", label: "Tube et Bras de Delaire" },
+      {
+        value: "BRAS_CREATION_ESPACE_33_ET_43",
+        label: "Bras création espace 33 et 43",
+      },
+      { value: "BRAS_ANTERIEUR", label: "Bras Antérieur" },
+      { value: "BRAS_DE_BANACH", label: "Bras de Banach" },
+      { value: "BRAS_DE_TRACTION_CANINE", label: "Bras de traction canine" },
+      {
+        value: "INGRESSION_VIA_BRAS_EN_ACIER",
+        label: "Ingression via bras en acier",
+      },
+    ],
   },
-  { value: "TAQUET_VESTIBULAIRE_DIRECT", label: "Taquet Vestibulaire Direct" },
-
-  // --- Benefit ---
   {
-    value: "BENEFIT_STANDARD_VERIN_STANDARD",
-    label: "Benefit Standard (Vérin Standard)",
+    label: "Taquets & Smart Bands",
+    options: [
+      { value: "TAQUETS_SUR_LES_6", label: "Taquets sur les 6" },
+      { value: "TAQUET", label: "Taquet" },
+      { value: "TAQUET_VESTIBULAIRE", label: "Taquet Vestibulaire" },
+      { value: "SMART_BANDS", label: "Smart Bands" },
+    ],
   },
   {
-    value: "BENEFIT_DIRECT_VERIN_DIRECT",
-    label: "Benefit Direct (Vérin Direct)",
+    label: "Vérins",
+    options: [
+      { value: "VERIN_SUPERIEUR", label: "Vérin Supérieur" },
+      { value: "VERIN_INFERIEUR", label: "Vérin Inférieur" },
+    ],
   },
   {
-    value: "BENEFIT_DIRECT_VERIN_STANDARD",
-    label: "Benefit Direct (Vérin Standard)",
+    label: "Accessoires (Plaquettes, Pastilles)",
+    options: [
+      { value: "PLAQUETTES_SUR_14_ET_24", label: "Plaquettes sur 14 et 24" },
+      { value: "PASTILLE_DE_NANCE", label: "Pastille de Nance" },
+    ],
   },
-  { value: "ATP_BENEFIT", label: "ATP Benefit" },
-  { value: "ATP_BANACH_BENEFIT", label: "ATP Banach Benefit" },
-  { value: "PENDULUM_BENEFIT", label: "Pendulum Benefit" },
-
-  // --- Vis ---
-  { value: "AUTRE_VIS_STANDARD", label: "Autre Vis Standard" },
   {
-    value: "POWER_SCREW_BENEFIT_STANDARD",
-    label: "Power Screw Benefit Standard",
+    label: "Bagues",
+    options: [
+      { value: "BAGUES_STANDARD", label: "Bagues Standard" },
+      { value: "BAGUES_DIRECT", label: "Bagues Direct" },
+      { value: "BAGUES", label: "Bagues" },
+    ],
   },
-  { value: "POWER_SCREW_BENEFIT_DIRECT", label: "Power Screw Benefit Direct" },
-  { value: "POWER_SCREW_ET_AUTRES_VIS", label: "Power Screw et autres vis" },
-
-  // --- Redressement/Ancrage ---
-  { value: "REDRESSEMENT_MOLAIRE", label: "Redressement Molaire" },
-  { value: "ANCRAGE_INCISIF", label: "Ancrage Incisif" },
-
-  // --- Ingression ---
   {
-    value: "INGRESSION_VIA_DES_POWER_CHAINS",
-    label: "Ingression via des Power Chains",
+    label: "Tubes Standards/Directs",
+    options: [
+      {
+        value: "TUBE_DE_16_ET_26_STANDARD",
+        label: "Tube de 16 et 26 Standard",
+      },
+      { value: "TUBES_16_ET_26_DIRECT", label: "Tubes 16 et 26 Direct" },
+      { value: "BRAS_DE_DELAIRE_STANDARD", label: "Bras de Delaire Standard" },
+      { value: "BRAS_DE_DELAIRE_DIRECT", label: "Bras de Delaire Direct" },
+      {
+        value: "TUBE_ET_BRAS_DE_DELAIRE_STANDARD",
+        label: "Tube et Bras de Delaire Standard",
+      },
+      {
+        value: "TUBE_ET_BRAS_DE_DELAIRE_DIRECT",
+        label: "Tube et Bras de Delaire Direct",
+      },
+      {
+        value: "TAQUET_VESTIBULAIRE_STANDARD",
+        label: "Taquet Vestibulaire Standard",
+      },
+      {
+        value: "TAQUET_VESTIBULAIRE_DIRECT",
+        label: "Taquet Vestibulaire Direct",
+      },
+    ],
   },
-
-  // --- Recul/Expansion ---
-  { value: "RECUL_SUR_LEAF_EXPANDER", label: "Recul sur Leaf Expander" },
   {
-    value: "RECUL_SUR_LEAF_SELF_EXPANDER",
-    label: "Recul sur Leaf Self Expander",
+    label: "Système Benefit & Vis",
+    options: [
+      {
+        value: "BENEFIT_STANDARD_VERIN_STANDARD",
+        label: "Benefit Standard (Vérin Standard)",
+      },
+      {
+        value: "BENEFIT_DIRECT_VERIN_DIRECT",
+        label: "Benefit Direct (Vérin Direct)",
+      },
+      {
+        value: "BENEFIT_DIRECT_VERIN_STANDARD",
+        label: "Benefit Direct (Vérin Standard)",
+      },
+      { value: "ATP_BENEFIT", label: "ATP Benefit" },
+      { value: "ATP_BANACH_BENEFIT", label: "ATP Banach Benefit" },
+      { value: "PENDULUM_BENEFIT", label: "Pendulum Benefit" },
+      { value: "AUTRE_VIS_STANDARD", label: "Autre Vis Standard" },
+      {
+        value: "POWER_SCREW_BENEFIT_STANDARD",
+        label: "Power Screw Benefit Standard",
+      },
+      {
+        value: "POWER_SCREW_BENEFIT_DIRECT",
+        label: "Power Screw Benefit Direct",
+      },
+      {
+        value: "POWER_SCREW_ET_AUTRES_VIS",
+        label: "Power Screw et autres vis",
+      },
+    ],
   },
-  { value: "ARNOUDIZER", label: "Arnoudizer" },
-
-  // --- Aucune option ---
-  { value: "AUCUN", label: "Aucune option" },
+  {
+    label: "Mouvements & Autres",
+    options: [
+      { value: "REDRESSEMENT_MOLAIRE", label: "Redressement Molaire" },
+      { value: "ANCRAGE_INCISIF", label: "Ancrage Incisif" },
+      {
+        value: "INGRESSION_VIA_DES_POWER_CHAINS",
+        label: "Ingression via des Power Chains",
+      },
+      { value: "RECUL_SUR_LEAF_EXPANDER", label: "Recul sur Leaf Expander" },
+      {
+        value: "RECUL_SUR_LEAF_SELF_EXPANDER",
+        label: "Recul sur Leaf Self Expander",
+      },
+      { value: "ARNOUDIZER", label: "Arnoudizer" },
+      { value: "AUCUN", label: "Aucune option" },
+    ],
+  },
 ];
+
+// Helper pour mettre à plat les options (utile pour validation, recherche et affichage simple)
+const FLATTENED_OPTIONS = GROUPED_OPTIONS.reduce(
+  (acc, group) => [...acc, ...group.options],
+  []
+);
 
 // Schema de validation
 const validationSchema = Yup.object({
@@ -176,7 +217,7 @@ const validationSchema = Yup.object({
   options: Yup.string()
     .required("Une option est requise")
     .oneOf(
-      OPTIONS.map((o) => o.value),
+      FLATTENED_OPTIONS.map((o) => o.value), // Utilisation de la liste aplatie pour la validation
       "Option invalide"
     ),
   description: Yup.string().max(
@@ -213,6 +254,7 @@ const getImagesByAppareil = async (appareilId) => {
 };
 
 const deleteImage = async (imageId) => {
+  // Cette fonction n'est pas utilisée directement dans le composant mais gardée pour référence
   const token = localStorage.getItem("token");
   const response = await fetch(`${API_BASE_URL}/images/${imageId}`, {
     method: "DELETE",
@@ -260,8 +302,9 @@ const AppareilRow = React.memo(
         <div className="appareil-option-info">
           <Wrench size={16} className="appareil-info-icon" />
           <span>
-            {OPTIONS.find((o) => o.value === appareil.options)?.label ||
-              appareil.options}
+            {/* Utilisation de FLATTENED_OPTIONS pour retrouver le label */}
+            {FLATTENED_OPTIONS.find((o) => o.value === appareil.options)
+              ?.label || appareil.options}
           </span>
         </div>
       </div>
@@ -415,7 +458,6 @@ const ImageManagementModal = React.memo(
           // Upload de plusieurs images
           const formData = new FormData();
 
-          // ✅ FIX: Utiliser "files" (pluriel) comme nom de paramètre
           selectedFiles.forEach((file, index) => {
             formData.append("files", file);
             console.log(`📤 Ajout fichier ${index + 1}:`, file.name);
@@ -566,7 +608,6 @@ const ImageManagementModal = React.memo(
                   {images.map((image) => (
                     <div key={image.id} className="appareil-image-item">
                       <div className="appareil-image-container">
-                        {/* ✅ FIX: Utiliser directement imagePath (URL Cloudinary) */}
                         <img
                           src={image.imagePath}
                           alt={`Image de ${appareil?.nom}`}
@@ -672,7 +713,8 @@ const Appareils = () => {
         CATEGORIES.find((c) => c.value === appareil.categorie)
           ?.label.toLowerCase()
           .includes(term) ||
-        OPTIONS.find((o) => o.value === appareil.options)
+        // Utilisation de FLATTENED_OPTIONS pour la recherche
+        FLATTENED_OPTIONS.find((o) => o.value === appareil.options)
           ?.label.toLowerCase()
           .includes(term)
     );
@@ -1025,10 +1067,15 @@ const Appareils = () => {
                           className="appareil-select-input"
                         >
                           <option value="">Sélectionnez une option</option>
-                          {OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
+                          {/* MAPPING GROUPÉ ICI */}
+                          {GROUPED_OPTIONS.map((group) => (
+                            <optgroup key={group.label} label={group.label}>
+                              {group.options.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </optgroup>
                           ))}
                         </Field>
                       </div>
