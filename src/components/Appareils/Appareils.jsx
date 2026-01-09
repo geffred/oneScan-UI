@@ -39,20 +39,126 @@ const CATEGORIES = [
 ];
 
 const OPTIONS = [
+  // --- Disjoncteurs ---
   { value: "DISJONCTEUR_FRITTE", label: "Disjoncteur Fritté" },
+  { value: "DISJONCTEUR_NON_FRITTE", label: "Disjoncteur Non Fritté" },
+  { value: "DISJONCTEUR_MIXTE", label: "Disjoncteur Mixte" },
+
+  // --- Tubes ---
   { value: "TUBES_SUR_16_ET_26", label: "Tubes sur 16 et 26" },
+  { value: "TUBE_SUR_36_ET_46", label: "Tube sur 36 et 46" },
+  { value: "AVEC_TUBE_SUR_LES_6", label: "Avec tube sur les 6" },
+  { value: "SANS_TUBE_SUR_LES_6", label: "Sans tube sur les 6" },
+  { value: "SANS_LES_TUBES_SUR_LES_6", label: "Sans les tubes sur les 6" },
+  { value: "TUBES_26_ET_26", label: "Tubes 26 et 26" },
+  {
+    value: "TUBES_16_ET_26_PASTILLE_DE_NANCE",
+    label: "Tubes 16 et 26 + Pastille de Nance",
+  },
+  { value: "TUBE_16_ET_16", label: "Tube 16 et 16" },
+
+  // --- Bras ---
   { value: "BRAS_DE_DELAIRE", label: "Bras de Delaire" },
+  { value: "TUBE_ET_BRAS_DE_DELAIRE", label: "Tube et Bras de Delaire" },
+  {
+    value: "BRAS_CREATION_ESPACE_33_ET_43",
+    label: "Bras création espace 33 et 43",
+  },
+  { value: "BRAS_ANTERIEUR", label: "Bras Antérieur" },
+  { value: "BRAS_DE_BANACH", label: "Bras de Banach" },
+  { value: "BRAS_DE_TRACTION_CANINE", label: "Bras de traction canine" },
+  {
+    value: "INGRESSION_VIA_BRAS_EN_ACIER",
+    label: "Ingression via bras en acier",
+  },
+
+  // --- Taquets ---
+  { value: "TAQUETS_SUR_LES_6", label: "Taquets sur les 6" },
+  { value: "TAQUET", label: "Taquet" },
+  { value: "TAQUET_VESTIBULAIRE", label: "Taquet Vestibulaire" },
+
+  // --- Smart Bands ---
   { value: "SMART_BANDS", label: "Smart Bands" },
+
+  // --- Vérins ---
   { value: "VERIN_SUPERIEUR", label: "Vérin Supérieur" },
+  { value: "VERIN_INFERIEUR", label: "Vérin Inférieur" },
+
+  // --- Plaquettes ---
+  { value: "PLAQUETTES_SUR_14_ET_24", label: "Plaquettes sur 14 et 24" },
+
+  // --- Pastilles ---
+  { value: "PASTILLE_DE_NANCE", label: "Pastille de Nance" },
+
+  // --- Bagues ---
   { value: "BAGUES_STANDARD", label: "Bagues Standard" },
+  { value: "BAGUES_DIRECT", label: "Bagues Direct" },
+  { value: "BAGUES", label: "Bagues" },
+
+  // --- Tubes standards/directs ---
+  { value: "TUBE_DE_16_ET_26_STANDARD", label: "Tube de 16 et 26 Standard" },
+  { value: "TUBES_16_ET_26_DIRECT", label: "Tubes 16 et 26 Direct" },
+  { value: "BRAS_DE_DELAIRE_STANDARD", label: "Bras de Delaire Standard" },
+  { value: "BRAS_DE_DELAIRE_DIRECT", label: "Bras de Delaire Direct" },
+  {
+    value: "TUBE_ET_BRAS_DE_DELAIRE_STANDARD",
+    label: "Tube et Bras de Delaire Standard",
+  },
+  {
+    value: "TUBE_ET_BRAS_DE_DELAIRE_DIRECT",
+    label: "Tube et Bras de Delaire Direct",
+  },
+  {
+    value: "TAQUET_VESTIBULAIRE_STANDARD",
+    label: "Taquet Vestibulaire Standard",
+  },
+  { value: "TAQUET_VESTIBULAIRE_DIRECT", label: "Taquet Vestibulaire Direct" },
+
+  // --- Benefit ---
   {
     value: "BENEFIT_STANDARD_VERIN_STANDARD",
     label: "Benefit Standard (Vérin Standard)",
   },
   {
+    value: "BENEFIT_DIRECT_VERIN_DIRECT",
+    label: "Benefit Direct (Vérin Direct)",
+  },
+  {
+    value: "BENEFIT_DIRECT_VERIN_STANDARD",
+    label: "Benefit Direct (Vérin Standard)",
+  },
+  { value: "ATP_BENEFIT", label: "ATP Benefit" },
+  { value: "ATP_BANACH_BENEFIT", label: "ATP Banach Benefit" },
+  { value: "PENDULUM_BENEFIT", label: "Pendulum Benefit" },
+
+  // --- Vis ---
+  { value: "AUTRE_VIS_STANDARD", label: "Autre Vis Standard" },
+  {
     value: "POWER_SCREW_BENEFIT_STANDARD",
     label: "Power Screw Benefit Standard",
   },
+  { value: "POWER_SCREW_BENEFIT_DIRECT", label: "Power Screw Benefit Direct" },
+  { value: "POWER_SCREW_ET_AUTRES_VIS", label: "Power Screw et autres vis" },
+
+  // --- Redressement/Ancrage ---
+  { value: "REDRESSEMENT_MOLAIRE", label: "Redressement Molaire" },
+  { value: "ANCRAGE_INCISIF", label: "Ancrage Incisif" },
+
+  // --- Ingression ---
+  {
+    value: "INGRESSION_VIA_DES_POWER_CHAINS",
+    label: "Ingression via des Power Chains",
+  },
+
+  // --- Recul/Expansion ---
+  { value: "RECUL_SUR_LEAF_EXPANDER", label: "Recul sur Leaf Expander" },
+  {
+    value: "RECUL_SUR_LEAF_SELF_EXPANDER",
+    label: "Recul sur Leaf Self Expander",
+  },
+  { value: "ARNOUDIZER", label: "Arnoudizer" },
+
+  // --- Aucune option ---
   { value: "AUCUN", label: "Aucune option" },
 ];
 
