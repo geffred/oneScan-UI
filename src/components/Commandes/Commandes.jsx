@@ -11,6 +11,7 @@ import useSWR from "swr";
 import { AuthContext } from "../../components/Config/AuthContext";
 import useMeditLinkAuth from "../Config/useMeditLinkAuth";
 import useThreeShapeAuth from "../Config/useThreeShapeAuth";
+import useDexisAuth from "../Config/useDexisAuth"; // IMPORT DU HOOK DEXIS
 
 // Import des composants
 import LoadingState from "./ui/LoadingState";
@@ -39,26 +40,26 @@ const Commandes = () => {
 
   const [searchTerm, setSearchTerm] = useState(savedState.searchTerm || "");
   const [selectedPlateforme, setSelectedPlateforme] = useState(
-    savedState.selectedPlateforme || ""
+    savedState.selectedPlateforme || "",
   );
   const [showOnlyUnread, setShowOnlyUnread] = useState(
-    savedState.showOnlyUnread || false
+    savedState.showOnlyUnread || false,
   );
   const [dateFilter, setDateFilter] = useState(savedState.dateFilter || "all");
   const [customDateFrom, setCustomDateFrom] = useState(
-    savedState.customDateFrom || ""
+    savedState.customDateFrom || "",
   );
   const [customDateTo, setCustomDateTo] = useState(
-    savedState.customDateTo || ""
+    savedState.customDateTo || "",
   );
   const [deadlineFilter, setDeadlineFilter] = useState(
-    savedState.deadlineFilter || "all"
+    savedState.deadlineFilter || "all",
   );
   const [customDeadlineFrom, setCustomDeadlineFrom] = useState(
-    savedState.customDeadlineFrom || ""
+    savedState.customDeadlineFrom || "",
   );
   const [customDeadlineTo, setCustomDeadlineTo] = useState(
-    savedState.customDeadlineTo || ""
+    savedState.customDeadlineTo || "",
   );
   const [syncStatus, setSyncStatus] = useState({});
   const [isSyncing, setIsSyncing] = useState(false);
@@ -165,12 +166,19 @@ const Commandes = () => {
 
   // Hooks d'authentification
   const backblazeStatus = useBackblazeStatus(isAuthenticated);
+
   const meditlinkAuth = useMeditLinkAuth({
     autoRefresh: false,
     refreshInterval: 0,
     fetchOnMount: true,
   });
+
   const threeshapeAuth = useThreeShapeAuth();
+
+  // Hook Dexis
+  const dexisAuth = useDexisAuth({
+    refreshInterval: 10000, // check régulier
+  });
 
   // Hooks SWR pour les données
   const {
@@ -194,7 +202,7 @@ const Commandes = () => {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
       errorRetryCount: 3,
-    }
+    },
   );
 
   const {
@@ -212,7 +220,7 @@ const Commandes = () => {
       revalidateOnReconnect: true,
       refreshInterval: 60000,
       errorRetryCount: 3,
-    }
+    },
   );
 
   const {
@@ -231,7 +239,7 @@ const Commandes = () => {
     const nouveauStatutVu = !commandeCible.vu;
 
     const commandesOptimistes = commandes.map((c) =>
-      c.id === commandeCible.id ? { ...c, vu: nouveauStatutVu } : c
+      c.id === commandeCible.id ? { ...c, vu: nouveauStatutVu } : c,
     );
 
     await mutateCommandes(commandesOptimistes, false);
@@ -307,7 +315,17 @@ const Commandes = () => {
         }),
       pageChange: (page) => setCurrentPage(page),
     }),
-    [navigate]
+    [navigate],
+  );
+
+  // Construction de l'objet dexisStatus pour le hook
+  const dexisStatusObj = useMemo(
+    () => ({
+      authenticated: dexisAuth.isAuthenticated,
+      loading: dexisAuth.isLoading,
+      ...dexisAuth.authStatus,
+    }),
+    [dexisAuth],
   );
 
   const { stats, filteredCommandes, connectionStatus } = useCommandesData({
@@ -324,6 +342,7 @@ const Commandes = () => {
     customDeadlineTo,
     meditlinkAuth,
     threeshapeAuth,
+    dexisStatus: dexisStatusObj, // Passé ici
     backblazeStatus,
   });
 
@@ -335,7 +354,7 @@ const Commandes = () => {
     (platformName) => {
       syncPlatformCommandes(platformName, connectionStatus.get);
     },
-    [syncPlatformCommandes, connectionStatus.get]
+    [syncPlatformCommandes, connectionStatus.get],
   );
 
   const handleSyncAllPlatforms = useCallback(() => {

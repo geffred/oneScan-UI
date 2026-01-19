@@ -41,7 +41,7 @@ export const getCommandes = async () => {
   // Trier les commandes par date de réception décroissante (les plus récentes en premier)
   if (data && Array.isArray(data)) {
     return data.sort(
-      (a, b) => new Date(b.dateReception) - new Date(a.dateReception)
+      (a, b) => new Date(b.dateReception) - new Date(a.dateReception),
     );
   }
 
@@ -51,8 +51,8 @@ export const getCommandes = async () => {
 // Configuration des endpoints
 export const platformEndpoints = {
   MEDITLINK: `${API_BASE_URL}/meditlink/cases/save`,
-  ITERO: `${API_BASE_URL}/itero/commandes`,
+  ITERO: `${API_BASE_URL}/itero/commandes/save`, // ou /itero/commandes selon controller
   THREESHAPE: `${API_BASE_URL}/threeshape/cases/save`,
-  DEXIS: `${API_BASE_URL}/dexis/commandes`,
+  DEXIS: `${API_BASE_URL}/dexis/cases/sync`, // Endpoint corrigé pour la synchro Dexis
   CSCONNECT: `${API_BASE_URL}/csconnect/commandes`,
 };

@@ -60,7 +60,7 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
           : "Non connecté";
       case "DEXIS":
         return connectionStatus.authenticated
-          ? "Connecté à l'API"
+          ? "Connecté Dexis OAuth"
           : "Non connecté";
       case "CSCONNECT":
         return connectionStatus.authenticated

@@ -14,10 +14,11 @@ import AppareilGalleryPage from "./AppareilGalleryPage/AppareilGalleryPage";
 import CompteCabinet from "./CompteCabinet/CompteCabinet";
 import MeditLinkCallback from "./CallbackPages/MeditLinkCallback";
 import ThreeShapeCallback from "./CallbackPages/ThreeShapeCallback";
+import DexisCallback from "./CallbackPages/DexisCallback"; // <--- IMPORT AJOUTÉ
 import CabinetRegisterPage from "./CabinetRegisterPage/CabinetRegisterPage";
 import EmailVerificationPage from "./EmailVerificationPage/EmailVerificationPage";
 import GuideCommande from "./GuideCommande/GuideCommande";
-import GoogleDriveCallback from "./CallbackPages/GoogleDriveCallback";
+
 import ForgotPasswordPage from "./ForgotPasswordPage/ForgotPasswordPage";
 import ResetPasswordPage from "./ResetPasswordPage/ResetPasswordPage";
 
@@ -33,6 +34,8 @@ function App() {
           <Route path="/meditLink/callback" element={<MeditLinkCallback />} />
           <Route path="/3shapde/callback" element={<ThreeShapeCallback />} />
           <Route path="/3shape/callback" element={<ThreeShapeCallback />} />
+          <Route path="/dexis/callback" element={<DexisCallback />} />{" "}
+          {/* <--- ROUTE AJOUTÉE */}
           {/* ==================== PUBLIC ROUTES ==================== */}
           <Route path="/cabinet/register" element={<CabinetRegisterPage />} />
           <Route
@@ -48,9 +51,6 @@ function App() {
           <Route path="/compte" element={<Compte />} />
           <Route path="/suivi-commandes" element={<SuiviCommandesPage />} />
           <Route path="/appareils" element={<AppareilGalleryPage />} />
-          <Route path="/drive/callback" element={<GoogleDriveCallback />} />
-          <Route path="/" element={<GoogleDriveCallback />} />
-
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route
             path="/cabinet/reset-password"

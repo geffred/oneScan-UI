@@ -9,6 +9,7 @@ import {
   Download,
   CheckCircle,
   Shield,
+  Loader2,
 } from "lucide-react";
 
 const ActionCard = React.memo(
@@ -22,17 +23,17 @@ const ActionCard = React.memo(
     >
       <div
         className={`details-action-icon ${
-          title.includes("commande") ? "details-action-icon-ai" : ""
+          title.includes("Générer") ? "details-action-icon-ai" : ""
         }`}
       >
-        {isLoading ? <div className="details-download-spinner"></div> : icon}
+        {isLoading ? <Loader2 size={24} className="animate-spin" /> : icon}
       </div>
       <div className="details-action-text">
         <h4>{title}</h4>
         <p>{description}</p>
       </div>
     </button>
-  )
+  ),
 );
 
 const CommandeActions = ({
@@ -44,12 +45,35 @@ const CommandeActions = ({
   handleGenerateOrder,
   handleOpenBonCommande,
   handleSendEmailNotification,
-  handleOpenCertificat, // Nouvelle fonction
-  hasCertificat, // Nouveau prop
+  handleDownload, // Reçoit la fonction handleDownload unifiée du parent
+  handleOpenCertificat,
+  hasCertificat,
 }) => {
+  // Texte dynamique pour le bouton
+  const getDownloadLabel = () => {
+    if (commande.plateforme === "DEXIS") return "Télécharger le scan (Dexis)";
+    if (
+      commande.plateforme === "THREESHAPE" ||
+      commande.plateforme === "MEDITLINK"
+    )
+      return "Télécharger le scan (ZIP)";
+    return "Télécharger les fichiers";
+  };
+
   return (
     <div className="details-actions-section">
       <div className="details-actions-grid">
+        {/* 1. Télécharger Fichiers (Zip/Direct) */}
+        <ActionCard
+          onClick={handleDownload}
+          disabled={actionStates.download}
+          icon={<Download size={24} />}
+          title={getDownloadLabel()}
+          description="Télécharger tous les fichiers du cas (compressés si nécessaire)"
+          isLoading={actionStates.download}
+        />
+
+        {/* 2. Générer Bon de Commande */}
         <ActionCard
           onClick={handleGenerateOrder}
           disabled={actionStates.generate || isCommentLoading}
@@ -57,51 +81,46 @@ const CommandeActions = ({
           title="Générer le bon de commande"
           description={
             isCommentLoading
-              ? "Attente du chargement du commentaire..."
-              : "Analyser le commentaire et créer un bon de commande personnalisé avec l'assistance IA"
+              ? "Chargement..."
+              : "Analyse IA du commentaire pour créer le bon de commande"
           }
           isLoading={actionStates.generate}
         />
 
+        {/* 3. Télécharger PDF Bon de Commande */}
         <ActionCard
           onClick={handleOpenBonCommande}
           disabled={!canDownloadBonCommande}
           icon={<FileText size={24} />}
-          title="Télécharger le bon de commande"
+          title="Voir le bon de commande"
           description={
             canDownloadBonCommande
-              ? "Ouvrir et télécharger le bon de commande généré"
-              : "Le type d'appareil doit être défini pour télécharger le bon de commande"
+              ? "Visualiser et imprimer le PDF généré"
+              : "Type d'appareil requis"
           }
           isLoading={false}
         />
 
+        {/* 4. Certificat */}
         <ActionCard
-          onClick={handleOpenCertificat} // Nouveau bouton
+          onClick={handleOpenCertificat}
           disabled={!commande || !commande.id}
           icon={<Shield size={24} />}
-          title={
-            hasCertificat
-              ? "Gérer le certificat"
-              : "Créer certificat de conformité"
-          }
-          description={
-            hasCertificat
-              ? "Gérer ou télécharger le certificat de conformité"
-              : "Créer un certificat de conformité médicale"
-          }
+          title={hasCertificat ? "Gérer le certificat" : "Créer certificat"}
+          description="Gérer le certificat de conformité médicale"
           isLoading={false}
         />
 
+        {/* 5. Notification Email */}
         <ActionCard
           onClick={handleSendEmailNotification}
           disabled={actionStates.sendEmail || !canSendEmail}
           icon={<Mail size={24} />}
-          title="Envoyer notification par email"
+          title="Notifier par email"
           description={
             !canSendEmail
-              ? "Associez d'abord un cabinet pour envoyer une notification"
-              : "Envoyer une notification par email au cabinet associé"
+              ? "Cabinet requis"
+              : "Envoyer l'email de confirmation au cabinet"
           }
           isLoading={actionStates.sendEmail}
         />

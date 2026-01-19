@@ -20,15 +20,19 @@ const PlatformCard = React.memo(
     platform,
     onEdit,
     onDelete,
+    // Actions de connexion directes (Legacy ou Simple Modals)
     onConnect3Shape,
     onConnectMeditLink,
     onConnectItero,
-    onConnectDexis,
     onConnectCsConnect,
+    // Actions de déconnexion
     onDisconnectMeditLink,
     onDisconnectCsConnect,
+    // Actions d'ouverture de Dashboard
     onShowMeditLinkDashboard,
     onShowThreeShapeDashboard,
+    onShowDexisDashboard, // <--- NOUVEAU
+    // Objets d'état
     threeshapeStatus,
     meditlinkStatus,
     iteroStatus,
@@ -61,7 +65,7 @@ const PlatformCard = React.memo(
       if (isItero) return iteroStatus;
       if (isDexis) return dexisStatus;
       if (isCsConnect) return csconnectStatus;
-      // MySmileLab n'a pas besoin de statut de connexion
+      // MySmileLab n'a pas besoin de statut de connexion API
       if (isMySmileLab) return { authenticated: true, loading: false };
       return null;
     };
@@ -72,6 +76,7 @@ const PlatformCard = React.memo(
 
     return (
       <div className="platform-card-component">
+        {/* --- HEADER --- */}
         <div className="platform-card-component__header">
           <h3 className="platform-card-component__title">
             {getPlatformDisplayName()}
@@ -103,6 +108,7 @@ const PlatformCard = React.memo(
           </div>
         </div>
 
+        {/* --- INFO CONTENT --- */}
         <div className="platform-card-component__content">
           <div className="platform-card-component__info">
             <Mail size={16} className="platform-card-component__info-icon" />
@@ -113,6 +119,7 @@ const PlatformCard = React.memo(
             Configuré
           </div>
 
+          {/* Infos spécifiques MeditLink */}
           {isMeditLink && isConnected && meditlinkStatus?.userInfo && (
             <div className="platform-card-component__user-info">
               <Shield
@@ -123,6 +130,7 @@ const PlatformCard = React.memo(
             </div>
           )}
 
+          {/* Infos spécifiques 3Shape */}
           {is3Shape && isConnected && threeshapeStatus?.hasToken && (
             <div className="platform-card-component__user-info">
               <Link2
@@ -133,6 +141,7 @@ const PlatformCard = React.memo(
             </div>
           )}
 
+          {/* Infos spécifiques Itero */}
           {isItero && isConnected && (
             <div className="platform-card-component__user-info">
               <Link2
@@ -143,6 +152,7 @@ const PlatformCard = React.memo(
             </div>
           )}
 
+          {/* Infos spécifiques Dexis */}
           {isDexis && isConnected && (
             <div className="platform-card-component__user-info">
               <Link2
@@ -153,6 +163,7 @@ const PlatformCard = React.memo(
             </div>
           )}
 
+          {/* Infos spécifiques CS Connect */}
           {isCsConnect && isConnected && (
             <div className="platform-card-component__user-info">
               <Link2
@@ -163,6 +174,7 @@ const PlatformCard = React.memo(
             </div>
           )}
 
+          {/* Infos spécifiques MySmileLab */}
           {isMySmileLab && (
             <div className="platform-card-component__user-info">
               <CheckCircle
@@ -174,9 +186,10 @@ const PlatformCard = React.memo(
           )}
         </div>
 
+        {/* --- ACTIONS --- */}
         <div className="platform-card-component__actions">
           <div className="platform-card-component__actions-group">
-            {/* 3Shape Actions */}
+            {/* 1. 3Shape Actions */}
             {is3Shape && (
               <>
                 <button
@@ -206,7 +219,7 @@ const PlatformCard = React.memo(
               </>
             )}
 
-            {/* MeditLink Actions */}
+            {/* 2. MeditLink Actions */}
             {isMeditLink && (
               <>
                 {isConnected ? (
@@ -242,7 +255,7 @@ const PlatformCard = React.memo(
               </>
             )}
 
-            {/* Itero Actions */}
+            {/* 3. Itero Actions */}
             {isItero && (
               <button
                 onClick={() => onConnectItero(platform)}
@@ -260,35 +273,38 @@ const PlatformCard = React.memo(
                 {isLoading
                   ? "Connexion..."
                   : isConnected
-                  ? "Reconnecter"
-                  : "Connecter"}
+                    ? "Reconnecter"
+                    : "Connecter"}
               </button>
             )}
 
-            {/* Dexis Actions */}
+            {/* 4. DEXIS ACTIONS (Mise à jour pour Dashboard) */}
             {isDexis && (
-              <button
-                onClick={() => onConnectDexis(platform)}
-                className={`platform-card-component__connect-btn ${
-                  isConnected
-                    ? "platform-card-component__connect-btn--connected"
-                    : ""
-                }`}
-                disabled={isLoading}
-                aria-label={
-                  isConnected ? "Reconnecter à Dexis" : "Connecter à Dexis"
-                }
-              >
-                <Link2 size={16} />
-                {isLoading
-                  ? "Connexion..."
-                  : isConnected
-                  ? "Reconnecter"
-                  : "Connecter"}
-              </button>
+              <>
+                {isConnected ? (
+                  <button
+                    onClick={() => onShowDexisDashboard(platform)}
+                    className="platform-card-component__dashboard-btn"
+                    aria-label="Tableau de bord Dexis"
+                  >
+                    <Activity size={16} />
+                    Dashboard
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => onShowDexisDashboard(platform)}
+                    className="platform-card-component__connect-btn"
+                    disabled={isLoading}
+                    aria-label="Connecter à Dexis"
+                  >
+                    <Link2 size={16} />
+                    {isLoading ? "Connexion..." : "Connecter OAuth"}
+                  </button>
+                )}
+              </>
             )}
 
-            {/* CS Connect Actions */}
+            {/* 5. CS Connect Actions */}
             {isCsConnect && (
               <>
                 {isConnected ? (
@@ -332,7 +348,7 @@ const PlatformCard = React.memo(
               </>
             )}
 
-            {/* MySmileLab - Pas d'action de connexion nécessaire */}
+            {/* 6. MySmileLab Info */}
             {isMySmileLab && (
               <div className="platform-card-component__platform-note">
                 <CheckCircle size={16} />
@@ -341,6 +357,7 @@ const PlatformCard = React.memo(
             )}
           </div>
 
+          {/* Boutons d'édition globaux */}
           <button
             onClick={() => onEdit(platform)}
             className="platform-card-component__edit-btn"
@@ -358,7 +375,7 @@ const PlatformCard = React.memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 PlatformCard.displayName = "PlatformCard";

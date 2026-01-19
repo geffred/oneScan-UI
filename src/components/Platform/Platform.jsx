@@ -6,74 +6,80 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
 import useSWR from "swr";
-import { Server, Plus, Search, Monitor, Mail } from "lucide-react";
+import { Server, Plus, Search } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
+// Components
 import PlatformCard from "./components/PlatformCard/PlatformCard";
 import PlatformModal from "./components/PlatformModal/PlatformModal";
-import ThreeShapeOAuthModal from "./components/modals/3shape/ThreeShapeOAuthModal";
-import MeditLinkOAuthModal from "./components/modals/MeditLink/MeditLinkOAuthModal";
-import IteroOAuthModal from "./components/modals/Itero/IteroOAuthModal";
-import DexisOAuthModal from "./components/modals/Dexis/DexisOAuthModal";
-import Csconnect from "./components/modals/Csconnect";
-import ThreeShapeDashboardModal from "./components/modals/3shape/ThreeShapeDashboardModal";
-import MeditLinkDashboardModal from "./components/modals/MeditLink/MeditLinkDashboardModal";
 import ListLoadingSpinner from "./components/Loading/ListLoadingSpinner";
 import EmptyState from "./components/Loading/EmptyState";
 
+// Modals OAuth & Dashboards
+import ThreeShapeOAuthModal from "./components/modals/3shape/ThreeShapeOAuthModal";
+import ThreeShapeDashboardModal from "./components/modals/3shape/ThreeShapeDashboardModal";
+import MeditLinkOAuthModal from "./components/modals/MeditLink/MeditLinkOAuthModal";
+import MeditLinkDashboardModal from "./components/modals/MeditLink/MeditLinkDashboardModal";
+import IteroOAuthModal from "./components/modals/Itero/IteroOAuthModal";
+import Csconnect from "./components/modals/Csconnect";
+
+// --- NOUVEAU : Import du Dashboard Dexis ---
+import DexisDashboardModal from "./components/modals/Dexis/DexisDashboardModal";
+
+// Hooks Custom Auth
 import useMeditLinkAuth from "../Config/useMeditLinkAuth";
 import useThreeShapeAuth from "../Config/useThreeShapeAuth";
-import {
-  fetchWithAuth,
-  getUserData,
-  getUserPlatforms,
-  checkPlatformStatus,
-} from "./utils/platformUtils";
-import { platformTypes } from "./constants/platformConstants";
+// --- NOUVEAU : Import du Hook Dexis ---
+import useDexisAuth from "../../components/Config/useDexisAuth";
 
+// Utils
+import { getUserData, getUserPlatforms } from "./utils/platformUtils";
 import "./Platform.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Platform = () => {
   const { isAuthenticated } = useContext(AuthContext);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // --- UI States ---
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal création/édition plateforme
   const [editingPlatform, setEditingPlatform] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // --- Dashboard States ---
   const [showThreeShapeDashboard, setShowThreeShapeDashboard] = useState(false);
   const [showMeditLinkDashboard, setShowMeditLinkDashboard] = useState(false);
+  const [showDexisDashboard, setShowDexisDashboard] = useState(false); // Nouveau state
+
+  // --- OAuth Modals States (Pour ceux qui n'ont pas encore de dashboard complet) ---
   const [is3ShapeModalOpen, setIs3ShapeModalOpen] = useState(false);
   const [isMeditLinkModalOpen, setIsMeditLinkModalOpen] = useState(false);
   const [isIteroModalOpen, setIsIteroModalOpen] = useState(false);
-  const [isDexisModalOpen, setIsDexisModalOpen] = useState(false);
   const [isCsConnectModalOpen, setIsCsConnectModalOpen] = useState(false);
 
+  // --- Manual Status States (Legacy) ---
   const [iteroStatus, setIteroStatus] = useState({
     authenticated: false,
     loading: false,
     error: null,
   });
-  const [dexisStatus, setDexisStatus] = useState({
-    authenticated: false,
-    loading: false,
-    error: null,
-  });
+
   const [csConnectStatus, setCsConnectStatus] = useState({
     authenticated: false,
     loading: false,
     error: null,
   });
 
-  const navigate = useNavigate();
-  const location = useLocation();
+  // =========================================================================
+  // 1. HOOKS D'AUTHENTIFICATION
+  // =========================================================================
 
-  // Hooks d'authentification
+  // --- MeditLink ---
   const {
     authStatus: meditlinkAuthStatus,
     userInfo: meditlinkUserInfo,
@@ -82,14 +88,13 @@ const Platform = () => {
     isAuthenticated: meditlinkAuthenticated,
     initiateAuth: startMeditlinkAuth,
     logout: meditlinkLogout,
-    refresh: refreshMeditlink,
-    clearError: clearMeditlinkError,
   } = useMeditLinkAuth({
     autoRefresh: false,
     refreshInterval: 0,
     fetchOnMount: true,
   });
 
+  // --- 3Shape ---
   const {
     authStatus: threeshapeAuthStatus,
     isLoading: threeshapeLoading,
@@ -97,25 +102,32 @@ const Platform = () => {
     isAuthenticated: threeshapeAuthenticated,
     hasToken: threeshapeHasToken,
     initiateAuth: startThreeshapeAuth,
-    refresh: refreshThreeshape,
-    clearError: clearThreeshapeError,
   } = useThreeShapeAuth();
 
-  // SWR hooks pour les données
+  // --- Dexis (NOUVEAU) ---
   const {
-    data: userData,
-    error: userError,
-    isLoading: userLoading,
-  } = useSWR(isAuthenticated ? "user-data" : null, getUserData, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: true,
-    errorRetryCount: 3,
-    errorRetryInterval: 1000,
+    authStatus: dexisAuthStatus,
+    isLoading: dexisLoading,
+    isAuthenticated: dexisAuthenticated,
+  } = useDexisAuth({
+    refreshInterval: 10000,
   });
+
+  // =========================================================================
+  // 2. DATA FETCHING (SWR)
+  // =========================================================================
+
+  const { data: userData, isLoading: userLoading } = useSWR(
+    isAuthenticated ? "user-data" : null,
+    getUserData,
+    {
+      revalidateOnFocus: false,
+      errorRetryCount: 3,
+    },
+  );
 
   const {
     data: platforms = [],
-    error: platformsError,
     isLoading: platformsLoading,
     mutate: mutatePlatforms,
   } = useSWR(
@@ -123,22 +135,15 @@ const Platform = () => {
     () => getUserPlatforms(userData.id),
     {
       revalidateOnFocus: false,
-      revalidateOnReconnect: true,
       refreshInterval: 30000,
-      errorRetryCount: 3,
-      onSuccess: (data) => {
-        console.log(" Plateformes chargées:", data);
-        console.log(
-          "🔍 CSCONNECT présent?",
-          data.filter((p) => p.name === "CSCONNECT")
-        );
-      },
-      onError: (err) => {
-        console.error("❌ Erreur chargement plateformes:", err);
-      },
-    }
+    },
   );
 
+  // =========================================================================
+  // 3. HANDLERS SPECIFIQUES
+  // =========================================================================
+
+  // --- 3Shape ---
   const handleStartThreeShapeAuth = useCallback(async () => {
     try {
       setIs3ShapeModalOpen(false);
@@ -146,33 +151,36 @@ const Platform = () => {
       setSuccess("Authentification 3Shape lancée - vérifiez le nouvel onglet");
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(
-        "Erreur lors du lancement de l'authentification 3Shape: " + err.message
-      );
+      setError("Erreur 3Shape: " + err.message);
       setTimeout(() => setError(null), 5000);
     }
   }, [startThreeshapeAuth]);
 
-  // Fonctions pour vérifier les statuts
+  // --- MeditLink ---
+  const handleMeditLinkDisconnect = useCallback(
+    async (platform) => {
+      if (!window.confirm("Êtes-vous sûr de vouloir déconnecter MeditLink ?"))
+        return;
+      try {
+        await meditlinkLogout();
+        setSuccess("Déconnexion MeditLink réussie");
+        setTimeout(() => setSuccess(null), 3000);
+      } catch (err) {
+        setError(err.message);
+      }
+    },
+    [meditlinkLogout],
+  );
+
+  // --- Itero (Manual Check) ---
   const checkIteroStatus = useCallback(async () => {
     try {
       setIteroStatus((prev) => ({ ...prev, loading: true, error: null }));
-
       const token = localStorage.getItem("token");
-      if (!token) {
-        setIteroStatus({
-          authenticated: false,
-          loading: false,
-          error: "Token manquant",
-        });
-        return;
-      }
+      if (!token) return;
 
       const response = await fetch(`${API_BASE_URL}/itero/status`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
@@ -186,7 +194,7 @@ const Platform = () => {
         setIteroStatus({
           authenticated: false,
           loading: false,
-          error: "Erreur de vérification",
+          error: "Erreur check",
         });
       }
     } catch (error) {
@@ -198,69 +206,42 @@ const Platform = () => {
     }
   }, []);
 
-  const checkDexisStatus = useCallback(async () => {
+  const handleStartIteroAuth = useCallback(async () => {
     try {
-      setDexisStatus((prev) => ({ ...prev, loading: true, error: null }));
-
+      setIsIteroModalOpen(false);
+      setIteroStatus((prev) => ({ ...prev, loading: true }));
       const token = localStorage.getItem("token");
-      if (!token) {
-        setDexisStatus({
-          authenticated: false,
-          loading: false,
-          error: "Token manquant",
-        });
-        return;
-      }
 
-      const response = await fetch(`${API_BASE_URL}/dexis/status`, {
+      const response = await fetch(`${API_BASE_URL}/itero/login`, {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setDexisStatus({
-          authenticated: data.apiStatus === "Connecté",
-          loading: false,
-          error: null,
-        });
+      const data = await response.json();
+      if (data.success) {
+        setIteroStatus({ authenticated: true, loading: false, error: null });
+        setSuccess("Connexion Itero réussie !");
       } else {
-        setDexisStatus({
-          authenticated: false,
-          loading: false,
-          error: "Erreur de vérification",
-        });
+        throw new Error(data.error || "Erreur inconnue");
       }
-    } catch (error) {
-      setDexisStatus({
-        authenticated: false,
-        loading: false,
-        error: error.message,
-      });
+    } catch (err) {
+      setError("Erreur Itero: " + err.message);
+      setIteroStatus((prev) => ({ ...prev, loading: false }));
     }
   }, []);
 
+  // --- CS Connect (Manual Check) ---
   const checkCsConnectStatus = useCallback(async () => {
     try {
-      setCsConnectStatus((prev) => ({ ...prev, loading: true, error: null }));
-
+      setCsConnectStatus((prev) => ({ ...prev, loading: true }));
       const token = localStorage.getItem("token");
-      if (!token) {
-        setCsConnectStatus({
-          authenticated: false,
-          loading: false,
-          error: "Token manquant",
-        });
-        return;
-      }
+      if (!token) return;
 
       const response = await fetch(`${API_BASE_URL}/csconnect/status`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
@@ -270,17 +251,11 @@ const Platform = () => {
           loading: false,
           error: null,
         });
-      } else if (response.status === 401) {
-        setCsConnectStatus({
-          authenticated: false,
-          loading: false,
-          error: null,
-        });
       } else {
         setCsConnectStatus({
           authenticated: false,
           loading: false,
-          error: "Erreur de vérification",
+          error: null,
         });
       }
     } catch (error) {
@@ -292,187 +267,55 @@ const Platform = () => {
     }
   }, []);
 
-  // Handlers pour Itero
-  const handleStartIteroAuth = useCallback(async () => {
-    try {
-      setIsIteroModalOpen(false);
-      setIteroStatus((prev) => ({ ...prev, loading: true }));
-
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE_URL}/itero/login`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          "le service de Scraping Itero est actuellement indisponible "
-        );
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setIteroStatus({
-          authenticated: true,
-          loading: false,
-          error: null,
-        });
-        setSuccess("Connexion Itero réussie !");
-        setTimeout(() => setSuccess(null), 5000);
-      } else {
-        throw new Error(data.error || "Erreur lors de la connexion");
-      }
-    } catch (err) {
-      setError("Erreur lors de la connexion Itero: " + err.message);
-      setIteroStatus((prev) => ({ ...prev, loading: false }));
-      setTimeout(() => setError(null), 5000);
-    }
-  }, []);
-
-  // Handlers pour Dexis
-  const handleStartDexisAuth = useCallback(async () => {
-    try {
-      setIsDexisModalOpen(false);
-      setDexisStatus((prev) => ({ ...prev, loading: true }));
-
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE_URL}/dexis/login`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la connexion à Dexis");
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setDexisStatus({
-          authenticated: true,
-          loading: false,
-          error: null,
-        });
-        setSuccess(data.message || "Connexion Dexis réussie !");
-        setTimeout(() => setSuccess(null), 5000);
-      } else {
-        throw new Error(data.error || "Erreur lors de la connexion");
-      }
-    } catch (err) {
-      setError("Erreur lors de la connexion Dexis: " + err.message);
-      setDexisStatus((prev) => ({ ...prev, loading: false }));
-      setTimeout(() => setError(null), 5000);
-    }
-  }, []);
-
-  // Handlers pour CS Connect
   const handleStartCsConnectAuth = useCallback(async () => {
+    // Logique similaire à Itero...
     try {
       setIsCsConnectModalOpen(false);
-      setCsConnectStatus((prev) => ({ ...prev, loading: true }));
-
+      setCsConnectStatus((p) => ({ ...p, loading: true }));
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE_URL}/csconnect/login`, {
+      const res = await fetch(`${API_BASE_URL}/csconnect/login`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la connexion à CS Connect");
-      }
-
-      const data = await response.json();
-
+      const data = await res.json();
       if (data.success) {
         setCsConnectStatus({
           authenticated: true,
           loading: false,
           error: null,
         });
-        setSuccess(data.message || "Connexion CS Connect réussie !");
-        setTimeout(() => setSuccess(null), 5000);
+        setSuccess("Connexion CS Connect réussie");
       } else {
-        throw new Error(data.error || "Erreur lors de la connexion");
+        throw new Error(data.error);
       }
-    } catch (err) {
-      setError("Erreur lors de la connexion CS Connect: " + err.message);
-      setCsConnectStatus((prev) => ({ ...prev, loading: false }));
-      setTimeout(() => setError(null), 5000);
+    } catch (e) {
+      setError(e.message);
+      setCsConnectStatus((p) => ({ ...p, loading: false }));
     }
   }, []);
 
-  // Handler pour déconnexion CS Connect
   const handleCsConnectDisconnect = useCallback(async () => {
-    if (!window.confirm("Êtes-vous sûr de vouloir déconnecter CS Connect ?")) {
-      return;
-    }
-
+    if (!window.confirm("Déconnecter CS Connect ?")) return;
     try {
-      setCsConnectStatus((prev) => ({ ...prev, loading: true }));
-
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE_URL}/csconnect/logout`, {
+      await fetch(`${API_BASE_URL}/csconnect/logout`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setCsConnectStatus({
-            authenticated: false,
-            loading: false,
-            error: null,
-          });
-          setSuccess("Déconnexion CS Connect réussie");
-          setTimeout(() => setSuccess(null), 3000);
-        } else {
-          throw new Error(data.error || "Erreur lors de la déconnexion");
-        }
-      } else {
-        throw new Error("Erreur lors de la déconnexion");
-      }
-    } catch (err) {
-      setError("Erreur lors de la déconnexion CS Connect: " + err.message);
-      setCsConnectStatus((prev) => ({ ...prev, loading: false }));
-      setTimeout(() => setError(null), 5000);
+      setCsConnectStatus({ authenticated: false, loading: false, error: null });
+      setSuccess("Déconnecté");
+    } catch (e) {
+      setError(e.message);
     }
   }, []);
 
-  // Handler pour MeditLink Disconnect
-  const handleMeditLinkDisconnect = useCallback(
-    async (platform) => {
-      if (!window.confirm("Êtes-vous sûr de vouloir déconnecter MeditLink ?")) {
-        return;
-      }
+  // =========================================================================
+  // 4. ETATS COMBINÉS & MEMO
+  // =========================================================================
 
-      try {
-        await meditlinkLogout();
-        setSuccess("Déconnexion MeditLink réussie");
-        setTimeout(() => setSuccess(null), 3000);
-        console.log("Déconnexion MeditLink réussie");
-      } catch (err) {
-        setError("Erreur lors de la déconnexion MeditLink: " + err.message);
-        setTimeout(() => setError(null), 5000);
-      }
-    },
-    [meditlinkLogout]
-  );
-
-  // États combinés mémorisés
   const combinedMeditlinkStatus = useMemo(
     () => ({
       authenticated: meditlinkAuthenticated,
@@ -487,7 +330,7 @@ const Platform = () => {
       meditlinkLoading,
       meditlinkError,
       meditlinkAuthStatus,
-    ]
+    ],
   );
 
   const combinedThreeshapeStatus = useMemo(
@@ -504,19 +347,32 @@ const Platform = () => {
       threeshapeLoading,
       threeshapeError,
       threeshapeAuthStatus,
-    ]
+    ],
   );
 
-  // Filtrage mémorisé
+  // --- Dexis Combiné ---
+  const combinedDexisStatus = useMemo(
+    () => ({
+      authenticated: dexisAuthenticated,
+      loading: dexisLoading,
+      ...dexisAuthStatus,
+    }),
+    [dexisAuthenticated, dexisLoading, dexisAuthStatus],
+  );
+
   const filteredPlatforms = useMemo(() => {
     if (!searchTerm) return platforms;
     const term = searchTerm.toLowerCase();
     return platforms.filter(
-      (platform) =>
-        platform.name.toLowerCase().includes(term) ||
-        platform.email.toLowerCase().includes(term)
+      (p) =>
+        p.name.toLowerCase().includes(term) ||
+        p.email.toLowerCase().includes(term),
     );
   }, [platforms, searchTerm]);
+
+  // =========================================================================
+  // 5. CRUD PLATEFORME
+  // =========================================================================
 
   const handleSubmit = useCallback(
     async (values, { setSubmitting, resetForm }) => {
@@ -527,162 +383,92 @@ const Platform = () => {
           : `${API_BASE_URL}/platforms`;
         const method = editingPlatform ? "PUT" : "POST";
 
-        const platformData = {
-          name: values.name,
-          email: values.email,
-          userId: userData.id,
-        };
-
-        console.log("📤 Envoi des données:", platformData);
-
         const response = await fetch(url, {
           method,
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(platformData),
+          body: JSON.stringify({ ...values, userId: userData.id }),
         });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(
-            `Erreur ${response.status}: ${errorText || "Erreur inconnue"}`
-          );
-        }
-
+        if (!response.ok) throw new Error("Erreur sauvegarde plateforme");
         const data = await response.json();
-
-        console.log("✅ Réponse reçue:", data);
 
         if (editingPlatform) {
           mutatePlatforms(
             platforms.map((p) => (p.id === data.id ? data : p)),
-            false
+            false,
           );
-          setSuccess("Plateforme modifiée avec succès");
+          setSuccess("Plateforme modifiée");
         } else {
           mutatePlatforms([...platforms, data], false);
-          setSuccess("Plateforme créée avec succès");
+          setSuccess("Plateforme créée");
         }
 
         setIsModalOpen(false);
         setEditingPlatform(null);
         resetForm();
         setTimeout(() => setSuccess(null), 3000);
-        mutatePlatforms();
+        mutatePlatforms(); // Revalidate
       } catch (err) {
-        console.error("❌ Erreur détaillée:", err);
         setError(err.message);
-        setTimeout(() => setError(null), 5000);
       } finally {
         setSubmitting(false);
       }
     },
-    [editingPlatform, userData?.id, platforms, mutatePlatforms]
+    [editingPlatform, userData?.id, platforms, mutatePlatforms],
   );
 
   const handleEdit = useCallback((platform) => {
-    const platformToEdit = {
-      id: platform.id,
-      name: platform.name,
-      email: platform.email,
-    };
-    setEditingPlatform(platformToEdit);
+    setEditingPlatform(platform);
     setIsModalOpen(true);
   }, []);
 
   const handleDelete = useCallback(
     async (platformId) => {
-      if (
-        !window.confirm("Êtes-vous sûr de vouloir supprimer cette plateforme ?")
-      ) {
-        return;
-      }
-
+      if (!window.confirm("Supprimer cette plateforme ?")) return;
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(
-          `${API_BASE_URL}/platforms/${platformId}`,
-          {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Erreur lors de la suppression de la plateforme");
-        }
-
+        await fetch(`${API_BASE_URL}/platforms/${platformId}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
         mutatePlatforms(
           platforms.filter((p) => p.id !== platformId),
-          false
+          false,
         );
-        setSuccess("Plateforme supprimée avec succès");
+        setSuccess("Plateforme supprimée");
         setTimeout(() => setSuccess(null), 3000);
         mutatePlatforms();
       } catch (err) {
         setError(err.message);
-        setTimeout(() => setError(null), 3000);
-        mutatePlatforms();
       }
     },
-    [platforms, mutatePlatforms]
+    [platforms, mutatePlatforms],
   );
 
-  const openCreateModal = useCallback(() => {
-    setEditingPlatform(null);
-    setIsModalOpen(true);
-  }, []);
+  // =========================================================================
+  // 6. EFFECTS
+  // =========================================================================
 
-  const closeModal = useCallback(() => {
-    setIsModalOpen(false);
-    setEditingPlatform(null);
-  }, []);
-
-  const handleSearchChange = useCallback((e) => {
-    setSearchTerm(e.target.value);
-  }, []);
-
-  // Redirection si non authentifié
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
+    if (!isAuthenticated) navigate("/login");
   }, [isAuthenticated, navigate]);
 
-  // Vérifier les statuts au chargement
   useEffect(() => {
     if (isAuthenticated) {
       checkIteroStatus();
-      checkDexisStatus();
       checkCsConnectStatus();
+      // Dexis et autres sont gérés par leurs hooks respectifs
     }
-  }, [
-    isAuthenticated,
-    checkIteroStatus,
-    checkDexisStatus,
-    checkCsConnectStatus,
-  ]);
+  }, [isAuthenticated, checkIteroStatus, checkCsConnectStatus]);
 
-  // Debug: afficher les plateformes chargées
-  useEffect(() => {
-    if (platforms.length > 0) {
-      console.log("📊 Plateformes disponibles:", platforms);
-      const csConnectPlatforms = platforms.filter(
-        (p) => p.name === "CSCONNECT"
-      );
-      if (csConnectPlatforms.length === 0) {
-        console.log("⚠️ CSCONNECT n'est pas dans les plateformes chargées");
-      } else {
-        console.log("✅ CSCONNECT trouvé:", csConnectPlatforms);
-      }
-    }
-  }, [platforms]);
+  if (!isAuthenticated) return null;
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  // =========================================================================
+  // 7. RENDER
+  // =========================================================================
 
   return (
     <div className="platform-main-wrapper">
@@ -698,7 +484,10 @@ const Platform = () => {
             </h1>
             <div className="platform-header-actions">
               <button
-                onClick={openCreateModal}
+                onClick={() => {
+                  setEditingPlatform(null);
+                  setIsModalOpen(true);
+                }}
                 className="platform-create-btn"
                 disabled={userLoading || !userData}
               >
@@ -708,13 +497,13 @@ const Platform = () => {
             </div>
           </div>
 
-          {/* Status Messages */}
+          {/* Notifications */}
           {error && <div className="platform-error-notification">{error}</div>}
           {success && (
             <div className="platform-success-notification">{success}</div>
           )}
 
-          {/* Search Bar */}
+          {/* Search */}
           <div className="platform-search-section">
             <div className="platform-search-wrapper">
               <Search className="platform-search-icon" />
@@ -723,12 +512,12 @@ const Platform = () => {
                 placeholder="Rechercher une plateforme..."
                 className="platform-search-input"
                 value={searchTerm}
-                onChange={handleSearchChange}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Platforms List */}
+          {/* Grid */}
           <div className="platform-list-container">
             {platformsLoading ? (
               <ListLoadingSpinner />
@@ -740,25 +529,30 @@ const Platform = () => {
                   <PlatformCard
                     key={platform.id}
                     platform={platform}
+                    // Actions CRUD
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    // Modals OAuth (Simples)
                     onConnect3Shape={() => setIs3ShapeModalOpen(true)}
                     onConnectMeditLink={() => setIsMeditLinkModalOpen(true)}
                     onConnectItero={() => setIsIteroModalOpen(true)}
-                    onConnectDexis={() => setIsDexisModalOpen(true)}
                     onConnectCsConnect={() => setIsCsConnectModalOpen(true)}
+                    // Disconnect Handlers
                     onDisconnectMeditLink={handleMeditLinkDisconnect}
                     onDisconnectCsConnect={handleCsConnectDisconnect}
+                    // Dashboard Openers
                     onShowMeditLinkDashboard={() =>
                       setShowMeditLinkDashboard(true)
                     }
                     onShowThreeShapeDashboard={() =>
                       setShowThreeShapeDashboard(true)
                     }
+                    onShowDexisDashboard={() => setShowDexisDashboard(true)} // <-- Nouveau Handler Dexis
+                    // Status Objects
                     threeshapeStatus={combinedThreeshapeStatus}
                     meditlinkStatus={combinedMeditlinkStatus}
+                    dexisStatus={combinedDexisStatus} // <-- Nouveau Statut Dexis
                     iteroStatus={iteroStatus}
-                    dexisStatus={dexisStatus}
                     csconnectStatus={csConnectStatus}
                   />
                 ))}
@@ -768,11 +562,16 @@ const Platform = () => {
         </div>
       </div>
 
-      {/* Modals */}
+      {/* --- MODALS --- */}
+
+      {/* CRUD Plateforme */}
       {isModalOpen && !userLoading && userData && (
         <PlatformModal
           isOpen={isModalOpen}
-          onClose={closeModal}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingPlatform(null);
+          }}
           editingPlatform={editingPlatform}
           initialValues={{
             name: editingPlatform?.name || "",
@@ -782,6 +581,7 @@ const Platform = () => {
         />
       )}
 
+      {/* Dashboards Complets */}
       <ThreeShapeDashboardModal
         isOpen={showThreeShapeDashboard}
         onClose={() => setShowThreeShapeDashboard(false)}
@@ -792,6 +592,13 @@ const Platform = () => {
         onClose={() => setShowMeditLinkDashboard(false)}
       />
 
+      {/* NOUVEAU : Dashboard Dexis */}
+      <DexisDashboardModal
+        isOpen={showDexisDashboard}
+        onClose={() => setShowDexisDashboard(false)}
+      />
+
+      {/* Simple OAuth Modals */}
       <ThreeShapeOAuthModal
         isOpen={is3ShapeModalOpen}
         onClose={() => setIs3ShapeModalOpen(false)}
@@ -811,13 +618,6 @@ const Platform = () => {
         onClose={() => setIsIteroModalOpen(false)}
         onStartAuth={handleStartIteroAuth}
         isLoading={iteroStatus.loading}
-      />
-
-      <DexisOAuthModal
-        isOpen={isDexisModalOpen}
-        onClose={() => setIsDexisModalOpen(false)}
-        onStartAuth={handleStartDexisAuth}
-        isLoading={dexisStatus.loading}
       />
 
       <Csconnect

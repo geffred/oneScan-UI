@@ -7,7 +7,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const platformEndpoints = {
   MEDITLINK: `${API_BASE_URL}/meditlink/cases/save`,
   ITERO: `${API_BASE_URL}/itero/commandes/save`,
-  DEXIS: `${API_BASE_URL}/dexis/commandes/save`,
+  DEXIS: `${API_BASE_URL}/dexis/cases/sync`, // Endpoint corrigé (GET)
   THREESHAPE: `${API_BASE_URL}/threeshape/cases/save`,
   CSCONNECT: `${API_BASE_URL}/csconnect/commandes`,
 };
@@ -60,9 +60,11 @@ export const useSyncPlatforms = ({
           let totalCount = 0;
 
           if (platformName === "DEXIS") {
-            savedCount = result.savedCount || result.count || 0;
-            updatedCount = result.updatedCount || 0;
-            totalCount = savedCount + updatedCount;
+            // Adaptation à la réponse du DexisController
+            // { success: true, syncedCount: 5, message: "..." }
+            savedCount = result.syncedCount || 0;
+            updatedCount = result.updatedCount || 0; // Si géré par le backend
+            totalCount = savedCount;
           } else if (platformName === "CSCONNECT") {
             const commandes = result.commandes || result;
             totalCount = Array.isArray(commandes) ? commandes.length : 0;
@@ -108,15 +110,21 @@ export const useSyncPlatforms = ({
           const errorText = await response.text();
           console.error(`Erreur ${platformName}:`, errorText);
 
+          // Cas spécifique 401 Dexis
+          let errorMessage = `Erreur: ${response.status}`;
+          if (platformName === "DEXIS" && response.status === 401) {
+            errorMessage = "Session expirée. Veuillez vous reconnecter.";
+          }
+
           setSyncStatus((prev) => ({
             ...prev,
             [platformName]: {
               status: "error",
-              message: `Erreur de synchronisation: ${response.status}`,
+              message: errorMessage,
             },
           }));
 
-          toast.error(`${platformName}: Erreur de synchronisation`, {
+          toast.error(`${platformName}: ${errorMessage}`, {
             position: "top-right",
             autoClose: 5000,
           });
@@ -148,13 +156,13 @@ export const useSyncPlatforms = ({
         });
       }, 5000);
     },
-    [mutateCommandes, setSyncStatus]
+    [mutateCommandes, setSyncStatus],
   );
 
   // Fonctions spécifiques pour chaque plateforme
   const syncMeditLinkCommandes = useCallback(async () => {
     const endpoint = `${API_BASE_URL}/meditlink/cases/save?page=0&size=20`;
-    await syncPlatform("MEDITLINK", endpoint, "POST");
+    await syncPlatform("MEDITLINK", endpoint, "POST"); // MeditLink reste souvent en POST ou GET selon implémentation
   }, [syncPlatform]);
 
   const syncIteroCommandes = useCallback(async () => {
@@ -163,8 +171,9 @@ export const useSyncPlatforms = ({
   }, [syncPlatform]);
 
   const syncDexisCommandes = useCallback(async () => {
-    const endpoint = `${API_BASE_URL}/dexis/commandes/save`;
-    await syncPlatform("DEXIS", endpoint, "POST");
+    // DEXIS utilise GET pour la synchro selon le DexisController
+    const endpoint = `${API_BASE_URL}/dexis/cases/sync?limit=20`;
+    await syncPlatform("DEXIS", endpoint, "GET");
   }, [syncPlatform]);
 
   const syncCsConnectCommandes = useCallback(async () => {
@@ -181,14 +190,17 @@ export const useSyncPlatforms = ({
       }
 
       // Déterminer la méthode HTTP en fonction de la plateforme
+      // DEXIS ajouté à la liste des GET
       const method =
-        platformName === "MEDITLINK" || platformName === "THREESHAPE"
+        platformName === "MEDITLINK" ||
+        platformName === "THREESHAPE" ||
+        platformName === "DEXIS"
           ? "GET"
           : "POST";
 
       await syncPlatform(platformName, endpoint, method);
     },
-    [syncPlatform]
+    [syncPlatform],
   );
 
   // Fonction pour synchroniser une plateforme spécifique
@@ -224,7 +236,7 @@ export const useSyncPlatforms = ({
       syncDexisCommandes,
       syncCsConnectCommandes,
       syncOtherPlatform,
-    ]
+    ],
   );
 
   // Fonction pour synchroniser toutes les plateformes connectées
@@ -286,7 +298,7 @@ export const useSyncPlatforms = ({
       syncCsConnectCommandes,
       syncOtherPlatform,
       setIsSyncing,
-    ]
+    ],
   );
 
   // Exposer les fonctions

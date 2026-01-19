@@ -17,7 +17,7 @@ export const useCommandesData = ({
   threeshapeAuth,
   backblazeStatus,
   iteroStatus,
-  dexisStatus,
+  dexisStatus, // Reçu depuis le hook useDexisAuth dans Commandes.jsx
   csconnectStatus,
 }) => {
   // Fonction pour obtenir le statut de connexion d'une plateforme
@@ -38,19 +38,20 @@ export const useCommandesData = ({
           };
         case "ITERO":
           return {
-            authenticated: iteroStatus?.authenticated || true,
+            authenticated: iteroStatus?.authenticated || false,
             loading: iteroStatus?.loading || false,
             error: iteroStatus?.error || null,
           };
         case "DEXIS":
           return {
-            authenticated: dexisStatus?.authenticated || true,
+            authenticated: dexisStatus?.authenticated || false,
             loading: dexisStatus?.loading || false,
             error: dexisStatus?.error || null,
+            // On peut ajouter d'autres infos si le hook useDexisAuth en renvoie
           };
         case "CSCONNECT":
           return {
-            authenticated: csconnectStatus?.authenticated || true,
+            authenticated: csconnectStatus?.authenticated || false,
             loading: csconnectStatus?.loading || false,
             error: csconnectStatus?.error || null,
           };
@@ -77,7 +78,7 @@ export const useCommandesData = ({
       dexisStatus,
       csconnectStatus,
       backblazeStatus,
-    ]
+    ],
   );
 
   // Fonction pour filtrer par date de réception
@@ -110,7 +111,7 @@ export const useCommandesData = ({
           return true;
       }
     },
-    [dateFilter, customDateFrom, customDateTo]
+    [dateFilter, customDateFrom, customDateTo],
   );
 
   // Fonction pour filtrer par date d'échéance
@@ -153,7 +154,7 @@ export const useCommandesData = ({
           const monthEnd = new Date(
             today.getFullYear(),
             today.getMonth() + 1,
-            0
+            0,
           );
           monthEnd.setHours(23, 59, 59, 999);
           return echeance >= today && echeance <= monthEnd;
@@ -174,7 +175,7 @@ export const useCommandesData = ({
           return true;
       }
     },
-    [deadlineFilter, customDeadlineFrom, customDeadlineTo]
+    [deadlineFilter, customDeadlineFrom, customDeadlineTo],
   );
 
   // Calcul des statistiques mémorisées
