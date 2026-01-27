@@ -405,74 +405,88 @@ const CommandeDetails = () => {
         }
       }
 
-      // -----------------------------------------------------------
-      // 3. MEDITLINK : Création ZIP Frontend (Reste en Blob)
-      // -----------------------------------------------------------
+      // --- SECTION MEDITLINK OPTIMISÉE ---
       else if (commande.plateforme === "MEDITLINK") {
+        // 1. Récupérer les détails complets de la commande
         const orderData = await fetchWithAuth(
           `${API_BASE_URL}/meditlink/orders/${commande.externalId}`,
         );
 
+        // Extraction de la liste des fichiers (gestion de la structure imbriquée Medit)
         let filesToDownload = [];
-        if (
-          orderData.order &&
-          orderData.order.case &&
-          orderData.order.case.files
-        ) {
+        if (orderData.order?.case?.files) {
           filesToDownload = orderData.order.case.files;
         } else if (orderData.files) {
           filesToDownload = orderData.files;
         }
 
         if (!filesToDownload || filesToDownload.length === 0) {
-          toast.warning("Aucun fichier MeditLink trouvé");
+          toast.warning("Aucun fichier MeditLink trouvé pour ce cas.");
           return;
         }
 
         const zip = new JSZip();
         let filesAdded = 0;
 
+        // 2. Parcourir et télécharger chaque fichier pertinent
         await Promise.all(
           filesToDownload.map(async (file) => {
-            if (
-              file.fileType !== "SCAN_DATA" &&
-              file.fileType !== "ATTACHED_DATA"
-            )
-              return;
+            // Élargissement du filtre : SCAN_DATA, ATTACHED_DATA et CAD_DATA (pour les designs)
+            const validTypes = [
+              "SCAN_DATA",
+              "ATTACHED_DATA",
+              "CAD_DATA",
+              "RESULT_DATA",
+            ];
+            if (!validTypes.includes(file.fileType)) return;
 
             try {
+              // IMPORTANT : On demande explicitement le type 'stl' à votre API Backend
+              // pour que MeditLink convertisse le fichier si nécessaire.
               const fileInfo = await fetchWithAuth(
                 `${API_BASE_URL}/meditlink/files/${file.uuid}?type=stl`,
               );
+
               const downloadUrl = fileInfo.url || fileInfo.downloadUrl;
 
               if (downloadUrl) {
                 const res = await fetch(downloadUrl);
                 if (res.ok) {
                   const blob = await res.blob();
-                  const fileName = file.name || `file_${file.uuid}.stl`;
+
+                  // On s'assure que l'extension est correcte dans le ZIP
+                  let fileName = file.name || `file_${file.uuid}`;
+                  if (
+                    !fileName.toLowerCase().endsWith(".stl") &&
+                    !fileName.toLowerCase().endsWith(".obj")
+                  ) {
+                    fileName += ".stl";
+                  }
+
                   zip.file(fileName, blob);
                   filesAdded++;
                 }
               }
             } catch (e) {
-              console.error("Erreur fichier MeditLink", file.uuid, e);
+              console.error(`Erreur sur le fichier MeditLink ${file.uuid}:`, e);
             }
           }),
         );
 
+        // 3. Finalisation du ZIP
         if (filesAdded > 0) {
           const content = await zip.generateAsync({ type: "blob" });
           downloadBlobInBrowser(
             content,
             `MeditLink_Scan_${commande.externalId}.zip`,
           );
-          toast.success(`Scan MeditLink (${filesAdded} fichiers) téléchargé`);
+          toast.success(`${filesAdded} fichiers récupérés et compressés.`);
         } else {
-          toast.error("Échec du téléchargement des fichiers MeditLink");
+          toast.error(
+            "Impossible de récupérer les fichiers STL. Vérifiez qu'ils sont générés sur MeditLink.",
+          );
         }
       }
-
       // -----------------------------------------------------------
       // 4. AUTRES (Fallback Blob classique)
       // -----------------------------------------------------------
