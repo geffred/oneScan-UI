@@ -275,8 +275,10 @@ const CommandeDetails = () => {
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    }, 100);
   };
 
   // =================================================================
@@ -288,221 +290,99 @@ const CommandeDetails = () => {
     setActionStates((prev) => ({ ...prev, download: true }));
 
     try {
-      // -----------------------------------------------------------
-      // 1. DEXIS : Le backend retourne une URL (String)
-      // -----------------------------------------------------------
-      if (commande.plateforme === "DEXIS") {
-        const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
+      const zip = new JSZip();
+      let filesAdded = 0;
 
-        // On ne demande PAS un blob ici, on fait un fetch normal pour lire le texte
-        const response = await fetch(
-          `${API_BASE_URL}/dexis/cases/${commande.externalId}/download`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+      // --- LOGIQUE SPÉCIFIQUE MEDITLINK ---
+      if (commande.plateforme === "MEDITLINK") {
+        toast.info("Préparation de l'archive MeditLink...");
 
-        if (!response.ok) {
-          throw new Error(`Erreur backend: ${response.status}`);
-        }
-
-        // On lit la réponse comme du texte car c'est une URL Azure
-        const azureUrl = await response.text();
-
-        // Nettoyage au cas où le backend renvoie des guillemets (ex: JSON string)
-        const cleanUrl = azureUrl.replace(/"/g, "").trim();
-
-        if (!cleanUrl.startsWith("http")) {
-          throw new Error("URL de téléchargement invalide reçue du serveur");
-        }
-
-        // On déclenche le téléchargement via le navigateur
-        // Le lien Azure contient déjà les headers pour forcer le download
-        const link = document.createElement("a");
-        link.href = cleanUrl;
-        link.style.display = "none";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        toast.success(`Téléchargement Dexis lancé`);
-      }
-
-      // -----------------------------------------------------------
-      // 2. 3SHAPE : Création ZIP Frontend (Reste en Blob)
-      // -----------------------------------------------------------
-      else if (commande.plateforme === "THREESHAPE") {
-        const zip = new JSZip();
-        let filesAdded = 0;
-
-        // Fichier Upper
-        if (commande.hash_upper) {
-          try {
-            const blob = await fetchWithAuthBlob(
-              `${API_BASE_URL}/threeshape/files/${commande.externalId}/${commande.hash_upper}`,
-            );
-            zip.file("Upper_Jaw.stl", blob);
-            filesAdded++;
-          } catch (e) {
-            console.error("Erreur Upper 3Shape", e);
-          }
-        }
-
-        // Fichier Lower
-        if (commande.hash_lower) {
-          try {
-            const blob = await fetchWithAuthBlob(
-              `${API_BASE_URL}/threeshape/files/${commande.externalId}/${commande.hash_lower}`,
-            );
-            zip.file("Lower_Jaw.stl", blob);
-            filesAdded++;
-          } catch (e) {
-            console.error("Erreur Lower 3Shape", e);
-          }
-        }
-
-        // Fichiers additionnels
-        try {
-          const details = await fetchWithAuth(
-            `${API_BASE_URL}/threeshape/orders/${commande.externalId}`,
-          );
-          if (details.files && Array.isArray(details.files)) {
-            for (const file of details.files) {
-              if (
-                file.hash !== commande.hash_upper &&
-                file.hash !== commande.hash_lower
-              ) {
-                try {
-                  const blob = await fetchWithAuthBlob(
-                    `${API_BASE_URL}/threeshape/files/${commande.externalId}/${file.hash}`,
-                  );
-                  zip.file(
-                    file.name || `file_${file.hash.substring(0, 8)}.stl`,
-                    blob,
-                  );
-                  filesAdded++;
-                } catch (e) {
-                  /* ignore */
-                }
-              }
-            }
-          }
-        } catch (e) {
-          console.log("Pas de détails supplémentaires 3Shape");
-        }
-
-        if (filesAdded > 0) {
-          const content = await zip.generateAsync({ type: "blob" });
-          downloadBlobInBrowser(
-            content,
-            `3Shape_Scan_${commande.externalId}.zip`,
-          );
-          toast.success("Fichiers 3Shape compressés et téléchargés");
-        } else {
-          toast.warning("Aucun fichier 3Shape valide trouvé");
-        }
-      }
-
-      // --- SECTION MEDITLINK OPTIMISÉE ---
-      else if (commande.plateforme === "MEDITLINK") {
-        // 1. Récupérer les détails complets de la commande
+        // 1. Récupérer la structure complète du cas via votre API backend
         const orderData = await fetchWithAuth(
           `${API_BASE_URL}/meditlink/orders/${commande.externalId}`,
         );
 
-        // Extraction de la liste des fichiers (gestion de la structure imbriquée Medit)
-        let filesToDownload = [];
-        if (orderData.order?.case?.files) {
-          filesToDownload = orderData.order.case.files;
-        } else if (orderData.files) {
-          filesToDownload = orderData.files;
+        // Extraction de la liste brute des fichiers
+        const filesToDownload =
+          orderData.order?.case?.files || orderData.files || [];
+
+        if (filesToDownload.length === 0) {
+          throw new Error("Aucun fichier trouvé pour ce cas MeditLink.");
         }
 
-        if (!filesToDownload || filesToDownload.length === 0) {
-          toast.warning("Aucun fichier MeditLink trouvé pour ce cas.");
-          return;
-        }
-
-        const zip = new JSZip();
-        let filesAdded = 0;
-
-        // 2. Parcourir et télécharger chaque fichier pertinent
+        // 2. Téléchargement de chaque fichier en parallèle
         await Promise.all(
           filesToDownload.map(async (file) => {
-            // Élargissement du filtre : SCAN_DATA, ATTACHED_DATA et CAD_DATA (pour les designs)
-            const validTypes = [
-              "SCAN_DATA",
-              "ATTACHED_DATA",
-              "CAD_DATA",
-              "RESULT_DATA",
-            ];
-            if (!validTypes.includes(file.fileType)) return;
-
             try {
-              // IMPORTANT : On demande explicitement le type 'stl' à votre API Backend
-              // pour que MeditLink convertisse le fichier si nécessaire.
+              // Récupérer l'URL de téléchargement via le backend
+              // On ne force pas le type STL ici pour récupérer le format original (ou conversion auto si configuré)
               const fileInfo = await fetchWithAuth(
-                `${API_BASE_URL}/meditlink/files/${file.uuid}?type=stl`,
+                `${API_BASE_URL}/meditlink/files/${file.uuid}`,
               );
 
               const downloadUrl = fileInfo.url || fileInfo.downloadUrl;
 
               if (downloadUrl) {
                 const res = await fetch(downloadUrl);
-                if (res.ok) {
-                  const blob = await res.blob();
+                if (!res.ok) throw new Error(`Erreur HTTP: ${res.status}`);
 
-                  // On s'assure que l'extension est correcte dans le ZIP
-                  let fileName = file.name || `file_${file.uuid}`;
-                  if (
-                    !fileName.toLowerCase().endsWith(".stl") &&
-                    !fileName.toLowerCase().endsWith(".obj")
-                  ) {
-                    fileName += ".stl";
-                  }
+                const blob = await res.blob();
+                // Utiliser le nom original du fichier Medit ou un fallback
+                const fileName =
+                  file.name || fileInfo.downloadFileName || `file_${file.uuid}`;
 
-                  zip.file(fileName, blob);
-                  filesAdded++;
-                }
+                zip.file(fileName, blob);
+                filesAdded++;
               }
             } catch (e) {
-              console.error(`Erreur sur le fichier MeditLink ${file.uuid}:`, e);
+              console.error(
+                `Échec sur le fichier ${file.name || file.uuid}:`,
+                e,
+              );
             }
           }),
         );
+      }
 
-        // 3. Finalisation du ZIP
-        if (filesAdded > 0) {
-          const content = await zip.generateAsync({ type: "blob" });
+      // --- LOGIQUE POUR LES AUTRES PLATEFORMES (Dexis, Itero, etc.) ---
+      else {
+        const response = await fetch(
+          `${API_BASE_URL}/${commande.plateforme.toLowerCase()}/download/${commande.externalId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            method: "POST",
+          },
+        );
+
+        if (response.ok) {
+          const blob = await response.blob();
+          // Si le backend renvoie déjà un ZIP, on le télécharge directement
           downloadBlobInBrowser(
-            content,
-            `MeditLink_Scan_${commande.externalId}.zip`,
+            blob,
+            `scan-${commande.plateforme}-${commande.externalId}.zip`,
           );
-          toast.success(`${filesAdded} fichiers récupérés et compressés.`);
+          toast.success("Archive téléchargée avec succès.");
+          return; // On sort ici pour les plateformes gérées en backend
         } else {
-          toast.error(
-            "Impossible de récupérer les fichiers STL. Vérifiez qu'ils sont générés sur MeditLink.",
-          );
+          throw new Error("Erreur lors du téléchargement depuis le serveur.");
         }
       }
-      // -----------------------------------------------------------
-      // 4. AUTRES (Fallback Blob classique)
-      // -----------------------------------------------------------
-      else {
-        let endpoint = `${API_BASE_URL}/${commande.plateforme.toLowerCase()}/download/${commande.externalId}`;
-        if (commande.plateforme === "MYSMILELAB") {
-          endpoint = `${API_BASE_URL}/files/download?fileKey=${encodeURIComponent(commande.externalId)}`;
-        }
 
-        const blob = await fetchWithAuthBlob(endpoint);
-        downloadBlobInBrowser(blob, `scan-${commande.externalId}.zip`);
-        toast.success("Fichier téléchargé");
+      // --- GÉNÉRATION FINALE DU ZIP (Frontend) ---
+      if (filesAdded > 0) {
+        const zipContent = await zip.generateAsync({ type: "blob" });
+        downloadBlobInBrowser(
+          zipContent,
+          `MeditLink_Case_${commande.externalId}.zip`,
+        );
+        toast.success(`${filesAdded} fichiers compressés et téléchargés.`);
+      } else if (commande.plateforme === "MEDITLINK") {
+        toast.error("Aucun fichier n'a pu être récupéré.");
       }
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors du téléchargement : " + error.message);
+      toast.error(`Erreur: ${error.message}`);
     } finally {
       setActionStates((prev) => ({ ...prev, download: false }));
     }
