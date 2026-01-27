@@ -329,52 +329,83 @@ const CommandeDetails = () => {
         }
 
         const zip = new JSZip();
-        let filesAdded = 0;
+        let stlFilesAdded = 0;
 
-        console.log(`Téléchargement de ${readyFiles.length} fichier(s) STL...`);
-
-        await Promise.all(
-          readyFiles.map(async (file) => {
-            try {
-              if (!file.downloadUrl) {
-                console.warn(`Pas d'URL de téléchargement pour ${file.name}`);
-                return;
-              }
-
-              console.log(`Téléchargement: ${file.stlFileName || file.name}`);
-
-              const fileResponse = await fetch(file.downloadUrl);
-
-              if (!fileResponse.ok) {
-                console.error(
-                  `Erreur téléchargement ${file.name}: ${fileResponse.status}`,
-                );
-                return;
-              }
-
-              const blob = await fileResponse.blob();
-
-              if (blob.size === 0) {
-                console.warn(`Fichier vide: ${file.name}`);
-                return;
-              }
-
-              const fileName = file.stlFileName || file.name;
-
-              zip.file(fileName, blob);
-              filesAdded++;
-
-              console.log(`Ajouté: ${fileName} (${blob.size} bytes)`);
-            } catch (fileError) {
-              console.error(`Erreur fichier ${file.name}:`, fileError);
-            }
-          }),
+        console.log(
+          `Téléchargement de ${readyFiles.length} fichier(s) 7z contenant les STL...`,
         );
 
-        console.log(`${filesAdded} fichier(s) STL téléchargé(s) avec succès`);
+        for (const file of readyFiles) {
+          try {
+            if (!file.downloadUrl) {
+              console.warn(`Pas d'URL de téléchargement pour ${file.name}`);
+              continue;
+            }
 
-        if (filesAdded === 0) {
-          toast.error("Aucun fichier STL n'a pu être téléchargé");
+            console.log(
+              `Téléchargement archive 7z: ${file.downloadFileName || file.name}`,
+            );
+
+            const fileResponse = await fetch(file.downloadUrl);
+
+            if (!fileResponse.ok) {
+              console.error(
+                `Erreur téléchargement ${file.name}: ${fileResponse.status}`,
+              );
+              continue;
+            }
+
+            const arrayBuffer = await fileResponse.arrayBuffer();
+
+            if (arrayBuffer.byteLength === 0) {
+              console.warn(`Fichier vide: ${file.name}`);
+              continue;
+            }
+
+            console.log(`Archive téléchargée: ${arrayBuffer.byteLength} bytes`);
+
+            try {
+              const sevenzip = (await import("7zip-wasm")).default;
+              const sevenZip = await sevenzip();
+              const stream = sevenZip.extractArchive(
+                new Uint8Array(arrayBuffer),
+              );
+
+              for await (const entry of stream) {
+                if (entry.name.toLowerCase().endsWith(".stl")) {
+                  const stlBlob = new Blob([entry.data], {
+                    type: "application/octet-stream",
+                  });
+                  zip.file(entry.name, stlBlob);
+                  stlFilesAdded++;
+                  console.log(
+                    `STL extrait: ${entry.name} (${stlBlob.size} bytes)`,
+                  );
+                }
+              }
+            } catch (sevenZipError) {
+              console.error(
+                `Erreur décompression 7z pour ${file.name}:`,
+                sevenZipError,
+              );
+
+              const blob = new Blob([arrayBuffer], {
+                type: "application/x-7z-compressed",
+              });
+              const fileName = file.downloadFileName || `${file.name}.7z`;
+              zip.file(fileName, blob);
+              stlFilesAdded++;
+              console.log(`Fichier 7z ajouté tel quel: ${fileName}`);
+            }
+          } catch (fileError) {
+            console.error(`Erreur fichier ${file.name}:`, fileError);
+          }
+        }
+
+        console.log(`${stlFilesAdded} fichier(s) traité(s) avec succès`);
+
+        if (stlFilesAdded === 0) {
+          toast.error("Aucun fichier n'a pu être extrait");
           return;
         }
 
@@ -389,9 +420,9 @@ const CommandeDetails = () => {
           `MeditLink_STL_${commande.externalId}.zip`,
         );
 
-        let message = `${filesAdded} fichier(s) STL téléchargé(s) avec succès`;
+        let message = `${stlFilesAdded} fichier(s) STL téléchargé(s)`;
         if (processingFiles.length > 0) {
-          message += ` (${processingFiles.length} en cours de conversion)`;
+          message += ` (${processingFiles.length} en conversion)`;
         }
         if (errorFiles.length > 0) {
           message += ` (${errorFiles.length} en erreur)`;
