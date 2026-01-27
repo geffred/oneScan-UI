@@ -19,10 +19,9 @@ import BonCommande from "../BonDeCommande/BonDeCommande";
 import CertificatConformite from "./CertificatConformite";
 import { useReactToPrint } from "react-to-print";
 import { AlertCircle, ArrowLeft, Shield } from "lucide-react";
-import JSZip from "jszip"; // IMPORT JSZIP OBLIGATOIRE
+import JSZip from "jszip";
 import { ToastContainer } from "react-toastify";
 
-// Imports des sous-composants
 import CommandeHeader from "./CommandeHeader";
 import CommandeInfoGrid from "./CommandeInfoGrid";
 import CommandeActions from "./CommandeActions";
@@ -31,8 +30,6 @@ import { EmailService } from "./EmailService";
 import "./CommandeDetails.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-// --- Services API ---
 
 const fetchWithAuth = async (url, options = {}) => {
   const token = localStorage.getItem("token");
@@ -53,7 +50,6 @@ const fetchWithAuth = async (url, options = {}) => {
   return response.json();
 };
 
-// Helper pour télécharger un Blob avec Auth (Utilisé pour 3Shape/MeditLink)
 const fetchWithAuthBlob = async (url) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
@@ -166,7 +162,6 @@ const checkCertificatExists = async (commandeId) => {
   }
 };
 
-// --- Composants d'état UI ---
 const LoadingState = React.memo(() => (
   <div className="commandes-loading-state">
     <div className="commandes-loading-spinner"></div>
@@ -186,7 +181,6 @@ const ErrorState = React.memo(({ error, onBack }) => (
   </div>
 ));
 
-// --- Composant Principal ---
 const CommandeDetails = () => {
   const { externalId } = useParams();
   const location = useLocation();
@@ -209,7 +203,6 @@ const CommandeDetails = () => {
 
   const bonDeCommandeRef = useRef();
 
-  // --- SWR Hooks ---
   const {
     data: commande,
     error: commandeError,
@@ -246,8 +239,8 @@ const CommandeDetails = () => {
     }
   }, [commande]);
 
-  // --- Handlers UI ---
   const toggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
+
   const handleComponentChange = useCallback(
     (newComponent) => {
       setActiveComponent(newComponent);
@@ -255,6 +248,7 @@ const CommandeDetails = () => {
     },
     [navigate],
   );
+
   const handleBack = useCallback(
     () => navigate("/dashboard/commandes"),
     [navigate],
@@ -266,7 +260,6 @@ const CommandeDetails = () => {
     onAfterPrint: () => toast.success("PDF téléchargé"),
   });
 
-  // Helper pour télécharger un blob dans le navigateur (Pour 3Shape/MeditLink)
   const downloadBlobInBrowser = (blob, filename) => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -281,9 +274,6 @@ const CommandeDetails = () => {
     }, 100);
   };
 
-  // =================================================================
-  // LOGIQUE DE TÉLÉCHARGEMENT UNIFIÉE (ZIP) - MISE A JOUR DEXIS
-  // =================================================================
   const handleDownload = useCallback(async () => {
     if (!commande) return;
 
@@ -291,126 +281,239 @@ const CommandeDetails = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const zip = new JSZip();
-      let filesAdded = 0;
 
-      // --- LOGIQUE SPÉCIFIQUE MEDITLINK ---
       if (commande.plateforme === "MEDITLINK") {
-        toast.info("Demande de conversion STL en cours...");
+        toast.info("Récupération des fichiers STL MeditLink...");
 
-        // 1. Récupérer les fichiers du cas
-        const orderData = await fetchWithAuth(
-          `${API_BASE_URL}/meditlink/orders/${commande.externalId}`,
+        const response = await fetch(
+          `${API_BASE_URL}/meditlink/orders/${commande.externalId}/stl-files`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
 
-        const filesToDownload =
-          orderData.order?.case?.files || orderData.files || [];
-
-        if (filesToDownload.length === 0) {
-          throw new Error("Aucun fichier trouvé dans ce cas MeditLink.");
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
         }
 
-        // 2. Téléchargement et intégration au ZIP
+        const filesData = await response.json();
+
+        console.log("Fichiers STL MeditLink reçus:", filesData);
+
+        if (
+          !filesData.success ||
+          !filesData.files ||
+          filesData.files.length === 0
+        ) {
+          toast.warning("Aucun fichier STL trouvé pour ce cas MeditLink");
+          return;
+        }
+
+        const readyFiles = filesData.files.filter((f) => f.status === "ready");
+        const processingFiles = filesData.files.filter(
+          (f) => f.status === "processing",
+        );
+        const errorFiles = filesData.files.filter((f) => f.status === "error");
+
+        if (readyFiles.length === 0) {
+          if (processingFiles.length > 0) {
+            toast.warning(
+              `${processingFiles.length} fichier(s) en cours de conversion côté MeditLink. Réessayez dans quelques instants.`,
+            );
+          } else {
+            toast.error("Aucun fichier STL disponible pour le téléchargement");
+          }
+          return;
+        }
+
+        const zip = new JSZip();
+        let filesAdded = 0;
+
+        console.log(`Téléchargement de ${readyFiles.length} fichier(s) STL...`);
+
         await Promise.all(
-          filesToDownload.map(async (file) => {
-            // On ne télécharge que les types de données 3D pertinents
-            if (
-              file.fileType !== "SCAN_DATA" &&
-              file.fileType !== "ATTACHED_DATA"
-            )
-              return;
-
+          readyFiles.map(async (file) => {
             try {
-              // On appelle l'API backend en précisant type=stl
-              const fileInfo = await fetchWithAuth(
-                `${API_BASE_URL}/meditlink/files/${file.uuid}?type=stl`,
-              );
-
-              const downloadUrl = fileInfo.url || fileInfo.downloadUrl;
-
-              if (downloadUrl) {
-                const res = await fetch(downloadUrl);
-
-                if (res.status === 202) {
-                  console.log(
-                    `Fichier ${file.name} en attente de conversion...`,
-                  );
-                  return;
-                }
-
-                if (res.ok) {
-                  const blob = await res.blob();
-
-                  // Forcer l'extension .stl pour le fichier dans le ZIP
-                  let fileName = file.name || `file_${file.uuid}.stl`;
-                  if (!fileName.toLowerCase().endsWith(".stl")) {
-                    fileName = fileName.replace(/\.[^/.]+$/, "") + ".stl";
-                  }
-
-                  zip.file(fileName, blob);
-                  filesAdded++;
-                }
+              if (!file.downloadUrl) {
+                console.warn(`Pas d'URL de téléchargement pour ${file.name}`);
+                return;
               }
-            } catch (e) {
-              console.error(`Erreur sur le fichier Medit ${file.uuid}:`, e);
+
+              console.log(`Téléchargement: ${file.stlFileName || file.name}`);
+
+              const fileResponse = await fetch(file.downloadUrl);
+
+              if (!fileResponse.ok) {
+                console.error(
+                  `Erreur téléchargement ${file.name}: ${fileResponse.status}`,
+                );
+                return;
+              }
+
+              const blob = await fileResponse.blob();
+
+              if (blob.size === 0) {
+                console.warn(`Fichier vide: ${file.name}`);
+                return;
+              }
+
+              const fileName = file.stlFileName || file.name;
+
+              zip.file(fileName, blob);
+              filesAdded++;
+
+              console.log(`Ajouté: ${fileName} (${blob.size} bytes)`);
+            } catch (fileError) {
+              console.error(`Erreur fichier ${file.name}:`, fileError);
             }
           }),
         );
-      }
-      // --- LOGIQUE DEXIS ---
-      else if (commande.plateforme === "DEXIS") {
+
+        console.log(`${filesAdded} fichier(s) STL téléchargé(s) avec succès`);
+
+        if (filesAdded === 0) {
+          toast.error("Aucun fichier STL n'a pu être téléchargé");
+          return;
+        }
+
+        const zipBlob = await zip.generateAsync({
+          type: "blob",
+          compression: "DEFLATE",
+          compressionOptions: { level: 6 },
+        });
+
+        downloadBlobInBrowser(
+          zipBlob,
+          `MeditLink_STL_${commande.externalId}.zip`,
+        );
+
+        let message = `${filesAdded} fichier(s) STL téléchargé(s) avec succès`;
+        if (processingFiles.length > 0) {
+          message += ` (${processingFiles.length} en cours de conversion)`;
+        }
+        if (errorFiles.length > 0) {
+          message += ` (${errorFiles.length} en erreur)`;
+        }
+
+        toast.success(message);
+      } else if (commande.plateforme === "DEXIS") {
         const response = await fetch(
           `${API_BASE_URL}/dexis/cases/${commande.externalId}/download`,
           {
             headers: { Authorization: `Bearer ${token}` },
           },
         );
+
+        if (!response.ok) {
+          throw new Error(`Erreur backend: ${response.status}`);
+        }
+
         const azureUrl = await response.text();
         const cleanUrl = azureUrl.replace(/"/g, "").trim();
+
+        if (!cleanUrl.startsWith("http")) {
+          throw new Error("URL de téléchargement invalide reçue du serveur");
+        }
+
         const link = document.createElement("a");
         link.href = cleanUrl;
+        link.style.display = "none";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        toast.success(`Téléchargement Dexis lancé`);
-        return;
-      }
-      // --- AUTRES PLATEFORMES (Fallback ZIP direct) ---
-      else {
-        const response = await fetch(
-          `${API_BASE_URL}/${commande.plateforme.toLowerCase()}/download/${commande.externalId}`,
-          { headers: { Authorization: `Bearer ${token}` }, method: "POST" },
-        );
-        if (response.ok) {
-          const blob = await response.blob();
-          downloadBlobInBrowser(blob, `scan-${commande.externalId}.zip`);
-          toast.success("Téléchargement réussi");
-          return;
-        }
-      }
 
-      // --- GÉNÉRATION DU ZIP FINAL (Pour MeditLink) ---
-      if (filesAdded > 0) {
-        const zipContent = await zip.generateAsync({ type: "blob" });
-        downloadBlobInBrowser(
-          zipContent,
-          `MeditLink_STL_${commande.externalId}.zip`,
-        );
-        toast.success(`${filesAdded} fichiers STL téléchargés.`);
-      } else if (commande.plateforme === "MEDITLINK") {
-        toast.warning(
-          "Certains fichiers sont encore en cours de conversion côté MeditLink. Réessayez dans un instant.",
-        );
+        toast.success("Téléchargement Dexis lancé");
+      } else if (commande.plateforme === "THREESHAPE") {
+        const zip = new JSZip();
+        let filesAdded = 0;
+
+        if (commande.hash_upper) {
+          try {
+            const blob = await fetchWithAuthBlob(
+              `${API_BASE_URL}/threeshape/files/${commande.externalId}/${commande.hash_upper}`,
+            );
+            zip.file("Upper_Jaw.stl", blob);
+            filesAdded++;
+          } catch (e) {
+            console.error("Erreur Upper 3Shape", e);
+          }
+        }
+
+        if (commande.hash_lower) {
+          try {
+            const blob = await fetchWithAuthBlob(
+              `${API_BASE_URL}/threeshape/files/${commande.externalId}/${commande.hash_lower}`,
+            );
+            zip.file("Lower_Jaw.stl", blob);
+            filesAdded++;
+          } catch (e) {
+            console.error("Erreur Lower 3Shape", e);
+          }
+        }
+
+        try {
+          const details = await fetchWithAuth(
+            `${API_BASE_URL}/threeshape/orders/${commande.externalId}`,
+          );
+          if (details.files && Array.isArray(details.files)) {
+            for (const file of details.files) {
+              if (
+                file.hash !== commande.hash_upper &&
+                file.hash !== commande.hash_lower
+              ) {
+                try {
+                  const blob = await fetchWithAuthBlob(
+                    `${API_BASE_URL}/threeshape/files/${commande.externalId}/${file.hash}`,
+                  );
+
+                  let fileName =
+                    file.name || `file_${file.hash.substring(0, 8)}.stl`;
+                  if (!fileName.toLowerCase().endsWith(".stl")) {
+                    fileName += ".stl";
+                  }
+
+                  zip.file(fileName, blob);
+                  filesAdded++;
+                } catch (e) {
+                  console.error(`Erreur fichier 3Shape ${file.name}:`, e);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.log("Pas de détails supplémentaires 3Shape");
+        }
+
+        if (filesAdded > 0) {
+          const content = await zip.generateAsync({ type: "blob" });
+          downloadBlobInBrowser(
+            content,
+            `3Shape_Scan_${commande.externalId}.zip`,
+          );
+          toast.success(`${filesAdded} fichier(s) STL 3Shape téléchargé(s)`);
+        } else {
+          toast.warning("Aucun fichier STL 3Shape valide trouvé");
+        }
+      } else {
+        let endpoint = `${API_BASE_URL}/${commande.plateforme.toLowerCase()}/download/${commande.externalId}`;
+        if (commande.plateforme === "MYSMILELAB") {
+          endpoint = `${API_BASE_URL}/files/download?fileKey=${encodeURIComponent(commande.externalId)}`;
+        }
+
+        const blob = await fetchWithAuthBlob(endpoint);
+        downloadBlobInBrowser(blob, `scan-${commande.externalId}.zip`);
+        toast.success("Fichier téléchargé");
       }
     } catch (error) {
       console.error(error);
-      toast.error(`Erreur : ${error.message}`);
+      toast.error("Erreur lors du téléchargement : " + error.message);
     } finally {
       setActionStates((prev) => ({ ...prev, download: false }));
     }
   }, [commande]);
 
-  // --- Autres Actions ---
   const handleGenerateOrder = useCallback(async () => {
     if (!commande) return;
     setActionStates((prev) => ({ ...prev, generate: true }));
@@ -483,9 +586,9 @@ const CommandeDetails = () => {
     [commande, mutateCommande, mutateCommandes],
   );
 
-  // UI Helpers
   const formatDate = (d) =>
     d ? new Date(d).toLocaleDateString("fr-FR") : "Non spécifiée";
+
   const getEcheanceStatus = (d) => {
     if (!d) return { status: "unknown", label: "Non spécifiée", class: "gray" };
     const diff = Math.ceil((new Date(d) - new Date()) / 86400000);
@@ -494,6 +597,7 @@ const CommandeDetails = () => {
       return { status: "urgent", label: `${diff}j restant`, class: "yellow" };
     return { status: "normal", label: `${diff}j restant`, class: "green" };
   };
+
   const getPlateformeColor = (p) =>
     ({
       MEDITLINK: "blue",
@@ -506,6 +610,7 @@ const CommandeDetails = () => {
     () => getEcheanceStatus(commande?.dateEcheance),
     [commande],
   );
+
   const plateformeColor = useMemo(
     () => getPlateformeColor(commande?.plateforme),
     [commande],
@@ -526,7 +631,6 @@ const CommandeDetails = () => {
     if (!isAuthenticated) navigate("/login");
   }, [isAuthenticated, navigate]);
 
-  // Render Wrapper
   const LayoutWrapper = ({ children }) => (
     <div className="dashboardpage-app-container">
       <Navbar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
@@ -557,6 +661,7 @@ const CommandeDetails = () => {
         <LoadingState />
       </LayoutWrapper>
     );
+
   if (commandeError || !commande)
     return (
       <LayoutWrapper>
