@@ -32,7 +32,7 @@ export const useThreeShapeAuth = () => {
       onError: (err) => setError(err.message),
       errorRetryCount: 1,
       onErrorRetry: () => {}, // Désactiver le retry automatique
-    }
+    },
   );
 
   const isAuthenticated = authStatus?.authenticated || false;
@@ -117,7 +117,7 @@ export const useThreeShapeAuth = () => {
           throw new Error(
             `Erreur HTTP ${response.status}: ${
               errorText || "Erreur lors du callback"
-            }`
+            }`,
           );
         }
 
@@ -155,7 +155,7 @@ export const useThreeShapeAuth = () => {
         setIsLoading(false);
       }
     },
-    [mutateAuth, setAuthData]
+    [mutateAuth, setAuthData],
   );
 
   /**
@@ -273,7 +273,7 @@ export const useThreeShapeAuth = () => {
             Authorization: `Bearer ${token}`,
           },
           credentials: "include",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -314,7 +314,7 @@ export const useThreeShapeAuth = () => {
             Authorization: `Bearer ${token}`,
           },
           credentials: "include",
-        }
+        },
       );
 
       if (!response.ok) {

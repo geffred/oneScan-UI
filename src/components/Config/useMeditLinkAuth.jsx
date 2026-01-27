@@ -36,7 +36,7 @@ export const useMeditLinkAuth = () => {
       refreshInterval: 30000,
       onError: (err) => setError(err.message),
       revalidateOnFocus: true,
-    }
+    },
   );
 
   const isAuthenticated = authStatus?.authenticated || false;
@@ -70,7 +70,7 @@ export const useMeditLinkAuth = () => {
         window.location.href = data.authUrl;
       } else {
         throw new Error(
-          data.error || "Erreur lors de l'initiation de l'authentification"
+          data.error || "Erreur lors de l'initiation de l'authentification",
         );
       }
     } catch (err) {

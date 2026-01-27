@@ -408,68 +408,77 @@ const CommandeDetails = () => {
       // -----------------------------------------------------------
       // 3. MEDITLINK : Création ZIP Frontend (Reste en Blob)
       // -----------------------------------------------------------
+      // Dans handleDownload, remplacer la section MEDITLINK par:
       else if (commande.plateforme === "MEDITLINK") {
-        const orderData = await fetchWithAuth(
-          `${API_BASE_URL}/meditlink/orders/${commande.externalId}`,
-        );
-
-        let filesToDownload = [];
-        if (
-          orderData.order &&
-          orderData.order.case &&
-          orderData.order.case.files
-        ) {
-          filesToDownload = orderData.order.case.files;
-        } else if (orderData.files) {
-          filesToDownload = orderData.files;
-        }
-
-        if (!filesToDownload || filesToDownload.length === 0) {
-          toast.warning("Aucun fichier MeditLink trouvé");
-          return;
-        }
-
-        const zip = new JSZip();
-        let filesAdded = 0;
-
-        await Promise.all(
-          filesToDownload.map(async (file) => {
-            if (
-              file.fileType !== "SCAN_DATA" &&
-              file.fileType !== "ATTACHED_DATA"
-            )
-              return;
-
-            try {
-              const fileInfo = await fetchWithAuth(
-                `${API_BASE_URL}/meditlink/files/${file.uuid}?type=stl`,
-              );
-              const downloadUrl = fileInfo.url || fileInfo.downloadUrl;
-
-              if (downloadUrl) {
-                const res = await fetch(downloadUrl);
-                if (res.ok) {
-                  const blob = await res.blob();
-                  const fileName = file.name || `file_${file.uuid}.stl`;
-                  zip.file(fileName, blob);
-                  filesAdded++;
-                }
-              }
-            } catch (e) {
-              console.error("Erreur fichier MeditLink", file.uuid, e);
-            }
-          }),
-        );
-
-        if (filesAdded > 0) {
-          const content = await zip.generateAsync({ type: "blob" });
-          downloadBlobInBrowser(
-            content,
-            `MeditLink_Scan_${commande.externalId}.zip`,
+        try {
+          // Appeler le nouvel endpoint qui récupère tous les fichiers
+          const filesData = await fetchWithAuth(
+            `${API_BASE_URL}/meditlink/orders/${commande.externalId}/files`,
           );
-          toast.success(`Scan MeditLink (${filesAdded} fichiers) téléchargé`);
-        } else {
-          toast.error("Échec du téléchargement des fichiers MeditLink");
+
+          if (
+            !filesData.success ||
+            !filesData.files ||
+            filesData.files.length === 0
+          ) {
+            toast.warning("Aucun fichier MeditLink trouvé");
+            return;
+          }
+
+          const zip = new JSZip();
+          let filesAdded = 0;
+
+          // Télécharger chaque fichier et l'ajouter au ZIP
+          await Promise.all(
+            filesData.files.map(async (file) => {
+              try {
+                const downloadUrl = file.downloadUrl || file.url;
+
+                if (!downloadUrl) {
+                  console.warn(`Pas d'URL de téléchargement pour ${file.name}`);
+                  return;
+                }
+
+                // Télécharger le fichier depuis l'URL MeditLink
+                const res = await fetch(downloadUrl);
+                if (!res.ok) {
+                  console.error(
+                    `Erreur téléchargement ${file.name}: ${res.status}`,
+                  );
+                  return;
+                }
+
+                const blob = await res.blob();
+                const fileName =
+                  file.downloadFileName || file.name || `file_${file.uuid}.stl`;
+
+                zip.file(fileName, blob);
+                filesAdded++;
+
+                console.log(
+                  `Fichier ajouté au ZIP: ${fileName} (${blob.size} bytes)`,
+                );
+              } catch (fileError) {
+                console.error(`Erreur fichier ${file.name}:`, fileError);
+              }
+            }),
+          );
+
+          if (filesAdded > 0) {
+            const content = await zip.generateAsync({ type: "blob" });
+            downloadBlobInBrowser(
+              content,
+              `MeditLink_Scan_${commande.externalId}.zip`,
+            );
+            toast.success(`Scan MeditLink (${filesAdded} fichiers) téléchargé`);
+          } else {
+            toast.error("Aucun fichier n'a pu être téléchargé");
+          }
+        } catch (error) {
+          console.error("Erreur MeditLink:", error);
+          toast.error(
+            "Erreur lors du téléchargement MeditLink: " + error.message,
+          );
         }
       }
 
