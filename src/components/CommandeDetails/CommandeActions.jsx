@@ -1,6 +1,6 @@
-/* eslint-disable react/display-name */
-/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
+/* eslint-disable react/display-name */
 import React from "react";
 import {
   Sparkles,
@@ -45,57 +45,31 @@ const CommandeActions = ({
   handleGenerateOrder,
   handleOpenBonCommande,
   handleSendEmailNotification,
-  handleDownload,
+  handleDownload, // Reçoit la fonction handleDownload unifiée du parent
   handleOpenCertificat,
   hasCertificat,
 }) => {
+  // Texte dynamique pour le bouton
   const getDownloadLabel = () => {
-    if (!commande) return "Télécharger les fichiers STL";
-
-    switch (commande.plateforme) {
-      case "DEXIS":
-        return "Télécharger les scans STL (Dexis)";
-      case "THREESHAPE":
-        return "Télécharger les scans STL (ZIP)";
-      case "MEDITLINK":
-        return "Télécharger les scans STL (ZIP)";
-      case "ITERO":
-        return "Télécharger les scans STL (Itero)";
-      case "MYSMILELAB":
-        return "Télécharger les fichiers STL (ZIP)";
-      default:
-        return "Télécharger les fichiers STL";
-    }
-  };
-
-  const getDownloadDescription = () => {
-    if (!commande) return "Télécharger tous les fichiers STL du cas";
-
-    switch (commande.plateforme) {
-      case "DEXIS":
-        return "Télécharger tous les fichiers STL depuis Dexis";
-      case "THREESHAPE":
-      case "MEDITLINK":
-        return "Tous les fichiers STL seront compressés en un seul fichier ZIP";
-      case "ITERO":
-        return "Télécharger tous les scans STL Itero";
-      case "MYSMILELAB":
-        return "Télécharger tous les fichiers STL disponibles";
-      default:
-        return "Télécharger tous les fichiers STL du cas";
-    }
+    if (commande.plateforme === "DEXIS") return "Télécharger le scan (Dexis)";
+    if (
+      commande.plateforme === "THREESHAPE" ||
+      commande.plateforme === "MEDITLINK"
+    )
+      return "Télécharger le scan (ZIP)";
+    return "Télécharger les fichiers";
   };
 
   return (
     <div className="details-actions-section">
       <div className="details-actions-grid">
-        {/* 1. Télécharger Fichiers STL */}
+        {/* 1. Télécharger Fichiers (Zip/Direct) */}
         <ActionCard
           onClick={handleDownload}
           disabled={actionStates.download}
           icon={<Download size={24} />}
           title={getDownloadLabel()}
-          description={getDownloadDescription()}
+          description="Télécharger tous les fichiers du cas (compressés si nécessaire)"
           isLoading={actionStates.download}
         />
 
