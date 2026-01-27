@@ -296,93 +296,115 @@ const CommandeDetails = () => {
 
       // --- LOGIQUE SPÉCIFIQUE MEDITLINK ---
       if (commande.plateforme === "MEDITLINK") {
-        toast.info("Préparation de l'archive MeditLink...");
+        toast.info("Demande de conversion STL en cours...");
 
-        // 1. Récupérer la structure complète du cas via votre API backend
+        // 1. Récupérer les fichiers du cas
         const orderData = await fetchWithAuth(
           `${API_BASE_URL}/meditlink/orders/${commande.externalId}`,
         );
 
-        // Extraction de la liste brute des fichiers
         const filesToDownload =
           orderData.order?.case?.files || orderData.files || [];
 
         if (filesToDownload.length === 0) {
-          throw new Error("Aucun fichier trouvé pour ce cas MeditLink.");
+          throw new Error("Aucun fichier trouvé dans ce cas MeditLink.");
         }
 
-        // 2. Téléchargement de chaque fichier en parallèle
+        // 2. Téléchargement et intégration au ZIP
         await Promise.all(
           filesToDownload.map(async (file) => {
+            // On ne télécharge que les types de données 3D pertinents
+            if (
+              file.fileType !== "SCAN_DATA" &&
+              file.fileType !== "ATTACHED_DATA"
+            )
+              return;
+
             try {
-              // Récupérer l'URL de téléchargement via le backend
-              // On ne force pas le type STL ici pour récupérer le format original (ou conversion auto si configuré)
+              // On appelle l'API backend en précisant type=stl
               const fileInfo = await fetchWithAuth(
-                `${API_BASE_URL}/meditlink/files/${file.uuid}`,
+                `${API_BASE_URL}/meditlink/files/${file.uuid}?type=stl`,
               );
 
               const downloadUrl = fileInfo.url || fileInfo.downloadUrl;
 
               if (downloadUrl) {
                 const res = await fetch(downloadUrl);
-                if (!res.ok) throw new Error(`Erreur HTTP: ${res.status}`);
 
-                const blob = await res.blob();
-                // Utiliser le nom original du fichier Medit ou un fallback
-                const fileName =
-                  file.name || fileInfo.downloadFileName || `file_${file.uuid}`;
+                if (res.status === 202) {
+                  console.log(
+                    `Fichier ${file.name} en attente de conversion...`,
+                  );
+                  return;
+                }
 
-                zip.file(fileName, blob);
-                filesAdded++;
+                if (res.ok) {
+                  const blob = await res.blob();
+
+                  // Forcer l'extension .stl pour le fichier dans le ZIP
+                  let fileName = file.name || `file_${file.uuid}.stl`;
+                  if (!fileName.toLowerCase().endsWith(".stl")) {
+                    fileName = fileName.replace(/\.[^/.]+$/, "") + ".stl";
+                  }
+
+                  zip.file(fileName, blob);
+                  filesAdded++;
+                }
               }
             } catch (e) {
-              console.error(
-                `Échec sur le fichier ${file.name || file.uuid}:`,
-                e,
-              );
+              console.error(`Erreur sur le fichier Medit ${file.uuid}:`, e);
             }
           }),
         );
       }
-
-      // --- LOGIQUE POUR LES AUTRES PLATEFORMES (Dexis, Itero, etc.) ---
+      // --- LOGIQUE DEXIS ---
+      else if (commande.plateforme === "DEXIS") {
+        const response = await fetch(
+          `${API_BASE_URL}/dexis/cases/${commande.externalId}/download`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        const azureUrl = await response.text();
+        const cleanUrl = azureUrl.replace(/"/g, "").trim();
+        const link = document.createElement("a");
+        link.href = cleanUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success(`Téléchargement Dexis lancé`);
+        return;
+      }
+      // --- AUTRES PLATEFORMES (Fallback ZIP direct) ---
       else {
         const response = await fetch(
           `${API_BASE_URL}/${commande.plateforme.toLowerCase()}/download/${commande.externalId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            method: "POST",
-          },
+          { headers: { Authorization: `Bearer ${token}` }, method: "POST" },
         );
-
         if (response.ok) {
           const blob = await response.blob();
-          // Si le backend renvoie déjà un ZIP, on le télécharge directement
-          downloadBlobInBrowser(
-            blob,
-            `scan-${commande.plateforme}-${commande.externalId}.zip`,
-          );
-          toast.success("Archive téléchargée avec succès.");
-          return; // On sort ici pour les plateformes gérées en backend
-        } else {
-          throw new Error("Erreur lors du téléchargement depuis le serveur.");
+          downloadBlobInBrowser(blob, `scan-${commande.externalId}.zip`);
+          toast.success("Téléchargement réussi");
+          return;
         }
       }
 
-      // --- GÉNÉRATION FINALE DU ZIP (Frontend) ---
+      // --- GÉNÉRATION DU ZIP FINAL (Pour MeditLink) ---
       if (filesAdded > 0) {
         const zipContent = await zip.generateAsync({ type: "blob" });
         downloadBlobInBrowser(
           zipContent,
-          `MeditLink_Case_${commande.externalId}.zip`,
+          `MeditLink_STL_${commande.externalId}.zip`,
         );
-        toast.success(`${filesAdded} fichiers compressés et téléchargés.`);
+        toast.success(`${filesAdded} fichiers STL téléchargés.`);
       } else if (commande.plateforme === "MEDITLINK") {
-        toast.error("Aucun fichier n'a pu être récupéré.");
+        toast.warning(
+          "Certains fichiers sont encore en cours de conversion côté MeditLink. Réessayez dans un instant.",
+        );
       }
     } catch (error) {
       console.error(error);
-      toast.error(`Erreur: ${error.message}`);
+      toast.error(`Erreur : ${error.message}`);
     } finally {
       setActionStates((prev) => ({ ...prev, download: false }));
     }
