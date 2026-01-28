@@ -56,13 +56,13 @@ const MeditLinkDashboard = () => {
     {
       refreshInterval: 30000,
       revalidateOnFocus: true,
-    }
+    },
   );
 
   const { data: userData } = useSWR(
     isAuthenticated ? `${API_BASE_URL}/meditlink/user/me` : null,
     fetcher,
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false },
   );
 
   const mergedAuthStatus = authData || authStatus;

@@ -1,4 +1,4 @@
-/* MeditLinkDashboard.css - Version simplifiée */
+/* MeditLinkDashboard.css - Version sans animations lentes */
 
 .meditlink-dashboard {
   padding: 1.5rem;
@@ -59,6 +59,11 @@
 .meditlink-dashboard-status.disconnected {
   background: #fef2f2;
   color: #dc2626;
+}
+
+.meditlink-dashboard-status.connected.expiring .status-details .time-remaining {
+  color: #f59e0b;
+  font-weight: 600;
 }
 
 /* ERROR BANNER */
@@ -142,8 +147,6 @@
   font-size: 0.875rem;
 }
 
-
-
 .auth-field {
   display: grid;
   grid-template-columns: 100px 1fr;
@@ -155,6 +158,10 @@
   font-weight: 500;
   color: #4b5563;
   font-size: 0.875rem;
+}
+
+.auth-field.warning {
+  color: #f59e0b;
 }
 
 .status-badge {
@@ -180,6 +187,20 @@
   font-size: 0.75rem;
 }
 
+.warning-text {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.last-refresh {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 2px;
+}
+
 /* ACTIONS CARD */
 .action-buttons {
   display: flex;
@@ -199,6 +220,7 @@
   cursor: pointer;
   border: none;
   width: 100%;
+
 }
 
 .meditlink-btn:disabled {
@@ -211,16 +233,26 @@
   color: white;
 }
 
-
+.meditlink-btn.primary:hover:not(:disabled) {
+  background: #2563eb;
+}
 
 .meditlink-btn.info {
   background: #007AFF;
   color: white;
 }
 
+.meditlink-btn.info:hover:not(:disabled) {
+  background: #0051D5;
+}
+
 .meditlink-btn.danger {
   background: #ef4444;
   color: white;
+}
+
+.meditlink-btn.danger:hover:not(:disabled) {
+  background: #dc2626;
 }
 
 /* INFO CARD */
@@ -243,6 +275,24 @@
   gap: 0.5rem;
   font-size: 0.875rem;
   color: #4b5563;
+}
+
+.refresh-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  background-color: #f8fafc;
+  border-radius: 6px;
+  margin-top: 16px;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.refresh-info svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #3b82f6;
 }
 
 /* MODAL */
@@ -290,6 +340,11 @@
   font-size: 1.25rem;
   cursor: pointer;
   padding: 0.25rem;
+
+}
+
+.modal-close:hover {
+  background-color: #f3f4f6;
 }
 
 .modal-content {
@@ -297,7 +352,6 @@
   max-height: 60vh;
   overflow-y: auto;
 }
-
 
 .loading-details {
   display: flex;
@@ -315,9 +369,9 @@
   border-top: 1px solid #e5e7eb;
 }
 
-/* ANIMATIONS */
+/* ANIMATION - Uniquement pour le spinner (nécessaire) */
 .animate-spin {
-  animation: spin 1s linear infinite;
+  animation: spin 0.6s linear infinite;
 }
 
 @keyframes spin {
@@ -350,62 +404,6 @@
 
   .meditlink-modal {
     margin: 0.5rem;
-  }
-}
-
-/* MeditLinkDashboard.css - Ajouts */
-.last-refresh {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  color: #666;
-  margin-top: 2px;
-}
-
-.auth-field.warning {
-  color: #f59e0b;
-}
-
-.warning-text {
-  color: #f59e0b;
-  font-weight: 500;
-}
-
-.refresh-info {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 12px;
-  background-color: #f8fafc;
-  border-radius: 6px;
-  margin-top: 16px;
-  font-size: 0.875rem;
-  color: #64748b;
-  
-}
-
-.refresh-info svg {
-  flex-shrink: 0;
-  margin-top: 1px;
-  color: #3b82f6;
-}
-
-.meditlink-dashboard-status.connected.expiring .status-details .time-remaining {
-  color: #f59e0b;
-  font-weight: 600;
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
   }
 }
 

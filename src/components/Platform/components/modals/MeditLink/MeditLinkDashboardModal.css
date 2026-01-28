@@ -5,6 +5,8 @@
   background: white;
   border-radius: 16px;
   overflow: hidden;
+  transition: none !important;
+  animation: none !important;
 }
 
 .platform-meditlink-dashboard-modal .platform-modal-header {
@@ -17,6 +19,9 @@
   padding: 0;
   max-height: calc(90vh - 80px);
   overflow-y: auto;
+  
+
+  
 }
 
 /* Responsive */

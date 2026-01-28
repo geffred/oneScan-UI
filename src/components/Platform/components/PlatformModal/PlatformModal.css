@@ -21,6 +21,8 @@
   max-height: 95vh;
   overflow-y: auto;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: none !important;
+  transition: none !important;
 }
 
 .platform-modal-header {
@@ -45,7 +47,6 @@
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 8px;
-  transition: all 0.2s ease;
 }
 
 .platform-modal-close:hover {
@@ -103,7 +104,7 @@
   border-radius: 12px;
   font-size: 1rem;
   background: white;
-  transition: border-color 0.2s ease;
+
 }
 
 .platform-text-input:focus,
@@ -172,7 +173,7 @@
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+
 }
 
 .platform-cancel-btn:hover {
@@ -189,7 +190,7 @@
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+
   display: flex;
   align-items: center;
   gap: 0.5rem;

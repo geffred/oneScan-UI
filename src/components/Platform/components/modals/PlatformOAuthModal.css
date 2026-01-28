@@ -23,6 +23,8 @@
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
+  transition: none !important;
+  animation: none !important;
 }
 
 .platform-oauth-modal-header {

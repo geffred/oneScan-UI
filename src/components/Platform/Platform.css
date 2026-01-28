@@ -5,12 +5,14 @@
   min-height: 100vh;
   background: #f8fafc;
   padding: 2rem;
+
 }
 
 .platform-content-container {
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+
 }
 
 /* Main Card */
