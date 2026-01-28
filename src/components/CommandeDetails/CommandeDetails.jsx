@@ -282,12 +282,12 @@ const CommandeDetails = () => {
     try {
       const token = localStorage.getItem("token");
 
+      // --- CAS MEDITLINK (Nouveau : Décompression côté Serveur) ---
       if (commande.plateforme === "MEDITLINK") {
-        toast.info("Récupération des fichiers MeditLink...");
+        toast.info("Préparation du package ZIP sur le serveur...");
 
-        // Étape 1: Récupérer les détails de la commande pour obtenir la liste des fichiers
-        const orderResponse = await fetch(
-          `${API_BASE_URL}/meditlink/orders/${commande.externalId}`,
+        const response = await fetch(
+          `${API_BASE_URL}/meditlink/orders/${commande.externalId}/download-zip`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -295,205 +295,16 @@ const CommandeDetails = () => {
           },
         );
 
-        if (!orderResponse.ok) {
-          throw new Error(
-            `Erreur ${orderResponse.status}: ${orderResponse.statusText}`,
-          );
+        if (!response.ok) {
+          throw new Error("Le serveur n'a pas pu générer le fichier ZIP.");
         }
 
-        const orderData = await orderResponse.json();
-        console.log("Données de commande MeditLink reçues:", orderData);
-
-        // Extraire les fichiers du cas
-        if (
-          !orderData.order?.case?.files ||
-          orderData.order.case.files.length === 0
-        ) {
-          toast.warning("Aucun fichier trouvé pour ce cas MeditLink");
-          return;
-        }
-
-        const files = orderData.order.case.files;
-        console.log(`${files.length} fichier(s) trouvé(s)`);
-
-        // Filtrer les fichiers pertinents (SCAN_DATA uniquement, exclure .meditGroupInfo)
-        const relevantFiles = files.filter(
-          (file) =>
-            file.fileType === "SCAN_DATA" &&
-            file.name &&
-            !file.name.toLowerCase().endsWith(".meditgroupinfo"),
-        );
-
-        console.log(
-          `${relevantFiles.length} fichier(s) pertinent(s) après filtrage`,
-        );
-
-        if (relevantFiles.length === 0) {
-          toast.warning(
-            "Aucun fichier de scan disponible pour le téléchargement",
-          );
-          return;
-        }
-
-        const finalZip = new JSZip();
-        let filesAdded = 0;
-        let processingCount = 0;
-        let errorCount = 0;
-
-        // Étape 2: Pour chaque fichier, demander la conversion STL
-        for (const file of relevantFiles) {
-          try {
-            console.log(
-              `Traitement du fichier: ${file.name} (UUID: ${file.uuid})`,
-            );
-
-            // Appeler l'endpoint avec ?type=stl pour demander la conversion
-            const fileInfoResponse = await fetch(
-              `${API_BASE_URL}/meditlink/files/${file.uuid}?type=stl`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            );
-
-            // Vérifier si la conversion est en cours (202 Accepted)
-            if (fileInfoResponse.status === 202) {
-              console.warn(`Conversion en cours pour: ${file.name}`);
-              processingCount++;
-              continue;
-            }
-
-            if (!fileInfoResponse.ok) {
-              console.error(
-                `Erreur pour ${file.name}: ${fileInfoResponse.status}`,
-              );
-              errorCount++;
-              continue;
-            }
-
-            const fileInfo = await fileInfoResponse.json();
-            console.log(`Infos fichier reçues pour ${file.name}:`, fileInfo);
-
-            // IMPORTANT: Utiliser 'url' (pas 'downloadUrl')
-            const downloadUrl = fileInfo.url || fileInfo.downloadUrl;
-
-            if (!downloadUrl) {
-              console.error(`Aucune URL de téléchargement pour ${file.name}`);
-              errorCount++;
-              continue;
-            }
-
-            console.log(`Téléchargement depuis: ${downloadUrl}`);
-
-            // Télécharger le fichier (probablement une archive 7z ou ZIP)
-            const fileResponse = await fetch(downloadUrl);
-
-            if (!fileResponse.ok) {
-              console.error(
-                `Erreur téléchargement ${file.name}: ${fileResponse.status}`,
-              );
-              errorCount++;
-              continue;
-            }
-
-            const blob = await fileResponse.blob();
-
-            if (blob.size === 0) {
-              console.warn(`Fichier vide: ${file.name}`);
-              errorCount++;
-              continue;
-            }
-
-            console.log(`Fichier téléchargé: ${blob.size} bytes`);
-
-            try {
-              // Essayer de décompresser l'archive avec JSZip
-              const archive = await JSZip.loadAsync(blob);
-              let hasStlFiles = false;
-
-              // Extraire tous les fichiers .stl de l'archive
-              for (const [filename, zipEntry] of Object.entries(
-                archive.files,
-              )) {
-                if (zipEntry.dir) continue;
-
-                const lowerName = filename.toLowerCase();
-
-                if (lowerName.endsWith(".stl")) {
-                  const stlBlob = await zipEntry.async("blob");
-                  finalZip.file(filename, stlBlob);
-                  filesAdded++;
-                  hasStlFiles = true;
-                  console.log(
-                    `STL extrait: ${filename} (${stlBlob.size} bytes)`,
-                  );
-                } else {
-                  console.log(`Fichier ignoré (non STL): ${filename}`);
-                }
-              }
-
-              if (!hasStlFiles) {
-                console.warn(`ATTENTION: Aucun .stl trouvé dans ${file.name}`);
-                console.warn(`Fichiers présents:`, Object.keys(archive.files));
-
-                // Fallback: ajouter l'archive telle quelle
-                const archiveName =
-                  fileInfo.downloadFileName || `${file.name}.archive`;
-                finalZip.file(archiveName, blob);
-                filesAdded++;
-              }
-            } catch (decompressError) {
-              console.error(
-                `Impossible de décompresser ${file.name}:`,
-                decompressError.message,
-              );
-
-              // Fallback: ajouter le fichier brut
-              const fileName = fileInfo.downloadFileName || file.name;
-              finalZip.file(fileName, blob);
-              filesAdded++;
-            }
-          } catch (fileError) {
-            console.error(`Erreur pour le fichier ${file.name}:`, fileError);
-            errorCount++;
-          }
-        }
-
-        console.log(
-          `Résultat: ${filesAdded} fichier(s) ajouté(s), ${processingCount} en conversion, ${errorCount} en erreur`,
-        );
-
-        if (filesAdded === 0) {
-          if (processingCount > 0) {
-            toast.warning(
-              `${processingCount} fichier(s) en cours de conversion. Réessayez dans quelques instants.`,
-            );
-          } else {
-            toast.error("Aucun fichier n'a pu être téléchargé");
-          }
-          return;
-        }
-
-        // Générer le ZIP final
-        const zipBlob = await finalZip.generateAsync({
-          type: "blob",
-          compression: "DEFLATE",
-          compressionOptions: { level: 6 },
-        });
-
-        downloadBlobInBrowser(zipBlob, `MeditLink_${commande.externalId}.zip`);
-
-        let message = `${filesAdded} fichier(s) téléchargé(s)`;
-        if (processingCount > 0) {
-          message += ` (${processingCount} en conversion)`;
-        }
-        if (errorCount > 0) {
-          message += ` (${errorCount} en erreur)`;
-        }
-
-        toast.success(message);
-      } else if (commande.plateforme === "DEXIS") {
+        const blob = await response.blob();
+        downloadBlobInBrowser(blob, `MeditLink_${commande.externalId}.zip`);
+        toast.success("Téléchargement réussi");
+      }
+      // --- CAS DEXIS ---
+      else if (commande.plateforme === "DEXIS") {
         const response = await fetch(
           `${API_BASE_URL}/dexis/cases/${commande.externalId}/download`,
           {
@@ -501,16 +312,10 @@ const CommandeDetails = () => {
           },
         );
 
-        if (!response.ok) {
-          throw new Error(`Erreur backend: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Erreur backend: ${response.status}`);
 
         const azureUrl = await response.text();
         const cleanUrl = azureUrl.replace(/"/g, "").trim();
-
-        if (!cleanUrl.startsWith("http")) {
-          throw new Error("URL de téléchargement invalide reçue du serveur");
-        }
 
         const link = document.createElement("a");
         link.href = cleanUrl;
@@ -520,10 +325,13 @@ const CommandeDetails = () => {
         document.body.removeChild(link);
 
         toast.success("Téléchargement Dexis lancé");
-      } else if (commande.plateforme === "THREESHAPE") {
+      }
+      // --- CAS THREESHAPE ---
+      else if (commande.plateforme === "THREESHAPE") {
         const zip = new JSZip();
         let filesAdded = 0;
 
+        // Logique existante pour 3Shape (STL directs)
         if (commande.hash_upper) {
           try {
             const blob = await fetchWithAuthBlob(
@@ -548,50 +356,19 @@ const CommandeDetails = () => {
           }
         }
 
-        try {
-          const details = await fetchWithAuth(
-            `${API_BASE_URL}/threeshape/orders/${commande.externalId}`,
-          );
-          if (details.files && Array.isArray(details.files)) {
-            for (const file of details.files) {
-              if (
-                file.hash !== commande.hash_upper &&
-                file.hash !== commande.hash_lower
-              ) {
-                try {
-                  const blob = await fetchWithAuthBlob(
-                    `${API_BASE_URL}/threeshape/files/${commande.externalId}/${file.hash}`,
-                  );
-
-                  let fileName =
-                    file.name || `file_${file.hash.substring(0, 8)}.stl`;
-                  if (!fileName.toLowerCase().endsWith(".stl")) {
-                    fileName += ".stl";
-                  }
-
-                  zip.file(fileName, blob);
-                  filesAdded++;
-                } catch (e) {
-                  console.error(`Erreur fichier 3Shape ${file.name}:`, e);
-                }
-              }
-            }
-          }
-        } catch (e) {
-          console.log("Pas de détails supplémentaires 3Shape");
-        }
-
         if (filesAdded > 0) {
           const content = await zip.generateAsync({ type: "blob" });
           downloadBlobInBrowser(
             content,
             `3Shape_Scan_${commande.externalId}.zip`,
           );
-          toast.success(`${filesAdded} fichier(s) STL 3Shape téléchargé(s)`);
+          toast.success(`${filesAdded} fichier(s) STL 3Shape téléchargés`);
         } else {
-          toast.warning("Aucun fichier STL 3Shape valide trouvé");
+          toast.warning("Aucun fichier STL 3Shape trouvé");
         }
-      } else {
+      }
+      // --- AUTRES PLATEFORMES (MYSMILELAB, etc.) ---
+      else {
         let endpoint = `${API_BASE_URL}/${commande.plateforme.toLowerCase()}/download/${commande.externalId}`;
         if (commande.plateforme === "MYSMILELAB") {
           endpoint = `${API_BASE_URL}/files/download?fileKey=${encodeURIComponent(commande.externalId)}`;
