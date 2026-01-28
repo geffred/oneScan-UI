@@ -337,9 +337,6 @@ const CommandeDetails = () => {
         let processingCount = 0;
         let errorCount = 0;
 
-        // Charger la bibliothèque 7z-wasm CORRECTEMENT
-        const { decompress } = await import("7z-wasm");
-
         // Étape 2: Pour chaque fichier, télécharger et extraire les STL
         for (const file of relevantFiles) {
           try {
@@ -386,7 +383,7 @@ const CommandeDetails = () => {
 
             console.log(`URL de téléchargement: ${downloadUrl}`);
 
-            // Télécharger l'archive 7z
+            // Télécharger l'archive
             const archiveResponse = await fetch(downloadUrl);
 
             if (!archiveResponse.ok) {
@@ -403,38 +400,35 @@ const CommandeDetails = () => {
               continue;
             }
 
-            console.log(`Archive 7z téléchargée: ${archiveBlob.size} bytes`);
+            console.log(`Archive téléchargée: ${archiveBlob.size} bytes`);
 
-            // Convertir le blob en ArrayBuffer
-            const arrayBuffer = await archiveBlob.arrayBuffer();
-
-            // Décompresser l'archive 7z avec 7z-wasm
+            // Décompresser l'archive avec JSZip
             try {
-              console.log("Décompression de l'archive 7z...");
-
-              // CORRECTION: Utiliser decompress au lieu de extractArchive
-              const decompressedFiles = await decompress(arrayBuffer);
-
+              const archive = await JSZip.loadAsync(archiveBlob);
               console.log(
-                `Archive décompressée. ${decompressedFiles.length} fichier(s) trouvé(s)`,
+                `Archive décompressée. Fichiers:`,
+                Object.keys(archive.files),
               );
 
               let stlExtracted = false;
 
-              // Parcourir tous les fichiers extraits
-              for (const entry of decompressedFiles) {
-                const filename = entry.name;
-                const lowerName = filename.toLowerCase();
+              // Parcourir tous les fichiers de l'archive
+              for (const [filename, zipEntry] of Object.entries(
+                archive.files,
+              )) {
+                if (zipEntry.dir) {
+                  console.log(`  [DIR] ${filename}`);
+                  continue;
+                }
 
+                const lowerName = filename.toLowerCase();
                 console.log(
                   `  [FILE] ${filename} (${lowerName.endsWith(".stl") ? "STL" : "Autre"})`,
                 );
 
                 // Extraire UNIQUEMENT les fichiers .stl
                 if (lowerName.endsWith(".stl")) {
-                  const stlBlob = new Blob([entry.data], {
-                    type: "application/octet-stream",
-                  });
+                  const stlBlob = await zipEntry.async("blob");
 
                   // Générer un nom unique pour éviter les collisions
                   const baseName = file.name.replace(
@@ -462,11 +456,15 @@ const CommandeDetails = () => {
                 console.warn(
                   `⚠️ AUCUN fichier STL trouvé dans l'archive pour: ${file.name}`,
                 );
+                console.warn(
+                  `   Fichiers présents:`,
+                  Object.keys(archive.files),
+                );
                 errorCount++;
               }
             } catch (decompressError) {
               console.error(
-                `Erreur décompression 7z pour ${file.name}:`,
+                `Erreur décompression pour ${file.name}:`,
                 decompressError,
               );
               errorCount++;
