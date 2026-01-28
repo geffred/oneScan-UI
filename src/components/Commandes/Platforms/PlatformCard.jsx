@@ -109,16 +109,6 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
           </div>
         </div>
         <p className="commandes-platform-email">{platform.email}</p>
-
-        {/* Affichage des informations utilisateur si connecté */}
-        {isConnected && connectionStatus.userInfo && (
-          <div className="commandes-user-info">
-            <span className="commandes-user-name">
-              {connectionStatus.userInfo.name ||
-                connectionStatus.userInfo.email}
-            </span>
-          </div>
-        )}
       </div>
 
       <div className="commandes-platform-actions">
