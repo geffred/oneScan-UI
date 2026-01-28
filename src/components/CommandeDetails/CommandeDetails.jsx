@@ -487,61 +487,107 @@ const CommandeDetails = () => {
         const zip = new JSZip();
         let filesAdded = 0;
 
+        // Fichier Upper
         if (commande.hash_upper) {
           try {
+            console.log(
+              `Téléchargement Upper Jaw (${commande.hash_upper.substring(0, 8)}...)`,
+            );
             const blob = await fetchWithAuthBlob(
               `${API_BASE_URL}/threeshape/files/${commande.externalId}/${commande.hash_upper}`,
             );
             zip.file("Upper_Jaw.stl", blob);
             filesAdded++;
+            console.log("✓ Upper Jaw téléchargé");
           } catch (e) {
-            console.error("Erreur Upper 3Shape", e);
+            console.error("Erreur Upper 3Shape:", e.message);
           }
         }
 
+        // Fichier Lower
         if (commande.hash_lower) {
           try {
+            console.log(
+              `Téléchargement Lower Jaw (${commande.hash_lower.substring(0, 8)}...)`,
+            );
             const blob = await fetchWithAuthBlob(
               `${API_BASE_URL}/threeshape/files/${commande.externalId}/${commande.hash_lower}`,
             );
             zip.file("Lower_Jaw.stl", blob);
             filesAdded++;
+            console.log("✓ Lower Jaw téléchargé");
           } catch (e) {
-            console.error("Erreur Lower 3Shape", e);
+            console.error("Erreur Lower 3Shape:", e.message);
           }
         }
 
+        // Fichiers additionnels - AVEC FILTRAGE
         try {
           const details = await fetchWithAuth(
             `${API_BASE_URL}/threeshape/orders/${commande.externalId}`,
           );
+
           if (details.files && Array.isArray(details.files)) {
+            console.log(
+              `${details.files.length} fichier(s) trouvé(s) dans les détails 3Shape`,
+            );
+
             for (const file of details.files) {
+              // ✅ FILTRAGE : Skip les fichiers déjà téléchargés (upper/lower)
               if (
-                file.hash !== commande.hash_upper &&
-                file.hash !== commande.hash_lower
+                file.hash === commande.hash_upper ||
+                file.hash === commande.hash_lower
               ) {
-                try {
-                  const blob = await fetchWithAuthBlob(
-                    `${API_BASE_URL}/threeshape/files/${commande.externalId}/${file.hash}`,
-                  );
+                console.log(
+                  `Skip fichier déjà téléchargé: ${file.name || file.jawType}`,
+                );
+                continue;
+              }
 
-                  let fileName =
-                    file.name || `file_${file.hash.substring(0, 8)}.stl`;
-                  if (!fileName.toLowerCase().endsWith(".stl")) {
-                    fileName += ".stl";
-                  }
+              // ✅ FILTRAGE : Vérifier que c'est un vrai scan (pas "none")
+              const jawType = file.jawType || file.name || "";
+              if (
+                !file.hash ||
+                jawType.toLowerCase().includes("none") ||
+                jawType.toLowerCase() === "unknown"
+              ) {
+                console.log(
+                  `Skip fichier non-scan: ${file.name || file.jawType}`,
+                );
+                continue;
+              }
 
-                  zip.file(fileName, blob);
-                  filesAdded++;
-                } catch (e) {
-                  console.error(`Erreur fichier 3Shape ${file.name}:`, e);
+              try {
+                console.log(
+                  `Téléchargement fichier additionnel: ${file.name || file.jawType} (${file.hash.substring(0, 8)}...)`,
+                );
+
+                const blob = await fetchWithAuthBlob(
+                  `${API_BASE_URL}/threeshape/files/${commande.externalId}/${file.hash}`,
+                );
+
+                let fileName = file.name || `${file.jawType}_scan.stl`;
+                if (!fileName.toLowerCase().endsWith(".stl")) {
+                  fileName += ".stl";
                 }
+
+                zip.file(fileName, blob);
+                filesAdded++;
+                console.log(`✓ Fichier additionnel téléchargé: ${fileName}`);
+              } catch (e) {
+                console.error(
+                  `Erreur fichier 3Shape ${file.name || file.jawType}:`,
+                  e.message,
+                );
+                // Continue avec les autres fichiers même si un échoue
               }
             }
           }
         } catch (e) {
-          console.log("Pas de détails supplémentaires 3Shape");
+          console.log(
+            "Pas de détails supplémentaires 3Shape ou erreur:",
+            e.message,
+          );
         }
 
         if (filesAdded > 0) {
