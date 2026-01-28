@@ -347,14 +347,6 @@ const PlatformCard = React.memo(
                 )}
               </>
             )}
-
-            {/* 6. MySmileLab Info */}
-            {isMySmileLab && (
-              <div className="platform-card-component__platform-note">
-                <CheckCircle size={16} />
-                <span>Plateforme active - Aucune action requise</span>
-              </div>
-            )}
           </div>
 
           {/* Boutons d'édition globaux */}
