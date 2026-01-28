@@ -337,9 +337,8 @@ const CommandeDetails = () => {
         let processingCount = 0;
         let errorCount = 0;
 
-        // Charger la bibliothèque 7zip-wasm
-        const sevenzip = (await import("7z-wasm")).default;
-        const sevenZip = await sevenzip();
+        // Charger la bibliothèque 7z-wasm CORRECTEMENT
+        const { decompress } = await import("7z-wasm");
 
         // Étape 2: Pour chaque fichier, télécharger et extraire les STL
         for (const file of relevantFiles) {
@@ -406,19 +405,24 @@ const CommandeDetails = () => {
 
             console.log(`Archive 7z téléchargée: ${archiveBlob.size} bytes`);
 
-            // Convertir le blob en ArrayBuffer puis Uint8Array
+            // Convertir le blob en ArrayBuffer
             const arrayBuffer = await archiveBlob.arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
 
-            // Décompresser l'archive 7z avec 7zip-wasm
+            // Décompresser l'archive 7z avec 7z-wasm
             try {
               console.log("Décompression de l'archive 7z...");
-              const stream = sevenZip.extractArchive(uint8Array);
+
+              // CORRECTION: Utiliser decompress au lieu de extractArchive
+              const decompressedFiles = await decompress(arrayBuffer);
+
+              console.log(
+                `Archive décompressée. ${decompressedFiles.length} fichier(s) trouvé(s)`,
+              );
 
               let stlExtracted = false;
 
               // Parcourir tous les fichiers extraits
-              for await (const entry of stream) {
+              for (const entry of decompressedFiles) {
                 const filename = entry.name;
                 const lowerName = filename.toLowerCase();
 
