@@ -25,13 +25,13 @@ import MeditLinkDashboardModal from "./components/modals/MeditLink/MeditLinkDash
 import IteroOAuthModal from "./components/modals/Itero/IteroOAuthModal";
 import Csconnect from "./components/modals/Csconnect";
 
-// --- NOUVEAU : Import du Dashboard Dexis ---
+// Dexis : Modal OAuth + Dashboard
+import DexisOAuthModal from "./components/modals/Dexis/DexisOAuthModal";
 import DexisDashboardModal from "./components/modals/Dexis/DexisDashboardModal";
 
 // Hooks Custom Auth
 import useMeditLinkAuth from "../Config/useMeditLinkAuth";
 import useThreeShapeAuth from "../Config/useThreeShapeAuth";
-// --- NOUVEAU : Import du Hook Dexis ---
 import useDexisAuth from "../../components/Config/useDexisAuth";
 
 // Utils
@@ -45,7 +45,7 @@ const Platform = () => {
   const navigate = useNavigate();
 
   // --- UI States ---
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal création/édition plateforme
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlatform, setEditingPlatform] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -54,13 +54,14 @@ const Platform = () => {
   // --- Dashboard States ---
   const [showThreeShapeDashboard, setShowThreeShapeDashboard] = useState(false);
   const [showMeditLinkDashboard, setShowMeditLinkDashboard] = useState(false);
-  const [showDexisDashboard, setShowDexisDashboard] = useState(false); // Nouveau state
+  const [showDexisDashboard, setShowDexisDashboard] = useState(false);
 
-  // --- OAuth Modals States (Pour ceux qui n'ont pas encore de dashboard complet) ---
+  // --- OAuth Modals States ---
   const [is3ShapeModalOpen, setIs3ShapeModalOpen] = useState(false);
   const [isMeditLinkModalOpen, setIsMeditLinkModalOpen] = useState(false);
   const [isIteroModalOpen, setIsIteroModalOpen] = useState(false);
   const [isCsConnectModalOpen, setIsCsConnectModalOpen] = useState(false);
+  const [isDexisModalOpen, setIsDexisModalOpen] = useState(false);
 
   // --- Manual Status States (Legacy) ---
   const [iteroStatus, setIteroStatus] = useState({
@@ -104,11 +105,12 @@ const Platform = () => {
     initiateAuth: startThreeshapeAuth,
   } = useThreeShapeAuth();
 
-  // --- Dexis (NOUVEAU) ---
+  // --- Dexis ---
   const {
     authStatus: dexisAuthStatus,
     isLoading: dexisLoading,
     isAuthenticated: dexisAuthenticated,
+    initiateAuth: startDexisAuth,
   } = useDexisAuth({
     refreshInterval: 10000,
   });
@@ -171,6 +173,33 @@ const Platform = () => {
     },
     [meditlinkLogout],
   );
+
+  // --- Dexis ---
+  const handleStartDexisAuth = useCallback(async () => {
+    try {
+      setIsDexisModalOpen(false);
+      await startDexisAuth();
+      setSuccess("Authentification Dexis lancée - vérifiez le nouvel onglet");
+      setTimeout(() => {
+        setSuccess(null);
+        // Ouvrir le dashboard après connexion réussie
+        setShowDexisDashboard(true);
+      }, 2000);
+    } catch (err) {
+      setError("Erreur Dexis: " + err.message);
+      setTimeout(() => setError(null), 5000);
+    }
+  }, [startDexisAuth]);
+
+  const handleShowDexisDashboard = useCallback(() => {
+    // Si déjà connecté, ouvrir directement le dashboard
+    if (dexisAuthenticated) {
+      setShowDexisDashboard(true);
+    } else {
+      // Sinon, ouvrir le modal OAuth d'abord
+      setIsDexisModalOpen(true);
+    }
+  }, [dexisAuthenticated]);
 
   // --- Itero (Manual Check) ---
   const checkIteroStatus = useCallback(async () => {
@@ -268,7 +297,6 @@ const Platform = () => {
   }, []);
 
   const handleStartCsConnectAuth = useCallback(async () => {
-    // Logique similaire à Itero...
     try {
       setIsCsConnectModalOpen(false);
       setCsConnectStatus((p) => ({ ...p, loading: true }));
@@ -350,7 +378,6 @@ const Platform = () => {
     ],
   );
 
-  // --- Dexis Combiné ---
   const combinedDexisStatus = useMemo(
     () => ({
       authenticated: dexisAuthenticated,
@@ -410,7 +437,7 @@ const Platform = () => {
         setEditingPlatform(null);
         resetForm();
         setTimeout(() => setSuccess(null), 3000);
-        mutatePlatforms(); // Revalidate
+        mutatePlatforms();
       } catch (err) {
         setError(err.message);
       } finally {
@@ -460,7 +487,6 @@ const Platform = () => {
     if (isAuthenticated) {
       checkIteroStatus();
       checkCsConnectStatus();
-      // Dexis et autres sont gérés par leurs hooks respectifs
     }
   }, [isAuthenticated, checkIteroStatus, checkCsConnectStatus]);
 
@@ -529,29 +555,24 @@ const Platform = () => {
                   <PlatformCard
                     key={platform.id}
                     platform={platform}
-                    // Actions CRUD
                     onEdit={handleEdit}
                     onDelete={handleDelete}
-                    // Modals OAuth (Simples)
                     onConnect3Shape={() => setIs3ShapeModalOpen(true)}
                     onConnectMeditLink={() => setIsMeditLinkModalOpen(true)}
                     onConnectItero={() => setIsIteroModalOpen(true)}
                     onConnectCsConnect={() => setIsCsConnectModalOpen(true)}
-                    // Disconnect Handlers
                     onDisconnectMeditLink={handleMeditLinkDisconnect}
                     onDisconnectCsConnect={handleCsConnectDisconnect}
-                    // Dashboard Openers
                     onShowMeditLinkDashboard={() =>
                       setShowMeditLinkDashboard(true)
                     }
                     onShowThreeShapeDashboard={() =>
                       setShowThreeShapeDashboard(true)
                     }
-                    onShowDexisDashboard={() => setShowDexisDashboard(true)} // <-- Nouveau Handler Dexis
-                    // Status Objects
+                    onShowDexisDashboard={handleShowDexisDashboard}
                     threeshapeStatus={combinedThreeshapeStatus}
                     meditlinkStatus={combinedMeditlinkStatus}
-                    dexisStatus={combinedDexisStatus} // <-- Nouveau Statut Dexis
+                    dexisStatus={combinedDexisStatus}
                     iteroStatus={iteroStatus}
                     csconnectStatus={csConnectStatus}
                   />
@@ -581,7 +602,7 @@ const Platform = () => {
         />
       )}
 
-      {/* Dashboards Complets */}
+      {/* Dashboards */}
       <ThreeShapeDashboardModal
         isOpen={showThreeShapeDashboard}
         onClose={() => setShowThreeShapeDashboard(false)}
@@ -592,13 +613,12 @@ const Platform = () => {
         onClose={() => setShowMeditLinkDashboard(false)}
       />
 
-      {/* NOUVEAU : Dashboard Dexis */}
       <DexisDashboardModal
         isOpen={showDexisDashboard}
         onClose={() => setShowDexisDashboard(false)}
       />
 
-      {/* Simple OAuth Modals */}
+      {/* OAuth Modals */}
       <ThreeShapeOAuthModal
         isOpen={is3ShapeModalOpen}
         onClose={() => setIs3ShapeModalOpen(false)}
@@ -618,6 +638,13 @@ const Platform = () => {
         onClose={() => setIsIteroModalOpen(false)}
         onStartAuth={handleStartIteroAuth}
         isLoading={iteroStatus.loading}
+      />
+
+      <DexisOAuthModal
+        isOpen={isDexisModalOpen}
+        onClose={() => setIsDexisModalOpen(false)}
+        onStartAuth={handleStartDexisAuth}
+        isLoading={dexisLoading}
       />
 
       <Csconnect

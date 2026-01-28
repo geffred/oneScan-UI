@@ -1,3 +1,4 @@
+/* PlatformModal.css */
 .platform-modal-overlay {
   position: fixed;
   top: 0;
@@ -19,7 +20,7 @@
   max-width: 500px;
   max-height: 95vh;
   overflow-y: auto;
-  padding: 20px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .platform-modal-header {
@@ -42,7 +43,7 @@
   border: none;
   color: #64748b;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.5rem;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
@@ -50,6 +51,10 @@
 .platform-modal-close:hover {
   background: #f1f5f9;
   color: #1e293b;
+}
+
+.platform-modal-content {
+  padding: 0;
 }
 
 .platform-modal-form {
@@ -111,6 +116,7 @@
   color: #ef4444;
   font-size: 0.875rem;
   font-weight: 500;
+  margin-top: 0.25rem;
 }
 
 .platform-info-banner {
@@ -152,25 +158,27 @@
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
-  padding-top: 1.5rem;
+  padding: 0 2rem 2rem;
+  margin-top: 1.5rem;
   border-top: 1px solid #e2e8f0;
+  padding-top: 1.5rem;
 }
 
 .platform-cancel-btn {
   padding: 1rem 2rem;
   background: #ffffff;
-  color: #007AFF !important;
+  color: #64748b;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-top: 10px;
 }
 
 .platform-cancel-btn:hover {
-  background: #e2e8f0;
+  background: #f1f5f9;
   border-color: #cbd5e1;
+  color: #475569;
 }
 
 .platform-save-btn {
@@ -181,14 +189,15 @@
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .platform-save-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
+  background: #0051D5;
+  transform: translateY(-1px);
 }
 
 .platform-save-btn:disabled {
@@ -221,6 +230,7 @@
 @media (max-width: 768px) {
   .platform-modal {
     width: 95%;
+    max-width: 95%;
     margin: 1rem;
   }
 
@@ -230,6 +240,7 @@
 
   .platform-modal-actions {
     flex-direction: column;
+    padding: 0 1.5rem 1.5rem;
   }
 
   .platform-cancel-btn,
@@ -239,6 +250,14 @@
 }
 
 @media (max-width: 480px) {
+  .platform-modal-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .platform-modal-header h2 {
+    font-size: 1.25rem;
+  }
+
   .platform-text-input,
   .platform-select-input {
     padding: 0.875rem 0.875rem 0.875rem 2.5rem;

@@ -1,4 +1,4 @@
-/* ThreeShapeDashboardModal.css */
+/* DexisDashboardModal.css */
 .platform-modal-overlay {
   position: fixed;
   top: 0;
@@ -13,7 +13,7 @@
   padding: 1rem;
 }
 
-.platform-threeshape-dashboard-modal {
+.platform-dexis-dashboard-modal {
   width: 100%;
   max-width: 1400px;
   max-height: 90vh;
@@ -64,7 +64,7 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .platform-threeshape-dashboard-modal {
+  .platform-dexis-dashboard-modal {
     max-width: 100%;
     max-height: 100vh;
     border-radius: 0;

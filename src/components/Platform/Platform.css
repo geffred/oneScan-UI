@@ -1,3 +1,5 @@
+/* Platform.css */
+
 /* Main Wrapper */
 .platform-main-wrapper {
   min-height: 100vh;
@@ -16,6 +18,7 @@
   background: white;
   border-radius: 24px;
   border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   padding: 2.5rem;
 }
@@ -26,8 +29,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid rgba(0, 122, 255, 0.1);
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #f1f5f9;
 }
 
 .platform-management-title {
@@ -37,21 +40,25 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  margin: 0;
 }
 
 .platform-management-icon {
-  width: 40px;
-  height: 40px;
-  background: #007AFF;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  box-shadow: 0 4px 6px rgba(0, 122, 255, 0.2);
+}
+
+.platform-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .platform-create-btn {
@@ -64,12 +71,16 @@
   padding: 1rem 2rem;
   border-radius: 12px;
   font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 122, 255, 0.2);
 }
 
 .platform-create-btn:hover:not(:disabled) {
+  background: #0051D5;
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 122, 255, 0.3);
 }
 
 .platform-create-btn:disabled {
@@ -80,21 +91,23 @@
 
 /* Status Messages */
 .platform-error-notification {
-  color: #ef4444;
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+  color: #991b1b;
+  background: #fee2e2;
   padding: 1rem 1.5rem;
   border-radius: 12px;
   margin-bottom: 1.5rem;
   font-weight: 500;
+  border-left: 4px solid #ef4444;
 }
 
 .platform-success-notification {
-  color: #10b981;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+  color: #065f46;
+  background: #d1fae5;
   padding: 1rem 1.5rem;
   border-radius: 12px;
   margin-bottom: 1.5rem;
   font-weight: 500;
+  border-left: 4px solid #10b981;
 }
 
 /* Search Section */
@@ -123,12 +136,13 @@
   border-radius: 12px;
   font-size: 1rem;
   background: white;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .platform-search-input:focus {
   outline: none;
   border-color: #007AFF;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
 }
 
 /* Platform List */
@@ -142,15 +156,22 @@
   gap: 1.5rem;
 }
 
-/* Header Actions */
-.platform-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .platform-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
+  .platform-main-wrapper {
+    padding: 1.5rem;
+  }
+
+  .platform-management-card {
+    padding: 1.5rem;
+  }
+
   .platform-management-header {
     flex-direction: column;
     align-items: flex-start;
@@ -159,6 +180,15 @@
 
   .platform-management-title {
     font-size: 2rem;
+  }
+
+  .platform-management-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .platform-header-actions {
+    width: 100%;
   }
 
   .platform-create-btn {
@@ -170,10 +200,8 @@
     grid-template-columns: 1fr;
   }
 
-  .platform-header-actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
+  .platform-search-wrapper {
+    max-width: 100%;
   }
 }
 
@@ -183,7 +211,7 @@
   }
 
   .platform-management-card {
-    padding: 1.5rem;
+    padding: 1.25rem;
     border-radius: 16px;
   }
 
@@ -191,8 +219,19 @@
     font-size: 1.75rem;
   }
 
+  .platform-management-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .platform-create-btn {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+  }
+
   .platform-search-input {
     padding: 0.875rem 0.875rem 0.875rem 2.5rem;
+    font-size: 0.95rem;
   }
 
   .platform-search-icon {
