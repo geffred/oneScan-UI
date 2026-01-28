@@ -31,7 +31,7 @@ const DexisCallback = () => {
       const token = localStorage.getItem("token");
       const url = `${API_BASE_URL}/dexis/callback?code=${encodeURIComponent(code)}${state ? `&state=${encodeURIComponent(state)}` : ""}`;
 
-      console.log("📡 Envoi callback DEXIS:", url);
+      console.log("Envoi callback DEXIS:", url);
 
       const response = await fetch(url, {
         method: "GET",
@@ -41,32 +41,53 @@ const DexisCallback = () => {
         },
       });
 
-      console.log(" Réponse DEXIS:", response.status);
+      console.log("Réponse DEXIS:", response.status);
 
       if (response.ok) {
+        const data = await response.json();
+        console.log("Données callback:", data);
+
         hasSucceededRef.current = true;
         setStatus("success");
-        setMessage(" Connexion DEXIS réussie !");
+        setMessage("Connexion DEXIS réussie !");
+
+        // Vérification immédiate du statut
+        try {
+          const statusResponse = await fetch(
+            `${API_BASE_URL}/dexis/auth/status`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
+
+          if (statusResponse.ok) {
+            const statusData = await statusResponse.json();
+            console.log("Statut authentification:", statusData);
+          }
+        } catch (statusError) {
+          console.warn("Vérification statut impossible:", statusError);
+        }
 
         // Envoyer message au parent AVANT de fermer
         if (window.opener && !window.opener.closed) {
-          console.log("📤 Envoi message au parent...");
+          console.log("Envoi message au parent...");
           window.opener.postMessage(
             {
               type: "DEXIS_AUTH_SUCCESS",
               timestamp: Date.now(),
+              authenticated: true,
             },
             window.location.origin,
           );
 
-          // Attendre un peu pour s'assurer que le message est reçu
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          // Attendre que le message soit reçu
+          await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          console.log(" Fermeture de la fenêtre popup...");
+          console.log("Fermeture de la fenêtre popup...");
           window.close();
         } else {
           // Pas de popup parent - navigation normale
-          console.log("🔄 Redirection vers dashboard...");
+          console.log("Redirection vers dashboard...");
           setTimeout(() => {
             navigate("/dashboard/platform", { replace: true });
           }, 1500);
@@ -76,7 +97,7 @@ const DexisCallback = () => {
         throw new Error(`Erreur serveur (${response.status}): ${errorText}`);
       }
     } catch (error) {
-      console.error("❌ Erreur DEXIS Callback:", error);
+      console.error("Erreur DEXIS Callback:", error);
       setStatus("error");
       setMessage(`Échec de la connexion: ${error.message}`);
     } finally {
@@ -102,7 +123,7 @@ const DexisCallback = () => {
     }
 
     if (code) {
-      console.log("🔑 Code DEXIS détecté:", code.substring(0, 10) + "...");
+      console.log("Code DEXIS détecté:", code.substring(0, 10) + "...");
       handleCallback(code, state);
     } else {
       setStatus("error");
