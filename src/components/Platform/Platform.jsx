@@ -182,8 +182,7 @@ const Platform = () => {
       setSuccess("Authentification Dexis lancée - vérifiez le nouvel onglet");
       setTimeout(() => {
         setSuccess(null);
-        // Ouvrir le dashboard après connexion réussie
-        setShowDexisDashboard(true);
+        // NE PLUS ouvrir automatiquement le dashboard après connexion
       }, 2000);
     } catch (err) {
       setError("Erreur Dexis: " + err.message);

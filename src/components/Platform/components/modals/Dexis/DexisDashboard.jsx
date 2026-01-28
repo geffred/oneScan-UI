@@ -1,4 +1,3 @@
-// src/pages/Platform/components/modals/Dexis/DexisDashboard.jsx
 import React, { useState, useCallback, useEffect } from "react";
 import {
   Link2,
@@ -24,7 +23,7 @@ const DexisDashboard = () => {
     logout,
     mutateAuth,
     testConnection,
-  } = useDexisAuth({ refreshInterval: 5000 }); // Check rapide
+  } = useDexisAuth({ refreshInterval: 5000 });
 
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -48,6 +47,25 @@ const DexisDashboard = () => {
     await initiateAuth();
   };
 
+  // Écouter les messages de succès OAuth - UNIQUEMENT pour rafraîchir le statut
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data.type === "DEXIS_AUTH_SUCCESS") {
+        console.log("Message DEXIS reçu - rafraîchissement du statut...");
+
+        // Attendre 1 seconde pour que le backend persiste le token
+        setTimeout(() => {
+          mutateAuth(); // Rafraîchir le statut seulement, sans ouvrir de dashboard
+        }, 1000);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [mutateAuth]);
+
   return (
     <div className="dexis-dashboard">
       <div className="dashboard-header">
@@ -61,7 +79,6 @@ const DexisDashboard = () => {
           </div>
         </div>
 
-        {/* Badge Status Header */}
         <div
           className={`dexis-dashboard-status ${isAuthenticated ? "connected" : "disconnected"}`}
         >
@@ -92,7 +109,6 @@ const DexisDashboard = () => {
 
       <div className="dashboard-content">
         <div className="dashboard-grid">
-          {/* Carte 1: Statut Auth */}
           <div className="dexis-dashboard-card">
             <div className="card-header">
               <Activity size={20} />
@@ -118,7 +134,6 @@ const DexisDashboard = () => {
             </div>
           </div>
 
-          {/* Carte 2: Test Connexion */}
           <div className="dexis-dashboard-card">
             <div className="card-header">
               <Server size={20} />
@@ -162,7 +177,6 @@ const DexisDashboard = () => {
             </div>
           </div>
 
-          {/* Carte 3: Actions */}
           <div className="dexis-dashboard-card">
             <div className="card-header">
               <Database size={20} />
