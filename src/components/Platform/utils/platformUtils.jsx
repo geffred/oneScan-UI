@@ -41,11 +41,11 @@ export const checkPlatformStatus = async (platformType) => {
 
     const endpoints = {
       ITERO: `${API_BASE_URL}/itero/status`,
-      DEXIS: `${API_BASE_URL}/dexis/status`,
+      DEXIS: `${API_BASE_URL}/dexis/auth/status`,
+      THREESHAPE: `${API_BASE_URL}/auth/status`,
       CSCONNECT: `${API_BASE_URL}/csconnect/status`,
-      MYSMILELAB: `${API_BASE_URL}/drive/status`, // Backblaze B2 backend
+      MYSMILELAB: `${API_BASE_URL}/drive/status`,
     };
-
     const endpoint = endpoints[platformType];
     if (!endpoint)
       throw new Error(`Type de plateforme non supporté: ${platformType}`);
