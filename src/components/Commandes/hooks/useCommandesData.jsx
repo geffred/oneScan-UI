@@ -6,6 +6,8 @@ export const useCommandesData = ({
   userPlatforms,
   searchTerm,
   selectedPlateforme,
+  selectedStatut,
+  commentFilter,
   showOnlyUnread,
   dateFilter,
   customDateFrom,
@@ -16,9 +18,9 @@ export const useCommandesData = ({
   meditlinkAuth,
   threeshapeAuth,
   backblazeStatus,
-  iteroStatus, // Reçu de Commandes.jsx
+  iteroStatus,
   dexisStatus,
-  csconnectStatus, // Reçu de Commandes.jsx
+  csconnectStatus,
 }) => {
   // Fonction pour obtenir le statut de connexion d'une plateforme
   const getConnectionStatus = useCallback(
@@ -72,9 +74,9 @@ export const useCommandesData = ({
       threeshapeAuth.isAuthenticated,
       threeshapeAuth.userInfo,
       threeshapeAuth.authStatus,
-      iteroStatus, // AJOUTÉ AUX DÉPENDANCES
+      iteroStatus,
       dexisStatus,
-      csconnectStatus, // AJOUTÉ AUX DÉPENDANCES
+      csconnectStatus,
       backblazeStatus,
     ],
   );
@@ -209,29 +211,73 @@ export const useCommandesData = ({
   const filteredCommandes = useMemo(() => {
     const filtered =
       commandes?.filter((commande) => {
+        // Filtre par recherche (Patient, Cabinet, ID, Numero Suivi, Commentaire)
         const matchesSearch =
+          !searchTerm ||
           commande.refPatient
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
           commande.cabinet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          commande.externalId?.toString().includes(searchTerm);
+          commande.id
+            ?.toString()
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          commande.externalId
+            ?.toString()
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          commande.numeroSuivi
+            ?.toString()
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          commande.commentaire
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase());
 
+        // Filtre par plateforme
         const matchesPlateforme =
-          selectedPlateforme === "" ||
-          commande.plateforme === selectedPlateforme;
+          !selectedPlateforme || commande.plateforme === selectedPlateforme;
+
+        // Filtre par statut
+        const matchesStatut =
+          !selectedStatut || commande.statut === selectedStatut;
+
+        // Filtre par commentaire
+        const matchesComment = (() => {
+          if (commentFilter === "all") return true;
+
+          const hasComment =
+            commande.commentaire &&
+            commande.commentaire.trim() !== "" &&
+            commande.commentaire.toLowerCase() !== "aucun commentaire";
+
+          if (commentFilter === "with") return hasComment;
+          if (commentFilter === "without") return !hasComment;
+
+          return true;
+        })();
+
+        // Filtre non lu
         const matchesUnread = !showOnlyUnread || !commande.vu;
+
+        // Filtre par date de réception
         const matchesDate = filterByDate(commande);
+
+        // Filtre par date d'échéance
         const matchesDeadline = filterByDeadline(commande);
 
         return (
           matchesSearch &&
           matchesPlateforme &&
+          matchesStatut &&
+          matchesComment &&
           matchesUnread &&
           matchesDate &&
           matchesDeadline
         );
       }) || [];
 
+    // Tri des commandes
     return filtered.sort((a, b) => {
       if (deadlineFilter !== "all") {
         const echeanceA = a.dateEcheance
@@ -248,6 +294,8 @@ export const useCommandesData = ({
     commandes,
     searchTerm,
     selectedPlateforme,
+    selectedStatut,
+    commentFilter,
     showOnlyUnread,
     filterByDate,
     filterByDeadline,

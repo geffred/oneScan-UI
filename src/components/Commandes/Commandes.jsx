@@ -10,7 +10,7 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
-import { toast } from "react-toastify"; // Assurez-vous d'avoir react-toastify
+import { toast } from "react-toastify";
 import { AuthContext } from "../../components/Config/AuthContext";
 import useMeditLinkAuth from "../Config/useMeditLinkAuth";
 import useThreeShapeAuth from "../Config/useThreeShapeAuth";
@@ -28,7 +28,7 @@ import CommandesList from "./CommandesList";
 import useCommandesData from "./hooks/useCommandesData";
 import useSyncPlatforms from "./hooks/useSyncPlatforms";
 import useBackblazeStatus from "./hooks/useBackblazeStatus";
-import { EmailService } from "../CommandeDetails/EmailService"; // Import du service Email
+import { EmailService } from "../CommandeDetails/EmailService";
 import "./Commandes.css";
 import "./ui/UIStates.css";
 
@@ -40,12 +40,18 @@ const Commandes = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  // --- États avec restauration depuis le localStorage ---
+  // Etats avec restauration depuis le localStorage
   const savedState = JSON.parse(localStorage.getItem("commandesState") || "{}");
 
   const [searchTerm, setSearchTerm] = useState(savedState.searchTerm || "");
   const [selectedPlateforme, setSelectedPlateforme] = useState(
     savedState.selectedPlateforme || "",
+  );
+  const [selectedStatut, setSelectedStatut] = useState(
+    savedState.selectedStatut || "",
+  );
+  const [commentFilter, setCommentFilter] = useState(
+    savedState.commentFilter || "all",
   );
   const [showOnlyUnread, setShowOnlyUnread] = useState(
     savedState.showOnlyUnread || false,
@@ -72,13 +78,13 @@ const Commandes = () => {
   const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1);
   const [itemsPerPage] = useState(25);
 
-  // --- NOUVEAU : État pour la sélection multiple ---
+  // Etats pour la sélection multiple
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
   const hasRestoredState = useRef(false);
 
-  // --- États pour les statuts manuels ---
+  // Etats pour les statuts manuels
   const [iteroStatus, setIteroStatus] = useState({
     authenticated: false,
     loading: false,
@@ -90,11 +96,13 @@ const Commandes = () => {
     error: null,
   });
 
-  // ... (Vos useEffects de sauvegarde localStorage et reset pagination restent ici - inchangés) ...
+  // Sauvegarde automatique dans le localStorage
   useEffect(() => {
     const stateToSave = {
       searchTerm,
       selectedPlateforme,
+      selectedStatut,
+      commentFilter,
       showOnlyUnread,
       dateFilter,
       customDateFrom,
@@ -108,6 +116,8 @@ const Commandes = () => {
   }, [
     searchTerm,
     selectedPlateforme,
+    selectedStatut,
+    commentFilter,
     showOnlyUnread,
     dateFilter,
     customDateFrom,
@@ -118,9 +128,12 @@ const Commandes = () => {
     currentPage,
   ]);
 
+  // Reset pagination quand les filtres changent
   const previousFiltersRef = useRef({
     searchTerm,
     selectedPlateforme,
+    selectedStatut,
+    commentFilter,
     showOnlyUnread,
     dateFilter,
     customDateFrom,
@@ -133,12 +146,28 @@ const Commandes = () => {
   useEffect(() => {
     if (!hasRestoredState.current) {
       hasRestoredState.current = true;
+      previousFiltersRef.current = {
+        searchTerm,
+        selectedPlateforme,
+        selectedStatut,
+        commentFilter,
+        showOnlyUnread,
+        dateFilter,
+        customDateFrom,
+        customDateTo,
+        deadlineFilter,
+        customDeadlineFrom,
+        customDeadlineTo,
+      };
       return;
     }
+
     const prev = previousFiltersRef.current;
     const filtersChanged =
       prev.searchTerm !== searchTerm ||
       prev.selectedPlateforme !== selectedPlateforme ||
+      prev.selectedStatut !== selectedStatut ||
+      prev.commentFilter !== commentFilter ||
       prev.showOnlyUnread !== showOnlyUnread ||
       prev.dateFilter !== dateFilter ||
       prev.customDateFrom !== customDateFrom ||
@@ -149,10 +178,12 @@ const Commandes = () => {
 
     if (filtersChanged) {
       setCurrentPage(1);
-      setSelectedIds([]); // Reset selection on filter change
+      setSelectedIds([]);
       previousFiltersRef.current = {
         searchTerm,
         selectedPlateforme,
+        selectedStatut,
+        commentFilter,
         showOnlyUnread,
         dateFilter,
         customDateFrom,
@@ -165,6 +196,8 @@ const Commandes = () => {
   }, [
     searchTerm,
     selectedPlateforme,
+    selectedStatut,
+    commentFilter,
     showOnlyUnread,
     dateFilter,
     customDateFrom,
@@ -174,12 +207,81 @@ const Commandes = () => {
     customDeadlineTo,
   ]);
 
-  // ... (Logique de vérification Itero/CSConnect inchangée) ...
+  // Verification des statuts Itero et CSConnect
   const checkIteroStatus = useCallback(async () => {
-    /* ...code... */
+    try {
+      setIteroStatus((prev) => ({ ...prev, loading: true, error: null }));
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setIteroStatus({ authenticated: false, loading: false, error: null });
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/itero/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIteroStatus({
+          authenticated: data.apiStatus === "Connecté",
+          loading: false,
+          error: null,
+        });
+      } else {
+        setIteroStatus({
+          authenticated: false,
+          loading: false,
+          error: "Erreur check",
+        });
+      }
+    } catch (error) {
+      setIteroStatus({
+        authenticated: false,
+        loading: false,
+        error: error.message,
+      });
+    }
   }, [API_BASE_URL]);
+
   const checkCsConnectStatus = useCallback(async () => {
-    /* ...code... */
+    try {
+      setCsConnectStatus((prev) => ({ ...prev, loading: true }));
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setCsConnectStatus({
+          authenticated: false,
+          loading: false,
+          error: null,
+        });
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/csconnect/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCsConnectStatus({
+          authenticated: data.connected || false,
+          loading: false,
+          error: null,
+        });
+      } else {
+        setCsConnectStatus({
+          authenticated: false,
+          loading: false,
+          error: null,
+        });
+      }
+    } catch (error) {
+      setCsConnectStatus({
+        authenticated: false,
+        loading: false,
+        error: error.message,
+      });
+    }
   }, [API_BASE_URL]);
 
   // Hooks d'authentification
@@ -198,6 +300,7 @@ const Commandes = () => {
     getUserData,
     { revalidateOnFocus: false, revalidateOnReconnect: true },
   );
+
   const { data: userPlatforms = [], isLoading: platformsLoading } = useSWR(
     userData?.id ? `platforms-${userData.id}` : null,
     () => getUserPlatforms(userData.id),
@@ -225,35 +328,7 @@ const Commandes = () => {
     setIsSyncing,
   });
 
-  // --- Handlers Actions Unitaires ---
-  const handleToggleVu = async (commandeCible) => {
-    // ... (votre code existant) ...
-    // Optimistic UI update
-    const nouveauStatutVu = !commandeCible.vu;
-    const commandesOptimistes = commandes.map((c) =>
-      c.id === commandeCible.id ? { ...c, vu: nouveauStatutVu } : c,
-    );
-    await mutateCommandes(commandesOptimistes, false);
-
-    try {
-      const endpoint = commandeCible.vu ? "non-vu" : "vu";
-      await fetch(
-        `${API_BASE_URL}/public/commandes/${commandeCible.id}/${endpoint}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        },
-      );
-      mutateCommandes();
-    } catch (e) {
-      mutateCommandes();
-    }
-  };
-
-  // --- Handlers (Navigation, Filtres, Pagination) ---
+  // Handlers Navigation, Filtres, Pagination
   const handlers = useMemo(
     () => ({
       search: (e) => {
@@ -262,6 +337,14 @@ const Commandes = () => {
       },
       plateforme: (e) => {
         setSelectedPlateforme(e.target.value);
+        setCurrentPage(1);
+      },
+      statut: (e) => {
+        setSelectedStatut(e.target.value);
+        setCurrentPage(1);
+      },
+      commentFilter: (e) => {
+        setCommentFilter(e.target.value);
         setCurrentPage(1);
       },
       dateFilter: (e) => {
@@ -301,11 +384,36 @@ const Commandes = () => {
     [navigate],
   );
 
-  // =================================================================
-  // --- NOUVEAU : LOGIQUE DE SELECTION ET ACTIONS DE MASSE ---
-  // =================================================================
+  // Handler Toggle Vu/Non-Vu
+  const handleToggleVu = async (commandeCible) => {
+    const nouveauStatutVu = !commandeCible.vu;
+    const commandesOptimistes = commandes.map((c) =>
+      c.id === commandeCible.id ? { ...c, vu: nouveauStatutVu } : c,
+    );
+    await mutateCommandes(commandesOptimistes, false);
 
-  // 1. Sélection
+    try {
+      const endpoint = commandeCible.vu ? "non-vu" : "vu";
+      await fetch(
+        `${API_BASE_URL}/public/commandes/${commandeCible.id}/${endpoint}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+      mutateCommandes();
+    } catch (e) {
+      mutateCommandes();
+      toast.error("Impossible de modifier le statut");
+    }
+  };
+
+  // Logique de sélection et actions de masse
+
+  // 1. Selection
   const handleSelectOne = useCallback((id) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
@@ -332,7 +440,6 @@ const Commandes = () => {
     setIsBulkProcessing(true);
     const token = localStorage.getItem("token");
     try {
-      // Exécution parallèle des suppressions
       await Promise.all(
         selectedIds.map((id) =>
           fetch(`${API_BASE_URL}/public/commandes/${id}`, {
@@ -369,7 +476,7 @@ const Commandes = () => {
 
     try {
       const updates = selectedIds.map(async (id) => {
-        // A. Mise à jour du statut en base de données
+        // A. Mise à jour du statut
         const res = await fetch(
           `${API_BASE_URL}/public/commandes/statut/${id}`,
           {
@@ -389,17 +496,9 @@ const Commandes = () => {
         // B. Envoi d'email automatique si EXPEDIEE
         if (newStatus === "EXPEDIEE") {
           try {
-            // Il faut récupérer les infos complètes si elles manquent (ex: email cabinet)
-            // Ici on suppose que 'updatedCmd' contient le nom du cabinet, mais il nous faut l'objet cabinet complet
-            // Option : Récupérer le cabinet via un endpoint ou passer l'objet s'il est dispo
-
-            // Pour simplifier, on va chercher le cabinet dans la liste 'userPlatforms' ou via une requête
-            // Note: Dans votre modèle actuel, le cabinet est une String dans Commande, mais il y a cabinetId.
-
             if (updatedCmd.cabinetId) {
-              // Récupérer les infos du cabinet pour avoir l'email
               const cabRes = await fetch(
-                `${import.meta.env.VITE_API_BASE_URL}/cabinet/${updatedCmd.cabinetId}`,
+                `${API_BASE_URL}/cabinet/${updatedCmd.cabinetId}`,
                 {
                   headers: { Authorization: `Bearer ${token}` },
                 },
@@ -407,7 +506,6 @@ const Commandes = () => {
 
               if (cabRes.ok) {
                 const cabinetData = await cabRes.json();
-                // Envoi via EmailJS
                 await EmailService.sendEmailNotification(
                   updatedCmd,
                   cabinetData,
@@ -466,32 +564,35 @@ const Commandes = () => {
     }
   };
 
-  // --- Fin Logique de Masse ---
-
-  // ... (Code existant pour handlers, memoization, effects...) ...
-
+  // Construction de l'objet dexisStatus
   const dexisStatusObj = useMemo(
     () => ({
       authenticated: dexisAuth.isAuthenticated,
       loading: dexisAuth.isLoading,
+      error: dexisAuth.error,
       ...dexisAuth.authStatus,
     }),
     [dexisAuth],
   );
 
+  // Verification authentification et statuts
   useEffect(() => {
-    if (!isAuthenticated) navigate("/login");
-    else {
+    if (!isAuthenticated) {
+      navigate("/login");
+    } else {
       checkIteroStatus();
       checkCsConnectStatus();
     }
   }, [isAuthenticated, checkIteroStatus, checkCsConnectStatus, navigate]);
 
+  // Hook useCommandesData
   const { stats, filteredCommandes, connectionStatus } = useCommandesData({
     commandes,
     userPlatforms,
     searchTerm,
     selectedPlateforme,
+    selectedStatut,
+    commentFilter,
     showOnlyUnread,
     dateFilter,
     customDateFrom,
@@ -507,33 +608,41 @@ const Commandes = () => {
     csconnectStatus: csConnectStatus,
   });
 
+  // Calcul du nombre total de pages
   const totalPages = useMemo(
     () => Math.ceil(filteredCommandes.length / itemsPerPage),
     [filteredCommandes.length, itemsPerPage],
   );
 
+  // Handlers de synchronisation
   const handleSyncPlatform = useCallback(
     (platformName) => syncPlatformCommandes(platformName, connectionStatus.get),
     [syncPlatformCommandes, connectionStatus.get],
   );
+
   const handleSyncAllPlatforms = useCallback(
     () => syncAllPlatforms(userPlatforms, connectionStatus.get),
     [syncAllPlatforms, userPlatforms, connectionStatus.get],
   );
 
-  if (commandesError)
+  // Gestion des erreurs et chargement
+  if (commandesError) {
     return (
       <div className="commandes-card">
         <ErrorState onRetry={() => mutateCommandes()} />
       </div>
     );
-  if (commandesLoading)
+  }
+
+  if (commandesLoading) {
     return (
       <div className="commandes-card">
         <LoadingState />
       </div>
     );
+  }
 
+  // Render
   return (
     <div className="commandes-card">
       <CommandesHeader
@@ -542,6 +651,7 @@ const Commandes = () => {
         isSyncing={isSyncing}
         onSyncAll={handleSyncAllPlatforms}
       />
+
       <PlatformsSection
         userPlatforms={userPlatforms}
         syncStatus={syncStatus}
@@ -550,11 +660,16 @@ const Commandes = () => {
         connectedPlatformsCount={stats.connectedPlatformsCount}
         totalPlatformsCount={stats.totalPlatformsCount}
       />
+
       <CommandesFilters
         searchTerm={searchTerm}
         onSearchChange={handlers.search}
         selectedPlateforme={selectedPlateforme}
         onPlateformeChange={handlers.plateforme}
+        selectedStatut={selectedStatut}
+        onStatutChange={handlers.statut}
+        commentFilter={commentFilter}
+        onCommentFilterChange={handlers.commentFilter}
         dateFilter={dateFilter}
         onDateFilterChange={handlers.dateFilter}
         customDateFrom={customDateFrom}
@@ -582,7 +697,6 @@ const Commandes = () => {
         totalPages={totalPages}
         onPageChange={handlers.pageChange}
         itemsPerPage={itemsPerPage}
-        // --- PROPS POUR LA SELECTION ET ACTIONS DE MASSE ---
         selectedIds={selectedIds}
         onSelectOne={handleSelectOne}
         onSelectAll={handleSelectAll}

@@ -1,7 +1,15 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 import React from "react";
-import { Search, Filter, CalendarDays, Clock, X } from "lucide-react";
+import {
+  Search,
+  Filter,
+  CalendarDays,
+  Clock,
+  X,
+  CheckCircle,
+  MessageSquare,
+} from "lucide-react";
 import "./CommandesFilters.css";
 
 const CommandesFilters = ({
@@ -9,6 +17,10 @@ const CommandesFilters = ({
   onSearchChange,
   selectedPlateforme,
   onPlateformeChange,
+  selectedStatut,
+  onStatutChange,
+  commentFilter, // NOUVEAU
+  onCommentFilterChange, // NOUVEAU
   dateFilter,
   onDateFilterChange,
   customDateFrom,
@@ -30,7 +42,7 @@ const CommandesFilters = ({
         <Search className="commandes-search-icon" size={20} />
         <input
           type="text"
-          placeholder="Rechercher par patient, cabinet ou ID..."
+          placeholder="Rechercher par patient, cabinet, ID, numéro suivi ou commentaire..."
           value={searchTerm}
           onChange={onSearchChange}
           className="commandes-search-input"
@@ -47,6 +59,7 @@ const CommandesFilters = ({
       </div>
 
       <div className="commandes-filters">
+        {/* FILTRE PLATEFORME */}
         <div className="commandes-filter-group">
           <Filter size={16} />
           <select
@@ -64,6 +77,38 @@ const CommandesFilters = ({
           </select>
         </div>
 
+        {/* FILTRE STATUT */}
+        <div className="commandes-filter-group">
+          <CheckCircle size={16} />
+          <select
+            value={selectedStatut}
+            onChange={onStatutChange}
+            className="commandes-filter-select"
+          >
+            <option value="">Tous les statuts</option>
+            <option value="EN_ATTENTE">En attente</option>
+            <option value="EN_COURS">En cours</option>
+            <option value="TERMINEE">Terminée</option>
+            <option value="EXPEDIEE">Expédiée</option>
+            <option value="ANNULEE">Annulée</option>
+          </select>
+        </div>
+
+        {/* NOUVEAU : FILTRE COMMENTAIRE */}
+        <div className="commandes-filter-group">
+          <MessageSquare size={16} />
+          <select
+            value={commentFilter}
+            onChange={onCommentFilterChange}
+            className="commandes-filter-select"
+          >
+            <option value="all">Tous les commentaires</option>
+            <option value="with">Avec commentaire</option>
+            <option value="without">Sans commentaire</option>
+          </select>
+        </div>
+
+        {/* FILTRE DATE RÉCEPTION */}
         <div className="commandes-filter-group">
           <CalendarDays size={16} />
           <select
@@ -99,6 +144,7 @@ const CommandesFilters = ({
           </div>
         )}
 
+        {/* FILTRE ÉCHÉANCE */}
         <div className="commandes-filter-group">
           <Clock size={16} />
           <select
@@ -136,6 +182,7 @@ const CommandesFilters = ({
           </div>
         )}
 
+        {/* CHECKBOX NON VU */}
         <label className="commandes-checkbox-filter">
           <input
             type="checkbox"
