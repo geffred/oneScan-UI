@@ -1,467 +1,337 @@
-/* Commandes List Styles */
-.commandes-list-section {
+/* --- Commandes List Container --- */
+.cmd-list-section {
   margin-bottom: 2rem;
 }
 
-.commandes-table {
-  border: 1px solid var(--commandes-border);
-  border-radius: var(--commandes-radius);
+/* --- Table Structure --- */
+.cmd-list-table {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   overflow: hidden;
-  background: var(--commandes-background);
+  background: #ffffff;
 }
 
-.commandes-table-header {
+.cmd-list-header {
   display: grid;
-  grid-template-columns: 100px 1fr 1fr 120px 120px 120px 120px 80px;
-  background: var(--commandes-background-muted);
-  border-bottom: 1px solid var(--commandes-border);
+  /* Grid template identique à CommandeRow.css */
+  grid-template-columns: 40px 80px 1fr 1fr 120px 120px 120px 140px 80px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.commandes-table-body {
-  min-height: 400px;
-  overflow-y: auto;
-}
-
-.commandes-table-row {
-  display: grid;
-  grid-template-columns: 100px 1fr 1fr 120px 120px 120px 120px 80px;
-  border-bottom: 1px solid var(--commandes-border-light);
-  transition: var(--commandes-transition);
-}
-
-.commandes-table-row:hover {
-  background: var(--commandes-background-alt);
-}
-
-.commandes-row-unread {
-  border-left: 3px solid var(--commandes-primary);
-}
-
-.commandes-table-cell {
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  font-size: var(--commandes-font-base);
-  border-right: 1px solid var(--commandes-border-light);
-}
-
-.commandes-table-header .commandes-table-cell {
+.cmd-list-header-cell {
+  padding: 1rem 0.75rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #374151;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-size: var(--commandes-font-sm);
+  display: flex;
+  align-items: center;
 }
 
-.commandes-table-cell:last-child {
-  border-right: none;
+.cmd-list-body {
+  min-height: 400px;
+  overflow-y: auto;
 }
 
-/* Cell Content Styles */
-.commandes-external-id {
-  font-family: monospace;
+/* --- Checkbox Styles --- */
+.cmd-list-checkbox-cell {
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cmd-list-icon-primary {
+  color: #007aff;
+}
+
+.cmd-list-icon-gray {
+  color: #9ca3af;
+}
+
+/* --- Bulk Actions Bar --- */
+.cmd-list-bulk-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: white;
+  border: 1px solid #6e7d8d;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  animation: cmdListSlideDown 0.3s ease-out;
+}
+
+@keyframes cmdListSlideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.cmd-list-bulk-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cmd-list-bulk-count {
   font-weight: 600;
-  color: var(--commandes-primary);
-  background: #dbeafe;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: var(--commandes-font-sm);
+  color: #007aff;
+  background: #eff6ff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
 }
 
-.commandes-patient-info {
+.cmd-list-bulk-clear {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 0.875rem;
+}
+
+.cmd-list-bulk-controls {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.commandes-patient-name {
-  font-weight: 500;
-  color: var(--commandes-text-primary);
-}
-
-.commandes-unread-badge {
-  background: var(--commandes-primary);
-  border-radius: 50%;
-  width: 8px;
-  height: 8px;
-  flex-shrink: 0;
-}
-
-.commandes-cabinet-name {
-  color: var(--commandes-text-secondary);
-  font-size: var(--commandes-font-base);
-}
-
-/* Platform Badges */
-.commandes-plateforme-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: var(--commandes-font-sm);
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
-.commandes-plateforme-blue {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.commandes-plateforme-green {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.commandes-plateforme-purple {
-  background: #e9d5ff;
-  color: #7c3aed;
-}
-
-.commandes-plateforme-orange {
-  background: #fed7aa;
-  color: #c2410c;
-}
-
-.commandes-plateforme-red {
-  background-color: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-}
-
-.commandes-plateforme-gray {
-  background: var(--commandes-border-light);
-  color: var(--commandes-text-secondary);
-}
-
-.commandes-date-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--commandes-text-secondary);
-  font-size: var(--commandes-font-base);
-}
-
-/* Status Badges */
-.commandes-status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: var(--commandes-font-sm);
-  font-weight: 500;
-}
-
-.commandes-status-green {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.commandes-status-yellow {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.commandes-status-red {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.commandes-status-gray {
-  background: var(--commandes-border-light);
-  color: var(--commandes-text-secondary);
-}
-
-.commandes-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.commandes-action-btn {
+.cmd-list-bulk-select {
   padding: 0.5rem;
-  border: none;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
-  cursor: pointer;
-  transition: var(--commandes-transition);
+  font-size: 0.875rem;
+  min-width: 150px;
+  background-color: white;
+}
+
+.cmd-list-bulk-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6b7280;
+  width: 36px;
+  height: 36px;
 }
 
-.commandes-action-btn:disabled {
-  opacity: 0.6;
+.cmd-list-bulk-btn:hover:not(:disabled) {
+  background: #f9fafb;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.cmd-list-bulk-btn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.commandes-action-view {
-  background: var(--commandes-primary);
-  color: white;
+.cmd-list-bulk-btn-delete {
+  color: #ef4444;
+  border-color: #fecaca;
 }
 
-.commandes-action-view:hover:not(:disabled) {
-  background: var(--commandes-primary-dark);
-  transform: scale(1.05);
+.cmd-list-bulk-btn-delete:hover:not(:disabled) {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #f87171;
 }
 
-/* Empty State */
-.commandes-empty-state {
+.cmd-list-bulk-divider {
+  width: 1px;
+  height: 24px;
+  background: #e5e7eb;
+  margin: 0 0.25rem;
+}
+
+/* --- Empty State --- */
+.cmd-list-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2rem;
+  padding: 4rem 2rem;
   text-align: center;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
 }
 
-.commandes-empty-icon {
-  color: var(--commandes-text-muted);
+.cmd-list-empty-icon {
+  color: #9ca3af;
   margin-bottom: 1rem;
 }
 
-.commandes-empty-title {
-  font-size: var(--commandes-font-2xl);
+.cmd-list-empty-title {
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--commandes-text-primary);
+  color: #111827;
   margin-bottom: 0.5rem;
 }
 
-.commandes-empty-message {
-  color: var(--commandes-text-secondary);
-  margin: 0;
+.cmd-list-empty-msg {
+  color: #6b7280;
+  margin: 0 0 1.5rem 0;
   line-height: 1.5;
+  max-width: 400px;
 }
 
-/* Footer */
-.commandes-footer {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--commandes-border-light);
-  text-align: center;
+.cmd-list-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
 }
 
-.commandes-results-count {
-  color: var(--commandes-text-secondary);
-  font-size: var(--commandes-font-base);
-  margin: 0;
+.cmd-list-btn-primary {
+  background: #007aff;
+  color: white;
 }
 
-/* Responsive Table */
-@media (max-width: 1200px) {
-  .commandes-table-header,
-  .commandes-table-row {
-    grid-template-columns: 80px 1fr 1fr 100px 100px 100px 80px 70px;
-  }
+.cmd-list-btn-primary:hover {
+  background: #0062cc;
+  transform: translateY(-1px);
 }
 
-@media (max-width: 768px) {
-  .commandes-table-header {
-    display: none;
-  }
-
-  .commandes-table-row {
-    display: block;
-    margin-bottom: 1rem;
-    border-radius: var(--commandes-radius);
-    border: 1px solid var(--commandes-border);
-  }
-
-  .commandes-table-cell {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem;
-    border-right: none;
-    border-bottom: 1px solid var(--commandes-border-light);
-  }
-
-  .commandes-table-cell:last-child {
-    border-bottom: none;
-  }
-
-  .commandes-table-cell::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: #374151;
-    min-width: 100px;
-    font-size: var(--commandes-font-sm);
-  }
-}
-
-/* Pagination Styles */
-.commandes-pagination {
+/* --- Pagination --- */
+.cmd-list-pagination {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--commandes-border-light);
+  border-top: 1px solid #e5e7eb;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
-.commandes-pagination-info {
+.cmd-list-pagination-info {
   flex: 1;
 }
 
-.commandes-pagination-text {
-  color: var(--commandes-text-secondary);
-  font-size: var(--commandes-font-sm);
+.cmd-list-pagination-text {
+  color: #6b7280;
+  font-size: 0.875rem;
 }
 
-.commandes-pagination-controls {
+.cmd-list-pagination-controls {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.commandes-pagination-btn {
+.cmd-list-pagination-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--commandes-border);
-  background: var(--commandes-background);
-  color: var(--commandes-text-primary);
-  border-radius: var(--commandes-radius);
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #374151;
+  border-radius: 6px;
   cursor: pointer;
-  transition: var(--commandes-transition);
-  font-size: var(--commandes-font-sm);
+  transition: all 0.2s;
+  font-size: 0.875rem;
 }
 
-.commandes-pagination-btn:hover:not(:disabled) {
-  background: var(--commandes-background-muted);
-  border-color: var(--commandes-primary);
+.cmd-list-pagination-btn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
 }
 
-.commandes-pagination-btn:disabled {
+.cmd-list-pagination-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.commandes-pagination-pages {
+.cmd-list-pagination-pages {
   display: flex;
   align-items: center;
   gap: 0.25rem;
 }
 
-.commandes-pagination-page {
+.cmd-list-pagination-page {
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--commandes-border);
-  background: var(--commandes-background);
-  color: var(--commandes-text-primary);
-  border-radius: var(--commandes-radius);
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #374151;
+  border-radius: 6px;
   cursor: pointer;
-  transition: var(--commandes-transition);
-  font-size: var(--commandes-font-sm);
+  transition: all 0.2s;
+  font-size: 0.875rem;
   min-width: 2.5rem;
   text-align: center;
 }
 
-.commandes-pagination-page:hover:not(.commandes-pagination-page-active) {
-  background: var(--commandes-background-muted);
-  border-color: var(--commandes-primary);
+.cmd-list-pagination-page:hover:not(.cmd-list-pagination-page-active) {
+  background: #f9fafb;
+  border-color: #007aff;
 }
 
-.commandes-pagination-page-active {
-  background: var(--commandes-primary);
+.cmd-list-pagination-page-active {
+  background: #007aff;
   color: white;
-  border-color: var(--commandes-primary);
+  border-color: #007aff;
 }
 
-.commandes-pagination-ellipsis {
-  padding: 0.5rem 0.25rem;
-  color: var(--commandes-text-muted);
-  font-size: var(--commandes-font-sm);
+/* --- Responsive --- */
+@media (max-width: 1200px) {
+  .cmd-list-header {
+    /* Adapter aux colonnes de CommandeRow responsive */
+    grid-template-columns: 40px 60px 1fr 1fr 90px 100px 110px 60px;
+  }
+  /* Masquer la colonne cabinet comme dans CommandeRow */
+  .cmd-list-header-cell:nth-child(4) {
+    display: none;
+  }
 }
 
-/* Responsive Pagination */
 @media (max-width: 768px) {
-  .commandes-pagination {
+  .cmd-list-header {
+    display: none;
+  }
+
+  .cmd-list-pagination {
     flex-direction: column;
+    text-align: center;
+  }
+
+  .cmd-list-pagination-pages {
+    display: none;
+  }
+
+  .cmd-list-bulk-bar {
+    flex-direction: column;
+    gap: 1rem;
     align-items: stretch;
-    text-align: center;
   }
 
-  .commandes-pagination-controls {
-    justify-content: center;
+  .cmd-list-bulk-info {
+    justify-content: space-between;
   }
 
-  .commandes-pagination-pages {
-    display: none;
+  .cmd-list-bulk-controls {
+    justify-content: space-between;
   }
-
-  .commandes-pagination-info {
-    text-align: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .commandes-pagination-btn {
-    padding: 0.5rem;
-    font-size: var(--commandes-font-xs);
-  }
-
-  .commandes-pagination-btn span {
-    display: none;
-  }
-}
-
-
-/* Platform Badges - Ajout de CS Connect */
-.commandes-plateforme-blue {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.commandes-plateforme-green {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.commandes-plateforme-purple {
-  background: #e9d5ff;
-  color: #7c3aed;
-}
-
-.commandes-plateforme-orange {
-  background: #fed7aa;
-  color: #c2410c;
-}
-
-.commandes-plateforme-red {
-  background-color: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-}
-
-/* NOUVEAU : Style pour CS Connect */
-.commandes-plateforme-cyan {
-  background: #cffafe;
-  color: #0e7490;
-  border: 1px solid #a5f3fc;
-}
-
-.commandes-plateforme-gray {
-  background: var(--commandes-border-light);
-  color: var(--commandes-text-secondary);
-}
-
-
-
-.commandes-btn-blue {
-  background-color: var(--commandes-primary); /* Un bleu clair doux */
-  color: white; /* Texte/Icône en bleu foncé */
-  border: 1px solid #bae6fd;
-  transition: all 0.2s ease;
-}
-
-.commandes-btn-blue:hover {
-  background-color: white; /* Bleu plus vif au survol */
-  color:var(--commandes-primary); /* Icône devient blanche */
-  border-color: #0ea5e9;
-}
-
-.commandes-btn-white {
-  background-color: white; /* Bleu plus vif au survol */
-  color:var(--commandes-primary); /* Icône devient blanche */
-  border-color: #0ea5e9;
 }

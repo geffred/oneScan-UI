@@ -1,0 +1,341 @@
+/* --- Structure de la ligne --- */
+.cmd-row-container {
+  display: grid;
+  /* Doit correspondre exactement aux colonnes du Header dans CommandesList.jsx */
+  grid-template-columns: 40px 80px 1fr 1fr 120px 120px 120px 140px 80px;
+  border-bottom: 1px solid #f3f4f6;
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+  align-items: center;
+  position: relative; /* Pour le positionnement de la barre non-lue */
+}
+
+/* Effet de survol simple et propre */
+.cmd-row-container:hover {
+  background-color: #f9fafb; /* Gris très léger */
+  z-index: 1; /* Légère élévation contextuelle */
+}
+
+/* --- Style Non Lu (Unread) --- */
+.cmd-row-unread {
+  background-color: #ffffff; /* On force le blanc, PAS de bleu */
+}
+
+/* Indicateur visuel : Barre bleue à gauche */
+.cmd-row-unread::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: #007aff;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+}
+
+/* Texte plus sombre et gras pour le non-lu */
+.cmd-row-unread .cmd-row-cell {
+  font-weight: 600;
+  color: #111827;
+}
+
+.cmd-row-unread .cmd-row-text-secondary {
+  color: #4b5563; /* Gris un peu plus foncé pour la lisibilité */
+  font-weight: 500;
+}
+
+/* --- Style Sélectionné --- */
+.cmd-row-selected {
+  background-color: #eff6ff !important; /* Bleu très très pâle juste pour la sélection */
+}
+
+/* --- Cellules --- */
+.cmd-row-cell {
+  padding: 1rem 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280; /* Gris par défaut (lu) */
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  height: 100%;
+}
+
+.cmd-row-column-flex {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* --- Checkbox Area --- */
+.cmd-row-checkbox-area {
+  justify-content: center;
+  cursor: pointer;
+  padding-left: 1rem; /* Un peu d'espace si barre bleue présente */
+}
+
+.cmd-row-icon-primary {
+  color: #007aff;
+}
+.cmd-row-icon-gray {
+  color: #d1d5db;
+}
+
+/* --- ID Badge --- */
+.cmd-row-id-badge {
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  color: #007aff;
+  background: #f0f9ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  border: 1px solid #bae6fd;
+}
+
+/* --- Patient Info --- */
+.cmd-row-patient-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.cmd-row-dot-unread {
+  width: 8px;
+  height: 8px;
+  background-color: #007aff;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: none; /* Masqué car on a la barre latérale maintenant, décommentez si vous voulez les deux */
+}
+
+.cmd-row-patient-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- Cabinet Text --- */
+.cmd-row-text-secondary {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- Badges Plateformes (Style unifié) --- */
+.cmd-row-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+  display: inline-block;
+  letter-spacing: 0.5px;
+}
+
+.cmd-row-plat-blue { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
+.cmd-row-plat-green { background: #ecfdf5; color: #065f46; border: 1px solid #d1fae5; }
+.cmd-row-plat-purple { background: #faf5ff; color: #7c3aed; border: 1px solid #e9d5ff; }
+.cmd-row-plat-orange { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+.cmd-row-plat-cyan { background: #ecfeff; color: #0e7490; border: 1px solid #cffafe; }
+.cmd-row-plat-red { background: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
+.cmd-row-plat-indigo { background: #eef2ff; color: #3730a3; border: 1px solid #e0e7ff; }
+.cmd-row-plat-gray { background: #f9fafb; color: #4b5563; border: 1px solid #e5e7eb; }
+
+/* --- Date Info --- */
+.cmd-row-date-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+
+/* --- Badges Échéance (Urgence) --- */
+.cmd-row-mini-badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.cmd-row-deadline-expired {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fee2e2;
+}
+.cmd-row-deadline-urgent {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fef3c7;
+}
+.cmd-row-deadline-normal {
+  display: none;
+}
+
+/* --- Statut Workflow & Notification --- */
+.cmd-row-status-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.cmd-row-status-pill {
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.cmd-row-status-completed { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.cmd-row-status-shipped { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.cmd-row-status-processing { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+.cmd-row-status-pending { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
+.cmd-row-status-cancelled { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* Icones Notification */
+.cmd-row-notif-indicator {
+  color: #10b981; /* Vert succès */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cmd-row-notif-warning {
+  color: #f59e0b; /* Orange warning */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+/* --- Boutons Actions --- */
+.cmd-row-actions-group {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.cmd-row-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+}
+
+.cmd-row-action-btn:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* Bouton pour marquer comme lu (quand c'est non lu) */
+.cmd-row-btn-active {
+  color: #007aff;
+  background-color: #eff6ff;
+}
+.cmd-row-btn-active:hover {
+  background-color: #dbeafe;
+  color: #0056b3;
+}
+
+/* Bouton pour marquer comme non lu (quand c'est déjà lu) */
+.cmd-row-btn-ghost {
+  color: #9ca3af;
+}
+.cmd-row-btn-ghost:hover {
+  color: #4b5563;
+  background-color: #e5e7eb;
+}
+
+/* --- Responsive Mobile --- */
+@media (max-width: 1200px) {
+  .cmd-row-container {
+    /* Ajustement tablette - suppression de la colonne Cabinet */
+    grid-template-columns: 40px 60px 1fr 1fr 90px 100px 110px 60px;
+  }
+  .cmd-row-cell[data-label="Cabinet"] {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .cmd-row-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  /* Retirer la barre latérale en mobile pour un contour complet */
+  .cmd-row-unread::before {
+    display: none;
+  }
+  
+  .cmd-row-unread {
+    border: 1px solid #bae6fd; /* Bordure bleue subtile en mobile */
+    background-color: #f0f9ff; /* Fond bleu très léger en mobile pour distinction */
+  }
+
+  .cmd-row-cell {
+    padding: 4px 0;
+    width: 100%;
+    justify-content: space-between;
+    height: auto;
+  }
+
+  .cmd-row-checkbox-area {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    width: auto;
+    padding: 0;
+  }
+
+  .cmd-row-cell::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #6b7280;
+    width: 100px;
+    display: inline-block;
+    font-size: 0.8rem;
+  }
+
+  .cmd-row-checkbox-area::before {
+    content: none;
+  }
+
+  .cmd-row-cell[data-label="ID"] {
+    padding-left: 30px;
+    justify-content: flex-start;
+  }
+  
+  .cmd-row-cell[data-label="Actions"] {
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 0.5rem;
+  }
+
+  .cmd-row-cell[data-label="Cabinet"] {
+    display: flex;
+  }
+}
