@@ -5,13 +5,14 @@ import React, {
   useMemo,
   useCallback,
   useEffect,
+  useRef,
 } from "react";
 import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import { AuthContext } from "../../components/Config/AuthContext";
 import useMeditLinkAuth from "../Config/useMeditLinkAuth";
 import useThreeShapeAuth from "../Config/useThreeShapeAuth";
-import useDexisAuth from "../Config/useDexisAuth"; // IMPORT DU HOOK DEXIS
+import useDexisAuth from "../Config/useDexisAuth";
 
 // Import des composants
 import LoadingState from "./ui/LoadingState";
@@ -34,6 +35,7 @@ import { getUserData, getUserPlatforms, getCommandes } from "./commandesUtils";
 const Commandes = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useContext(AuthContext);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // --- États avec restauration depuis le localStorage ---
   const savedState = JSON.parse(localStorage.getItem("commandesState") || "{}");
@@ -66,7 +68,20 @@ const Commandes = () => {
   const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1);
   const [itemsPerPage] = useState(25);
 
-  const hasRestoredState = React.useRef(false);
+  const hasRestoredState = useRef(false);
+
+  // --- AJOUT : États pour les statuts manuels (Itero & CS Connect) ---
+  const [iteroStatus, setIteroStatus] = useState({
+    authenticated: false,
+    loading: false,
+    error: null,
+  });
+
+  const [csConnectStatus, setCsConnectStatus] = useState({
+    authenticated: false,
+    loading: false,
+    error: null,
+  });
 
   // --- Sauvegarde automatique dans le localStorage ---
   useEffect(() => {
@@ -97,7 +112,7 @@ const Commandes = () => {
   ]);
 
   // --- Reset pagination ---
-  const previousFiltersRef = React.useRef({
+  const previousFiltersRef = useRef({
     searchTerm,
     selectedPlateforme,
     showOnlyUnread,
@@ -164,7 +179,74 @@ const Commandes = () => {
     customDeadlineTo,
   ]);
 
-  // Hooks d'authentification
+  // --- AJOUT : Fonctions de vérification des status (comme dans Platform.jsx) ---
+  const checkIteroStatus = useCallback(async () => {
+    try {
+      setIteroStatus((prev) => ({ ...prev, loading: true, error: null }));
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await fetch(`${API_BASE_URL}/itero/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIteroStatus({
+          authenticated: data.apiStatus === "Connecté",
+          loading: false,
+          error: null,
+        });
+      } else {
+        setIteroStatus({
+          authenticated: false,
+          loading: false,
+          error: "Erreur check",
+        });
+      }
+    } catch (error) {
+      setIteroStatus({
+        authenticated: false,
+        loading: false,
+        error: error.message,
+      });
+    }
+  }, [API_BASE_URL]);
+
+  const checkCsConnectStatus = useCallback(async () => {
+    try {
+      setCsConnectStatus((prev) => ({ ...prev, loading: true }));
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await fetch(`${API_BASE_URL}/csconnect/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCsConnectStatus({
+          authenticated: data.connected || false,
+          loading: false,
+          error: null,
+        });
+      } else {
+        setCsConnectStatus({
+          authenticated: false,
+          loading: false,
+          error: null,
+        });
+      }
+    } catch (error) {
+      setCsConnectStatus({
+        authenticated: false,
+        loading: false,
+        error: error.message,
+      });
+    }
+  }, [API_BASE_URL]);
+
+  // --- Hooks d'authentification ---
   const backblazeStatus = useBackblazeStatus(isAuthenticated);
 
   const meditlinkAuth = useMeditLinkAuth({
@@ -175,12 +257,11 @@ const Commandes = () => {
 
   const threeshapeAuth = useThreeShapeAuth();
 
-  // Hook Dexis
   const dexisAuth = useDexisAuth({
-    refreshInterval: 10000, // check régulier
+    refreshInterval: 10000,
   });
 
-  // Hooks SWR pour les données
+  // --- Hooks SWR pour les données ---
   const {
     data: userData,
     error: userError,
@@ -211,9 +292,7 @@ const Commandes = () => {
     isLoading: commandesLoading,
     mutate: mutateCommandes,
   } = useSWR(
-    isAuthenticated
-      ? `${import.meta.env.VITE_API_BASE_URL}/public/commandes`
-      : null,
+    isAuthenticated ? `${API_BASE_URL}/public/commandes` : null,
     getCommandes,
     {
       revalidateOnFocus: false,
@@ -234,10 +313,9 @@ const Commandes = () => {
     setIsSyncing,
   });
 
-  // --- TOGGLE VU/NON-VU OPTIMISÉ (Optimistic UI) ---
+  // --- Toggle Vu/Non-Vu Optimisé ---
   const handleToggleVu = async (commandeCible) => {
     const nouveauStatutVu = !commandeCible.vu;
-
     const commandesOptimistes = commandes.map((c) =>
       c.id === commandeCible.id ? { ...c, vu: nouveauStatutVu } : c,
     );
@@ -246,9 +324,7 @@ const Commandes = () => {
 
     try {
       const endpoint = commandeCible.vu ? "non-vu" : "vu";
-      const url = `${import.meta.env.VITE_API_BASE_URL}/public/commandes/${
-        commandeCible.id
-      }/${endpoint}`;
+      const url = `${API_BASE_URL}/public/commandes/${commandeCible.id}/${endpoint}`;
       const token = localStorage.getItem("token");
 
       const response = await fetch(url, {
@@ -262,7 +338,6 @@ const Commandes = () => {
       if (!response.ok) {
         throw new Error("Erreur serveur");
       }
-
       mutateCommandes();
     } catch (error) {
       console.error("Erreur API:", error);
@@ -318,7 +393,6 @@ const Commandes = () => {
     [navigate],
   );
 
-  // Construction de l'objet dexisStatus pour le hook
   const dexisStatusObj = useMemo(
     () => ({
       authenticated: dexisAuth.isAuthenticated,
@@ -328,6 +402,23 @@ const Commandes = () => {
     [dexisAuth],
   );
 
+  // --- Effects ---
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // AJOUT : Vérification des statuts Itero et CS Connect au montage
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkIteroStatus();
+      checkCsConnectStatus();
+    }
+  }, [isAuthenticated, checkIteroStatus, checkCsConnectStatus]);
+
+  // --- Passage des données au Hook (avec les nouveaux status) ---
   const { stats, filteredCommandes, connectionStatus } = useCommandesData({
     commandes,
     userPlatforms,
@@ -342,8 +433,10 @@ const Commandes = () => {
     customDeadlineTo,
     meditlinkAuth,
     threeshapeAuth,
-    dexisStatus: dexisStatusObj, // Passé ici
+    dexisStatus: dexisStatusObj,
     backblazeStatus,
+    iteroStatus, // AJOUT
+    csconnectStatus: csConnectStatus, // AJOUT (State passé au prop)
   });
 
   const totalPages = useMemo(() => {
@@ -360,12 +453,6 @@ const Commandes = () => {
   const handleSyncAllPlatforms = useCallback(() => {
     syncAllPlatforms(userPlatforms, connectionStatus.get);
   }, [syncAllPlatforms, userPlatforms, connectionStatus.get]);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
 
   if (commandesError) {
     return (

@@ -40,7 +40,7 @@ export const checkPlatformStatus = async (platformType) => {
     if (!token) throw new Error("Token manquant");
 
     const endpoints = {
-      ITERO: `${API_BASE_URL}/itero/status`,
+      ITERO: `${API_BASE_URL}/itero/statu`,
       DEXIS: `${API_BASE_URL}/dexis/auth/status`,
       THREESHAPE: `${API_BASE_URL}/auth/status`,
       CSCONNECT: `${API_BASE_URL}/csconnect/status`,

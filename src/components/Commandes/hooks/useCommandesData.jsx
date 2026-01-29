@@ -16,9 +16,9 @@ export const useCommandesData = ({
   meditlinkAuth,
   threeshapeAuth,
   backblazeStatus,
-  iteroStatus,
-  dexisStatus, // Reçu depuis le hook useDexisAuth dans Commandes.jsx
-  csconnectStatus,
+  iteroStatus, // Reçu de Commandes.jsx
+  dexisStatus,
+  csconnectStatus, // Reçu de Commandes.jsx
 }) => {
   // Fonction pour obtenir le statut de connexion d'une plateforme
   const getConnectionStatus = useCallback(
@@ -47,7 +47,6 @@ export const useCommandesData = ({
             authenticated: dexisStatus?.authenticated || false,
             loading: dexisStatus?.loading || false,
             error: dexisStatus?.error || null,
-            // On peut ajouter d'autres infos si le hook useDexisAuth en renvoie
           };
         case "CSCONNECT":
           return {
@@ -56,7 +55,6 @@ export const useCommandesData = ({
             error: csconnectStatus?.error || null,
           };
         case "MYSMILELAB":
-          // MySmileLab utilise Backblaze B2 pour le stockage
           return {
             authenticated: backblazeStatus.authenticated,
             loading: backblazeStatus.loading,
@@ -74,9 +72,9 @@ export const useCommandesData = ({
       threeshapeAuth.isAuthenticated,
       threeshapeAuth.userInfo,
       threeshapeAuth.authStatus,
-      iteroStatus,
+      iteroStatus, // AJOUTÉ AUX DÉPENDANCES
       dexisStatus,
-      csconnectStatus,
+      csconnectStatus, // AJOUTÉ AUX DÉPENDANCES
       backblazeStatus,
     ],
   );
@@ -117,10 +115,7 @@ export const useCommandesData = ({
   // Fonction pour filtrer par date d'échéance
   const filterByDeadline = useCallback(
     (commande) => {
-      // Si le filtre est "all", on inclut toutes les commandes
       if (deadlineFilter === "all") return true;
-
-      // Si la commande n'a pas d'échéance, on l'exclut (sauf si filtre = "all")
       if (!commande.dateEcheance) return false;
 
       const echeance = new Date(commande.dateEcheance);
@@ -129,28 +124,19 @@ export const useCommandesData = ({
 
       switch (deadlineFilter) {
         case "expired":
-          // Échéances passées (avant aujourd'hui)
           return echeance < today;
-
         case "today":
-          // Échéances aujourd'hui
           return echeance.toDateString() === today.toDateString();
-
         case "tomorrow":
-          // Échéances demain
           const tomorrow = new Date(today);
           tomorrow.setDate(tomorrow.getDate() + 1);
           return echeance.toDateString() === tomorrow.toDateString();
-
         case "week":
-          // Échéances dans les 7 prochains jours
           const weekEnd = new Date(today);
           weekEnd.setDate(weekEnd.getDate() + 7);
           weekEnd.setHours(23, 59, 59, 999);
           return echeance >= today && echeance <= weekEnd;
-
         case "month":
-          // Échéances dans le mois en cours
           const monthEnd = new Date(
             today.getFullYear(),
             today.getMonth() + 1,
@@ -158,9 +144,7 @@ export const useCommandesData = ({
           );
           monthEnd.setHours(23, 59, 59, 999);
           return echeance >= today && echeance <= monthEnd;
-
         case "custom":
-          // Période personnalisée
           if (!customDeadlineFrom && !customDeadlineTo) return true;
           const fromDate = customDeadlineFrom
             ? new Date(customDeadlineFrom)
@@ -170,7 +154,6 @@ export const useCommandesData = ({
             : new Date();
           toDate.setHours(23, 59, 59, 999);
           return echeance >= fromDate && echeance <= toDate;
-
         default:
           return true;
       }
@@ -190,13 +173,11 @@ export const useCommandesData = ({
         return echeance < today;
       }).length || 0;
 
-    // Compter les plateformes connectées (sans Google Drive)
     const connectedPlatformsCount = userPlatforms.filter((platform) => {
       const connectionStatus = getConnectionStatus(platform.name);
       return connectionStatus.authenticated;
     }).length;
 
-    // Statistiques par plateforme
     const statsByPlatform = {};
     commandes?.forEach((cmd) => {
       const platform = cmd.plateforme;
@@ -226,7 +207,6 @@ export const useCommandesData = ({
 
   // Filtrage et tri des commandes mémorisés
   const filteredCommandes = useMemo(() => {
-    // 1. FILTRAGE
     const filtered =
       commandes?.filter((commande) => {
         const matchesSearch =
@@ -252,9 +232,7 @@ export const useCommandesData = ({
         );
       }) || [];
 
-    // 2. TRI
     return filtered.sort((a, b) => {
-      // Si un filtre d'échéance est actif (autre que "all"), trier par échéance
       if (deadlineFilter !== "all") {
         const echeanceA = a.dateEcheance
           ? new Date(a.dateEcheance).getTime()
@@ -262,12 +240,8 @@ export const useCommandesData = ({
         const echeanceB = b.dateEcheance
           ? new Date(b.dateEcheance).getTime()
           : Infinity;
-
-        // Tri par échéance : du plus proche au plus éloigné
         return echeanceA - echeanceB;
       }
-
-      // Sinon, tri par date de réception : du plus récent au plus ancien
       return new Date(b.dateReception || 0) - new Date(a.dateReception || 0);
     });
   }, [
