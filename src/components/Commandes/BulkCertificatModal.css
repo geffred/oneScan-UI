@@ -1,32 +1,38 @@
-/* Superposition d'arrière-plan (Overlay) */
+/* ========================================================================
+   MODAL BULK CERTIFICAT - OPTIMISÉ & RAPIDE
+   ======================================================================== */
+
+/* --- Overlay --- */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.75); /* Slate 900 très sombre et transparent */
+    background: rgba(0, 0, 0, 0.75);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999; /* Priorité absolue au premier plan */
-    animation: fadeIn 0.2s ease-out;
+    z-index: 9999;
 }
 
-/* Conteneur principal du Modal */
+/* --- Conteneur Modal --- */
 .modal-container {
     background: white;
-    border-radius: 16px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     max-height: 90vh;
     overflow: hidden;
-    animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid #e5e7eb;
 }
 
-/* En-tête du Modal */
+.bulk-cert-container {
+    max-width: 1200px;
+    width: 95vw;
+}
+
+/* --- Header --- */
 .modal-header {
     padding: 20px 24px;
     background: #f8fafc;
@@ -64,7 +70,26 @@
     color: #ef4444;
 }
 
-/* Zone d'actions rapides (Matériaux récents) */
+/* --- Bouton Delete Certificats (Rouge) --- */
+.bulk-delete-certs-btn {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #ef4444;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bulk-delete-certs-btn:hover {
+    background: #ffc1c1;
+    
+}
+
+/* --- Quick Actions (Matériaux) --- */
 .bulk-quick-actions {
     background: #f0f9ff;
     padding: 16px 24px;
@@ -88,21 +113,123 @@
     padding-bottom: 5px;
 }
 
-/* Pied de page du Modal */
-.modal-footer {
-    padding: 20px 24px;
-    background: #f8fafc;
-    border-top: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
+.recent-mats-scroll::-webkit-scrollbar {
+    height: 6px;
 }
 
-/* Styles pour les lignes de matériaux dans la table */
+.recent-mats-scroll::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.recent-mats-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.mini-mat-badge {
+    background: #eff6ff;
+    border: 1px solid #bae6fd;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 600;
+    color: #0369a1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mini-mat-badge:hover {
+    background: #007AFF;
+    color: white;
+    border-color: #007AFF;
+}
+
+/* --- Content --- */
+.modal-content {
+    padding: 24px;
+    overflow-y: auto;
+    max-height: calc(90vh - 180px);
+}
+
+/* --- Table --- */
+.bulk-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.bulk-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.bulk-table th {
+    background: #f8fafc;
+    padding: 12px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    position: sticky;
+    top: 0;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.bulk-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.bulk-table tr:hover {
+    background: #fafafa;
+}
+
+/* --- Patient Cell --- */
+.patient-cell {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* --- Inputs --- */
+.bulk-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.bulk-input:focus {
+    outline: none;
+    border-color: #007AFF;
+}
+
+.bulk-error {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+/* --- Matériaux Row --- */
+.mats-column {
+    padding: 8px;
+    background: #f9fafb;
+}
+
 .bulk-mat-row {
+    background: white;
+    padding: 6px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    border: 1px solid #e2e8f0;
     display: flex;
     gap: 8px;
-    margin-bottom: 4px;
 }
 
 .bulk-mat-row input {
@@ -110,302 +237,51 @@
     border: 1px solid #e2e8f0;
     border-radius: 6px;
     font-size: 13px;
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes modalScale {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-/* Scrollbar personnalisée pour la table */
-.bulk-table-wrapper::-webkit-scrollbar {
-    width: 8px;
-}
-.bulk-table-wrapper::-webkit-scrollbar-track {
-    background: #f1f5f9;
-}
-.bulk-table-wrapper::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-}
-
-
-
-
-/* --- Barre flottante d'actions groupées --- */
-.bulk-action-float-bar {
-  position: fixed;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000; /* Juste en dessous du modal (9999) mais au-dessus de la liste */
-  
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  
-  background: rgba(15, 23, 42, 0.9); /* Fond sombre ardoise avec transparence */
-  backdrop-filter: blur(12px); /* Effet de flou sur le contenu arrière */
-  -webkit-backdrop-filter: blur(12px);
-  
-  padding: 12px 24px;
-  border-radius: 100px; /* Forme pilule moderne */
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-  
-  animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  color: white;
-}
-
-/* Infos de sélection */
-.bulk-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 600;
-  font-size: 14px;
-  padding-right: 20px;
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
-  white-space: nowrap;
-}
-
-.bulk-info svg {
-  color: #38bdf8; /* Couleur cyan pour l'icône de sélection */
-}
-
-/* Groupe de boutons */
-.bulk-buttons {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.bulk-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
-  border-radius: 50px; /* Boutons arrondis assortis */
-  border: none;
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 13px;
-  transition: all 0.2s ease;
-}
-
-/* Bouton Créer Certificats (Bleu profond vers Cyan) */
-.bulk-btn-cert {
-  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
-  color: white;
-  box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3);
-}
-
-.bulk-btn-cert:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(14, 165, 233, 0.5);
-  filter: brightness(1.1);
-}
-
-/* Bouton Imprimer (Emeraude) */
-.bulk-btn-print {
-  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-  color: white;
-  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
-}
-
-.bulk-btn-print:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(16, 185, 129, 0.5);
-  filter: brightness(1.1);
-}
-
-/* Bouton fermer/annuler (Petit X) */
-.bulk-btn-cancel {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: #cbd5e1;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-left: 5px;
-}
-
-.bulk-btn-cancel:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  transform: rotate(90deg);
-}
-
-/* Animation d'entrée */
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 40px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-}
-
-
-
-/* ... garder vos styles existants et ajouter/modifier ceux-ci ... */
-
-.bulk-cert-container {
-    max-width: 1100px !important;
-}
-
-.action-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.add-fav-btn {
-    background: #0ea5e9;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 4px 8px;
-    cursor: pointer;
-}
-
-.add-mat-inline-form {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-    background: white;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px dashed #0ea5e9;
-}
-
-.add-mat-inline-form input {
     flex: 1;
-    padding: 6px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 12px;
 }
 
-.fav-mat-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
+.bulk-mat-row input:focus {
+    outline: none;
+    border-color: #007AFF;
 }
 
-.del-fav-btn {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #ef4444;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.fav-mat-wrapper:hover .del-fav-btn {
-    opacity: 1;
-}
-
-.patient-name {
-    font-weight: 700;
-    color: #334155;
-    font-size: 14px;
-}
-
-.mat-name-input { flex: 2; }
-.mat-lot-input { flex: 1; max-width: 120px; }
-
+/* --- Material Actions --- */
 .mat-actions {
     display: flex;
     gap: 4px;
+    align-items: center;
 }
 
 .mat-btn {
-    border: none;
-    border-radius: 4px;
     width: 24px;
     height: 24px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
 }
 
-.mat-btn.add { background: #f0fdf4; color: #16a34a; }
-.mat-btn.rem { background: #fff1f2; color: #e11d48; }
-
-.bulk-input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
+.mat-btn.add {
+    background: #10b981;
+    color: white;
 }
 
-.bulk-error {
-    border-color: #fca5a5;
-    background-color: #fffafb;
+.mat-btn.add:hover {
+    background: #059669;
 }
 
-.bulk-table th {
-    text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    background: #f8fafc;
+.mat-btn.rem {
+    background: #ef4444;
+    color: white;
 }
 
-
-
-/* Ajoutez ceci à la fin de votre fichier CSS actuel */
-
-.bulk-cert-container {
-    max-width: 1200px !important; /* On élargit pour le confort */
+.mat-btn.rem:hover {
+    background: #dc2626;
 }
 
-.patient-cell {
-    background: #f8fafc;
-    color: #334155;
-    font-size: 14px;
-}
-
-.mats-column {
-    padding: 8px !important;
-    background: #f1f5f9; /* Fond légèrement différent pour la zone matériaux */
-}
-
-.bulk-mat-row {
-    background: white;
-    padding: 4px;
-    border-radius: 6px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    margin-bottom: 6px;
-    border: 1px solid #e2e8f0;
-    display: flex;
-    gap: 8px;
-}
-
+/* --- Favoris --- */
 .fav-mat-wrapper {
     position: relative;
     display: flex;
@@ -425,50 +301,464 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     opacity: 0;
-    transition: 0.2s;
 }
 
 .fav-mat-wrapper:hover .del-fav-btn {
     opacity: 1;
 }
 
+.del-fav-btn:hover {
+    background: #ffb9b9;
+    color: white;
+}
+
+
 .add-fav-btn {
-    transition: transform 0.2s;
+    background: #007AFF;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .add-fav-btn:hover {
-    transform: rotate(90deg);
+    background: #0051D5;
 }
 
-.mat-actions {
+.add-mat-inline-form {
     display: flex;
-    gap: 4px;
-    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px dashed #007AFF;
 }
 
-.mat-btn {
-    width: 22px;
-    height: 22px;
-    border-radius: 4px;
+.add-mat-inline-form input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.add-mat-inline-form input:focus {
+    outline: none;
+    border-color: #007AFF;
+}
+
+/* --- Footer --- */
+.modal-footer {
+    padding: 20px 24px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.details-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
     border: none;
     cursor: pointer;
-    display: flex;
-    align-items: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.details-btn-secondary {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+
+.details-btn-primary {
+    background: #007AFF;
+    color: white;
+}
+
+
+.details-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========================================================================
+   RESPONSIVE TABLETTE (< 1024px)
+   ======================================================================== */
+@media (max-width: 1024px) {
+    .bulk-cert-container {
+        width: 98vw;
+    }
+
+    .modal-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .bulk-table th,
+    .bulk-table td {
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+}
+
+/* ========================================================================
+   RESPONSIVE MOBILE (< 768px)
+   ======================================================================== */
+@media (max-width: 768px) {
+    .modal-container {
+        max-height: 95vh;
+        border-radius: 12px 12px 0 0;
+        margin-top: auto;
+    }
+
+    .modal-header {
+        padding: 16px 20px;
+    }
+
+    .modal-header h3 {
+        font-size: 1rem;
+        gap: 8px;
+    }
+
+    .modal-content {
+        padding: 16px;
+    }
+
+    .bulk-quick-actions {
+        padding: 12px 16px;
+    }
+
+    .bulk-table-wrapper {
+        overflow-x: scroll;
+    }
+
+    .bulk-table {
+        min-width: 600px;
+    }
+
+    .modal-footer {
+        padding: 16px 20px;
+        flex-direction: column;
+    }
+
+    .details-btn {
+        width: 100%;
+    }
+}
+
+/* ========================================================================
+   RESPONSIVE PETIT MOBILE (< 480px)
+   ======================================================================== */
+@media (max-width: 480px) {
+    .modal-header h3 {
+        font-size: 0.95rem;
+    }
+
+    .modal-close-btn,
+    .bulk-delete-certs-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .bulk-table th,
+    .bulk-table td {
+        padding: 8px 6px;
+        font-size: 11px;
+    }
+
+    .mini-mat-badge {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+}
+
+/* ========================================================================
+   ACCESSIBILITÉ
+   ======================================================================== */
+.details-btn:focus-visible,
+.modal-close-btn:focus-visible,
+.bulk-delete-certs-btn:focus-visible,
+.mat-btn:focus-visible,
+.add-fav-btn:focus-visible {
+    outline: 2px solid #007AFF;
+    outline-offset: 2px;
+}
+
+.bulk-input:focus-visible {
+    outline: 2px solid #007AFF;
+    outline-offset: 0;
+}
+
+/* User Select */
+.details-btn,
+.modal-close-btn,
+.bulk-delete-certs-btn,
+.mat-btn,
+.add-fav-btn,
+.mini-mat-badge {
+    user-select: none;
+}
+
+
+/* ========================================================================
+   BARRE FLOTTANTE D'ACTIONS GROUPÉES - OPTIMISÉ & RAPIDE
+   ======================================================================== */
+
+/* --- Version Desktop --- */
+.bulk-action-float-bar {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  
+  background: #000000;
+  padding: 14px 28px;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  max-width: 90vw;
+}
+
+/* --- Infos de sélection --- */
+.bulk-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  padding-right: 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+}
+
+.bulk-info svg {
+  color: #007AFF;
+  flex-shrink: 0;
+}
+
+/* --- Groupe de boutons --- */
+.bulk-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* --- Boutons d'action --- */
+.bulk-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.bulk-btn svg {
+  flex-shrink: 0;
+}
+
+/* Bouton Créer Certificats */
+.bulk-btn-cert {
+  background: #007AFF;
+  color: white;
+}
+
+.bulk-btn-cert:hover {
+  background: #0051D5;
+}
+
+/* Bouton Imprimer */
+.bulk-btn-print {
+  background: #10b981;
+  color: white;
+}
+
+.bulk-btn-print:hover {
+  background: #059669;
+}
+
+/* Bouton Annuler */
+.bulk-btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.bulk-btn-cancel:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* ========================================================================
+   RESPONSIVE TABLETTE (< 1024px)
+   ======================================================================== */
+@media (max-width: 1024px) {
+  .bulk-action-float-bar {
+    bottom: 24px;
+    padding: 12px 20px;
+    gap: 16px;
+    max-width: 95vw;
+  }
+
+  .bulk-info {
+    font-size: 13px;
+    gap: 10px;
+    padding-right: 16px;
+  }
+
+  .bulk-info svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .bulk-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .bulk-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .bulk-btn-cancel {
+    width: 32px;
+    height: 32px;
+  }
+
+  .bulk-btn-cancel svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* ========================================================================
+   RESPONSIVE MOBILE (< 768px)
+   ======================================================================== */
+@media (max-width: 768px) {
+  .bulk-action-float-bar {
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    transform: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 16px;
+    max-width: none;
+  }
+
+  .bulk-info {
     justify-content: center;
+    padding-right: 0;
+    padding-bottom: 12px;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 14px;
+  }
+
+  .bulk-buttons {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .bulk-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  .bulk-btn-cancel {
+    width: 100%;
+    height: auto;
+    padding: 10px;
+    border-radius: 12px;
+    margin-left: 0;
+    margin-top: 4px;
+  }
 }
 
-.mat-btn.add { background: #10b981; color: white; }
-.mat-btn.rem { background: #f43f5e; color: white; }
+/* ========================================================================
+   RESPONSIVE PETIT MOBILE (< 480px)
+   ======================================================================== */
+@media (max-width: 480px) {
+  .bulk-action-float-bar {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    padding: 14px;
+  }
 
-.bulk-error {
-    border: 2px solid #ef4444 !important;
-    animation: shake 0.4s;
+  .bulk-info {
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .bulk-info svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .bulk-btn {
+    padding: 11px 16px;
+    font-size: 13px;
+  }
+
+  .bulk-btn svg {
+    width: 15px;
+    height: 15px;
+  }
 }
 
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
+/* ========================================================================
+   ACCESSIBILITÉ
+   ======================================================================== */
+
+.bulk-btn:focus-visible,
+.bulk-btn-cancel:focus-visible {
+  outline: 2px solid #007AFF;
+  outline-offset: 2px;
+}
+
+.bulk-btn:disabled,
+.bulk-btn-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bulk-btn,
+.bulk-btn-cancel,
+.bulk-info {
+  user-select: none;
 }
