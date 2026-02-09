@@ -25,7 +25,6 @@ const CommandesList = ({
   totalPages,
   onPageChange,
   itemsPerPage = 25,
-  // Props de sélection
   selectedIds,
   onSelectOne,
   onSelectAll,
@@ -34,6 +33,8 @@ const CommandesList = ({
   onBulkStatusChange,
   onBulkReadToggle,
   isBulkProcessing,
+  onPrintCertificat,
+  certificatsMap, // Nouvelle prop pour la map des certificats
 }) => {
   const sortedCommandes = useMemo(() => {
     return [...commandes].sort((a, b) => {
@@ -49,23 +50,19 @@ const CommandesList = ({
   const endIndex = Math.min(startIndex + itemsPerPage, sortedCommandes.length);
   const currentPageCommandes = sortedCommandes.slice(startIndex, endIndex);
 
-  // Gestion de la sélection globale de la page courante
   const allCurrentPageSelected =
     currentPageCommandes.length > 0 &&
     currentPageCommandes.every((cmd) => selectedIds.includes(cmd.id));
 
   const handleToggleSelectAllPage = () => {
     if (allCurrentPageSelected) {
-      // Désélectionner ceux de la page courante
       const idsToDeselect = currentPageCommandes.map((c) => c.id);
       const newSelection = selectedIds.filter(
         (id) => !idsToDeselect.includes(id),
       );
       onSelectAll(newSelection);
     } else {
-      // Sélectionner ceux de la page courante
       const idsToSelect = currentPageCommandes.map((c) => c.id);
-      // Fusionner sans doublons
       const newSelection = [...new Set([...selectedIds, ...idsToSelect])];
       onSelectAll(newSelection);
     }
@@ -87,7 +84,6 @@ const CommandesList = ({
 
   return (
     <div className="cmd-list-section">
-      {/* BARRE D'ACTIONS DE MASSE */}
       {selectedIds.length > 0 && (
         <div className="cmd-list-bulk-bar">
           <div className="cmd-list-bulk-info">
@@ -103,7 +99,7 @@ const CommandesList = ({
               className="cmd-list-bulk-select"
               onChange={(e) => {
                 if (e.target.value) onBulkStatusChange(e.target.value);
-                e.target.value = ""; // Reset select
+                e.target.value = "";
               }}
               disabled={isBulkProcessing}
             >
@@ -166,7 +162,6 @@ const CommandesList = ({
         <>
           <div className="cmd-list-table">
             <div className="cmd-list-header">
-              {/* Checkbox Header */}
               <div
                 className="cmd-list-header-cell cmd-list-checkbox-cell"
                 onClick={handleToggleSelectAllPage}
@@ -194,9 +189,10 @@ const CommandesList = ({
                   commande={commande}
                   onViewDetails={onViewDetails}
                   onToggleVu={onToggleVu}
-                  // Props de sélection
                   isSelected={selectedIds.includes(commande.id)}
                   onSelect={() => onSelectOne(commande.id)}
+                  onPrintCertificat={onPrintCertificat}
+                  hasCertificat={certificatsMap[commande.id] || false}
                 />
               ))}
             </div>

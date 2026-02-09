@@ -21,28 +21,37 @@ const CommandeRow = ({
   isSelected,
   onSelect,
   onPrintCertificat,
-  refreshTrigger, // On ajoute un trigger de rafraîchissement
+  hasCertificat: externalHasCertificat, // Reçu du parent
 }) => {
-  const [hasCertificat, setHasCertificat] = useState(false);
+  const [localVu, setLocalVu] = useState(commande.vu);
+  const [hasCertificat, setHasCertificat] = useState(
+    externalHasCertificat || false,
+  );
+
+  // Sync avec les props
+  useEffect(() => {
+    setLocalVu(commande.vu);
+  }, [commande.vu]);
 
   useEffect(() => {
-    const checkCert = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(
-          `${API_BASE_URL}/certificats/commande/${commande.id}/exists`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-        const data = await res.json();
-        setHasCertificat(data.exists);
-      } catch (e) {
-        setHasCertificat(false);
-      }
-    };
-    if (commande.id) checkCert();
-  }, [commande.id, refreshTrigger]); // Se rafraîchit quand refreshTrigger change
+    setHasCertificat(externalHasCertificat || false);
+  }, [externalHasCertificat]);
+
+  const handleToggleVu = async (e) => {
+    e.stopPropagation();
+
+    // Mise à jour optimiste immédiate
+    const newVuState = !localVu;
+    setLocalVu(newVuState);
+
+    // Puis appel au parent pour la mise à jour serveur
+    try {
+      await onToggleVu(commande);
+    } catch (error) {
+      // En cas d'erreur, on revient à l'état précédent
+      setLocalVu(!newVuState);
+    }
+  };
 
   const getPlateformeConfig = (p) => {
     const configs = {
@@ -56,7 +65,7 @@ const CommandeRow = ({
 
   return (
     <div
-      className={`cmd-row-container ${!commande.vu ? "cmd-row-unread" : ""} ${isSelected ? "cmd-row-selected" : ""}`}
+      className={`cmd-row-container ${!localVu ? "cmd-row-unread" : ""} ${isSelected ? "cmd-row-selected" : ""}`}
       onClick={() => onViewDetails(commande)}
     >
       <div
@@ -113,14 +122,8 @@ const CommandeRow = ({
               <Printer size={16} color="#10b981" />
             </button>
           )}
-          <button
-            className="cmd-row-action-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleVu(commande);
-            }}
-          >
-            {commande.vu ? <EyeOff size={16} /> : <Eye size={16} />}
+          <button className="cmd-row-action-btn" onClick={handleToggleVu}>
+            {localVu ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
       </div>

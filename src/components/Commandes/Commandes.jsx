@@ -18,7 +18,6 @@ import useMeditLinkAuth from "../Config/useMeditLinkAuth";
 import useThreeShapeAuth from "../Config/useThreeShapeAuth";
 import useDexisAuth from "../Config/useDexisAuth";
 
-// Import des composants UI
 import LoadingState from "./ui/LoadingState";
 import ErrorState from "./ui/ErrorState";
 import CommandesFilters from "./CommandesFilters";
@@ -27,7 +26,6 @@ import CommandesHeader from "./CommandesHeader";
 import CommandesList from "./CommandesList";
 import BulkCertificatModal from "./BulkCertificatModal";
 
-// Import des hooks et utils
 import useCommandesData from "./hooks/useCommandesData";
 import useSyncPlatforms from "./hooks/useSyncPlatforms";
 import useBackblazeStatus from "./hooks/useBackblazeStatus";
@@ -44,7 +42,6 @@ const Commandes = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const userId = getUserIdFromToken();
 
-  // --- États des Filtres et Pagination ---
   const savedState = JSON.parse(localStorage.getItem("commandesState") || "{}");
   const [searchTerm, setSearchTerm] = useState(savedState.searchTerm || "");
   const [selectedPlateforme, setSelectedPlateforme] = useState(
@@ -63,19 +60,17 @@ const Commandes = () => {
   const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1);
   const itemsPerPage = 25;
 
-  // --- États de Synchronisation et Sélection ---
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState({});
   const [selectedIds, setSelectedIds] = useState([]);
   const [showBulkCertModal, setShowBulkCertModal] = useState(false);
+  const [certificatsMap, setCertificatsMap] = useState({});
 
-  // --- Hooks d'Auth Plateformes ---
   const backblazeStatus = useBackblazeStatus(isAuthenticated);
   const meditlinkAuth = useMeditLinkAuth({ fetchOnMount: true });
   const threeshapeAuth = useThreeShapeAuth();
   const dexisAuth = useDexisAuth({ refreshInterval: 10000 });
 
-  // --- SWR Data Fetching ---
   const { data: userData } = useSWR(
     isAuthenticated ? "user-data" : null,
     getUserData,
@@ -116,6 +111,41 @@ const Commandes = () => {
     backblazeStatus,
   });
 
+  // Charger l'état des certificats au montage et après chaque mutation
+  const loadCertificatsStatus = useCallback(async () => {
+    if (!commandes || commandes.length === 0) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const statusMap = {};
+
+      await Promise.all(
+        commandes.map(async (cmd) => {
+          try {
+            const res = await fetch(
+              `${API_BASE_URL}/certificats/commande/${cmd.id}/exists`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              },
+            );
+            const data = await res.json();
+            statusMap[cmd.id] = data.exists;
+          } catch (e) {
+            statusMap[cmd.id] = false;
+          }
+        }),
+      );
+
+      setCertificatsMap(statusMap);
+    } catch (e) {
+      console.error("Erreur chargement certificats:", e);
+    }
+  }, [commandes]);
+
+  useEffect(() => {
+    loadCertificatsStatus();
+  }, [loadCertificatsStatus]);
+
   const totalPages = Math.ceil(filteredCommandes.length / itemsPerPage);
 
   const handleViewDetails = useCallback(
@@ -137,7 +167,15 @@ const Commandes = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
       );
-      mutateCommandes();
+
+      // Mise à jour optimiste locale
+      mutateCommandes(
+        (currentData) =>
+          currentData.map((cmd) =>
+            cmd.id === commande.id ? { ...cmd, vu: !commande.vu } : cmd,
+          ),
+        false, // Ne pas revalider immédiatement
+      );
     } catch (e) {
       toast.error("Erreur mise à jour statut lecture");
     }
@@ -176,9 +214,6 @@ const Commandes = () => {
 
     try {
       const token = localStorage.getItem("token");
-
-      // FORCEZ l'utilisation de l'URL du Backend (8080 par défaut pour Spring)
-      // Si API_BASE_URL est mal configuré, remplacez-le par votre URL backend directe pour tester
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
       toast.info("Préparation de l'impression groupée...");
@@ -200,11 +235,9 @@ const Commandes = () => {
       }
 
       const idsParam = certIds.join(",");
-
-      // Utilisation de la route print-bulk sur le port du serveur (ex: 8080)
       const printUrl = `${baseUrl}/certificats/print-bulk?ids=${idsParam}&token=${token}`;
 
-      console.log("URL d'impression appelée : ", printUrl); // Vérifiez dans la console si c'est bien le port 8080
+      console.log("URL d'impression appelée : ", printUrl);
       window.open(printUrl, "_blank");
     } catch (e) {
       console.error(e);
@@ -219,7 +252,23 @@ const Commandes = () => {
   };
 
   const handleSelectAll = (ids) => setSelectedIds(ids);
+
   const handleClearSelection = () => setSelectedIds([]);
+
+  const handleBulkCertSuccess = async (keepSelection = false) => {
+    setShowBulkCertModal(false);
+
+    // Recharger les commandes
+    await mutateCommandes();
+
+    // Recharger immédiatement l'état des certificats
+    await loadCertificatsStatus();
+
+    // Si keepSelection = true, on garde la sélection pour l'impression
+    if (!keepSelection) {
+      handleClearSelection();
+    }
+  };
 
   if (commandesError) return <ErrorState onRetry={() => mutateCommandes()} />;
   if (commandesLoading) return <LoadingState />;
@@ -291,6 +340,7 @@ const Commandes = () => {
         onSelectOne={handleSelectOne}
         onSelectAll={handleSelectAll}
         onPrintCertificat={handlePrintCertificat}
+        certificatsMap={certificatsMap}
       />
 
       {showBulkCertModal && (
@@ -300,11 +350,7 @@ const Commandes = () => {
             selectedIds.includes(c.id),
           )}
           onClose={() => setShowBulkCertModal(false)}
-          onSaveSuccess={() => {
-            setShowBulkCertModal(false);
-            mutateCommandes();
-            handleClearSelection();
-          }}
+          onSaveSuccess={handleBulkCertSuccess}
         />
       )}
     </div>

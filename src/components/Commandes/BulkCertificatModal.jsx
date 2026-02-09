@@ -57,7 +57,6 @@ const BulkCertificatModal = ({
   const addMaterialToAll = (mat) => {
     setFormData((prevData) =>
       prevData.map((item) => {
-        // 1. Vérifier si ce matériau (nom ET lot) existe déjà dans la ligne actuelle
         const isDuplicate = item.materiaux.some(
           (m) =>
             m.type.trim().toLowerCase() ===
@@ -65,11 +64,8 @@ const BulkCertificatModal = ({
             (m.numeroLot || "").trim() === (mat.numeroLot || "").trim(),
         );
 
-        // Si c'est un doublon, on retourne l'item tel quel (on n'ajoute rien)
         if (isDuplicate) return item;
 
-        // 2. Si ce n'est pas un doublon, on l'ajoute
-        // On retire d'abord la ligne vide "par défaut" si elle est présente
         const existingContent = item.materiaux.filter(
           (m) => m.type.trim() !== "",
         );
@@ -101,7 +97,7 @@ const BulkCertificatModal = ({
         });
       }
       toast.success("Certificats supprimés");
-      onSaveSuccess(true); // true pour dire "garde la sélection"
+      onSaveSuccess(false); // false = ne garde pas la sélection après suppression
     } catch (e) {
       toast.error("Erreur suppression");
     } finally {
@@ -146,7 +142,8 @@ const BulkCertificatModal = ({
         );
       }
       toast.success("Certificats générés !");
-      onSaveSuccess(true); // Garde la sélection active pour l'impression
+      // GARDE LA SÉLECTION pour permettre l'impression immédiate
+      onSaveSuccess(true);
     } catch (e) {
       toast.error("Erreur sauvegarde");
     } finally {
