@@ -9,6 +9,7 @@ import {
   X,
   CheckCircle,
   MessageSquare,
+  RotateCcw,
 } from "lucide-react";
 import "./CommandesFilters.css";
 
@@ -19,8 +20,8 @@ const CommandesFilters = ({
   onPlateformeChange,
   selectedStatut,
   onStatutChange,
-  commentFilter, // NOUVEAU
-  onCommentFilterChange, // NOUVEAU
+  commentFilter,
+  onCommentFilterChange,
   dateFilter,
   onDateFilterChange,
   customDateFrom,
@@ -35,6 +36,7 @@ const CommandesFilters = ({
   onCustomDeadlineToChange,
   showOnlyUnread,
   onUnreadToggle,
+  onResetFilters, // ✅ Nouvelle prop
 }) => {
   return (
     <div className="commandes-filters-section">
@@ -94,7 +96,7 @@ const CommandesFilters = ({
           </select>
         </div>
 
-        {/* NOUVEAU : FILTRE COMMENTAIRE */}
+        {/* FILTRE COMMENTAIRE */}
         <div className="commandes-filter-group">
           <MessageSquare size={16} />
           <select
@@ -192,6 +194,18 @@ const CommandesFilters = ({
           />
           <span>Non vues seulement</span>
         </label>
+
+        {/* ✅ BOUTON RESET */}
+        {onResetFilters && (
+          <button
+            className="commandes-reset-btn"
+            onClick={onResetFilters}
+            title="Réinitialiser tous les filtres"
+          >
+            <RotateCcw size={16} />
+            <span>Réinitialiser</span>
+          </button>
+        )}
       </div>
     </div>
   );

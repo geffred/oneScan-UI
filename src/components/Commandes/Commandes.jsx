@@ -42,7 +42,10 @@ const Commandes = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const userId = getUserIdFromToken();
 
+  // ✅ Charger l'état sauvegardé (s'il existe)
   const savedState = JSON.parse(localStorage.getItem("commandesState") || "{}");
+
+  // ✅ États des filtres avec sauvegarde
   const [searchTerm, setSearchTerm] = useState(savedState.searchTerm || "");
   const [selectedPlateforme, setSelectedPlateforme] = useState(
     savedState.selectedPlateforme || "",
@@ -57,6 +60,21 @@ const Commandes = () => {
     savedState.showOnlyUnread || false,
   );
   const [dateFilter, setDateFilter] = useState(savedState.dateFilter || "all");
+  const [deadlineFilter, setDeadlineFilter] = useState(
+    savedState.deadlineFilter || "all",
+  );
+  const [customDateFrom, setCustomDateFrom] = useState(
+    savedState.customDateFrom || "",
+  );
+  const [customDateTo, setCustomDateTo] = useState(
+    savedState.customDateTo || "",
+  );
+  const [customDeadlineFrom, setCustomDeadlineFrom] = useState(
+    savedState.customDeadlineFrom || "",
+  );
+  const [customDeadlineTo, setCustomDeadlineTo] = useState(
+    savedState.customDeadlineTo || "",
+  );
   const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1);
   const itemsPerPage = 25;
 
@@ -111,40 +129,135 @@ const Commandes = () => {
     backblazeStatus,
   });
 
-  // Charger l'état des certificats au montage et après chaque mutation
+  // ✅ Sauvegarder automatiquement l'état des filtres
+  useEffect(() => {
+    const stateToSave = {
+      searchTerm,
+      selectedPlateforme,
+      selectedStatut,
+      commentFilter,
+      showOnlyUnread,
+      dateFilter,
+      deadlineFilter,
+      customDateFrom,
+      customDateTo,
+      customDeadlineFrom,
+      customDeadlineTo,
+      currentPage,
+    };
+    localStorage.setItem("commandesState", JSON.stringify(stateToSave));
+  }, [
+    searchTerm,
+    selectedPlateforme,
+    selectedStatut,
+    commentFilter,
+    showOnlyUnread,
+    dateFilter,
+    deadlineFilter,
+    customDateFrom,
+    customDateTo,
+    customDeadlineFrom,
+    customDeadlineTo,
+    currentPage,
+  ]);
+
+  // ✅ Chargement batch des certificats (optimisé)
   const loadCertificatsStatus = useCallback(async () => {
-    if (!commandes || commandes.length === 0) return;
+    if (!commandes || commandes.length === 0) {
+      console.log("⚠️ Aucune commande à charger");
+      return;
+    }
 
     try {
       const token = localStorage.getItem("token");
-      const statusMap = {};
+      const commandeIds = commandes.map((cmd) => cmd.id);
 
-      await Promise.all(
-        commandes.map(async (cmd) => {
-          try {
-            const res = await fetch(
-              `${API_BASE_URL}/certificats/commande/${cmd.id}/exists`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              },
-            );
-            const data = await res.json();
-            statusMap[cmd.id] = data.exists;
-          } catch (e) {
-            statusMap[cmd.id] = false;
-          }
-        }),
+      console.log(
+        "📡 Chargement certificats pour",
+        commandeIds.length,
+        "commandes",
       );
+
+      const res = await fetch(
+        `${API_BASE_URL}/certificats/batch/exists?commandeIds=${commandeIds.join(",")}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (!res.ok) throw new Error("Erreur chargement certificats");
+
+      const statusMap = await res.json();
+
+      console.log("✅ Certificats chargés:", statusMap);
 
       setCertificatsMap(statusMap);
     } catch (e) {
-      console.error("Erreur chargement certificats:", e);
+      console.error("❌ Erreur chargement certificats:", e);
+      setCertificatsMap({});
     }
   }, [commandes]);
 
   useEffect(() => {
     loadCertificatsStatus();
   }, [loadCertificatsStatus]);
+
+  // ✅ SOLUTION 2 : Fonction de rechargement forcé depuis l'API
+  const forceReloadCertificats = useCallback(async () => {
+    console.log("🔄 Début du rechargement forcé des certificats");
+
+    try {
+      const token = localStorage.getItem("token");
+
+      // 1. Récupérer les commandes fraîches depuis l'API
+      console.log("📥 Récupération des commandes fraîches...");
+      const commandesRes = await fetch(`${API_BASE_URL}/public/commandes`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!commandesRes.ok) {
+        throw new Error(`Erreur commandes: ${commandesRes.status}`);
+      }
+
+      const freshCommandes = await commandesRes.json();
+      console.log("✅ Commandes récupérées:", freshCommandes.length);
+
+      if (!freshCommandes || freshCommandes.length === 0) {
+        console.log("⚠️ Aucune commande fraîche");
+        setCertificatsMap({});
+        return;
+      }
+
+      // 2. Récupérer l'état des certificats pour ces commandes
+      const commandeIds = freshCommandes.map((cmd) => cmd.id);
+      console.log("📡 Chargement certificats pour IDs:", commandeIds);
+
+      const certRes = await fetch(
+        `${API_BASE_URL}/certificats/batch/exists?commandeIds=${commandeIds.join(",")}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (!certRes.ok) {
+        throw new Error(`Erreur certificats: ${certRes.status}`);
+      }
+
+      const statusMap = await certRes.json();
+
+      console.log("✅ Certificats rechargés avec succès:", statusMap);
+      console.log(
+        "📊 Nombre de certificats trouvés:",
+        Object.keys(statusMap).filter((k) => statusMap[k]).length,
+      );
+
+      // 3. Mettre à jour l'état
+      setCertificatsMap(statusMap);
+    } catch (e) {
+      console.error("❌ Erreur lors du rechargement forcé:", e);
+      toast.error("Erreur lors du rechargement des certificats");
+    }
+  }, []);
 
   const totalPages = Math.ceil(filteredCommandes.length / itemsPerPage);
 
@@ -174,7 +287,7 @@ const Commandes = () => {
           currentData.map((cmd) =>
             cmd.id === commande.id ? { ...cmd, vu: !commande.vu } : cmd,
           ),
-        false, // Ne pas revalider immédiatement
+        false,
       );
     } catch (e) {
       toast.error("Erreur mise à jour statut lecture");
@@ -255,19 +368,47 @@ const Commandes = () => {
 
   const handleClearSelection = () => setSelectedIds([]);
 
+  // ✅ SOLUTION 2 : Handler avec rechargement forcé
   const handleBulkCertSuccess = async (keepSelection = false) => {
+    console.log("🎯 Début handleBulkCertSuccess");
+    console.log("📝 IDs sélectionnés:", selectedIds);
+
     setShowBulkCertModal(false);
 
-    // Recharger les commandes
+    // 1. Recharger les commandes depuis l'API
+    console.log("🔄 Rechargement des commandes...");
     await mutateCommandes();
 
-    // Recharger immédiatement l'état des certificats
-    await loadCertificatsStatus();
+    // 2. Forcer le rechargement des certificats depuis l'API
+    console.log("🔄 Rechargement forcé des certificats...");
+    await forceReloadCertificats();
 
-    // Si keepSelection = true, on garde la sélection pour l'impression
+    console.log("✅ handleBulkCertSuccess terminé");
+
+    toast.success("Certificats créés avec succès !");
+
+    // 3. Gérer la sélection
     if (!keepSelection) {
       handleClearSelection();
     }
+  };
+
+  // ✅ Fonction de réinitialisation des filtres
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setSelectedPlateforme("");
+    setSelectedStatut("");
+    setCommentFilter("all");
+    setShowOnlyUnread(false);
+    setDateFilter("all");
+    setDeadlineFilter("all");
+    setCustomDateFrom("");
+    setCustomDateTo("");
+    setCustomDeadlineFrom("");
+    setCustomDeadlineTo("");
+    setCurrentPage(1);
+    localStorage.removeItem("commandesState");
+    toast.info("Filtres réinitialisés");
   };
 
   if (commandesError) return <ErrorState onRetry={() => mutateCommandes()} />;
@@ -327,6 +468,42 @@ const Commandes = () => {
           setSelectedPlateforme(e.target.value);
           setCurrentPage(1);
         }}
+        selectedStatut={selectedStatut}
+        onStatutChange={(e) => {
+          setSelectedStatut(e.target.value);
+          setCurrentPage(1);
+        }}
+        commentFilter={commentFilter}
+        onCommentFilterChange={(e) => {
+          setCommentFilter(e.target.value);
+          setCurrentPage(1);
+        }}
+        dateFilter={dateFilter}
+        onDateFilterChange={(e) => {
+          setDateFilter(e.target.value);
+          setCurrentPage(1);
+        }}
+        customDateFrom={customDateFrom}
+        onCustomDateFromChange={(e) => setCustomDateFrom(e.target.value)}
+        customDateTo={customDateTo}
+        onCustomDateToChange={(e) => setCustomDateTo(e.target.value)}
+        deadlineFilter={deadlineFilter}
+        onDeadlineFilterChange={(e) => {
+          setDeadlineFilter(e.target.value);
+          setCurrentPage(1);
+        }}
+        customDeadlineFrom={customDeadlineFrom}
+        onCustomDeadlineFromChange={(e) =>
+          setCustomDeadlineFrom(e.target.value)
+        }
+        customDeadlineTo={customDeadlineTo}
+        onCustomDeadlineToChange={(e) => setCustomDeadlineTo(e.target.value)}
+        showOnlyUnread={showOnlyUnread}
+        onUnreadToggle={(e) => {
+          setShowOnlyUnread(e.target.checked);
+          setCurrentPage(1);
+        }}
+        onResetFilters={handleResetFilters}
       />
 
       <CommandesList

@@ -202,6 +202,11 @@ const CommandeDetails = () => {
   const [hasCertificat, setHasCertificat] = useState(false);
 
   const bonDeCommandeRef = useRef();
+  const hasMarkedAsRead = useRef(false);
+  const hasFetchedCertificat = useRef(false);
+
+  // ✅ OPTIMISATION 1: Utilisez directement fallbackData si disponible
+  const initialCommande = location.state?.commande;
 
   const {
     data: commande,
@@ -213,9 +218,10 @@ const CommandeDetails = () => {
     () => getCommandeByExternalId(externalId),
     {
       revalidateOnFocus: false,
-      revalidateOnReconnect: true,
+      revalidateOnReconnect: false, // ✅ Désactivé pour éviter revalidation inutile
       errorRetryCount: 3,
-      fallbackData: location.state?.commande,
+      fallbackData: initialCommande,
+      dedupingInterval: 10000, // ✅ Cache pendant 10s
     },
   );
 
@@ -228,16 +234,45 @@ const CommandeDetails = () => {
   const { data: cabinets = [], isLoading: cabinetsLoading } = useSWR(
     isAuthenticated ? "cabinets" : null,
     getCabinets,
-    { revalidateOnFocus: false },
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000, // ✅ Cache 1 minute
+    },
   );
 
+  // ✅ OPTIMISATION 2: Vérification certificat APRÈS le rendu (non bloquant)
   useEffect(() => {
-    if (commande?.id) {
-      checkCertificatExists(commande.id)
-        .then(setHasCertificat)
-        .catch(() => setHasCertificat(false));
+    if (commande?.id && !hasFetchedCertificat.current) {
+      hasFetchedCertificat.current = true;
+
+      // ✅ Délai pour ne pas bloquer le rendu initial
+      const timer = setTimeout(() => {
+        checkCertificatExists(commande.id)
+          .then(setHasCertificat)
+          .catch(() => setHasCertificat(false));
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
-  }, [commande]);
+  }, [commande?.id]);
+
+  // ✅ OPTIMISATION 3: Marquage "lu" APRÈS le rendu (non bloquant)
+  useEffect(() => {
+    if (commande?.id && !commande.vu && !hasMarkedAsRead.current) {
+      hasMarkedAsRead.current = true;
+
+      // ✅ Mise à jour optimiste immédiate
+      mutateCommande({ ...commande, vu: true }, false);
+
+      // ✅ Puis appel serveur en arrière-plan (non bloquant)
+      markAsRead(commande.id)
+        .then(() => mutateCommandes())
+        .catch(() => {
+          // En cas d'erreur, on revient à l'état précédent
+          mutateCommande({ ...commande, vu: false }, false);
+        });
+    }
+  }, [commande?.id]);
 
   const toggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
@@ -285,7 +320,6 @@ const CommandeDetails = () => {
       if (commande.plateforme === "MEDITLINK") {
         toast.info("Récupération des fichiers MeditLink...");
 
-        // Étape 1: Récupérer les détails de la commande
         const orderResponse = await fetch(
           `${API_BASE_URL}/meditlink/orders/${commande.externalId}`,
           {
@@ -315,7 +349,6 @@ const CommandeDetails = () => {
         const files = orderData.order.case.files;
         console.log(`${files.length} fichier(s) trouvé(s)`);
 
-        // Filtrer les fichiers SCAN_DATA (exclure .meditGroupInfo)
         const relevantFiles = files.filter(
           (file) =>
             file.fileType === "SCAN_DATA" &&
@@ -337,14 +370,12 @@ const CommandeDetails = () => {
         let processingCount = 0;
         let errorCount = 0;
 
-        // Étape 2: Pour chaque fichier, télécharger directement sans décompresser
         for (const file of relevantFiles) {
           try {
             console.log(
               `\n=== Traitement: ${file.name} (UUID: ${file.uuid}) ===`,
             );
 
-            // Demander la conversion STL
             const fileInfoResponse = await fetch(
               `${API_BASE_URL}/meditlink/files/${file.uuid}?type=stl`,
               {
@@ -354,7 +385,6 @@ const CommandeDetails = () => {
               },
             );
 
-            // Gestion du statut 202 (conversion en cours)
             if (fileInfoResponse.status === 202) {
               console.warn(`Conversion en cours pour: ${file.name}`);
               processingCount++;
@@ -372,7 +402,6 @@ const CommandeDetails = () => {
             const fileInfo = await fileInfoResponse.json();
             console.log("Infos fichier:", fileInfo);
 
-            // Récupérer l'URL de téléchargement
             const downloadUrl = fileInfo.url || fileInfo.downloadUrl;
 
             if (!downloadUrl) {
@@ -383,7 +412,6 @@ const CommandeDetails = () => {
 
             console.log(`URL de téléchargement: ${downloadUrl}`);
 
-            // Télécharger le fichier
             const archiveResponse = await fetch(downloadUrl);
 
             if (!archiveResponse.ok) {
@@ -402,10 +430,8 @@ const CommandeDetails = () => {
 
             console.log(`Fichier téléchargé: ${archiveBlob.size} bytes`);
 
-            // Utiliser le nom original du fichier depuis downloadFileName
             const fileName = fileInfo.downloadFileName || `${file.name}.7z`;
 
-            // Ajouter directement le fichier au ZIP sans décompression
             finalZip.file(fileName, archiveBlob);
             filesAdded++;
 
@@ -432,7 +458,6 @@ const CommandeDetails = () => {
           return;
         }
 
-        // Générer le ZIP final
         console.log("Génération du ZIP final...");
         const finalZipBlob = await finalZip.generateAsync({
           type: "blob",
@@ -487,7 +512,6 @@ const CommandeDetails = () => {
         const zip = new JSZip();
         let filesAdded = 0;
 
-        // Fichier Upper
         if (commande.hash_upper) {
           try {
             console.log(
@@ -504,7 +528,6 @@ const CommandeDetails = () => {
           }
         }
 
-        // Fichier Lower
         if (commande.hash_lower) {
           try {
             console.log(
@@ -521,7 +544,6 @@ const CommandeDetails = () => {
           }
         }
 
-        // Fichiers additionnels - AVEC FILTRAGE
         try {
           const details = await fetchWithAuth(
             `${API_BASE_URL}/threeshape/orders/${commande.externalId}`,
@@ -533,7 +555,6 @@ const CommandeDetails = () => {
             );
 
             for (const file of details.files) {
-              // ✅ FILTRAGE : Skip les fichiers déjà téléchargés (upper/lower)
               if (
                 file.hash === commande.hash_upper ||
                 file.hash === commande.hash_lower
@@ -544,7 +565,6 @@ const CommandeDetails = () => {
                 continue;
               }
 
-              // ✅ FILTRAGE : Vérifier que c'est un vrai scan (pas "none")
               const jawType = file.jawType || file.name || "";
               if (
                 !file.hash ||
@@ -579,7 +599,6 @@ const CommandeDetails = () => {
                   `Erreur fichier 3Shape ${file.name || file.jawType}:`,
                   e.message,
                 );
-                // Continue avec les autres fichiers même si un échoue
               }
             }
           }
@@ -721,17 +740,6 @@ const CommandeDetails = () => {
   );
 
   useEffect(() => {
-    if (commande && !commande.vu) {
-      markAsRead(commande.id)
-        .then(() => {
-          mutateCommande({ ...commande, vu: true }, false);
-          mutateCommandes();
-        })
-        .catch(() => {});
-    }
-  }, [commande, mutateCommande, mutateCommandes]);
-
-  useEffect(() => {
     if (!isAuthenticated) navigate("/login");
   }, [isAuthenticated, navigate]);
 
@@ -759,7 +767,8 @@ const CommandeDetails = () => {
     </div>
   );
 
-  if (commandeLoading)
+  // ✅ OPTIMISATION 4: Affichage immédiat avec fallbackData
+  if (!commande && commandeLoading)
     return (
       <LayoutWrapper>
         <LoadingState />
