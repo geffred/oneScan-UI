@@ -1,0 +1,474 @@
+/* Superposition d'arrière-plan (Overlay) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.75); /* Slate 900 très sombre et transparent */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999; /* Priorité absolue au premier plan */
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Conteneur principal du Modal */
+.modal-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    overflow: hidden;
+    animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* En-tête du Modal */
+.modal-header {
+    padding: 20px 24px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #1e293b;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.modal-close-btn {
+    background: #f1f5f9;
+    border: none;
+    color: #64748b;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close-btn:hover {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+/* Zone d'actions rapides (Matériaux récents) */
+.bulk-quick-actions {
+    background: #f0f9ff;
+    padding: 16px 24px;
+    border-bottom: 1px solid #bae6fd;
+}
+
+.bulk-quick-actions label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0369a1;
+    margin-bottom: 10px;
+}
+
+.recent-mats-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+/* Pied de page du Modal */
+.modal-footer {
+    padding: 20px 24px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Styles pour les lignes de matériaux dans la table */
+.bulk-mat-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.bulk-mat-row input {
+    padding: 6px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalScale {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Scrollbar personnalisée pour la table */
+.bulk-table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+.bulk-table-wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+.bulk-table-wrapper::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+
+
+
+/* --- Barre flottante d'actions groupées --- */
+.bulk-action-float-bar {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000; /* Juste en dessous du modal (9999) mais au-dessus de la liste */
+  
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  
+  background: rgba(15, 23, 42, 0.9); /* Fond sombre ardoise avec transparence */
+  backdrop-filter: blur(12px); /* Effet de flou sur le contenu arrière */
+  -webkit-backdrop-filter: blur(12px);
+  
+  padding: 12px 24px;
+  border-radius: 100px; /* Forme pilule moderne */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  
+  animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: white;
+}
+
+/* Infos de sélection */
+.bulk-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  padding-right: 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+}
+
+.bulk-info svg {
+  color: #38bdf8; /* Couleur cyan pour l'icône de sélection */
+}
+
+/* Groupe de boutons */
+.bulk-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bulk-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 50px; /* Boutons arrondis assortis */
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+/* Bouton Créer Certificats (Bleu profond vers Cyan) */
+.bulk-btn-cert {
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+  color: white;
+  box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3);
+}
+
+.bulk-btn-cert:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(14, 165, 233, 0.5);
+  filter: brightness(1.1);
+}
+
+/* Bouton Imprimer (Emeraude) */
+.bulk-btn-print {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: white;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.bulk-btn-print:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(16, 185, 129, 0.5);
+  filter: brightness(1.1);
+}
+
+/* Bouton fermer/annuler (Petit X) */
+.bulk-btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #cbd5e1;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 5px;
+}
+
+.bulk-btn-cancel:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  transform: rotate(90deg);
+}
+
+/* Animation d'entrée */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 40px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+
+
+/* ... garder vos styles existants et ajouter/modifier ceux-ci ... */
+
+.bulk-cert-container {
+    max-width: 1100px !important;
+}
+
+.action-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.add-fav-btn {
+    background: #0ea5e9;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+.add-mat-inline-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px dashed #0ea5e9;
+}
+
+.add-mat-inline-form input {
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.fav-mat-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.del-fav-btn {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.fav-mat-wrapper:hover .del-fav-btn {
+    opacity: 1;
+}
+
+.patient-name {
+    font-weight: 700;
+    color: #334155;
+    font-size: 14px;
+}
+
+.mat-name-input { flex: 2; }
+.mat-lot-input { flex: 1; max-width: 120px; }
+
+.mat-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.mat-btn {
+    border: none;
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.mat-btn.add { background: #f0fdf4; color: #16a34a; }
+.mat-btn.rem { background: #fff1f2; color: #e11d48; }
+
+.bulk-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.bulk-error {
+    border-color: #fca5a5;
+    background-color: #fffafb;
+}
+
+.bulk-table th {
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    background: #f8fafc;
+}
+
+
+
+/* Ajoutez ceci à la fin de votre fichier CSS actuel */
+
+.bulk-cert-container {
+    max-width: 1200px !important; /* On élargit pour le confort */
+}
+
+.patient-cell {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 14px;
+}
+
+.mats-column {
+    padding: 8px !important;
+    background: #f1f5f9; /* Fond légèrement différent pour la zone matériaux */
+}
+
+.bulk-mat-row {
+    background: white;
+    padding: 4px;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    margin-bottom: 6px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    gap: 8px;
+}
+
+.fav-mat-wrapper {
+    position: relative;
+    display: flex;
+}
+
+.del-fav-btn {
+    position: absolute;
+    top: -8px;
+    right: -5px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: 0.2s;
+}
+
+.fav-mat-wrapper:hover .del-fav-btn {
+    opacity: 1;
+}
+
+.add-fav-btn {
+    transition: transform 0.2s;
+}
+
+.add-fav-btn:hover {
+    transform: rotate(90deg);
+}
+
+.mat-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.mat-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mat-btn.add { background: #10b981; color: white; }
+.mat-btn.rem { background: #f43f5e; color: white; }
+
+.bulk-error {
+    border: 2px solid #ef4444 !important;
+    animation: shake 0.4s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}

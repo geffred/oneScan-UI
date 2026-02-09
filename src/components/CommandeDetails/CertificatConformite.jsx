@@ -50,7 +50,7 @@ const apiRequest = async (endpoint, method = "GET", data = null) => {
       .json()
       .catch(() => ({ error: response.statusText }));
     throw new Error(
-      error.message || error.error || `Erreur ${response.status}`
+      error.message || error.error || `Erreur ${response.status}`,
     );
   }
 
@@ -136,7 +136,7 @@ const CertificatConformite = ({
 
     try {
       const materiaux = await apiRequest(
-        `/materiaux-preencodes/user/${userId}/recent`
+        `/materiaux-preencodes/user/${userId}/recent`,
       );
       setMateriauxPreencodes(materiaux);
     } catch (error) {
@@ -200,7 +200,7 @@ const CertificatConformite = ({
       } catch (error) {
         console.error(
           "Erreur lors du chargement des valeurs par défaut:",
-          error
+          error,
         );
         setFormData((prev) => ({
           ...prev,
@@ -225,7 +225,7 @@ const CertificatConformite = ({
     }
 
     const materiauxValides = formData.materiaux.filter(
-      (m) => m.type && m.type.trim() !== ""
+      (m) => m.type && m.type.trim() !== "",
     );
     if (materiauxValides.length === 0) {
       alert("Veuillez ajouter au moins un matériau");
@@ -234,7 +234,7 @@ const CertificatConformite = ({
 
     if (!userId) {
       alert(
-        "Impossible de déterminer l'utilisateur. Veuillez vous reconnecter."
+        "Impossible de déterminer l'utilisateur. Veuillez vous reconnecter.",
       );
       return;
     }
@@ -256,13 +256,13 @@ const CertificatConformite = ({
         response = await apiRequest(
           `/certificats/${certificat.id}/user/${userId}`,
           "PUT",
-          dataToSave
+          dataToSave,
         );
       } else {
         response = await apiRequest(
           `/certificats/commande/${commandeId}/user/${userId}`,
           "POST",
-          dataToSave
+          dataToSave,
         );
       }
 
@@ -279,7 +279,7 @@ const CertificatConformite = ({
       alert(
         certificat
           ? "Certificat mis à jour avec succès"
-          : "Certificat créé avec succès"
+          : "Certificat créé avec succès",
       );
     } catch (error) {
       console.error("Erreur lors de la sauvegarde:", error);
@@ -294,7 +294,7 @@ const CertificatConformite = ({
 
     if (
       window.confirm(
-        "Êtes-vous sûr de vouloir supprimer ce certificat ? Cette action est irréversible."
+        "Êtes-vous sûr de vouloir supprimer ce certificat ? Cette action est irréversible.",
       )
     ) {
       try {
@@ -324,7 +324,7 @@ const CertificatConformite = ({
           (m) =>
             `<div class="value">• ${m.type || "Non spécifié"} (Lot: ${
               m.numeroLot || "Non spécifié"
-            })</div>`
+            })</div>`,
         )
         .join("");
     } else {
@@ -421,7 +421,7 @@ const CertificatConformite = ({
               <div class="value">${
                 certificat.dateDeclaration
                   ? new Date(certificat.dateDeclaration).toLocaleDateString(
-                      "fr-FR"
+                      "fr-FR",
                     )
                   : new Date().toLocaleDateString("fr-FR")
               }</div>
@@ -535,7 +535,7 @@ const CertificatConformite = ({
 
     if (!userId) {
       alert(
-        "Impossible de déterminer l'utilisateur. Veuillez vous reconnecter."
+        "Impossible de déterminer l'utilisateur. Veuillez vous reconnecter.",
       );
       return;
     }
@@ -703,7 +703,7 @@ const CertificatConformite = ({
                 <span>
                   {certificat.dateDeclaration
                     ? new Date(certificat.dateDeclaration).toLocaleDateString(
-                        "fr-FR"
+                        "fr-FR",
                       )
                     : new Date().toLocaleDateString("fr-FR")}
                 </span>
@@ -1000,7 +1000,7 @@ const CertificatConformite = ({
                             handleMateriauChange(
                               index,
                               "numeroLot",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           placeholder="Numéro de lot"

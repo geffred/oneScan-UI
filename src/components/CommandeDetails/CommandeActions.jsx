@@ -116,7 +116,7 @@ const CommandeActions = ({
           onClick={handleSendEmailNotification}
           disabled={actionStates.sendEmail || !canSendEmail}
           icon={<Mail size={24} />}
-          title="Notifier par email"
+          title="Notifier - commande expédiée"
           description={
             !canSendEmail
               ? "Cabinet requis"

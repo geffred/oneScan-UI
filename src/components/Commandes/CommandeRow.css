@@ -547,3 +547,68 @@
     color: #9ca3af;
   }
 }
+
+
+/* Barre flottante d'actions de masse */
+.bulk-action-float-bar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #1e293b;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.bulk-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.bulk-btn-cert { background: #0ea5e9; color: white; }
+.bulk-btn-print { background: #10b981; color: white; }
+
+/* Table du modal groupé */
+.bulk-table-wrapper {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.bulk-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.bulk-table th { background: #f9fafb; position: sticky; top: 0; padding: 12px; }
+.bulk-table td { padding: 10px; border-top: 1px solid #eee; }
+
+.bulk-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.bulk-error { border-color: #ef4444; background: #fff1f2; }
+
+.mini-mat-badge {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.mini-mat-badge:hover { background: #e0f2fe; }
