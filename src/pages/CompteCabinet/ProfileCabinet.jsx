@@ -5,90 +5,72 @@ import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import {
-  Building,
+  Building2,
   Mail,
   Phone,
   Home,
   MapPin,
   Save,
-  Edit,
+  Edit2,
   Lock,
   Eye,
   EyeOff,
+  CheckCircle,
+  FlaskConical,
 } from "lucide-react";
 import { cabinetApi } from "../../components/Config/apiUtils";
-
 import "./ProfileCabinet.css";
+
+const validationSchema = Yup.object({
+  nom: Yup.string()
+    .required("Nom du cabinet requis")
+    .max(100, "Max 100 caractères"),
+  numeroDeTelephone: Yup.string()
+    .required("Numéro de téléphone requis")
+    .matches(/^\+?[0-9\s-]+$/, "Numéro invalide")
+    .max(20, "Max 20 caractères"),
+  adresseDeLivraison: Yup.string().max(255, "Max 255 caractères"),
+  adresseDeFacturation: Yup.string().max(255, "Max 255 caractères"),
+  currentPassword: Yup.string().when("newPassword", {
+    is: (v) => v && v.length > 0,
+    then: (s) =>
+      s.required("Mot de passe actuel requis pour changer le mot de passe"),
+    otherwise: (s) => s,
+  }),
+  newPassword: Yup.string()
+    .min(8, "Minimum 8 caractères")
+    .test(
+      "not-equal",
+      "Le nouveau mot de passe doit être différent",
+      function (v) {
+        return !v || v !== this.parent.currentPassword;
+      },
+    ),
+});
 
 const ProfileCabinet = ({ cabinetData, onUpdate, onError, onSuccess }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const validationSchema = Yup.object({
-    nom: Yup.string()
-      .required("Le nom du cabinet est requis")
-      .max(100, "Le nom ne peut pas dépasser 100 caractères"),
-    numeroDeTelephone: Yup.string()
-      .required("Le numéro de téléphone est requis")
-      .matches(/^\+?[0-9\s-]+$/, "Numéro de téléphone invalide")
-      .max(20, "Le numéro de téléphone ne peut pas dépasser 20 caractères"),
-    adresseDeLivraison: Yup.string().max(
-      255,
-      "L'adresse de livraison ne peut pas dépasser 255 caractères"
-    ),
-    adresseDeFacturation: Yup.string().max(
-      255,
-      "L'adresse de facturation ne peut pas dépasser 255 caractères"
-    ),
-    currentPassword: Yup.string().when(["newPassword"], {
-      is: (newPassword) => newPassword && newPassword.length > 0,
-      then: (schema) =>
-        schema.required(
-          "Le mot de passe actuel est requis pour changer le mot de passe"
-        ),
-      otherwise: (schema) => schema,
-    }),
-    newPassword: Yup.string()
-      .min(8, "Le mot de passe doit contenir au moins 8 caractères")
-      .test(
-        "not-equal",
-        "Le nouveau mot de passe doit être différent de l'ancien",
-        function (value) {
-          return !value || value !== this.parent.currentPassword;
-        }
-      ),
-  });
-
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      // Si changement de mot de passe demandé
       if (values.newPassword && values.currentPassword) {
         await cabinetApi.changePassword(
           values.currentPassword,
-          values.newPassword
+          values.newPassword,
         );
         onSuccess("Mot de passe modifié avec succès");
       }
-
-      // Mettre à jour les autres informations du cabinet
-      const updatedCabinetData = {
+      const updated = await cabinetApi.update(cabinetData.id, {
         ...cabinetData,
         nom: values.nom,
         numeroDeTelephone: values.numeroDeTelephone,
         adresseDeLivraison: values.adresseDeLivraison,
         adresseDeFacturation: values.adresseDeFacturation,
-      };
-
-      // Appel API pour mettre à jour le profil
-      const updated = await cabinetApi.update(
-        cabinetData.id,
-        updatedCabinetData
-      );
-
+      });
       onUpdate(updated);
       setIsEditing(false);
     } catch (err) {
-      console.error("Erreur lors de la mise à jour:", err);
       onError(err.message || "Erreur lors de la mise à jour du profil");
     } finally {
       setSubmitting(false);
@@ -96,15 +78,23 @@ const ProfileCabinet = ({ cabinetData, onUpdate, onError, onSuccess }) => {
   };
 
   return (
-    <>
-      <div className="profile-cabinet-tab-actions">
+    <div className="prc-root">
+      {/* Header card */}
+      <div className="prc-identity-card">
+        <div className="prc-avatar">
+          <Building2 size={28} />
+        </div>
+        <div className="prc-identity-info">
+          <h2 className="prc-cabinet-name">{cabinetData.nom}</h2>
+          <span className="prc-cabinet-email">
+            <Mail size={13} />
+            {cabinetData.email}
+          </span>
+        </div>
         {!isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="profile-cabinet-edit-btn"
-          >
-            <Edit size={18} />
-            Modifier
+          <button className="prc-edit-btn" onClick={() => setIsEditing(true)}>
+            <Edit2 size={15} />
+            Modifier le profil
           </button>
         )}
       </div>
@@ -124,244 +114,230 @@ const ProfileCabinet = ({ cabinetData, onUpdate, onError, onSuccess }) => {
         enableReinitialize
       >
         {({ isSubmitting }) => (
-          <Form className="profile-cabinet-form">
-            <div className="profile-cabinet-form-grid">
-              {/* Nom du Cabinet */}
-              <div className="profile-cabinet-field-group">
-                <label htmlFor="nom" className="profile-cabinet-label">
-                  Nom du Cabinet
-                </label>
-                <div className="profile-cabinet-input-wrapper">
-                  <Building className="profile-cabinet-input-icon" />
-                  <Field
+          <Form className="prc-form">
+            {/* Section — Informations */}
+            <section className="prc-section">
+              <h3 className="prc-section-title">Informations du cabinet</h3>
+              <div className="prc-grid">
+                <div className="prc-field">
+                  <label className="prc-label">Nom du cabinet</label>
+                  <div className="prc-input-wrap">
+                    <Building2 size={16} className="prc-icon" />
+                    <Field
+                      name="nom"
+                      type="text"
+                      className="prc-input"
+                      disabled={!isEditing}
+                      placeholder="Cabinet Dentaire Exemple"
+                    />
+                  </div>
+                  <ErrorMessage
                     name="nom"
-                    type="text"
-                    className="profile-cabinet-input"
-                    disabled={!isEditing}
-                    placeholder="Cabinet Dentaire Exemple"
+                    component="p"
+                    className="prc-error"
                   />
                 </div>
-                <ErrorMessage
-                  name="nom"
-                  component="div"
-                  className="profile-cabinet-error"
-                />
-              </div>
 
-              {/* Email du Cabinet */}
-              <div className="profile-cabinet-field-group">
-                <label htmlFor="email" className="profile-cabinet-label">
-                  Email du Cabinet
-                </label>
-                <div className="profile-cabinet-input-wrapper">
-                  <Mail className="profile-cabinet-input-icon" />
-                  <Field
-                    name="email"
-                    type="email"
-                    className="profile-cabinet-input profile-cabinet-disabled"
-                    disabled={true}
-                  />
+                <div className="prc-field">
+                  <label className="prc-label">Email</label>
+                  <div className="prc-input-wrap">
+                    <Mail size={16} className="prc-icon" />
+                    <Field
+                      name="email"
+                      type="email"
+                      className="prc-input prc-readonly"
+                      disabled
+                    />
+                  </div>
+                  <p className="prc-hint">
+                    L'email ne peut pas être modifié. Contactez votre
+                    laboratoire si nécessaire.
+                  </p>
                 </div>
-                <p className="profile-cabinet-info">
-                  L'email ne peut pas être modifié. Contactez votre laboratoire
-                  si nécessaire.
-                </p>
-              </div>
 
-              {/* Téléphone */}
-              <div className="profile-cabinet-field-group">
-                <label
-                  htmlFor="numeroDeTelephone"
-                  className="profile-cabinet-label"
-                >
-                  Téléphone
-                </label>
-                <div className="profile-cabinet-input-wrapper">
-                  <Phone className="profile-cabinet-input-icon" />
-                  <Field
+                <div className="prc-field">
+                  <label className="prc-label">Téléphone</label>
+                  <div className="prc-input-wrap">
+                    <Phone size={16} className="prc-icon" />
+                    <Field
+                      name="numeroDeTelephone"
+                      type="text"
+                      className="prc-input"
+                      disabled={!isEditing}
+                      placeholder="+32 2 123 45 67"
+                    />
+                  </div>
+                  <ErrorMessage
                     name="numeroDeTelephone"
-                    type="text"
-                    className="profile-cabinet-input"
-                    disabled={!isEditing}
-                    placeholder="+33 1 23 45 67 89"
+                    component="p"
+                    className="prc-error"
                   />
                 </div>
-                <ErrorMessage
-                  name="numeroDeTelephone"
-                  component="div"
-                  className="profile-cabinet-error"
-                />
-              </div>
 
-              {/* Adresse de Livraison */}
-              <div className="profile-cabinet-field-group">
-                <label
-                  htmlFor="adresseDeLivraison"
-                  className="profile-cabinet-label"
-                >
-                  Adresse de Livraison
-                </label>
-                <div className="profile-cabinet-input-wrapper">
-                  <Home className="profile-cabinet-input-icon" />
-                  <Field
+                <div className="prc-field">
+                  <label className="prc-label">Adresse de livraison</label>
+                  <div className="prc-input-wrap">
+                    <Home size={16} className="prc-icon" />
+                    <Field
+                      name="adresseDeLivraison"
+                      type="text"
+                      className="prc-input"
+                      disabled={!isEditing}
+                      placeholder="Rue de la Santé 12, 1000 Bruxelles"
+                    />
+                  </div>
+                  <ErrorMessage
                     name="adresseDeLivraison"
-                    type="text"
-                    className="profile-cabinet-input"
-                    disabled={!isEditing}
-                    placeholder="123 Rue de la Santé, 75000 Paris"
+                    component="p"
+                    className="prc-error"
                   />
                 </div>
-                <ErrorMessage
-                  name="adresseDeLivraison"
-                  component="div"
-                  className="profile-cabinet-error"
-                />
-              </div>
 
-              {/* Adresse de Facturation */}
-              <div className="profile-cabinet-field-group">
-                <label
-                  htmlFor="adresseDeFacturation"
-                  className="profile-cabinet-label"
-                >
-                  Adresse de Facturation
-                </label>
-                <div className="profile-cabinet-input-wrapper">
-                  <MapPin className="profile-cabinet-input-icon" />
-                  <Field
+                <div className="prc-field prc-full">
+                  <label className="prc-label">
+                    Adresse de facturation{" "}
+                    <span className="prc-optional">(optionnel)</span>
+                  </label>
+                  <div className="prc-input-wrap">
+                    <MapPin size={16} className="prc-icon" />
+                    <Field
+                      name="adresseDeFacturation"
+                      type="text"
+                      className="prc-input"
+                      disabled={!isEditing}
+                      placeholder="Identique à la livraison si vide"
+                    />
+                  </div>
+                  <ErrorMessage
                     name="adresseDeFacturation"
-                    type="text"
-                    className="profile-cabinet-input"
-                    disabled={!isEditing}
-                    placeholder="123 Rue de la Facturation, 75000 Paris"
+                    component="p"
+                    className="prc-error"
                   />
                 </div>
-                <ErrorMessage
-                  name="adresseDeFacturation"
-                  component="div"
-                  className="profile-cabinet-error"
-                />
               </div>
+            </section>
 
-              {/* Champs de mot de passe (visible uniquement en mode édition) */}
-              {isEditing && (
-                <>
-                  <div className="profile-cabinet-field-group">
-                    <label
-                      htmlFor="currentPassword"
-                      className="profile-cabinet-label"
-                    >
-                      Mot de passe actuel
-                    </label>
-                    <div className="profile-cabinet-input-wrapper">
-                      <Lock className="profile-cabinet-input-icon" />
+            {/* Section — Mot de passe (édition uniquement) */}
+            {isEditing && (
+              <section className="prc-section">
+                <h3 className="prc-section-title">
+                  Sécurité{" "}
+                  <span className="prc-optional">
+                    — laissez vide pour ne pas changer
+                  </span>
+                </h3>
+                <div className="prc-grid">
+                  <div className="prc-field">
+                    <label className="prc-label">Mot de passe actuel</label>
+                    <div className="prc-input-wrap">
+                      <Lock size={16} className="prc-icon" />
                       <Field
                         name="currentPassword"
                         type={showPassword ? "text" : "password"}
-                        className="profile-cabinet-input"
-                        placeholder="Mot de passe actuel (optionnel)"
+                        className="prc-input"
+                        placeholder="Mot de passe actuel"
                       />
                       <button
                         type="button"
-                        className="profile-cabinet-password-toggle"
-                        onClick={() => setShowPassword(!showPassword)}
+                        className="prc-eye"
+                        onClick={() => setShowPassword((p) => !p)}
                       >
                         {showPassword ? (
-                          <EyeOff size={18} />
+                          <EyeOff size={16} />
                         ) : (
-                          <Eye size={18} />
+                          <Eye size={16} />
                         )}
                       </button>
                     </div>
                     <ErrorMessage
                       name="currentPassword"
-                      component="div"
-                      className="profile-cabinet-error"
+                      component="p"
+                      className="prc-error"
                     />
                   </div>
 
-                  <div className="profile-cabinet-field-group">
-                    <label
-                      htmlFor="newPassword"
-                      className="profile-cabinet-label"
-                    >
-                      Nouveau mot de passe
-                    </label>
-                    <div className="profile-cabinet-input-wrapper">
-                      <Lock className="profile-cabinet-input-icon" />
+                  <div className="prc-field">
+                    <label className="prc-label">Nouveau mot de passe</label>
+                    <div className="prc-input-wrap">
+                      <Lock size={16} className="prc-icon" />
                       <Field
                         name="newPassword"
                         type={showPassword ? "text" : "password"}
-                        className="profile-cabinet-input"
-                        placeholder="Nouveau mot de passe (optionnel)"
+                        className="prc-input"
+                        placeholder="Min. 8 caractères"
                       />
                       <button
                         type="button"
-                        className="profile-cabinet-password-toggle"
-                        onClick={() => setShowPassword(!showPassword)}
+                        className="prc-eye"
+                        onClick={() => setShowPassword((p) => !p)}
                       >
                         {showPassword ? (
-                          <EyeOff size={18} />
+                          <EyeOff size={16} />
                         ) : (
-                          <Eye size={18} />
+                          <Eye size={16} />
                         )}
                       </button>
                     </div>
                     <ErrorMessage
                       name="newPassword"
-                      component="div"
-                      className="profile-cabinet-error"
+                      component="p"
+                      className="prc-error"
                     />
-                    <p className="profile-cabinet-info">
-                      Laissez vide si vous ne souhaitez pas changer le mot de
-                      passe
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Section — Laboratoire */}
+            {cabinetData.userFirstName && cabinetData.userLastName && (
+              <section className="prc-section">
+                <h3 className="prc-section-title">Laboratoire partenaire</h3>
+                <div className="prc-lab-card">
+                  <div className="prc-lab-icon">
+                    <FlaskConical size={20} />
+                  </div>
+                  <div className="prc-lab-info">
+                    <strong>
+                      {cabinetData.userFirstName} {cabinetData.userLastName}
+                    </strong>
+                    <p>
+                      Pour toute modification de votre email ou suppression de
+                      compte, contactez directement votre laboratoire
+                      partenaire.
                     </p>
                   </div>
-                </>
-              )}
-
-              {/* Informations du laboratoire */}
-              {cabinetData.userFirstName && cabinetData.userLastName && (
-                <div className="profile-cabinet-lab-info">
-                  <h3 className="profile-cabinet-lab-title">
-                    Laboratoire Partenaire
-                  </h3>
-                  <p className="profile-cabinet-lab-details">
-                    <strong>Contact:</strong> {cabinetData.userFirstName}{" "}
-                    {cabinetData.userLastName}
-                  </p>
-                  <p className="profile-cabinet-lab-note">
-                    Pour toute modification de votre email ou suppression de
-                    compte, contactez votre laboratoire partenaire.
-                  </p>
+                  <div className="prc-lab-badge">
+                    <CheckCircle size={14} />
+                    Partenaire actif
+                  </div>
                 </div>
-              )}
-            </div>
+              </section>
+            )}
 
-            {/* Boutons d'action (visible uniquement en mode édition) */}
+            {/* Actions */}
             {isEditing && (
-              <div className="profile-cabinet-actions">
+              <div className="prc-actions">
                 <button
                   type="button"
+                  className="prc-cancel"
                   onClick={() => setIsEditing(false)}
-                  className="profile-cabinet-cancel-btn"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="profile-cabinet-save-btn"
+                  className="prc-save"
                 >
                   {isSubmitting ? (
-                    <div className="profile-cabinet-loading">
-                      <div className="profile-cabinet-spinner"></div>
-                      Enregistrement...
-                    </div>
+                    <>
+                      <span className="prc-spinner" />
+                      Enregistrement…
+                    </>
                   ) : (
                     <>
-                      <Save size={18} />
-                      Enregistrer les modifications
+                      <Save size={15} />
+                      Enregistrer
                     </>
                   )}
                 </button>
@@ -370,7 +346,7 @@ const ProfileCabinet = ({ cabinetData, onUpdate, onError, onSuccess }) => {
           </Form>
         )}
       </Formik>
-    </>
+    </div>
   );
 };
 
