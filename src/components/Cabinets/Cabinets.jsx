@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useState, useContext, useMemo, useCallback } from "react";
+import React, { useState, useContext, useMemo } from "react";
 import useSWR from "swr";
 import emailjs from "@emailjs/browser";
 import {
@@ -16,10 +16,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  TriangleAlert,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
-import { useNavigate } from "react-router-dom";
-import CabinetFormModal from "./CabinetFormModal"; // Import du nouveau composant
+import CabinetFormModal from "./CabinetFormModal";
 import "./Cabinets.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -29,7 +29,6 @@ const EMAILJS_TEMPLATE_ID = "template_7846xp8";
 
 emailjs.init(EMAILJS_PUBLIC_KEY);
 
-// --- Fetcher SWR ---
 const fetchWithAuth = async (url) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
@@ -44,7 +43,34 @@ const fetchWithAuth = async (url) => {
   return res.json();
 };
 
-// --- Composant Ligne Tableau (Memoized) ---
+// --- Modal de confirmation ---
+const ConfirmModal = ({ config, onConfirm, onCancel }) => {
+  if (!config) return null;
+  return (
+    <div className="cabinet-modal-overlay">
+      <div className="cabinet-confirm-modal">
+        <div className="cabinet-confirm-icon">
+          <TriangleAlert size={28} />
+        </div>
+        <h3>{config.title}</h3>
+        <p>{config.message}</p>
+        <div className="cabinet-confirm-actions">
+          <button onClick={onCancel} className="cabinet-cancel-btn">
+            Annuler
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`cabinet-confirm-btn ${config.danger ? "danger" : ""}`}
+          >
+            {config.confirmLabel || "Confirmer"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Ligne tableau ---
 const CabinetRow = React.memo(
   ({ cabinet, onEdit, onDelete, onSendPassword, sendingPasswords }) => (
     <div className="cabinet-table-row">
@@ -75,20 +101,16 @@ const CabinetRow = React.memo(
         </div>
       </div>
       <div className="cabinet-table-cell" data-label="Statut">
-        <div className="cabinet-status-badges">
-          <span
-            className={`status-badge ${
-              cabinet.emailVerified ? "verified" : "not-verified"
-            }`}
-          >
-            {cabinet.emailVerified ? (
-              <CheckCircle2 size={14} />
-            ) : (
-              <AlertCircle size={14} />
-            )}
-            {cabinet.emailVerified ? "Vérifié" : "Non vérifié"}
-          </span>
-        </div>
+        <span
+          className={`status-badge ${cabinet.emailVerified ? "verified" : "not-verified"}`}
+        >
+          {cabinet.emailVerified ? (
+            <CheckCircle2 size={14} />
+          ) : (
+            <AlertCircle size={14} />
+          )}
+          {cabinet.emailVerified ? "Vérifié" : "Non vérifié"}
+        </span>
       </div>
       <div className="cabinet-table-cell actions">
         <div className="cabinet-actions">
@@ -114,7 +136,7 @@ const CabinetRow = React.memo(
             <Edit size={16} />
           </button>
           <button
-            onClick={() => onDelete(cabinet.id)}
+            onClick={() => onDelete(cabinet)}
             className="cabinet-delete-btn"
             title="Supprimer"
           >
@@ -123,7 +145,7 @@ const CabinetRow = React.memo(
         </div>
       </div>
     </div>
-  )
+  ),
 );
 
 CabinetRow.displayName = "CabinetRow";
@@ -132,19 +154,12 @@ const Cabinet = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCabinet, setEditingCabinet] = useState(null);
-
-  // États d'erreur/succès globaux
   const [globalError, setGlobalError] = useState(null);
   const [success, setSuccess] = useState(null);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [sendingPasswords, setSendingPasswords] = useState([]);
-  const navigate = useNavigate();
+  const [confirmConfig, setConfirmConfig] = useState(null); // { title, message, confirmLabel, danger, onConfirm }
 
-  const { data: currentUser } = useSWR(
-    isAuthenticated ? `${API_BASE_URL}/auth/me` : null,
-    fetchWithAuth
-  );
   const {
     data: cabinets = [],
     mutate: mutateCabinets,
@@ -156,38 +171,54 @@ const Cabinet = () => {
     return cabinets.filter(
       (c) =>
         c.nom.toLowerCase().includes(term) ||
-        c.email.toLowerCase().includes(term)
+        c.email.toLowerCase().includes(term),
     );
   }, [cabinets, searchTerm]);
 
-  // --- Handlers ---
+  const showNotif = (type, msg) => {
+    if (type === "success") setSuccess(msg);
+    else setGlobalError(msg);
+    setTimeout(() => {
+      setSuccess(null);
+      setGlobalError(null);
+    }, 3000);
+  };
 
   const handleModalSuccess = (data, type) => {
     if (type === "modification") {
       mutateCabinets(
         cabinets.map((c) => (c.id === data.id ? data : c)),
-        false
+        false,
       );
-      setSuccess("Cabinet modifié avec succès");
+      showNotif("success", "Cabinet modifié avec succès");
     } else {
       mutateCabinets([...cabinets, data.cabinet], false);
-      setSuccess("Cabinet créé avec succès");
+      showNotif("success", "Cabinet créé avec succès");
     }
-    setTimeout(() => setSuccess(null), 3000);
-    mutateCabinets(); // Revalidation SWR
+    mutateCabinets();
   };
 
-  const handleSendPassword = async (cabinet) => {
+  const handleSendPassword = (cabinet) => {
+    setConfirmConfig({
+      title: "Envoyer le mot de passe",
+      message: `Un nouveau mot de passe sera généré et envoyé par email à ${cabinet.nom} (${cabinet.email}). Cette action est irréversible.`,
+      confirmLabel: "Envoyer",
+      danger: false,
+      onConfirm: () => executeSendPassword(cabinet),
+    });
+  };
+
+  const executeSendPassword = async (cabinet) => {
+    setConfirmConfig(null);
     setSendingPasswords((prev) => [...prev, cabinet.id]);
     try {
       const token = localStorage.getItem("token");
-
       const resGen = await fetch(
         `${API_BASE_URL}/cabinet/${cabinet.id}/regenerate-password`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (!resGen.ok) throw new Error("Erreur génération mot de passe");
       const { newPassword } = await resGen.json();
@@ -204,20 +235,26 @@ const Cabinet = () => {
       });
 
       mutateCabinets();
-      setSuccess(`Mot de passe envoyé à ${cabinet.nom}`);
+      showNotif("success", `Mot de passe envoyé à ${cabinet.nom}`);
     } catch (err) {
-      setGlobalError(err.message);
+      showNotif("error", err.message);
     } finally {
       setSendingPasswords((prev) => prev.filter((id) => id !== cabinet.id));
-      setTimeout(() => {
-        setSuccess(null);
-        setGlobalError(null);
-      }, 3000);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Supprimer ce cabinet ?")) return;
+  const handleDelete = (cabinet) => {
+    setConfirmConfig({
+      title: "Supprimer le cabinet",
+      message: `Voulez-vous vraiment supprimer "${cabinet.nom}" ? Cette action est définitive.`,
+      confirmLabel: "Supprimer",
+      danger: true,
+      onConfirm: () => executeDelete(cabinet.id),
+    });
+  };
+
+  const executeDelete = async (id) => {
+    setConfirmConfig(null);
     try {
       const token = localStorage.getItem("token");
       await fetch(`${API_BASE_URL}/cabinet/${id}`, {
@@ -226,13 +263,12 @@ const Cabinet = () => {
       });
       mutateCabinets(
         cabinets.filter((c) => c.id !== id),
-        false
+        false,
       );
-      setSuccess("Cabinet supprimé");
-    } catch (err) {
-      setGlobalError("Erreur suppression");
+      showNotif("success", "Cabinet supprimé");
+    } catch {
+      showNotif("error", "Erreur suppression");
     }
-    setTimeout(() => setSuccess(null), 3000);
   };
 
   const openCreateModal = () => {
@@ -325,12 +361,17 @@ const Cabinet = () => {
           </div>
         </div>
 
-        {/* Appel du composant Modale séparé */}
         <CabinetFormModal
           isOpen={isModalOpen}
           onClose={closeModal}
           cabinetToEdit={editingCabinet}
           onSuccess={handleModalSuccess}
+        />
+
+        <ConfirmModal
+          config={confirmConfig}
+          onConfirm={confirmConfig?.onConfirm}
+          onCancel={() => setConfirmConfig(null)}
         />
       </div>
     </div>

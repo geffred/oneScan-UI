@@ -1,50 +1,45 @@
 /* ==========================================================================
-   Cabinets.css - Styles pour la liste et le layout principal
+   Cabinets.css
    ========================================================================== */
 
-/* --- Variables (Utilisées par le parent et l'enfant) --- */
 :root {
   --cabinet-primary: #007AFF;
   --cabinet-primary-dark: #0056CC;
   --cabinet-primary-alpha-10: rgba(0, 122, 255, 0.1);
   --cabinet-primary-alpha-2: rgba(0, 122, 255, 0.02);
-  
+
   --cabinet-success: #10b981;
   --cabinet-success-bg: rgba(16, 185, 129, 0.1);
   --cabinet-success-border: rgba(16, 185, 129, 0.2);
-  
+
   --cabinet-error: #ef4444;
   --cabinet-error-bg: rgba(239, 68, 68, 0.1);
   --cabinet-error-border: rgba(239, 68, 68, 0.2);
-  
+
   --cabinet-warning: #f59e0b;
   --cabinet-warning-bg: #fff3cd;
   --cabinet-warning-border: #ffeeba;
-  
+
   --cabinet-gray-50: #f8fafc;
   --cabinet-gray-100: #f1f5f9;
   --cabinet-gray-200: #e2e8f0;
   --cabinet-gray-400: #94a3b8;
   --cabinet-gray-600: #64748b;
   --cabinet-gray-900: #1e293b;
-  
+
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 20px;
-  
+
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.15);
-  
-  --transition-fast: 150ms ease;
-  
+
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.8rem;
   --font-size-base: 0.9rem;
   --font-size-lg: 0.95rem;
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.75rem;
-  --font-size-3xl: 2.25rem;
 }
 
 /* --- Layout --- */
@@ -110,11 +105,9 @@
   border-radius: var(--radius-md);
   font-weight: 600;
   cursor: pointer;
-  transition: transform var(--transition-fast);
 }
 
 .cabinet-create-btn:hover {
-  transform: translateY(-2px);
   background: var(--cabinet-primary-dark);
 }
 
@@ -144,7 +137,6 @@
   border: 1px solid var(--cabinet-gray-200);
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
-  transition: all var(--transition-fast);
 }
 
 .cabinet-search-input:focus {
@@ -153,7 +145,7 @@
   box-shadow: 0 0 0 3px var(--cabinet-primary-alpha-10);
 }
 
-/* --- Notifications Globales --- */
+/* --- Notifications --- */
 .cabinet-error-notification,
 .cabinet-success-notification {
   padding: 1rem;
@@ -206,7 +198,6 @@
   border-bottom: 1px solid var(--cabinet-gray-100);
   padding: 1rem;
   align-items: center;
-  transition: background-color var(--transition-fast);
 }
 
 .cabinet-table-row:hover {
@@ -231,7 +222,8 @@
   gap: 0.5rem;
 }
 
-.cabinet-icon, .cabinet-info-icon {
+.cabinet-icon,
+.cabinet-info-icon {
   color: var(--cabinet-primary);
   flex-shrink: 0;
 }
@@ -273,7 +265,7 @@
   border: 1px solid var(--cabinet-warning-border);
 }
 
-/* --- Table Actions --- */
+/* --- Actions --- */
 .cabinet-actions {
   display: flex;
   gap: 0.5rem;
@@ -292,7 +284,6 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all var(--transition-fast);
 }
 
 .cabinet-edit-btn { color: var(--cabinet-primary); }
@@ -323,10 +314,101 @@
   margin: 0;
 }
 
+/* --- Confirm Modal --- */
+.cabinet-confirm-modal {
+  background: white;
+  border-radius: var(--radius-lg);
+  width: 95%;
+  max-width: 420px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.cabinet-confirm-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fff3cd;
+  color: var(--cabinet-warning);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cabinet-confirm-modal h3 {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--cabinet-gray-900);
+  margin: 0;
+}
+
+.cabinet-confirm-modal p {
+  font-size: var(--font-size-base);
+  color: var(--cabinet-gray-600);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cabinet-confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.cabinet-cancel-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: white;
+  color: var(--cabinet-gray-600);
+  border: 1px solid var(--cabinet-gray-200);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cabinet-cancel-btn:hover {
+  background: var(--cabinet-gray-50);
+}
+
+.cabinet-confirm-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: var(--cabinet-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cabinet-confirm-btn.danger {
+  background: var(--cabinet-error);
+}
+
+.cabinet-confirm-btn:hover {
+  opacity: 0.9;
+}
+
+/* --- Loader --- */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* --- Responsive --- */
 @media (max-width: 1024px) {
   .cabinet-table-header { display: none; }
-  
+
   .cabinet-table-row {
     grid-template-columns: 1fr;
     gap: 0.75rem;
@@ -350,10 +432,7 @@
     text-transform: uppercase;
   }
 
-  .cabinet-actions {
-    justify-content: flex-start;
-    margin-top: 0.5rem;
-  }
+  .cabinet-actions { justify-content: flex-start; margin-top: 0.5rem; }
 }
 
 @media (max-width: 768px) {

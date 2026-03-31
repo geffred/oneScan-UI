@@ -1,10 +1,8 @@
-/* Appareil.css - Styles with green theme for apparatus management */
+/* Appareils.css */
 
-/* CSS Variables for better performance and consistency */
 :root {
   --appareil-primary: #007AFF;
   --appareil-primary-dark: #0056CC;
-  --appareil-primary-light: #40A0FF;
   --appareil-secondary: #64748b;
   --appareil-success: #10b981;
   --appareil-error: #ef4444;
@@ -19,15 +17,11 @@
   --appareil-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.15);
   --appareil-radius: 12px;
   --appareil-radius-lg: 20px;
-  --appareil-transition: all 0.2s ease;
 }
 
-/* Base styles */
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-/* Main Layout */
+/* Layout */
 .appareil-main-wrapper {
   min-height: 100vh;
   background: var(--appareil-background);
@@ -77,7 +71,7 @@
 .appareil-management-icon {
   width: 36px;
   height: 36px;
-  background: #007AFF ;
+  background: var(--appareil-primary);
   border-radius: var(--appareil-radius);
   display: flex;
   align-items: center;
@@ -98,23 +92,13 @@
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: var(--appareil-transition);
 }
 
-.appareil-create-btn:hover {
-  transform: translateY(-1px);
-}
-
-.appareil-create-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
+.appareil-create-btn:hover { background: var(--appareil-primary-dark); }
+.appareil-create-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* Search */
-.appareil-search-section {
-  margin-bottom: 1.5rem;
-}
+.appareil-search-section { margin-bottom: 1.5rem; }
 
 .appareil-search-wrapper {
   position: relative;
@@ -138,7 +122,6 @@
   border: 1px solid var(--appareil-border);
   border-radius: var(--appareil-radius);
   font-size: 0.9rem;
-  transition: var(--appareil-transition);
   background: var(--appareil-surface);
 }
 
@@ -148,10 +131,8 @@
   box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
 }
 
-/* Table Styles */
-.appareil-list-container {
-  min-height: 300px;
-}
+/* Table */
+.appareil-list-container { min-height: 300px; }
 
 .appareil-table-container {
   background: var(--appareil-surface);
@@ -167,25 +148,16 @@
   border-bottom: 1px solid var(--appareil-border);
 }
 
-.appareil-table-body {
-  display: flex;
-  flex-direction: column;
-}
+.appareil-table-body { display: flex; flex-direction: column; }
 
 .appareil-table-row {
   display: grid;
   grid-template-columns: 2fr 1.8fr 1.8fr 2.5fr 1fr 1.2fr;
   border-bottom: 1px solid #f1f5f9;
-  transition: var(--appareil-transition);
 }
 
-.appareil-table-row:hover {
-  background: rgba(0, 122, 255, 0.02);
-}
-
-.appareil-table-row:last-child {
-  border-bottom: none;
-}
+.appareil-table-row:hover { background: rgba(0, 122, 255, 0.02); }
+.appareil-table-row:last-child { border-bottom: none; }
 
 .appareil-table-cell {
   padding: 1rem 0.875rem;
@@ -204,29 +176,12 @@
   min-height: 50px;
 }
 
-.appareil-table-cell.actions {
-  justify-content: center;
-}
+.appareil-table-cell.actions { justify-content: center; }
 
-/* Cell Content */
-.appareil-name-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.appareil-icon {
-  color: var(--appareil-primary);
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-}
-
-.appareil-name {
-  font-weight: 600;
-  color: var(--appareil-text-primary);
-  font-size: 0.95rem;
-}
+/* Cell content */
+.appareil-name-info { display: flex; align-items: center; gap: 0.5rem; }
+.appareil-icon { color: var(--appareil-primary); flex-shrink: 0; width: 18px; height: 18px; }
+.appareil-name { font-weight: 600; color: var(--appareil-text-primary); font-size: 0.95rem; }
 
 .appareil-category-info,
 .appareil-option-info,
@@ -238,19 +193,10 @@
   color: var(--appareil-text-secondary);
 }
 
-.appareil-info-icon {
-  color: var(--appareil-text-muted);
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-}
+.appareil-info-icon { color: var(--appareil-text-muted); flex-shrink: 0; width: 16px; height: 16px; }
 
 /* Actions */
-.appareil-actions {
-  display: flex;
-  gap: 0.375rem;
-  justify-content: center;
-}
+.appareil-actions { display: flex; gap: 0.375rem; justify-content: center; }
 
 .appareil-view-btn,
 .appareil-edit-btn,
@@ -260,7 +206,6 @@
   padding: 0.5rem;
   border-radius: 6px;
   cursor: pointer;
-  transition: var(--appareil-transition);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -268,61 +213,20 @@
   height: 34px;
 }
 
-.appareil-view-btn {
-  color: var(--appareil-secondary);
-}
+.appareil-view-btn { color: var(--appareil-secondary); }
+.appareil-view-btn:hover { background: var(--appareil-secondary); color: white; border-color: var(--appareil-secondary); }
 
-.appareil-view-btn:hover {
-  background: var(--appareil-secondary);
-  color: white;
-  border-color: var(--appareil-secondary);
-}
+.appareil-edit-btn { color: var(--appareil-primary); }
+.appareil-edit-btn:hover { background: var(--appareil-primary); color: white; border-color: var(--appareil-primary); }
 
-.appareil-edit-btn {
-  color: var(--appareil-primary);
-}
+.appareil-delete-btn { color: var(--appareil-error); }
+.appareil-delete-btn:hover { background: var(--appareil-error); color: white; border-color: var(--appareil-error); }
 
-.appareil-edit-btn:hover {
-  background: var(--appareil-primary);
-  color: white;
-  border-color: var(--appareil-primary);
-}
-
-.appareil-delete-btn {
-  color: var(--appareil-error);
-}
-
-.appareil-delete-btn:hover {
-  background: var(--appareil-error);
-  color: white;
-  border-color: var(--appareil-error);
-}
-
-/* Empty State */
-.appareil-empty-state {
-  text-align: center;
-  padding: 2.5rem 1rem;
-  color: var(--appareil-text-secondary);
-}
-
-.appareil-empty-state svg {
-  color: var(--appareil-text-muted);
-  margin-bottom: 1rem;
-  width: 48px;
-  height: 48px;
-}
-
-.appareil-empty-state h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--appareil-text-primary);
-  margin: 0 0 0.5rem 0;
-}
-
-.appareil-empty-state p {
-  font-size: 0.9rem;
-  margin: 0;
-}
+/* Empty */
+.appareil-empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--appareil-text-secondary); }
+.appareil-empty-state svg { color: var(--appareil-text-muted); margin-bottom: 1rem; width: 48px; height: 48px; }
+.appareil-empty-state h3 { font-size: 1.25rem; font-weight: 600; color: var(--appareil-text-primary); margin: 0 0 0.5rem; }
+.appareil-empty-state p { font-size: 0.9rem; margin: 0; }
 
 /* Loading */
 .appareil-list-loading {
@@ -344,26 +248,18 @@
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
+.appareil-list-loading p { font-size: 0.95rem; font-weight: 500; margin: 0; }
 
-.appareil-list-loading p {
-  font-size: 0.95rem;
-  font-weight: 500;
-  margin: 0;
-}
-
-/* Modal */
+/* Modal overlay */
 .appareil-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(2px);
 }
 
 .appareil-modal {
@@ -398,31 +294,15 @@
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 6px;
-  transition: var(--appareil-transition);
 }
 
-.appareil-modal-close:hover {
-  background: #f8fafc;
-  color: var(--appareil-text-primary);
-}
+.appareil-modal-close:hover { background: #f8fafc; color: var(--appareil-text-primary); }
 
 /* Form */
-.appareil-modal-form {
-  padding: 1.5rem;
-}
+.appareil-modal-form { padding: 1.5rem; }
+.appareil-form-fields { display: flex; flex-direction: column; gap: 1.25rem; margin-bottom: 1.5rem; }
 
-.appareil-form-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.appareil-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
+.appareil-input-group { display: flex; flex-direction: column; gap: 0.375rem; }
 
 .appareil-field-label {
   font-weight: 600;
@@ -432,11 +312,7 @@
   letter-spacing: 0.025em;
 }
 
-.appareil-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
+.appareil-input-wrapper { position: relative; display: flex; align-items: center; }
 
 .appareil-input-icon {
   position: absolute;
@@ -455,35 +331,24 @@
   border: 1px solid var(--appareil-border);
   border-radius: var(--appareil-radius);
   font-size: 0.9rem;
-  transition: var(--appareil-transition);
   background: var(--appareil-surface);
   font-family: inherit;
 }
 
-.appareil-textarea-input {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.appareil-select-input {
-  cursor: pointer;
-}
+.appareil-textarea-input { resize: vertical; min-height: 80px; }
+.appareil-select-input { cursor: pointer; }
 
 .appareil-text-input:focus,
 .appareil-select-input:focus,
 .appareil-textarea-input:focus {
   outline: none;
   border-color: var(--appareil-primary);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
 }
 
-.appareil-error-message {
-  color: var(--appareil-error);
-  font-size: 0.8rem;
-  font-weight: 500;
-}
+.appareil-error-message { color: var(--appareil-error); font-size: 0.8rem; font-weight: 500; }
 
-/* Modal Actions */
+/* Modal actions */
 .appareil-modal-actions {
   display: flex;
   gap: 0.75rem;
@@ -501,45 +366,28 @@
   font-weight: 500;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: var(--appareil-transition);
 }
 
-.appareil-cancel-btn:hover {
-  background: #f0fdf4;
-}
+.appareil-cancel-btn:hover { background: #f8fafc; }
 
 .appareil-save-btn {
   padding: 0.75rem 1.25rem;
-  background:  var(--appareil-primary);
+  background: var(--appareil-primary);
   color: white;
   border: none;
   border-radius: var(--appareil-radius);
   font-weight: 500;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: var(--appareil-transition);
   display: flex;
   align-items: center;
   gap: 0.375rem;
 }
 
-.appareil-save-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
+.appareil-save-btn:hover:not(:disabled) { background: var(--appareil-primary-dark); }
+.appareil-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.appareil-save-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Loading in buttons */
-.appareil-loading-container {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
+.appareil-loading-container { display: flex; align-items: center; gap: 0.5rem; }
 .appareil-loading-container .appareil-loading-spinner {
   width: 16px;
   height: 16px;
@@ -547,235 +395,70 @@
   border-top: 2px solid white;
 }
 
-/* Upload Modal Styles */
-.appareil-upload-area {
-  border: 2px dashed var(--appareil-border);
-  border-radius: var(--appareil-radius);
+/* --- Confirm modal --- */
+.appareil-confirm-modal {
+  background: white;
+  border-radius: var(--appareil-radius-lg);
+  width: 95%;
+  max-width: 420px;
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
   text-align: center;
-  transition: var(--appareil-transition);
-  cursor: pointer;
-  background: #fafffe;
-  position: relative;
+  box-shadow: var(--appareil-shadow-lg);
 }
 
-.appareil-upload-area:hover {
-  border-color: var(--appareil-primary);
-  background: #f8fafc;
+.appareil-confirm-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fff3cd;
+  color: var(--appareil-warning);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.appareil-upload-area svg {
-  color: var(--appareil-primary);
-  margin-bottom: 1rem;
-}
-
-.appareil-upload-area p {
-  color: var(--appareil-text-secondary);
-  font-size: 0.9rem;
+.appareil-confirm-modal h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--appareil-text-primary);
   margin: 0;
 }
 
-.appareil-file-input {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-}
-
-.appareil-selected-files {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: #f8fafc;
-  border-radius: var(--appareil-radius);
-}
-
-.appareil-selected-files h4 {
-  margin: 0 0 0.5rem 0;
-  color: var(--appareil-text-primary);
+.appareil-confirm-modal p {
   font-size: 0.9rem;
-}
-
-.appareil-selected-file {
-  padding: 0.5rem;
-  background: var(--appareil-surface);
-  border-radius: 6px;
-  margin-bottom: 0.25rem;
-  font-size: 0.8rem;
   color: var(--appareil-text-secondary);
+  margin: 0;
+  line-height: 1.5;
 }
 
-.appareil-selected-file:last-child {
-  margin-bottom: 0;
+.appareil-confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.5rem;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .appareil-table-header,
-  .appareil-table-row {
-    grid-template-columns: 1.5fr 1.5fr 1.5fr 2fr 1fr 1fr;
-  }
+.appareil-confirm-actions .appareil-cancel-btn,
+.appareil-confirm-actions .appareil-confirm-btn { flex: 1; }
+
+.appareil-confirm-btn {
+  padding: 0.75rem 1rem;
+  background: var(--appareil-primary);
+  color: white;
+  border: none;
+  border-radius: var(--appareil-radius);
+  font-weight: 600;
+  cursor: pointer;
 }
 
-@media (max-width: 768px) {
-  .appareil-main-wrapper {
-    padding: 1rem;
-  }
+.appareil-confirm-btn.danger { background: var(--appareil-error); }
+.appareil-confirm-btn:hover { opacity: 0.9; }
 
-  .appareil-management-card {
-    padding: 1.5rem;
-  }
-
-  .appareil-management-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-
-  .appareil-management-title {
-    font-size: 1.75rem;
-  }
-
-  .appareil-create-btn {
-    justify-content: center;
-  }
-
-  .appareil-search-wrapper {
-    max-width: none;
-  }
-
-  /* Mobile card layout */
-  .appareil-table-container {
-    overflow: visible;
-  }
-
-  .appareil-table-header {
-    display: none;
-  }
-
-  .appareil-table-body {
-    gap: 1rem;
-  }
-
-  .appareil-table-row {
-    display: block;
-    background: var(--appareil-surface);
-    border: 1px solid var(--appareil-border);
-    border-radius: var(--appareil-radius);
-    padding: 1.25rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  }
-
-  .appareil-table-row:hover {
-    background: var(--appareil-surface);
-    border-color: var(--appareil-primary);
-    box-shadow: 0 4px 8px rgba(0, 122, 255, 0.1);
-  }
-
-  .appareil-table-cell {
-    display: block;
-    padding: 0.5rem 0;
-    min-height: auto;
-    border-bottom: 1px solid #f1f5f9;
-  }
-
-  .appareil-table-cell:last-child {
-    border-bottom: none;
-    padding-top: 1rem;
-  }
-
-  .appareil-table-cell.actions {
-    justify-content: flex-start;
-  }
-
-  .appareil-table-cell:not(.actions)::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: var(--appareil-text-secondary);
-    display: block;
-    margin-bottom: 0.25rem;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-  }
-
-  .appareil-modal {
-    width: 95%;
-    margin: 1rem;
-  }
-
-  .appareil-modal-actions {
-    flex-direction: column;
-  }
-
-  .appareil-cancel-btn,
-  .appareil-save-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .appareil-actions {
-    gap: 0.75rem;
-  }
-
-  .appareil-view-btn,
-  .appareil-edit-btn,
-  .appareil-delete-btn {
-    flex: 1;
-    width: auto;
-    padding: 0.625rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .appareil-management-title {
-    font-size: 1.5rem;
-  }
-
-  .appareil-text-input,
-  .appareil-select-input,
-  .appareil-textarea-input,
-  .appareil-search-input {
-    padding: 0.75rem 0.75rem 0.75rem 2.25rem;
-  }
-
-  .appareil-input-icon,
-  .appareil-search-icon {
-    left: 0.75rem;
-  }
-
-  .appareil-upload-area {
-    padding: 1.5rem;
-  }
-}
-
-/* Print styles */
-@media print {
-  .appareil-main-wrapper {
-    background: white;
-    padding: 0;
-  }
-
-  .appareil-management-header,
-  .appareil-search-section,
-  .appareil-actions,
-  .appareil-create-btn {
-    display: none !important;
-  }
-
-  .appareil-management-card {
-    box-shadow: none;
-    border: none;
-  }
-
-  .appareil-table-row:hover {
-    background: white !important;
-  }
-}
-
-/* Styles pour la gestion des images */
+/* Upload */
 .appareil-upload-section {
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
@@ -790,27 +473,40 @@
   margin-bottom: 1rem;
 }
 
-.appareil-upload-actions {
-  margin-top: 1rem;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.appareil-existing-images-section {
-  margin-bottom: 1.5rem;
-}
-
-.appareil-images-loading,
-.appareil-no-images {
-  text-align: center;
+.appareil-upload-area {
+  border: 2px dashed var(--appareil-border);
+  border-radius: var(--appareil-radius);
   padding: 2rem;
-  color: var(--appareil-text-secondary);
+  text-align: center;
+  cursor: pointer;
+  background: #fafffe;
+  position: relative;
 }
 
-.appareil-no-images svg {
-  color: var(--appareil-text-muted);
-  margin-bottom: 1rem;
+.appareil-upload-area:hover { border-color: var(--appareil-primary); }
+.appareil-upload-area svg { color: var(--appareil-primary); margin-bottom: 1rem; }
+.appareil-upload-area p { color: var(--appareil-text-secondary); font-size: 0.9rem; margin: 0; }
+
+.appareil-file-input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  top: 0;
+  left: 0;
 }
+
+.appareil-selected-files { margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: var(--appareil-radius); }
+.appareil-selected-files h4 { margin: 0 0 0.5rem; color: var(--appareil-text-primary); font-size: 0.9rem; }
+.appareil-selected-file { padding: 0.5rem; background: var(--appareil-surface); border-radius: 6px; margin-bottom: 0.25rem; font-size: 0.8rem; color: var(--appareil-text-secondary); }
+.appareil-selected-file:last-child { margin-bottom: 0; }
+
+.appareil-upload-actions { margin-top: 1rem; display: flex; justify-content: flex-end; }
+.appareil-existing-images-section { margin-bottom: 1.5rem; }
+.appareil-images-loading,
+.appareil-no-images { text-align: center; padding: 2rem; color: var(--appareil-text-secondary); }
+.appareil-no-images svg { color: var(--appareil-text-muted); margin-bottom: 1rem; }
 
 .appareil-images-grid {
   display: grid;
@@ -824,26 +520,13 @@
   border: 1px solid var(--appareil-border);
   border-radius: var(--appareil-radius);
   overflow: hidden;
-  transition: var(--appareil-transition);
 }
 
-.appareil-image-item:hover {
-  border-color: var(--appareil-primary);
-  box-shadow: 0 4px 8px rgba(0, 122, 255, 0.1);
-}
+.appareil-image-item:hover { border-color: var(--appareil-primary); }
 
-.appareil-image-container {
-  position: relative;
-  aspect-ratio: 1;
-  overflow: hidden;
-}
+.appareil-image-container { position: relative; aspect-ratio: 1; overflow: hidden; }
 
-.appareil-image-preview {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: var(--appareil-transition);
-}
+.appareil-image-preview { width: 100%; height: 100%; object-fit: cover; }
 
 .appareil-image-delete-btn {
   position: absolute;
@@ -860,44 +543,74 @@
   justify-content: center;
   cursor: pointer;
   opacity: 0;
-  transition: var(--appareil-transition);
 }
 
-.appareil-image-container:hover .appareil-image-delete-btn {
-  opacity: 1;
+.appareil-image-container:hover .appareil-image-delete-btn { opacity: 1; }
+.appareil-image-delete-btn:hover { background: var(--appareil-error); }
+
+.appareil-image-info { padding: 0.75rem; background: #f8fafc; }
+.appareil-image-name { font-size: 0.75rem; color: var(--appareil-text-secondary); word-break: break-all; display: block; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .appareil-table-header,
+  .appareil-table-row { grid-template-columns: 1.5fr 1.5fr 1.5fr 2fr 1fr 1fr; }
 }
 
-.appareil-image-delete-btn:hover {
-  background: var(--appareil-error);
-  transform: scale(1.1);
-}
-
-.appareil-image-info {
-  padding: 0.75rem;
-  background: #f8fafc;
-}
-
-.appareil-image-name {
-  font-size: 0.75rem;
-  color: var(--appareil-text-secondary);
-  word-break: break-all;
-  display: block;
-}
-
-/* Responsive pour la grille d'images */
 @media (max-width: 768px) {
-  .appareil-images-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 0.75rem;
+  .appareil-main-wrapper { padding: 1rem; }
+  .appareil-management-card { padding: 1.5rem; }
+  .appareil-management-header { flex-direction: column; align-items: stretch; gap: 1rem; }
+  .appareil-management-title { font-size: 1.75rem; }
+  .appareil-create-btn { justify-content: center; }
+  .appareil-search-wrapper { max-width: none; }
+
+  .appareil-table-container { overflow: visible; }
+  .appareil-table-header { display: none; }
+  .appareil-table-body { gap: 1rem; }
+
+  .appareil-table-row {
+    display: block;
+    background: var(--appareil-surface);
+    border: 1px solid var(--appareil-border);
+    border-radius: var(--appareil-radius);
+    padding: 1.25rem;
   }
-  
-  .appareil-image-delete-btn {
-    opacity: 1; /* Toujours visible sur mobile */
+
+  .appareil-table-cell { display: block; padding: 0.5rem 0; min-height: auto; border-bottom: 1px solid #f1f5f9; }
+  .appareil-table-cell:last-child { border-bottom: none; padding-top: 1rem; }
+  .appareil-table-cell.actions { justify-content: flex-start; }
+  .appareil-table-cell:not(.actions)::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--appareil-text-secondary);
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
   }
+
+  .appareil-modal { width: 95%; margin: 1rem; }
+  .appareil-modal-actions { flex-direction: column; }
+  .appareil-cancel-btn, .appareil-save-btn { width: 100%; justify-content: center; }
+  .appareil-actions { gap: 0.75rem; }
+  .appareil-view-btn, .appareil-edit-btn, .appareil-delete-btn { flex: 1; width: auto; padding: 0.625rem; }
+  .appareil-images-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.75rem; }
+  .appareil-image-delete-btn { opacity: 1; }
 }
 
 @media (max-width: 480px) {
-  .appareil-images-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .appareil-management-title { font-size: 1.5rem; }
+  .appareil-text-input, .appareil-select-input, .appareil-textarea-input, .appareil-search-input {
+    padding: 0.75rem 0.75rem 0.75rem 2.25rem;
   }
+  .appareil-input-icon, .appareil-search-icon { left: 0.75rem; }
+  .appareil-upload-area { padding: 1.5rem; }
+  .appareil-images-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media print {
+  .appareil-main-wrapper { background: white; padding: 0; }
+  .appareil-management-header, .appareil-search-section, .appareil-actions, .appareil-create-btn { display: none !important; }
+  .appareil-management-card { box-shadow: none; border: none; }
 }

@@ -20,6 +20,7 @@ import {
   Image,
   Eye,
   Wrench,
+  TriangleAlert,
 } from "lucide-react";
 import { AuthContext } from "../Config/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -29,7 +30,6 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   "https://mysmilelab-api-production.up.railway.app/api";
 
-// Enums
 const CATEGORIES = [
   { value: "APPAREILS_FIXES_FRITTES", label: "Appareils Fixes Frittés" },
   {
@@ -41,7 +41,6 @@ const CATEGORIES = [
   { value: "CONTENTIONS", label: "Contentions" },
 ];
 
-// --- OPTION 2 : Liste Groupée ---
 const GROUPED_OPTIONS = [
   {
     label: "Disjoncteurs",
@@ -197,87 +196,75 @@ const GROUPED_OPTIONS = [
   },
 ];
 
-// Helper pour mettre à plat les options (utile pour validation, recherche et affichage simple)
 const FLATTENED_OPTIONS = GROUPED_OPTIONS.reduce(
   (acc, group) => [...acc, ...group.options],
-  []
+  [],
 );
 
-// Schema de validation
+// Hors composant → pas de recréation à chaque render
 const validationSchema = Yup.object({
   nom: Yup.string()
     .required("Le nom de l'appareil est requis")
-    .max(100, "Le nom ne peut pas dépasser 100 caractères"),
+    .max(100, "Max 100 caractères"),
   categorie: Yup.string()
     .required("La catégorie est requise")
     .oneOf(
       CATEGORIES.map((c) => c.value),
-      "Catégorie invalide"
+      "Catégorie invalide",
     ),
   options: Yup.string()
     .required("Une option est requise")
     .oneOf(
-      FLATTENED_OPTIONS.map((o) => o.value), // Utilisation de la liste aplatie pour la validation
-      "Option invalide"
+      FLATTENED_OPTIONS.map((o) => o.value),
+      "Option invalide",
     ),
-  description: Yup.string().max(
-    500,
-    "La description ne peut pas dépasser 500 caractères"
-  ),
+  description: Yup.string().max(500, "Max 500 caractères"),
 });
 
-// Fonction de fetch pour SWR
 const fetchWithAuth = async (url) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
-
   const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
-
-  if (!response.ok) {
+  if (!response.ok)
     throw new Error(`Erreur ${response.status}: ${response.statusText}`);
-  }
-
   return response.json();
 };
 
-// Fonctions API
-const getAppareils = async () => {
-  return fetchWithAuth(`${API_BASE_URL}/appareils`);
+const getAppareils = () => fetchWithAuth(`${API_BASE_URL}/appareils`);
+const getImagesByAppareil = (id) =>
+  fetchWithAuth(`${API_BASE_URL}/images/appareil/${id}`);
+const getCurrentUser = () => fetchWithAuth(`${API_BASE_URL}/auth/me`);
+
+// --- Modal de confirmation ---
+const ConfirmModal = ({ config, onConfirm, onCancel }) => {
+  if (!config) return null;
+  return (
+    <div className="appareil-modal-overlay">
+      <div className="appareil-confirm-modal">
+        <div className="appareil-confirm-icon">
+          <TriangleAlert size={28} />
+        </div>
+        <h3>{config.title}</h3>
+        <p>{config.message}</p>
+        <div className="appareil-confirm-actions">
+          <button onClick={onCancel} className="appareil-cancel-btn">
+            Annuler
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`appareil-confirm-btn ${config.danger ? "danger" : ""}`}
+          >
+            {config.confirmLabel || "Confirmer"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-const getImagesByAppareil = async (appareilId) => {
-  return fetchWithAuth(`${API_BASE_URL}/images/appareil/${appareilId}`);
-};
-
-const deleteImage = async (imageId) => {
-  // Cette fonction n'est pas utilisée directement dans le composant mais gardée pour référence
-  const token = localStorage.getItem("token");
-  const response = await fetch(`${API_BASE_URL}/images/${imageId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
-  }
-};
-
-const getCurrentUser = async () => {
-  try {
-    return await fetchWithAuth(`${API_BASE_URL}/auth/me`);
-  } catch (error) {
-    console.error("Erreur lors de la récupération de l'utilisateur:", error);
-    throw error;
-  }
-};
-
-// Composant de ligne de tableau
+// --- Ligne tableau ---
 const AppareilRow = React.memo(
   ({ appareil, onEdit, onDelete, onViewImages }) => (
     <div className="appareil-table-row">
@@ -287,7 +274,6 @@ const AppareilRow = React.memo(
           <span className="appareil-name">{appareil.nom}</span>
         </div>
       </div>
-
       <div className="appareil-table-cell" data-label="Catégorie">
         <div className="appareil-category-info">
           <Tag size={16} className="appareil-info-icon" />
@@ -297,39 +283,33 @@ const AppareilRow = React.memo(
           </span>
         </div>
       </div>
-
       <div className="appareil-table-cell" data-label="Option">
         <div className="appareil-option-info">
           <Wrench size={16} className="appareil-info-icon" />
           <span>
-            {/* Utilisation de FLATTENED_OPTIONS pour retrouver le label */}
             {FLATTENED_OPTIONS.find((o) => o.value === appareil.options)
               ?.label || appareil.options}
           </span>
         </div>
       </div>
-
       <div className="appareil-table-cell" data-label="Description">
         <div className="appareil-description-info">
           <FileText size={16} className="appareil-info-icon" />
           <span>{appareil.description || "Aucune description"}</span>
         </div>
       </div>
-
       <div className="appareil-table-cell" data-label="Images">
         <div className="appareil-images-info">
           <Image size={16} className="appareil-info-icon" />
           <span>{appareil.images?.length || 0} image(s)</span>
         </div>
       </div>
-
       <div className="appareil-table-cell actions">
         <div className="appareil-actions">
           <button
             onClick={() => onViewImages(appareil)}
             className="appareil-view-btn"
             title="Gérer les images"
-            aria-label="Gérer les images"
           >
             <Eye size={16} />
           </button>
@@ -337,37 +317,23 @@ const AppareilRow = React.memo(
             onClick={() => onEdit(appareil)}
             className="appareil-edit-btn"
             title="Modifier"
-            aria-label="Modifier"
           >
             <Edit size={16} />
           </button>
           <button
-            onClick={() => onDelete(appareil.id)}
+            onClick={() => onDelete(appareil)}
             className="appareil-delete-btn"
             title="Supprimer"
-            aria-label="Supprimer"
           >
             <Trash2 size={16} />
           </button>
         </div>
       </div>
     </div>
-  )
+  ),
 );
-
 AppareilRow.displayName = "AppareilRow";
 
-// Composant de chargement
-const ListLoadingSpinner = React.memo(() => (
-  <div className="appareil-list-loading">
-    <div className="appareil-loading-spinner" aria-label="Chargement"></div>
-    <p>Chargement des appareils...</p>
-  </div>
-));
-
-ListLoadingSpinner.displayName = "ListLoadingSpinner";
-
-// État vide
 const EmptyState = React.memo(({ searchTerm }) => (
   <div className="appareil-empty-state">
     <Settings size={48} />
@@ -379,305 +345,241 @@ const EmptyState = React.memo(({ searchTerm }) => (
     </p>
   </div>
 ));
-
 EmptyState.displayName = "EmptyState";
 
-// Composant pour afficher et gérer les images
+// --- Modal gestion images ---
 const ImageManagementModal = React.memo(
   ({ isOpen, onClose, appareil, onImagesUpdate }) => {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
     const [images, setImages] = useState([]);
     const [isLoadingImages, setIsLoadingImages] = useState(false);
+    const [confirmConfig, setConfirmConfig] = useState(null);
 
-    // Charger les images de l'appareil
     const loadImages = useCallback(async () => {
       if (!appareil?.id) return;
-
       setIsLoadingImages(true);
       try {
-        const imagesData = await getImagesByAppareil(appareil.id);
-        setImages(imagesData);
-      } catch (error) {
-        console.error("Erreur lors du chargement des images:", error);
+        const data = await getImagesByAppareil(appareil.id);
+        setImages(data);
+      } catch {
         toast.error("Erreur lors du chargement des images");
       } finally {
         setIsLoadingImages(false);
       }
     }, [appareil?.id]);
 
-    // Charger les images à l'ouverture du modal
     React.useEffect(() => {
-      if (isOpen && appareil?.id) {
-        loadImages();
-      }
+      if (isOpen && appareil?.id) loadImages();
     }, [isOpen, appareil?.id, loadImages]);
-
-    const handleFileSelect = (e) => {
-      const files = Array.from(e.target.files);
-      setSelectedFiles(files);
-    };
 
     const handleUpload = async () => {
       if (selectedFiles.length === 0) {
-        toast.warning("Veuillez sélectionner au moins une image");
+        toast.warning("Sélectionnez au moins une image");
         return;
       }
-
       setIsUploading(true);
       try {
         const token = localStorage.getItem("token");
+        const formData = new FormData();
+        const isSingle = selectedFiles.length === 1;
+        const endpoint = isSingle
+          ? `${API_BASE_URL}/images/upload/${appareil.id}`
+          : `${API_BASE_URL}/images/upload-multiple/${appareil.id}`;
 
-        if (selectedFiles.length === 1) {
-          // Upload d'une seule image
-          const formData = new FormData();
-          formData.append("file", selectedFiles[0]);
+        selectedFiles.forEach((file) =>
+          formData.append(isSingle ? "file" : "files", file),
+        );
 
-          console.log("📤 Upload d'une seule image:", selectedFiles[0].name);
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+        if (!response.ok)
+          throw new Error((await response.text()) || "Erreur upload");
 
-          const response = await fetch(
-            `${API_BASE_URL}/images/upload/${appareil.id}`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              body: formData,
-            }
-          );
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || "Erreur lors de l'upload");
-          }
-
-          const result = await response.json();
-          console.log("✅ Image uploadée:", result);
-          toast.success("Image uploadée avec succès sur Cloudinary");
-        } else {
-          // Upload de plusieurs images
-          const formData = new FormData();
-
-          selectedFiles.forEach((file, index) => {
-            formData.append("files", file);
-            console.log(`📤 Ajout fichier ${index + 1}:`, file.name);
-          });
-
-          console.log("📤 Upload de", selectedFiles.length, "images");
-
-          const response = await fetch(
-            `${API_BASE_URL}/images/upload-multiple/${appareil.id}`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              body: formData,
-            }
-          );
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error("❌ Erreur upload multiple:", errorText);
-            throw new Error(errorText || "Erreur lors de l'upload multiple");
-          }
-
-          const result = await response.json();
-          console.log("✅ Images uploadées:", result);
-          toast.success(
-            `${selectedFiles.length} images uploadées avec succès sur Cloudinary`
-          );
-        }
-
-        // Réinitialiser et recharger
+        toast.success(
+          isSingle
+            ? "Image uploadée avec succès"
+            : `${selectedFiles.length} images uploadées`,
+        );
         setSelectedFiles([]);
-        await loadImages(); // Recharger les images
-        onImagesUpdate(); // Notifier le parent
-      } catch (error) {
-        console.error("❌ Erreur upload:", error);
-        toast.error(error.message || "Erreur lors de l'upload des images");
+        await loadImages();
+        onImagesUpdate();
+      } catch (err) {
+        toast.error(err.message || "Erreur lors de l'upload");
       } finally {
         setIsUploading(false);
       }
     };
 
-    const handleDeleteImage = async (imageId, imageUrl) => {
-      if (
-        !window.confirm(
-          "Êtes-vous sûr de vouloir supprimer cette image de Cloudinary ?"
-        )
-      ) {
-        return;
-      }
+    const handleDeleteImage = (image) => {
+      setConfirmConfig({
+        title: "Supprimer l'image",
+        message:
+          "Voulez-vous vraiment supprimer cette image de Cloudinary ? Cette action est définitive.",
+        confirmLabel: "Supprimer",
+        danger: true,
+        onConfirm: () => executeDeleteImage(image.id),
+      });
+    };
 
+    const executeDeleteImage = async (imageId) => {
+      setConfirmConfig(null);
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(`${API_BASE_URL}/images/${imageId}`, {
           method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText || "Erreur lors de la suppression");
-        }
-
-        toast.success("Image supprimée de Cloudinary avec succès");
-        setImages(images.filter((img) => img.id !== imageId)); // Mettre à jour l'état local
-        onImagesUpdate(); // Notifier le parent
-      } catch (error) {
-        console.error("Erreur suppression:", error);
-        toast.error(
-          error.message || "Erreur lors de la suppression de l'image"
-        );
+        if (!response.ok)
+          throw new Error((await response.text()) || "Erreur suppression");
+        toast.success("Image supprimée avec succès");
+        setImages((prev) => prev.filter((img) => img.id !== imageId));
+        onImagesUpdate();
+      } catch (err) {
+        toast.error(err.message || "Erreur lors de la suppression");
       }
     };
 
     if (!isOpen) return null;
 
     return (
-      <div className="appareil-modal-overlay">
-        <div className="appareil-modal" style={{ maxWidth: "800px" }}>
-          <div className="appareil-modal-header">
-            <h2>Gestion des images - {appareil?.nom}</h2>
-            <button onClick={onClose} className="appareil-modal-close">
-              <X size={24} />
-            </button>
-          </div>
-          <div className="appareil-modal-form">
-            {/* Section Upload */}
-            <div className="appareil-upload-section">
-              <h3>Ajouter des images</h3>
-              <div className="appareil-upload-area">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="appareil-file-input"
-                />
-                <Upload size={32} />
-                <p>Sélectionnez une ou plusieurs images</p>
-                <small style={{ color: "#666", marginTop: "8px" }}>
-                  Les images seront uploadées sur Cloudinary
-                </small>
-              </div>
-              {selectedFiles.length > 0 && (
-                <div className="appareil-selected-files">
-                  <h4>Fichiers sélectionnés :</h4>
-                  {selectedFiles.map((file, index) => (
-                    <div key={index} className="appareil-selected-file">
-                      {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                    </div>
-                  ))}
-                </div>
-              )}
-              {selectedFiles.length > 0 && (
-                <div className="appareil-upload-actions">
-                  <button
-                    onClick={handleUpload}
-                    disabled={isUploading}
-                    className="appareil-save-btn"
-                  >
-                    {isUploading
-                      ? "Upload en cours..."
-                      : "Uploader sur Cloudinary"}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Section Images existantes */}
-            <div className="appareil-existing-images-section">
-              <h3>Images existantes sur Cloudinary ({images.length})</h3>
-
-              {isLoadingImages ? (
-                <div className="appareil-images-loading">
-                  <div className="appareil-loading-spinner"></div>
-                  <p>Chargement des images...</p>
-                </div>
-              ) : images.length === 0 ? (
-                <div className="appareil-no-images">
-                  <Image size={48} />
-                  <p>Aucune image pour cet appareil</p>
-                </div>
-              ) : (
-                <div className="appareil-images-grid">
-                  {images.map((image) => (
-                    <div key={image.id} className="appareil-image-item">
-                      <div className="appareil-image-container">
-                        <img
-                          src={image.imagePath}
-                          alt={`Image de ${appareil?.nom}`}
-                          className="appareil-image-preview"
-                          onError={(e) => {
-                            console.error(
-                              "Erreur chargement image:",
-                              image.imagePath
-                            );
-                            e.target.src =
-                              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23ddd' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999'%3EErreur%3C/text%3E%3C/svg%3E";
-                          }}
-                        />
-                        <button
-                          onClick={() =>
-                            handleDeleteImage(image.id, image.imagePath)
-                          }
-                          className="appareil-image-delete-btn"
-                          title="Supprimer de Cloudinary"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                      <div className="appareil-image-info">
-                        <span
-                          className="appareil-image-name"
-                          title={image.imagePath}
-                        >
-                          {image.imagePath.split("/").pop().substring(0, 30)}...
-                        </span>
-                        <small style={{ color: "#666", fontSize: "11px" }}>
-                          ID: {image.id}
-                        </small>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="appareil-modal-actions">
-              <button
-                type="button"
-                onClick={onClose}
-                className="appareil-cancel-btn"
-              >
-                Fermer
+      <>
+        <div className="appareil-modal-overlay">
+          <div className="appareil-modal" style={{ maxWidth: "800px" }}>
+            <div className="appareil-modal-header">
+              <h2>Gestion des images — {appareil?.nom}</h2>
+              <button onClick={onClose} className="appareil-modal-close">
+                <X size={24} />
               </button>
+            </div>
+            <div className="appareil-modal-form">
+              <div className="appareil-upload-section">
+                <h3>Ajouter des images</h3>
+                <div className="appareil-upload-area">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) =>
+                      setSelectedFiles(Array.from(e.target.files))
+                    }
+                    className="appareil-file-input"
+                  />
+                  <Upload size={32} />
+                  <p>Sélectionnez une ou plusieurs images</p>
+                </div>
+                {selectedFiles.length > 0 && (
+                  <>
+                    <div className="appareil-selected-files">
+                      <h4>Fichiers sélectionnés :</h4>
+                      {selectedFiles.map((file, i) => (
+                        <div key={i} className="appareil-selected-file">
+                          {file.name} ({(file.size / 1024 / 1024).toFixed(2)}{" "}
+                          MB)
+                        </div>
+                      ))}
+                    </div>
+                    <div className="appareil-upload-actions">
+                      <button
+                        onClick={handleUpload}
+                        disabled={isUploading}
+                        className="appareil-save-btn"
+                      >
+                        {isUploading ? "Upload en cours..." : "Uploader"}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="appareil-existing-images-section">
+                <h3>Images existantes ({images.length})</h3>
+                {isLoadingImages ? (
+                  <div className="appareil-images-loading">
+                    <div className="appareil-loading-spinner" />
+                    <p>Chargement...</p>
+                  </div>
+                ) : images.length === 0 ? (
+                  <div className="appareil-no-images">
+                    <Image size={48} />
+                    <p>Aucune image</p>
+                  </div>
+                ) : (
+                  <div className="appareil-images-grid">
+                    {images.map((image) => (
+                      <div key={image.id} className="appareil-image-item">
+                        <div className="appareil-image-container">
+                          <img
+                            src={image.imagePath}
+                            alt={`Image de ${appareil?.nom}`}
+                            className="appareil-image-preview"
+                            onError={(e) => {
+                              e.target.src =
+                                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23ddd' width='200' height='200'/%3E%3C/svg%3E";
+                            }}
+                          />
+                          <button
+                            onClick={() => handleDeleteImage(image)}
+                            className="appareil-image-delete-btn"
+                            title="Supprimer"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                        <div className="appareil-image-info">
+                          <span
+                            className="appareil-image-name"
+                            title={image.imagePath}
+                          >
+                            {image.imagePath.split("/").pop().substring(0, 30)}
+                            ...
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="appareil-modal-actions">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="appareil-cancel-btn"
+                >
+                  Fermer
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    );
-  }
-);
 
+        <ConfirmModal
+          config={confirmConfig}
+          onConfirm={confirmConfig?.onConfirm}
+          onCancel={() => setConfirmConfig(null)}
+        />
+      </>
+    );
+  },
+);
 ImageManagementModal.displayName = "ImageManagementModal";
 
-// Composant principal
+// --- Composant principal ---
 const Appareils = () => {
   const { isAuthenticated } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [editingAppareil, setEditingAppareil] = useState(null);
   const [selectedAppareilForImages, setSelectedAppareilForImages] =
     useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const navigate = useNavigate();
+  const [confirmConfig, setConfirmConfig] = useState(null);
 
-  // SWR hooks
   const {
     data: currentUser,
     error: userError,
@@ -698,76 +600,45 @@ const Appareils = () => {
     revalidateOnReconnect: true,
     refreshInterval: 30000,
     errorRetryCount: 3,
-    errorRetryInterval: 1000,
   });
 
-  // Filtrage mémorisé
   const filteredAppareils = useMemo(() => {
     if (!searchTerm) return appareils;
-
     const term = searchTerm.toLowerCase();
     return appareils.filter(
-      (appareil) =>
-        appareil.nom.toLowerCase().includes(term) ||
-        appareil.description?.toLowerCase().includes(term) ||
-        CATEGORIES.find((c) => c.value === appareil.categorie)
+      (a) =>
+        a.nom.toLowerCase().includes(term) ||
+        a.description?.toLowerCase().includes(term) ||
+        CATEGORIES.find((c) => c.value === a.categorie)
           ?.label.toLowerCase()
           .includes(term) ||
-        // Utilisation de FLATTENED_OPTIONS pour la recherche
-        FLATTENED_OPTIONS.find((o) => o.value === appareil.options)
+        FLATTENED_OPTIONS.find((o) => o.value === a.options)
           ?.label.toLowerCase()
-          .includes(term)
+          .includes(term),
     );
   }, [appareils, searchTerm]);
 
-  // Valeurs initiales
-  const initialValues = useMemo(
-    () => ({
-      nom: editingAppareil?.nom || "",
-      categorie: editingAppareil?.categorie || "",
-      options: editingAppareil?.options || "",
-      description: editingAppareil?.description || "",
-    }),
-    [editingAppareil]
-  );
-
-  // Gestion des erreurs
   React.useEffect(() => {
-    if (appareilsError) {
+    if (appareilsError)
       toast.error("Erreur lors de la récupération des appareils");
-    }
-    if (userError) {
-      toast.error(
-        "Erreur lors de la récupération des informations utilisateur"
-      );
-    }
+    if (userError)
+      toast.error("Erreur lors de la récupération de l'utilisateur");
   }, [appareilsError, userError]);
 
-  // Redirection si non authentifié
   React.useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
+    if (!isAuthenticated) navigate("/login");
   }, [isAuthenticated, navigate]);
 
-  // Handlers
   const handleSubmit = useCallback(
     async (values, { setSubmitting, resetForm }) => {
       try {
-        if (!currentUser?.id) {
+        if (!currentUser?.id)
           throw new Error("Informations utilisateur non disponibles");
-        }
-
         const token = localStorage.getItem("token");
         const url = editingAppareil
           ? `${API_BASE_URL}/appareils/${editingAppareil.id}`
           : `${API_BASE_URL}/appareils`;
         const method = editingAppareil ? "PUT" : "POST";
-
-        const payload = {
-          ...values,
-          user: { id: currentUser.id },
-        };
 
         const response = await fetch(url, {
           method,
@@ -775,33 +646,22 @@ const Appareils = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...values, user: { id: currentUser.id } }),
         });
-
-        if (!response.ok) {
-          const errorData = await response.text();
-          throw new Error(
-            errorData ||
-              `Erreur lors de ${
-                editingAppareil ? "la modification" : "la création"
-              } de l'appareil`
-          );
-        }
-
+        if (!response.ok)
+          throw new Error((await response.text()) || "Erreur enregistrement");
         const data = await response.json();
 
-        // Mutation optimiste
         if (editingAppareil) {
           mutateAppareils(
             appareils.map((a) => (a.id === data.id ? data : a)),
-            false
+            false,
           );
           toast.success("Appareil modifié avec succès");
         } else {
           mutateAppareils([...appareils, data], false);
           toast.success("Appareil créé avec succès");
         }
-
         setIsModalOpen(false);
         setEditingAppareil(null);
         resetForm();
@@ -812,41 +672,32 @@ const Appareils = () => {
         setSubmitting(false);
       }
     },
-    [editingAppareil, appareils, mutateAppareils, currentUser]
+    [editingAppareil, appareils, mutateAppareils, currentUser],
   );
 
-  const handleEdit = useCallback((appareil) => {
-    setEditingAppareil(appareil);
-    setIsModalOpen(true);
+  const handleDelete = useCallback((appareil) => {
+    setConfirmConfig({
+      title: "Supprimer l'appareil",
+      message: `Voulez-vous vraiment supprimer "${appareil.nom}" ? Cette action est définitive.`,
+      confirmLabel: "Supprimer",
+      danger: true,
+      onConfirm: () => executeDelete(appareil.id),
+    });
   }, []);
 
-  const handleDelete = useCallback(
-    async (appareilId) => {
-      if (
-        !window.confirm("Êtes-vous sûr de vouloir supprimer cet appareil ?")
-      ) {
-        return;
-      }
-
+  const executeDelete = useCallback(
+    async (id) => {
+      setConfirmConfig(null);
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(
-          `${API_BASE_URL}/appareils/${appareilId}`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Erreur lors de la suppression de l'appareil");
-        }
-
+        const response = await fetch(`${API_BASE_URL}/appareils/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error("Erreur lors de la suppression");
         mutateAppareils(
-          appareils.filter((a) => a.id !== appareilId),
-          false
+          appareils.filter((a) => a.id !== id),
+          false,
         );
         toast.success("Appareil supprimé avec succès");
         mutateAppareils();
@@ -855,52 +706,44 @@ const Appareils = () => {
         mutateAppareils();
       }
     },
-    [appareils, mutateAppareils]
+    [appareils, mutateAppareils],
   );
-
-  const handleManageImages = useCallback((appareil) => {
-    setSelectedAppareilForImages(appareil);
-    setIsImageModalOpen(true);
-  }, []);
-
-  const handleImagesUpdate = useCallback(() => {
-    mutateAppareils(); // Recharger la liste des appareils pour mettre à jour le compteur d'images
-  }, [mutateAppareils]);
 
   const openCreateModal = useCallback(() => {
     if (userLoading) {
-      toast.warning("Chargement des informations utilisateur en cours...");
+      toast.warning("Chargement en cours...");
       return;
     }
-
     if (!currentUser?.id) {
-      toast.error(
-        "Impossible de récupérer les informations utilisateur. Veuillez vous reconnecter."
-      );
+      toast.error("Impossible de récupérer l'utilisateur. Reconnectez-vous.");
       return;
     }
-
     setEditingAppareil(null);
     setIsModalOpen(true);
   }, [currentUser, userLoading]);
 
+  const handleEdit = useCallback((appareil) => {
+    setEditingAppareil(appareil);
+    setIsModalOpen(true);
+  }, []);
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingAppareil(null);
   }, []);
-
+  const handleManageImages = useCallback((appareil) => {
+    setSelectedAppareilForImages(appareil);
+    setIsImageModalOpen(true);
+  }, []);
   const closeImageModal = useCallback(() => {
     setIsImageModalOpen(false);
     setSelectedAppareilForImages(null);
   }, []);
+  const handleImagesUpdate = useCallback(
+    () => mutateAppareils(),
+    [mutateAppareils],
+  );
 
-  const handleSearchChange = useCallback((e) => {
-    setSearchTerm(e.target.value);
-  }, []);
-
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
   const isLoading = userLoading || appareilsLoading;
 
@@ -908,7 +751,6 @@ const Appareils = () => {
     <div className="appareil-main-wrapper">
       <div className="appareil-content-container">
         <div className="appareil-management-card">
-          {/* Header */}
           <div className="appareil-management-header">
             <h1 className="appareil-management-title">
               <div className="appareil-management-icon">
@@ -917,7 +759,7 @@ const Appareils = () => {
               Gestion des Appareils
               {currentUser && (
                 <span className="appareil-user-info">
-                  - {currentUser.firstName} {currentUser.lastName}
+                  — {currentUser.firstName} {currentUser.lastName}
                 </span>
               )}
             </h1>
@@ -927,15 +769,10 @@ const Appareils = () => {
               disabled={userLoading}
             >
               <Plus size={18} />
-              {userLoading
-                ? "Chargement utilisateur..."
-                : appareilsLoading
-                ? "Chargement appareils..."
-                : "Ajouter un appareil"}
+              {userLoading ? "Chargement..." : "Ajouter un appareil"}
             </button>
           </div>
 
-          {/* Search Bar */}
           <div className="appareil-search-section">
             <div className="appareil-search-wrapper">
               <Search className="appareil-search-icon" />
@@ -944,24 +781,24 @@ const Appareils = () => {
                 placeholder="Rechercher un appareil..."
                 className="appareil-search-input"
                 value={searchTerm}
-                onChange={handleSearchChange}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 disabled={isLoading}
               />
             </div>
           </div>
 
-          {/* Appareils List */}
           <div className="appareil-list-container">
             {isLoading ? (
-              <ListLoadingSpinner />
+              <div className="appareil-list-loading">
+                <div className="appareil-loading-spinner" />
+                <p>Chargement des appareils...</p>
+              </div>
             ) : filteredAppareils.length === 0 ? (
               <EmptyState searchTerm={searchTerm} />
             ) : (
               <div className="appareil-table-container">
                 <div className="appareil-table-header">
-                  <div className="appareil-table-cell header">
-                    Nom de l'Appareil
-                  </div>
+                  <div className="appareil-table-cell header">Nom</div>
                   <div className="appareil-table-cell header">Catégorie</div>
                   <div className="appareil-table-cell header">Option</div>
                   <div className="appareil-table-cell header">Description</div>
@@ -1001,9 +838,13 @@ const Appareils = () => {
                 <X size={24} />
               </button>
             </div>
-
             <Formik
-              initialValues={initialValues}
+              initialValues={{
+                nom: editingAppareil?.nom || "",
+                categorie: editingAppareil?.categorie || "",
+                options: editingAppareil?.options || "",
+                description: editingAppareil?.description || "",
+              }}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
               enableReinitialize
@@ -1012,9 +853,7 @@ const Appareils = () => {
                 <Form className="appareil-modal-form">
                   <div className="appareil-form-fields">
                     <div className="appareil-input-group">
-                      <label className="appareil-field-label">
-                        Nom de l'appareil *
-                      </label>
+                      <label className="appareil-field-label">Nom *</label>
                       <div className="appareil-input-wrapper">
                         <Settings className="appareil-input-icon" />
                         <Field
@@ -1043,9 +882,9 @@ const Appareils = () => {
                           className="appareil-select-input"
                         >
                           <option value="">Sélectionnez une catégorie</option>
-                          {CATEGORIES.map((category) => (
-                            <option key={category.value} value={category.value}>
-                              {category.label}
+                          {CATEGORIES.map((c) => (
+                            <option key={c.value} value={c.value}>
+                              {c.label}
                             </option>
                           ))}
                         </Field>
@@ -1067,12 +906,11 @@ const Appareils = () => {
                           className="appareil-select-input"
                         >
                           <option value="">Sélectionnez une option</option>
-                          {/* MAPPING GROUPÉ ICI */}
                           {GROUPED_OPTIONS.map((group) => (
                             <optgroup key={group.label} label={group.label}>
-                              {group.options.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
+                              {group.options.map((o) => (
+                                <option key={o.value} value={o.value}>
+                                  {o.label}
                                 </option>
                               ))}
                             </optgroup>
@@ -1096,7 +934,7 @@ const Appareils = () => {
                           as="textarea"
                           name="description"
                           className="appareil-textarea-input"
-                          placeholder="Description de l'appareil"
+                          placeholder="Description"
                           rows={3}
                         />
                       </div>
@@ -1123,7 +961,7 @@ const Appareils = () => {
                     >
                       {isSubmitting ? (
                         <div className="appareil-loading-container">
-                          <div className="appareil-loading-spinner"></div>
+                          <div className="appareil-loading-spinner" />
                           {editingAppareil ? "Modification..." : "Création..."}
                         </div>
                       ) : (
@@ -1141,12 +979,17 @@ const Appareils = () => {
         </div>
       )}
 
-      {/* Modal Gestion des Images */}
       <ImageManagementModal
         isOpen={isImageModalOpen}
         onClose={closeImageModal}
         appareil={selectedAppareilForImages}
         onImagesUpdate={handleImagesUpdate}
+      />
+
+      <ConfirmModal
+        config={confirmConfig}
+        onConfirm={confirmConfig?.onConfirm}
+        onCancel={() => setConfirmConfig(null)}
       />
     </div>
   );

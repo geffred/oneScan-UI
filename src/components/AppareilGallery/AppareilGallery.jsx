@@ -1,10 +1,11 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import React, { useState, useMemo, useCallback } from "react";
 import useSWR from "swr";
 import { toast } from "react-toastify";
 import {
   Settings,
   Search,
-  Filter,
   Eye,
   X,
   Building2,
@@ -19,16 +20,16 @@ import {
   ZoomIn,
   ZoomOut,
   RotateCcw,
+  SlidersHorizontal,
 } from "lucide-react";
 import "./AppareilGallery.css";
 
-// Enums pour les filtres
 const CATEGORIES = [
   { value: "", label: "Toutes les catégories" },
   { value: "APPAREILS_FIXES_FRITTES", label: "Appareils Fixes Frittés" },
   {
     value: "APPAREILS_SUR_ANCRAGES_OSSEUX_BENEFIT",
-    label: "Appareils sur Ancrages Osseux Benefit",
+    label: "Ancrages Osseux Benefit",
   },
   { value: "APPAREILS_3D_IMPRIMES", label: "Appareils 3D Imprimés" },
   { value: "APPAREILS_AMOVIBLES", label: "Appareils Amovibles" },
@@ -43,10 +44,7 @@ const OPTIONS = [
   { value: "SMART_BANDS", label: "Smart Bands" },
   { value: "VERIN_SUPERIEUR", label: "Vérin Supérieur" },
   { value: "BAGUES_STANDARD", label: "Bagues Standard" },
-  {
-    value: "BENEFIT_STANDARD_VERIN_STANDARD",
-    label: "Benefit Standard (Vérin Standard)",
-  },
+  { value: "BENEFIT_STANDARD_VERIN_STANDARD", label: "Benefit Standard" },
   {
     value: "POWER_SCREW_BENEFIT_STANDARD",
     label: "Power Screw Benefit Standard",
@@ -54,10 +52,8 @@ const OPTIONS = [
   { value: "AUCUN", label: "Aucune option" },
 ];
 
-// URL de l'API depuis les variables d'environnement
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Fonction de fetch public
 const fetchPublic = async (url) => {
   const response = await fetch(`${API_BASE_URL}${url}`);
   if (!response.ok)
@@ -65,16 +61,12 @@ const fetchPublic = async (url) => {
   return response.json();
 };
 
-// Fonction pour récupérer les appareils
-const getAppareils = async () => fetchPublic("/appareils");
+const getAppareils = () => fetchPublic("/appareils");
 
-// Composant Card d'appareil
+// --- Card ---
 const AppareilCard = React.memo(({ appareil, onViewDetails }) => {
   const thumbnailImage =
-    appareil.images && appareil.images.length > 0
-      ? appareil.images[0].imagePath
-      : null;
-
+    appareil.images?.length > 0 ? appareil.images[0].imagePath : null;
   const categoryLabel =
     CATEGORIES.find((c) => c.value === appareil.categorie)?.label ||
     appareil.categorie;
@@ -83,8 +75,8 @@ const AppareilCard = React.memo(({ appareil, onViewDetails }) => {
     appareil.options;
 
   return (
-    <div className="appareil-card">
-      <div className="appareil-card-image">
+    <div className="ag-card">
+      <div className="ag-card-image">
         {thumbnailImage ? (
           <img
             src={thumbnailImage}
@@ -97,16 +89,16 @@ const AppareilCard = React.memo(({ appareil, onViewDetails }) => {
           />
         ) : null}
         <div
-          className="appareil-card-placeholder"
+          className="ag-card-placeholder"
           style={{ display: thumbnailImage ? "none" : "flex" }}
         >
           <Settings size={32} />
           <span>Aucune image</span>
         </div>
-        <div className="appareil-card-overlay">
+        <div className="ag-card-overlay">
           <button
             onClick={() => onViewDetails(appareil)}
-            className="appareil-card-view-btn"
+            className="ag-card-view-btn"
             title="Voir les détails"
           >
             <Eye size={18} />
@@ -114,82 +106,69 @@ const AppareilCard = React.memo(({ appareil, onViewDetails }) => {
         </div>
       </div>
 
-      <div className="appareil-card-content">
-        <h3 className="appareil-card-title">{appareil.nom}</h3>
-
-        <div className="appareil-card-meta">
-          <div className="appareil-card-category">
-            <Tag size={14} />
-            <span>{categoryLabel}</span>
-          </div>
-          <div className="appareil-card-option">
-            <Wrench size={14} />
-            <span>{optionLabel}</span>
-          </div>
+      <div className="ag-card-body">
+        <h3 className="ag-card-title">{appareil.nom}</h3>
+        <div className="ag-card-meta">
+          <span className="ag-card-tag">
+            <Tag size={13} />
+            {categoryLabel}
+          </span>
+          <span className="ag-card-tag">
+            <Wrench size={13} />
+            {optionLabel}
+          </span>
         </div>
-
         {appareil.description && (
-          <p className="appareil-card-description">
-            {appareil.description.length > 100
-              ? `${appareil.description.substring(0, 100)}...`
+          <p className="ag-card-desc">
+            {appareil.description.length > 90
+              ? `${appareil.description.substring(0, 90)}...`
               : appareil.description}
           </p>
         )}
-
-        <div className="appareil-card-footer">
-          <div className="appareil-card-images-count">
-            <ImageIcon size={14} />
-            <span>{appareil.images?.length || 0} image(s)</span>
-          </div>
+        <div className="ag-card-footer">
+          <span className="ag-card-stat">
+            <ImageIcon size={13} />
+            {appareil.images?.length || 0} image(s)
+          </span>
           {appareil.user && (
-            <div className="appareil-card-user">
-              <User size={14} />
-              <span>
-                {appareil.user.firstName} {appareil.user.lastName}
-              </span>
-            </div>
+            <span className="ag-card-author">
+              <User size={13} />
+              {appareil.user.firstName} {appareil.user.lastName}
+            </span>
           )}
         </div>
       </div>
     </div>
   );
 });
-
 AppareilCard.displayName = "AppareilCard";
 
-// Composant pour le viewer d'image avec zoom optimisé
+// --- Image Viewer ---
 const ImageViewer = React.memo(
   ({ images, currentImageIndex, onNext, onPrev, onThumbnailClick }) => {
     const [zoomLevel, setZoomLevel] = useState(1);
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
     const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
-    // eslint-disable-next-line no-unused-vars
-    const [showZoomControls, setShowZoomControls] = useState(true);
 
     const currentImage = images[currentImageIndex];
 
-    // Gestion du zoom optimisée
-    const handleZoomIn = useCallback(() => {
-      setZoomLevel((prev) => Math.min(prev + 0.3, 3));
-    }, []);
-
+    const handleZoomIn = useCallback(
+      () => setZoomLevel((p) => Math.min(p + 0.3, 3)),
+      [],
+    );
     const handleZoomOut = useCallback(() => {
-      setZoomLevel((prev) => {
-        const newZoom = Math.max(prev - 0.3, 1);
-        if (newZoom <= 1) {
-          setPosition({ x: 0, y: 0 });
-        }
-        return newZoom;
+      setZoomLevel((p) => {
+        const next = Math.max(p - 0.3, 1);
+        if (next <= 1) setPosition({ x: 0, y: 0 });
+        return next;
       });
     }, []);
-
     const handleResetZoom = useCallback(() => {
       setZoomLevel(1);
       setPosition({ x: 0, y: 0 });
     }, []);
 
-    // Gestion du drag pour le panning
     const handleMouseDown = useCallback(
       (e) => {
         if (zoomLevel > 1) {
@@ -201,7 +180,7 @@ const ImageViewer = React.memo(
           e.preventDefault();
         }
       },
-      [zoomLevel, position]
+      [zoomLevel, position],
     );
 
     const handleMouseMove = useCallback(
@@ -213,38 +192,30 @@ const ImageViewer = React.memo(
           });
         }
       },
-      [isDragging, zoomLevel, startPosition]
+      [isDragging, zoomLevel, startPosition],
     );
 
-    const handleMouseUp = useCallback(() => {
-      setIsDragging(false);
-    }, []);
+    const handleMouseUp = useCallback(() => setIsDragging(false), []);
 
-    // Gestion du zoom avec la molette de la souris
     const handleWheel = useCallback(
       (e) => {
         e.preventDefault();
-        if (e.deltaY < 0) {
-          handleZoomIn();
-        } else {
-          handleZoomOut();
-        }
+        e.deltaY < 0 ? handleZoomIn() : handleZoomOut();
       },
-      [handleZoomIn, handleZoomOut]
+      [handleZoomIn, handleZoomOut],
     );
 
-    // Réinitialiser le zoom et position quand on change d'image
     React.useEffect(() => {
       setZoomLevel(1);
       setPosition({ x: 0, y: 0 });
     }, [currentImageIndex]);
 
     return (
-      <div className="appareil-detail-images">
-        <div className="appareil-detail-image-viewer">
+      <div className="ag-viewer">
+        <div className="ag-viewer-main">
           {currentImage ? (
             <div
-              className="image-zoom-container"
+              className="ag-zoom-container"
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
@@ -264,87 +235,80 @@ const ImageViewer = React.memo(
                 alt={`${currentImageIndex + 1}`}
                 loading="eager"
                 style={{
-                  transform: `scale(${zoomLevel}) translate(${position.x}px, ${position.y}px)`,
-                  transition: isDragging ? "none" : "transform 0.1s ease",
+                  transform: `scale(${zoomLevel}) translate(${position.x / zoomLevel}px, ${position.y / zoomLevel}px)`,
                 }}
                 onError={(e) => {
                   e.target.style.display = "none";
                   e.target.nextSibling.style.display = "flex";
                 }}
               />
-              <div
-                className="appareil-detail-image-placeholder"
-                style={{ display: "none" }}
-              >
+              <div className="ag-img-placeholder" style={{ display: "none" }}>
                 <Settings size={64} />
                 <span>Image non disponible</span>
               </div>
             </div>
           ) : (
-            <div className="appareil-detail-no-image">
+            <div className="ag-no-image">
               <Settings size={64} />
-              <span>Aucune image disponible</span>
+              <span>Aucune image</span>
             </div>
           )}
 
-          {/* Contrôles de navigation */}
           {images.length > 1 && (
             <>
-              <button className="appareil-detail-nav-btn prev" onClick={onPrev}>
+              <button className="ag-nav-btn prev" onClick={onPrev}>
                 ‹
               </button>
-              <button className="appareil-detail-nav-btn next" onClick={onNext}>
+              <button className="ag-nav-btn next" onClick={onNext}>
                 ›
               </button>
-              <div className="appareil-detail-image-counter">
+              <div className="ag-counter">
                 {currentImageIndex + 1} / {images.length}
               </div>
             </>
           )}
 
-          {/* Contrôles de zoom - TOUJOURS VISIBLES */}
           {currentImage && (
-            <div className="image-zoom-controls visible">
+            <div className="ag-zoom-controls">
               <button
                 onClick={handleZoomOut}
                 disabled={zoomLevel <= 1}
-                className="zoom-control-btn"
+                className="ag-zoom-btn"
                 title="Zoom arrière"
               >
                 <ZoomOut size={16} />
               </button>
               <button
                 onClick={handleResetZoom}
-                className="zoom-control-btn"
-                title="Réinitialiser le zoom"
+                className="ag-zoom-btn"
+                title="Réinitialiser"
               >
                 <RotateCcw size={16} />
               </button>
               <button
                 onClick={handleZoomIn}
                 disabled={zoomLevel >= 3}
-                className="zoom-control-btn"
+                className="ag-zoom-btn"
                 title="Zoom avant"
               >
                 <ZoomIn size={16} />
               </button>
-              <span className="zoom-level">{Math.round(zoomLevel * 100)}%</span>
+              <span className="ag-zoom-level">
+                {Math.round(zoomLevel * 100)}%
+              </span>
             </div>
           )}
         </div>
 
-        {/* Thumbnails */}
         {images.length > 1 && (
-          <div className="appareil-detail-thumbnails">
+          <div className="ag-thumbnails">
             {images.map((image, index) => (
               <img
                 key={image.id}
                 src={image.imagePath}
                 alt={`Thumbnail ${index + 1}`}
                 loading="lazy"
-                className={`appareil-detail-thumbnail ${
-                  index === currentImageIndex ? "active" : ""
-                }`}
+                className={`ag-thumbnail ${index === currentImageIndex ? "active" : ""}`}
                 onClick={() => onThumbnailClick(index)}
                 onError={(e) => {
                   e.target.style.display = "none";
@@ -355,64 +319,47 @@ const ImageViewer = React.memo(
         )}
       </div>
     );
-  }
+  },
 );
-
 ImageViewer.displayName = "ImageViewer";
 
-// Modal de détails optimisé
+// --- Detail Modal ---
 const AppareilDetailModal = React.memo(({ appareil, onClose }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const categoryLabel = useMemo(
-    () =>
-      CATEGORIES.find((c) => c.value === appareil.categorie)?.label ||
-      appareil.categorie,
-    [appareil.categorie]
-  );
-
-  const optionLabel = useMemo(
-    () =>
-      OPTIONS.find((o) => o.value === appareil.options)?.label ||
-      appareil.options,
-    [appareil.options]
-  );
+  const categoryLabel =
+    CATEGORIES.find((c) => c.value === appareil.categorie)?.label ||
+    appareil.categorie;
+  const optionLabel =
+    OPTIONS.find((o) => o.value === appareil.options)?.label ||
+    appareil.options;
 
   const nextImage = useCallback(() => {
-    if (appareil.images && appareil.images.length > 1) {
-      setCurrentImageIndex((prev) => (prev + 1) % appareil.images.length);
-    }
+    if (appareil.images?.length > 1)
+      setCurrentImageIndex((p) => (p + 1) % appareil.images.length);
   }, [appareil.images]);
 
   const prevImage = useCallback(() => {
-    if (appareil.images && appareil.images.length > 1) {
+    if (appareil.images?.length > 1)
       setCurrentImageIndex(
-        (prev) => (prev - 1 + appareil.images.length) % appareil.images.length
+        (p) => (p - 1 + appareil.images.length) % appareil.images.length,
       );
-    }
   }, [appareil.images]);
 
-  const handleThumbnailClick = useCallback((index) => {
-    setCurrentImageIndex(index);
-  }, []);
+  const handleThumbnailClick = useCallback((i) => setCurrentImageIndex(i), []);
 
   const handleKeyDown = useCallback(
     (e) => {
-      if (e.key === "Escape") {
-        onClose();
-      } else if (e.key === "ArrowLeft") {
-        prevImage();
-      } else if (e.key === "ArrowRight") {
-        nextImage();
-      }
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowLeft") prevImage();
+      else if (e.key === "ArrowRight") nextImage();
     },
-    [onClose, prevImage, nextImage]
+    [onClose, prevImage, nextImage],
   );
 
   React.useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden"; // Empêche le scroll de la page
-
+    document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "unset";
@@ -422,19 +369,16 @@ const AppareilDetailModal = React.memo(({ appareil, onClose }) => {
   if (!appareil) return null;
 
   return (
-    <div className="appareil-detail-overlay" onClick={onClose}>
-      <div
-        className="appareil-detail-modal"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="appareil-detail-header">
+    <div className="ag-detail-overlay" onClick={onClose}>
+      <div className="ag-detail-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="ag-detail-header">
           <h2>{appareil.nom}</h2>
-          <button onClick={onClose} className="appareil-detail-close">
+          <button onClick={onClose} className="ag-detail-close">
             <X size={24} />
           </button>
         </div>
 
-        <div className="appareil-detail-content">
+        <div className="ag-detail-body">
           <ImageViewer
             images={appareil.images || []}
             currentImageIndex={currentImageIndex}
@@ -443,26 +387,26 @@ const AppareilDetailModal = React.memo(({ appareil, onClose }) => {
             onThumbnailClick={handleThumbnailClick}
           />
 
-          <div className="appareil-detail-info">
-            <div className="appareil-detail-section">
-              <h3>Informations de l'appareil</h3>
-              <div className="appareil-detail-field">
-                <Tag size={16} />
+          <div className="ag-detail-info">
+            <div className="ag-info-section">
+              <h3>Informations</h3>
+              <div className="ag-info-field">
+                <Tag size={15} />
                 <span>
-                  <strong>Catégorie:</strong> {categoryLabel}
+                  <strong>Catégorie :</strong> {categoryLabel}
                 </span>
               </div>
-              <div className="appareil-detail-field">
-                <Wrench size={16} />
+              <div className="ag-info-field">
+                <Wrench size={15} />
                 <span>
-                  <strong>Option:</strong> {optionLabel}
+                  <strong>Option :</strong> {optionLabel}
                 </span>
               </div>
               {appareil.description && (
-                <div className="appareil-detail-field">
-                  <FileText size={16} />
+                <div className="ag-info-field">
+                  <FileText size={15} />
                   <div>
-                    <strong>Description:</strong>
+                    <strong>Description :</strong>
                     <p>{appareil.description}</p>
                   </div>
                 </div>
@@ -470,44 +414,44 @@ const AppareilDetailModal = React.memo(({ appareil, onClose }) => {
             </div>
 
             {appareil.user && (
-              <div className="appareil-detail-section">
-                <h3>Informations du créateur</h3>
-                <div className="appareil-detail-field">
-                  <User size={16} />
+              <div className="ag-info-section">
+                <h3>Créateur</h3>
+                <div className="ag-info-field">
+                  <User size={15} />
                   <span>
-                    <strong>Nom:</strong> {appareil.user.firstName}{" "}
+                    <strong>Nom :</strong> {appareil.user.firstName}{" "}
                     {appareil.user.lastName}
                   </span>
                 </div>
                 {appareil.user.email && (
-                  <div className="appareil-detail-field">
-                    <Mail size={16} />
+                  <div className="ag-info-field">
+                    <Mail size={15} />
                     <span>
-                      <strong>Email:</strong> {appareil.user.email}
+                      <strong>Email :</strong> {appareil.user.email}
                     </span>
                   </div>
                 )}
                 {appareil.user.phone && (
-                  <div className="appareil-detail-field">
-                    <Phone size={16} />
+                  <div className="ag-info-field">
+                    <Phone size={15} />
                     <span>
-                      <strong>Téléphone:</strong> {appareil.user.phone}
+                      <strong>Tél :</strong> {appareil.user.phone}
                     </span>
                   </div>
                 )}
                 {appareil.user.companyType && (
-                  <div className="appareil-detail-field">
-                    <Building2 size={16} />
+                  <div className="ag-info-field">
+                    <Building2 size={15} />
                     <span>
-                      <strong>Entreprise:</strong> {appareil.user.companyType}
+                      <strong>Entreprise :</strong> {appareil.user.companyType}
                     </span>
                   </div>
                 )}
                 {appareil.user.country && (
-                  <div className="appareil-detail-field">
-                    <MapPin size={16} />
+                  <div className="ag-info-field">
+                    <MapPin size={15} />
                     <span>
-                      <strong>Pays:</strong> {appareil.user.country}
+                      <strong>Pays :</strong> {appareil.user.country}
                     </span>
                   </div>
                 )}
@@ -519,18 +463,102 @@ const AppareilDetailModal = React.memo(({ appareil, onClose }) => {
     </div>
   );
 });
-
 AppareilDetailModal.displayName = "AppareilDetailModal";
 
-// Composant principal optimisé
+// --- Sidebar Filters ---
+const FilterSidebar = React.memo(
+  ({
+    searchTerm,
+    selectedCategory,
+    selectedOption,
+    onSearch,
+    onCategory,
+    onOption,
+    onClear,
+    total,
+    filtered,
+  }) => (
+    <aside className="ag-sidebar">
+      <div className="ag-sidebar-header">
+        <SlidersHorizontal size={18} />
+        <span>Filtres</span>
+      </div>
+
+      <div className="ag-filter-block">
+        <label className="ag-filter-label">Recherche</label>
+        <div className="ag-search-wrapper">
+          <Search size={16} className="ag-search-icon" />
+          <input
+            type="text"
+            placeholder="Nom, description..."
+            value={searchTerm}
+            onChange={onSearch}
+            className="ag-search-input"
+          />
+          {searchTerm && (
+            <button
+              className="ag-search-clear"
+              onClick={() => onSearch({ target: { value: "" } })}
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="ag-filter-block">
+        <label className="ag-filter-label">Catégorie</label>
+        <select
+          value={selectedCategory}
+          onChange={onCategory}
+          className="ag-filter-select"
+        >
+          {CATEGORIES.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="ag-filter-block">
+        <label className="ag-filter-label">Option</label>
+        <select
+          value={selectedOption}
+          onChange={onOption}
+          className="ag-filter-select"
+        >
+          {OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {(searchTerm || selectedCategory || selectedOption) && (
+        <button className="ag-clear-btn" onClick={onClear}>
+          <X size={14} /> Effacer les filtres
+        </button>
+      )}
+
+      <div className="ag-results-badge">
+        <span className="ag-results-num">{filtered}</span>
+        <span className="ag-results-label">/ {total} appareil(s)</span>
+      </div>
+    </aside>
+  ),
+);
+FilterSidebar.displayName = "FilterSidebar";
+
+// --- Main Component ---
 const AppareilGallery = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
   const [selectedAppareil, setSelectedAppareil] = useState(null);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // SWR hook pour récupérer les appareils
   const {
     data: appareils = [],
     error,
@@ -541,47 +569,35 @@ const AppareilGallery = () => {
     refreshInterval: 60000,
   });
 
-  // Filtrage mémorisé
   const filteredAppareils = useMemo(() => {
-    if (!appareils) return [];
-
-    return appareils.filter((appareil) => {
-      const matchesSearch =
-        !searchTerm ||
-        appareil.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        appareil.description?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory =
-        !selectedCategory || appareil.categorie === selectedCategory;
-      const matchesOption =
-        !selectedOption || appareil.options === selectedOption;
-      return matchesSearch && matchesCategory && matchesOption;
+    return appareils.filter((a) => {
+      const term = searchTerm.toLowerCase();
+      return (
+        (!searchTerm ||
+          a.nom.toLowerCase().includes(term) ||
+          a.description?.toLowerCase().includes(term)) &&
+        (!selectedCategory || a.categorie === selectedCategory) &&
+        (!selectedOption || a.options === selectedOption)
+      );
     });
   }, [appareils, searchTerm, selectedCategory, selectedOption]);
 
-  // Gestion des erreurs
   React.useEffect(() => {
-    if (error) {
-      // Suppression du console.error pour la production
-      toast.error("Erreur lors de la récupération des appareils");
-    }
+    if (error) toast.error("Erreur lors de la récupération des appareils");
   }, [error]);
 
-  // Handlers mémorisés
-  const handleSearchChange = useCallback(
-    (e) => setSearchTerm(e.target.value),
-    []
-  );
-  const handleCategoryChange = useCallback(
+  const handleSearch = useCallback((e) => setSearchTerm(e.target.value), []);
+  const handleCategory = useCallback(
     (e) => setSelectedCategory(e.target.value),
-    []
+    [],
   );
-  const handleOptionChange = useCallback(
+  const handleOption = useCallback(
     (e) => setSelectedOption(e.target.value),
-    []
+    [],
   );
   const handleViewDetails = useCallback(
     (appareil) => setSelectedAppareil(appareil),
-    []
+    [],
   );
   const handleCloseDetails = useCallback(() => setSelectedAppareil(null), []);
   const clearFilters = useCallback(() => {
@@ -591,97 +607,82 @@ const AppareilGallery = () => {
   }, []);
 
   return (
-    <div className="appareil-gallery">
-      <div className="appareil-gallery-header">
-        <h1>Galerie des Appareils</h1>
-        <p>Découvrez notre collection d'appareils dentaires</p>
-      </div>
+    <div className="ag-root">
+      {/* Mobile filter toggle */}
+      <button
+        className="ag-mobile-filter-toggle"
+        onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+      >
+        <SlidersHorizontal size={18} /> Filtres
+        {(searchTerm || selectedCategory || selectedOption) && (
+          <span className="ag-filter-dot" />
+        )}
+      </button>
 
-      {/* Barre de recherche et filtres */}
-      <div className="appareil-gallery-controls">
-        <div className="appareil-gallery-search">
-          <Search className="search-icon" />
-          <input
-            type="text"
-            placeholder="Rechercher un appareil..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="search-input"
+      <div className={`ag-layout ${mobileSidebarOpen ? "sidebar-open" : ""}`}>
+        {/* Sidebar */}
+        <div
+          className={`ag-sidebar-wrapper ${mobileSidebarOpen ? "open" : ""}`}
+        >
+          <FilterSidebar
+            searchTerm={searchTerm}
+            selectedCategory={selectedCategory}
+            selectedOption={selectedOption}
+            onSearch={handleSearch}
+            onCategory={handleCategory}
+            onOption={handleOption}
+            onClear={clearFilters}
+            total={appareils.length}
+            filtered={filteredAppareils.length}
           />
         </div>
-        <button
-          className="appareil-gallery-filter-toggle"
-          onClick={() => setFiltersOpen(!filtersOpen)}
-        >
-          <Filter size={18} /> Filtres
-        </button>
-      </div>
 
-      {/* Filtres */}
-      <div className={`appareil-gallery-filters ${filtersOpen ? "open" : ""}`}>
-        <div className="filter-group">
-          <label>Catégorie</label>
-          <select value={selectedCategory} onChange={handleCategoryChange}>
-            {CATEGORIES.map((category) => (
-              <option key={category.value} value={category.value}>
-                {category.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="filter-group">
-          <label>Option</label>
-          <select value={selectedOption} onChange={handleOptionChange}>
-            {OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button className="clear-filters-btn" onClick={clearFilters}>
-          Effacer les filtres
-        </button>
-      </div>
-
-      {/* Résultats */}
-      <div className="appareil-gallery-results">
-        <p className="results-count">
-          {filteredAppareils.length} appareil(s) trouvé(s)
-        </p>
-      </div>
-
-      {/* Grille d'appareils */}
-      <div className="appareil-gallery-content">
-        {isLoading ? (
-          <div className="appareil-gallery-loading">
-            <div className="loading-spinner"></div>
-            <p>Chargement des appareils...</p>
+        {/* Main content */}
+        <main className="ag-main">
+          <div className="ag-main-header">
+            <div>
+              <h1 className="ag-title">Galerie des Appareils</h1>
+              <p className="ag-subtitle">Collection d'appareils dentaires</p>
+            </div>
           </div>
-        ) : filteredAppareils.length === 0 ? (
-          <div className="appareil-gallery-empty">
-            <Settings size={64} />
-            <h3>Aucun appareil trouvé</h3>
-            <p>
-              {searchTerm || selectedCategory || selectedOption
-                ? "Aucun appareil ne correspond à vos critères de recherche."
-                : "Aucun appareil disponible pour le moment."}
-            </p>
-          </div>
-        ) : (
-          <div className="appareil-gallery-grid">
-            {filteredAppareils.map((appareil) => (
-              <AppareilCard
-                key={appareil.id}
-                appareil={appareil}
-                onViewDetails={handleViewDetails}
-              />
-            ))}
-          </div>
-        )}
+
+          {isLoading ? (
+            <div className="ag-loading">
+              <div className="ag-spinner" />
+              <p>Chargement...</p>
+            </div>
+          ) : filteredAppareils.length === 0 ? (
+            <div className="ag-empty">
+              <Settings size={56} />
+              <h3>Aucun appareil trouvé</h3>
+              <p>
+                {searchTerm || selectedCategory || selectedOption
+                  ? "Modifiez vos filtres."
+                  : "Aucun appareil disponible."}
+              </p>
+            </div>
+          ) : (
+            <div className="ag-grid">
+              {filteredAppareils.map((appareil) => (
+                <AppareilCard
+                  key={appareil.id}
+                  appareil={appareil}
+                  onViewDetails={handleViewDetails}
+                />
+              ))}
+            </div>
+          )}
+        </main>
       </div>
 
-      {/* Modal */}
+      {/* Mobile sidebar overlay */}
+      {mobileSidebarOpen && (
+        <div
+          className="ag-sidebar-backdrop"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
       {selectedAppareil && (
         <AppareilDetailModal
           appareil={selectedAppareil}

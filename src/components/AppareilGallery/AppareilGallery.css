@@ -1,468 +1,445 @@
-/* AppareilGallery.css - Version optimisée sans scroll bar */
+/* AppareilGallery.css — Sidebar layout, no transitions/blur */
 
 :root {
-  --gallery-primary: #007AFF;
-  --gallery-primary-dark: #0056CC;
-  --gallery-secondary: #64748b;
-  --gallery-background: #f8fafc;
-  --gallery-surface: #ffffff;
-  --gallery-border: #e2e8f0;
-  --gallery-text-primary: #1e293b;
-  --gallery-text-secondary: #64748b;
-  --gallery-text-muted: #94a3b8;
-  --gallery-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  --gallery-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.15);
-  --gallery-radius: 12px;
-  --gallery-transition: all 0.2s ease;
+  --ag-primary: #007AFF;
+  --ag-primary-dark: #0056CC;
+  --ag-secondary: #64748b;
+  --ag-bg: #f1f5f9;
+  --ag-surface: #ffffff;
+  --ag-border: #e2e8f0;
+  --ag-text: #1e293b;
+  --ag-text-secondary: #64748b;
+  --ag-text-muted: #94a3b8;
+  --ag-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  --ag-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.18);
+  --ag-radius: 12px;
+  --ag-sidebar-width: 260px;
 }
 
-/* Layout principal */
-.appareil-gallery {
-  width: 100%;
-  margin: 0 auto;
-  padding: 2rem;
-  background: var(--gallery-background);
+* { box-sizing: border-box; }
+
+/* ============ ROOT ============ */
+.ag-root {
   min-height: 100vh;
-}
-
-/* Header */
-.appareil-gallery-header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.appareil-gallery-header h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--gallery-text-primary);
-  margin: 0 0 0.5rem 0;
-}
-
-.appareil-gallery-header p {
-  font-size: 1.1rem;
-  color: var(--gallery-text-secondary);
-  margin: 0;
-}
-
-/* Contrôles de recherche */
-.appareil-gallery-controls {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.appareil-gallery-search {
-  position: relative;
-  flex: 1;
-  min-width: 300px;
-}
-
-.search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--gallery-text-muted);
-  width: 18px;
-  height: 18px;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.875rem 0.875rem 0.875rem 2.5rem;
-  border: 1px solid var(--gallery-border);
-  border-radius: var(--gallery-radius);
-  font-size: 1rem;
-  background: var(--gallery-surface);
-  transition: var(--gallery-transition);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--gallery-primary);
-  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
-}
-
-.appareil-gallery-filter-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.25rem;
-  background: var(--gallery-surface);
-  border: 1px solid var(--gallery-border);
-  border-radius: var(--gallery-radius);
-  cursor: pointer;
-  transition: var(--gallery-transition);
-  font-size: 0.9rem;
-}
-
-.appareil-gallery-filter-toggle:hover {
-  border-color: var(--gallery-primary);
-  background: rgba(0, 122, 255, 0.02);
-}
-
-/* Filtres */
-.appareil-gallery-filters {
-  background: var(--gallery-surface);
-  border: 1px solid var(--gallery-border);
-  border-radius: var(--gallery-radius);
+  background: var(--ag-bg);
   padding: 1.5rem;
-  margin-bottom: 2rem;
+}
+
+/* ============ LAYOUT ============ */
+.ag-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: var(--ag-sidebar-width) 1fr;
   gap: 1.5rem;
-  align-items: end;
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: all 0.3s ease;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
-.appareil-gallery-filters.open {
-  max-height: 200px;
-  opacity: 1;
-  margin-bottom: 2rem;
+/* ============ SIDEBAR ============ */
+.ag-sidebar-wrapper {
+  position: sticky;
+  top: 1.5rem;
+  height: fit-content;
 }
 
-.filter-group {
+.ag-sidebar {
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--ag-radius);
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1.25rem;
 }
 
-.filter-group label {
-  font-weight: 600;
-  color: var(--gallery-text-secondary);
-  font-size: 0.8rem;
+.ag-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-weight: 700;
+  font-size: 0.9rem;
   text-transform: uppercase;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.06em;
+  color: var(--ag-text);
+  padding-bottom: 0.875rem;
+  border-bottom: 2px solid rgba(0, 122, 255, 0.12);
 }
 
-.filter-group select {
-  padding: 0.75rem;
-  border: 1px solid var(--gallery-border);
-  border-radius: var(--gallery-radius);
-  background: var(--gallery-surface);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: var(--gallery-transition);
-}
+.ag-sidebar-header svg { color: var(--ag-primary); }
 
-.filter-group select:focus {
-  outline: none;
-  border-color: var(--gallery-primary);
-  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
-}
-
-.clear-filters-btn {
-  padding: 0.75rem 1.25rem;
-  background: var(--gallery-secondary);
-  color: white;
-  border: none;
-  border-radius: var(--gallery-radius);
-  cursor: pointer;
-  transition: var(--gallery-transition);
-  font-size: 0.9rem;
-  align-self: end;
-}
-
-.clear-filters-btn:hover {
-  background: #4f5664;
-}
-
-/* Résultats */
-.appareil-gallery-results {
-  margin-bottom: 1.5rem;
-}
-
-.results-count {
-  color: var(--gallery-text-secondary);
-  font-size: 0.9rem;
-  margin: 0;
-}
-
-/* Contenu principal */
-.appareil-gallery-content {
-  min-height: 400px;
-}
-
-/* Grille d'appareils */
-.appareil-gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-}
-
-/* Card appareil */
-.appareil-card {
-  background: var(--gallery-surface);
-  border-radius: var(--gallery-radius);
-  overflow: hidden;
-  box-shadow: var(--gallery-shadow);
-  transition: var(--gallery-transition);
-  border: 1px solid var(--gallery-border);
-  width: 380px;
-  margin: 0px auto;
-}
-
-.appareil-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-color: var(--gallery-primary);
-}
-
-.appareil-card-image {
-  position: relative;
-  height: 200px;
-  overflow: hidden;
-  background: #f8fafc;
-}
-
-.appareil-card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: var(--gallery-transition);
-}
-
-.appareil-card:hover .appareil-card-image img {
-  transform: scale(1.05);
-}
-
-.appareil-card-placeholder {
+/* Filter blocks */
+.ag-filter-block {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--gallery-text-muted);
   gap: 0.5rem;
 }
 
-.appareil-card-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: var(--gallery-transition);
-}
-
-.appareil-card:hover .appareil-card-overlay {
-  opacity: 1;
-}
-
-.appareil-card-view-btn {
-  background: var(--gallery-primary);
-  color: white;
-  border: none;
-  padding: 0.75rem;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: var(--gallery-transition);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.appareil-card-view-btn:hover {
-  background: var(--gallery-primary-dark);
-  transform: scale(1.1);
-}
-
-/* Contenu de la card */
-.appareil-card-content {
-  padding: 1.5rem;
-}
-
-.appareil-card-title {
-  font-size: 1.25rem;
+.ag-filter-label {
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--gallery-text-primary);
-  margin: 0 0 1rem 0;
-  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ag-text-muted);
 }
 
-.appareil-card-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.appareil-card-category,
-.appareil-card-option {
+.ag-search-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--gallery-text-secondary);
-  font-size: 0.85rem;
 }
 
-.appareil-card-category svg,
-.appareil-card-option svg {
-  color: var(--gallery-primary);
+.ag-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--ag-text-muted);
+  pointer-events: none;
   flex-shrink: 0;
 }
 
-.appareil-card-description {
-  color: var(--gallery-text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin: 0 0 1rem 0;
+.ag-search-input {
+  width: 100%;
+  padding: 0.625rem 2rem 0.625rem 2.25rem;
+  border: 1px solid var(--ag-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: var(--ag-bg);
+  color: var(--ag-text);
 }
 
-.appareil-card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 1rem;
-  border-top: 1px solid var(--gallery-border);
+.ag-search-input:focus {
+  outline: none;
+  border-color: var(--ag-primary);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+  background: var(--ag-surface);
 }
 
-.appareil-card-images-count,
-.appareil-card-user {
+.ag-search-clear {
+  position: absolute;
+  right: 0.625rem;
+  background: none;
+  border: none;
+  color: var(--ag-text-muted);
+  cursor: pointer;
+  padding: 0.125rem;
+  border-radius: 4px;
   display: flex;
   align-items: center;
+}
+
+.ag-search-clear:hover { color: var(--ag-text); }
+
+.ag-filter-select {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--ag-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: var(--ag-bg);
+  color: var(--ag-text);
+  cursor: pointer;
+}
+
+.ag-filter-select:focus {
+  outline: none;
+  border-color: var(--ag-primary);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+/* Clear button */
+.ag-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.375rem;
-  color: var(--gallery-text-muted);
+  padding: 0.6rem 1rem;
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
   font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.appareil-card-user {
-  color: var(--gallery-primary);
+.ag-clear-btn:hover { background: #fee2e2; }
+
+/* Results badge */
+.ag-results-badge {
+  margin-top: auto;
+  padding: 0.75rem;
+  background: rgba(0, 122, 255, 0.05);
+  border: 1px solid rgba(0, 122, 255, 0.12);
+  border-radius: 8px;
+  text-align: center;
 }
 
-/* États de chargement et vide */
-.appareil-gallery-loading,
-.appareil-gallery-empty {
+.ag-results-num {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ag-primary);
+  line-height: 1;
+}
+
+.ag-results-label {
+  font-size: 0.75rem;
+  color: var(--ag-text-muted);
+}
+
+/* ============ MAIN ============ */
+.ag-main { min-width: 0; }
+
+.ag-main-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.ag-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--ag-text);
+  margin: 0 0 0.25rem;
+}
+
+.ag-subtitle {
+  font-size: 0.9rem;
+  color: var(--ag-text-secondary);
+  margin: 0;
+}
+
+/* ============ GRID ============ */
+.ag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+/* ============ CARD ============ */
+.ag-card {
+  background: var(--ag-surface);
+  border-radius: var(--ag-radius);
+  border: 1px solid var(--ag-border);
+  overflow: hidden;
+  box-shadow: var(--ag-shadow);
+}
+
+.ag-card:hover { border-color: var(--ag-primary); }
+
+.ag-card-image {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  background: var(--ag-bg);
+}
+
+.ag-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ag-card-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
+  height: 100%;
+  color: var(--ag-text-muted);
+  gap: 0.5rem;
+  font-size: 0.85rem;
 }
 
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--gallery-border);
-  border-top: 3px solid var(--gallery-primary);
+.ag-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+}
+
+.ag-card:hover .ag-card-overlay { opacity: 1; }
+
+.ag-card-view-btn {
+  background: var(--ag-primary);
+  color: white;
+  border: none;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-bottom: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.ag-card-view-btn:hover { background: var(--ag-primary-dark); }
+
+/* Card body */
+.ag-card-body { padding: 1.25rem; }
+
+.ag-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ag-text);
+  margin: 0 0 0.75rem;
+  line-height: 1.3;
 }
 
-.appareil-gallery-empty svg {
-  color: var(--gallery-text-muted);
-  margin-bottom: 1rem;
+.ag-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
 }
 
-.appareil-gallery-empty h3 {
-  color: var(--gallery-text-primary);
-  margin: 0 0 0.5rem 0;
+.ag-card-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--ag-text-secondary);
+  font-size: 0.8rem;
 }
 
-.appareil-gallery-empty p {
-  color: var(--gallery-text-secondary);
-  margin: 0;
+.ag-card-tag svg { color: var(--ag-primary); flex-shrink: 0; }
+
+.ag-card-desc {
+  color: var(--ag-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0 0 0.875rem;
 }
 
-/* Modal de détails - SANS SCROLL BAR */
-.appareil-detail-overlay {
+.ag-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--ag-border);
+}
+
+.ag-card-stat,
+.ag-card-author {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--ag-text-muted);
+}
+
+.ag-card-author { color: var(--ag-primary); }
+
+/* ============ LOADING / EMPTY ============ */
+.ag-loading,
+.ag-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem;
+  text-align: center;
+  color: var(--ag-text-secondary);
+  gap: 1rem;
+}
+
+.ag-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--ag-border);
+  border-top: 3px solid var(--ag-primary);
+  border-radius: 50%;
+  animation: ag-spin 0.8s linear infinite;
+}
+
+@keyframes ag-spin { to { transform: rotate(360deg); } }
+
+.ag-empty svg { color: var(--ag-text-muted); }
+.ag-empty h3 { font-size: 1.1rem; font-weight: 600; color: var(--ag-text); margin: 0; }
+.ag-empty p { font-size: 0.875rem; margin: 0; }
+
+/* ============ DETAIL MODAL ============ */
+.ag-detail-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
-.appareil-detail-modal {
-  background: var(--gallery-surface);
-  border-radius: var(--gallery-radius);
+.ag-detail-modal {
+  background: var(--ag-surface);
+  border-radius: var(--ag-radius);
   width: 100%;
-  max-width: 1200px;
-  max-height: 90vh; /* Limite la hauteur maximale */
-  overflow: hidden; /* Supprime toute scrollbar */
-  box-shadow: var(--gallery-shadow-lg);
+  max-width: 1100px;
+  max-height: 88vh;
+  overflow: hidden;
+  box-shadow: var(--ag-shadow-lg);
   display: flex;
   flex-direction: column;
 }
 
-.appareil-detail-header {
+.ag-detail-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--gallery-border);
-  flex-shrink: 0; /* Empêche le header de rétrécir */
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid var(--ag-border);
+  flex-shrink: 0;
 }
 
-.appareil-detail-header h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--gallery-text-primary);
+.ag-detail-header h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ag-text);
   margin: 0;
 }
 
-.appareil-detail-close {
+.ag-detail-close {
   background: none;
   border: none;
-  color: var(--gallery-text-muted);
+  color: var(--ag-text-muted);
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: var(--gallery-radius);
-  transition: var(--gallery-transition);
+  padding: 0.375rem;
+  border-radius: 8px;
+  display: flex;
 }
 
-.appareil-detail-close:hover {
-  background: #f1f5f9;
-  color: var(--gallery-text-primary);
-}
+.ag-detail-close:hover { background: var(--ag-bg); color: var(--ag-text); }
 
-/* Contenu du modal - SANS OVERFLOW */
-.appareil-detail-content {
+.ag-detail-body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
-  padding: 2rem;
-  overflow: hidden; /* Supprime toute scrollbar */
+  padding: 1.75rem;
+  overflow: hidden;
   flex: 1;
-  min-height: 0; /* Permet au contenu de s'adapter */
+  min-height: 0;
 }
 
-/* Viewer d'images avec zoom optimisé */
-.appareil-detail-images {
+/* ============ IMAGE VIEWER ============ */
+.ag-viewer {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
   height: 100%;
   min-height: 0;
 }
 
-.appareil-detail-image-viewer {
+.ag-viewer-main {
   position: relative;
-  background: #f8fafc;
-  border-radius: var(--gallery-radius);
+  background: var(--ag-bg);
+  border-radius: var(--ag-radius);
   overflow: hidden;
   aspect-ratio: 4/3;
-  flex-shrink: 0; /* Empêche le viewer de changer de taille */
+  flex-shrink: 0;
 }
 
-.image-zoom-container {
+.ag-zoom-container {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -471,7 +448,7 @@
   justify-content: center;
 }
 
-.image-zoom-container img {
+.ag-zoom-container img {
   max-width: 100%;
   max-height: 100%;
   width: auto;
@@ -479,363 +456,231 @@
   transform-origin: center center;
   user-select: none;
   -webkit-user-drag: none;
-  object-fit: contain; /* Garde les proportions de l'image */
+  object-fit: contain;
 }
 
-.appareil-detail-image-placeholder {
+.ag-img-placeholder,
+.ag-no-image {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: var(--gallery-text-muted);
-  gap: 1rem;
+  color: var(--ag-text-muted);
+  gap: 0.75rem;
 }
 
-.appareil-detail-no-image {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--gallery-text-muted);
-  gap: 1rem;
-  background: #f8fafc;
-  border-radius: var(--gallery-radius);
-}
-
-/* Contrôles de navigation */
-.appareil-detail-nav-btn {
+/* Nav buttons */
+.ag-nav-btn {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.65);
   color: white;
   border: none;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: var(--gallery-transition);
   z-index: 10;
 }
 
-.appareil-detail-nav-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
-}
+.ag-nav-btn:hover { background: rgba(0, 0, 0, 0.85); }
+.ag-nav-btn.prev { left: 0.875rem; }
+.ag-nav-btn.next { right: 0.875rem; }
 
-.appareil-detail-nav-btn.prev {
-  left: 1rem;
-}
-
-.appareil-detail-nav-btn.next {
-  right: 1rem;
-}
-
-.appareil-detail-image-counter {
+.ag-counter {
   position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  background: rgba(0, 0, 0, 0.7);
+  bottom: 0.875rem;
+  right: 0.875rem;
+  background: rgba(0, 0, 0, 0.65);
   color: white;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--gallery-radius);
-  font-size: 0.8rem;
+  padding: 0.35rem 0.625rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
   z-index: 10;
 }
 
-/* Contrôles de zoom - Apparaissent seulement au zoom */
-.image-zoom-controls {
+/* Zoom controls */
+.ag-zoom-controls {
   position: absolute;
-  bottom: 1rem;
-  left: 1rem;
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: var(--gallery-radius);
-  padding: 0.5rem;
+  bottom: 0.875rem;
+  left: 0.875rem;
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: 8px;
+  padding: 0.375rem 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.25rem;
   z-index: 10;
-  opacity: 1; /* ← CHANGEMENT: Toujours visible */
-  transition: opacity 0.2s ease;
 }
 
-
-.appareil-detail-image-viewer:hover .image-zoom-controls {
-  opacity: 1;
-}
-
-.zoom-control-btn {
+.ag-zoom-btn {
   background: transparent;
   border: none;
   color: white;
-  padding: 0.5rem;
+  padding: 0.375rem;
   border-radius: 4px;
   cursor: pointer;
-  transition: var(--gallery-transition);
   display: flex;
   align-items: center;
-  justify-content: center;
 }
 
-.zoom-control-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-}
+.ag-zoom-btn:hover:not(:disabled) { background: rgba(255,255,255,0.15); }
+.ag-zoom-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.zoom-control-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.zoom-level {
+.ag-zoom-level {
   color: white;
-  font-size: 0.8rem;
-  margin-left: 0.5rem;
-  min-width: 40px;
+  font-size: 0.78rem;
+  min-width: 38px;
   text-align: center;
 }
 
 /* Thumbnails */
-.appareil-detail-thumbnails {
+.ag-thumbnails {
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
-  padding: 0.5rem 0;
+  padding-bottom: 0.25rem;
   flex-shrink: 0;
 }
 
-.appareil-detail-thumbnail {
-  width: 60px;
-  height: 60px;
+.ag-thumbnail {
+  width: 58px;
+  height: 58px;
   object-fit: cover;
   border-radius: 6px;
   cursor: pointer;
-  transition: var(--gallery-transition);
-  opacity: 0.6;
+  opacity: 0.55;
   border: 2px solid transparent;
   flex-shrink: 0;
 }
 
-.appareil-detail-thumbnail:hover {
-  opacity: 0.8;
-}
+.ag-thumbnail:hover { opacity: 0.8; }
+.ag-thumbnail.active { opacity: 1; border-color: var(--ag-primary); }
 
-.appareil-detail-thumbnail.active {
-  opacity: 1;
-  border-color: var(--gallery-primary);
-}
-
-/* Informations */
-.appareil-detail-info {
+/* Detail info */
+.ag-detail-info {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  overflow: hidden; /* Supprime toute scrollbar */
-  height: 100%;
+  gap: 1.25rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
-.appareil-detail-section {
-  background: #f8fafc;
-  padding: 1.5rem;
-  border-radius: var(--gallery-radius);
-  flex-shrink: 0;
+.ag-info-section {
+  background: var(--ag-bg);
+  padding: 1.25rem;
+  border-radius: var(--ag-radius);
 }
 
-.appareil-detail-section h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--gallery-text-primary);
-  margin: 0 0 1rem 0;
-  border-bottom: 2px solid rgba(0, 122, 255, 0.1);
-  padding-bottom: 0.5rem;
+.ag-info-section h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ag-text);
+  margin: 0 0 1rem;
+  padding-bottom: 0.625rem;
+  border-bottom: 2px solid rgba(0, 122, 255, 0.12);
 }
 
-.appareil-detail-field {
+.ag-info-field {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: 0.625rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--ag-text-secondary);
+}
+
+.ag-info-field:last-child { margin-bottom: 0; }
+.ag-info-field svg { color: var(--ag-primary); flex-shrink: 0; margin-top: 0.1rem; }
+.ag-info-field strong { color: var(--ag-text); }
+.ag-info-field p { margin: 0.375rem 0 0; line-height: 1.5; }
+
+/* ============ MOBILE FILTER TOGGLE ============ */
+.ag-mobile-filter-toggle {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--ag-radius);
+  font-weight: 600;
   font-size: 0.9rem;
+  cursor: pointer;
+  position: relative;
 }
 
-.appareil-detail-field:last-child {
-  margin-bottom: 0;
+.ag-filter-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--ag-primary);
+  border-radius: 50%;
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
 }
 
-.appareil-detail-field svg {
-  color: var(--gallery-primary);
-  margin-top: 0.1rem;
-  flex-shrink: 0;
+.ag-sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 99;
 }
 
-.appareil-detail-field strong {
-  color: var(--gallery-text-primary);
-}
-
-.appareil-detail-field p {
-  margin: 0.5rem 0 0 0;
-  line-height: 1.5;
-  color: var(--gallery-text-secondary);
-}
-
-/* Responsive */
+/* ============ RESPONSIVE ============ */
 @media (max-width: 1024px) {
-  .appareil-gallery {
-    padding: 1.5rem;
-  }
-
-  .appareil-gallery-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .appareil-detail-content {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
+  .ag-layout { grid-template-columns: 220px 1fr; }
 }
 
 @media (max-width: 768px) {
-  .appareil-gallery {
-    padding: 1rem;
-  }
+  .ag-root { padding: 1rem; }
 
-  .appareil-gallery-header h1 {
-    font-size: 2rem;
-  }
+  .ag-mobile-filter-toggle { display: flex; }
 
-  .appareil-gallery-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  .ag-layout { grid-template-columns: 1fr; }
 
-  .appareil-gallery-search {
-    min-width: auto;
-  }
-
-  .appareil-gallery-filters {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .clear-filters-btn {
-    align-self: stretch;
-  }
-
-  .appareil-gallery-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .appareil-card-content {
+  .ag-sidebar-wrapper {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
     padding: 1.25rem;
+    background: var(--ag-surface);
+    border-right: 1px solid var(--ag-border);
   }
 
-  .appareil-card-footer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
+  .ag-sidebar-wrapper.open { display: block; }
+  .ag-sidebar { border: none; padding: 0; box-shadow: none; }
 
-  .appareil-detail-overlay {
-    padding: 1rem;
-  }
+  .ag-sidebar-backdrop { display: block; }
 
-  .appareil-detail-modal {
-    max-height: 95vh;
-  }
+  .ag-grid { grid-template-columns: 1fr; gap: 1rem; }
 
-  .appareil-detail-header {
-    padding: 1rem 1.5rem;
-  }
-
-  .appareil-detail-content {
-    padding: 1.5rem;
-    gap: 1rem;
-  }
-
-  .appareil-detail-nav-btn {
-    width: 35px;
-    height: 35px;
-    font-size: 1.25rem;
-  }
-
-  .appareil-detail-nav-btn.prev {
-    left: 0.5rem;
-  }
-
-  .appareil-detail-nav-btn.next {
-    right: 0.5rem;
-  }
-
-  .image-zoom-controls {
-    bottom: 0.5rem;
-    left: 0.5rem;
-  }
+  .ag-detail-body { grid-template-columns: 1fr; gap: 1rem; overflow-y: auto; }
+  .ag-detail-overlay { padding: 0.75rem; }
+  .ag-detail-modal { max-height: 95vh; }
+  .ag-detail-header { padding: 1rem 1.25rem; }
+  .ag-detail-body { padding: 1.25rem; }
 }
 
 @media (max-width: 480px) {
-  .appareil-gallery-header h1 {
-    font-size: 1.75rem;
-  }
-
-  .appareil-gallery-header p {
-    font-size: 1rem;
-  }
-
-  .search-input {
-    padding: 0.75rem 0.75rem 0.75rem 2.25rem;
-  }
-
-  .search-icon {
-    left: 0.75rem;
-  }
-
-  .appareil-card-image {
-    height: 180px;
-  }
-
-  .appareil-detail-header {
-    padding: 1rem;
-  }
-
-  .appareil-detail-content {
-    padding: 1rem;
-    gap: 1rem;
-  }
-
-  .appareil-detail-header h2 {
-    font-size: 1.25rem;
-  }
-
-  .appareil-detail-image-counter {
-    bottom: 0.5rem;
-    right: 0.5rem;
-    font-size: 0.75rem;
-  }
-
-  .appareil-detail-thumbnails {
-    gap: 0.25rem;
-  }
-
-  .appareil-detail-thumbnail {
-    width: 50px;
-    height: 50px;
-  }
-
-  .image-zoom-controls {
-    flex-wrap: wrap;
-    gap: 0.125rem;
-  }
-
-  .zoom-level {
-    margin-left: 0;
-    margin-top: 0.25rem;
-    width: 100%;
-    text-align: center;
-  }
+  .ag-title { font-size: 1.4rem; }
+  .ag-card-image { height: 170px; }
+  .ag-thumbnails { gap: 0.375rem; }
+  .ag-thumbnail { width: 48px; height: 48px; }
+  .ag-detail-header h2 { font-size: 1.1rem; }
 }
