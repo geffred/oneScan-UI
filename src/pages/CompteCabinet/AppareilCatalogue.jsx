@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import useSWR from "swr";
 import {
   Package,
@@ -45,75 +45,36 @@ const OPTIONS = [
 ];
 
 const AppareilCatalogue = ({ selectedAppareil, onSelectAppareil }) => {
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [viewMode, setViewMode] = React.useState("grid");
-  const [filters, setFilters] = React.useState({
-    categorie: "",
-    option: "",
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState("grid");
+  const [filters, setFilters] = useState({ categorie: "", option: "" });
+
+  const { data: appareils = [], isLoading } = useSWR("/appareils", fetcher, {
+    revalidateOnFocus: false,
   });
 
-  const { data: appareils = [], isLoading: loadingAppareils } = useSWR(
-    "/appareils",
-    fetcher,
-    { revalidateOnFocus: false }
-  );
-
-  // Optimisation du filtrage avec useMemo
-  const filteredAndSearchedAppareils = useMemo(() => {
-    let result = appareils;
-
-    if (filters.categorie) {
-      result = result.filter((app) => app.categorie === filters.categorie);
-    }
-    if (filters.option) {
-      result = result.filter((app) => app.options === filters.option);
-    }
-
+  const filtered = useMemo(() => {
+    let r = appareils;
+    if (filters.categorie)
+      r = r.filter((a) => a.categorie === filters.categorie);
+    if (filters.option) r = r.filter((a) => a.options === filters.option);
     if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(
-        (app) =>
-          app.nom.toLowerCase().includes(term) ||
-          app.description?.toLowerCase().includes(term) ||
-          app.categorie.toLowerCase().includes(term) ||
-          app.options?.toLowerCase().includes(term)
+      const t = searchTerm.toLowerCase();
+      r = r.filter(
+        (a) =>
+          a.nom.toLowerCase().includes(t) ||
+          a.description?.toLowerCase().includes(t) ||
+          a.categorie.toLowerCase().includes(t) ||
+          a.options?.toLowerCase().includes(t),
       );
     }
-
-    return result;
+    return r;
   }, [appareils, searchTerm, filters]);
 
-  // Fonction pour obtenir l'image de couverture (première image)
-  const getCoverImage = useCallback((appareil) => {
-    if (!appareil?.images || appareil.images.length === 0) {
-      return null;
-    }
-    return appareil.images[0].imagePath;
-  }, []);
-
-  const handleSelectAppareil = useCallback(
-    (appareil) => {
-      onSelectAppareil(appareil);
-    },
-    [onSelectAppareil]
+  const getCoverImage = useCallback(
+    (a) => (a?.images?.length > 0 ? a.images[0].imagePath : null),
+    [],
   );
-
-  // Handlers optimisés pour les filtres
-  const handleSearchChange = useCallback((e) => {
-    setSearchTerm(e.target.value);
-  }, []);
-
-  const handleCategorieChange = useCallback((e) => {
-    setFilters((prev) => ({ ...prev, categorie: e.target.value }));
-  }, []);
-
-  const handleOptionChange = useCallback((e) => {
-    setFilters((prev) => ({ ...prev, option: e.target.value }));
-  }, []);
-
-  const handleViewModeChange = useCallback((mode) => {
-    setViewMode(mode);
-  }, []);
 
   return (
     <aside className="catalogue-section">
@@ -125,14 +86,14 @@ const AppareilCatalogue = ({ selectedAppareil, onSelectAppareil }) => {
         <div className="view-controls">
           <button
             className={`view-btn ${viewMode === "grid" ? "active" : ""}`}
-            onClick={() => handleViewModeChange("grid")}
+            onClick={() => setViewMode("grid")}
             title="Vue grille"
           >
             <Grid size={16} />
           </button>
           <button
             className={`view-btn ${viewMode === "list" ? "active" : ""}`}
-            onClick={() => handleViewModeChange("list")}
+            onClick={() => setViewMode("list")}
             title="Vue liste"
           >
             <List size={16} />
@@ -147,25 +108,33 @@ const AppareilCatalogue = ({ selectedAppareil, onSelectAppareil }) => {
             type="text"
             placeholder="Rechercher un appareil..."
             value={searchTerm}
-            onChange={handleSearchChange}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
         <div className="filters">
-          <select value={filters.categorie} onChange={handleCategorieChange}>
+          <select
+            value={filters.categorie}
+            onChange={(e) =>
+              setFilters((p) => ({ ...p, categorie: e.target.value }))
+            }
+          >
             <option value="">Toutes catégories</option>
-            {CATEGORIES.map((cat) => (
-              <option key={cat.value} value={cat.value}>
-                {cat.label}
+            {CATEGORIES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
               </option>
             ))}
           </select>
-
-          <select value={filters.option} onChange={handleOptionChange}>
+          <select
+            value={filters.option}
+            onChange={(e) =>
+              setFilters((p) => ({ ...p, option: e.target.value }))
+            }
+          >
             <option value="">Toutes options</option>
-            {OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
+            {OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
               </option>
             ))}
           </select>
@@ -173,64 +142,59 @@ const AppareilCatalogue = ({ selectedAppareil, onSelectAppareil }) => {
       </div>
 
       <div className="catalogue-content">
-        {loadingAppareils ? (
+        {isLoading ? (
           <div className="loading-state">
-            <div className="spinner small"></div>
+            <div className="spinner small" />
             <span>Chargement du catalogue...</span>
           </div>
-        ) : filteredAndSearchedAppareils.length > 0 ? (
+        ) : filtered.length > 0 ? (
           <>
-            <div className="results-count">
-              {filteredAndSearchedAppareils.length} appareil(s)
-            </div>
+            <div className="results-count">{filtered.length} appareil(s)</div>
             <div className={`appareils-grid ${viewMode}`}>
-              {filteredAndSearchedAppareils.map((appareil) => {
-                const coverImage = getCoverImage(appareil);
-
+              {filtered.map((appareil) => {
+                const cover = getCoverImage(appareil);
+                const isSelected = selectedAppareil?.id === appareil.id;
                 return (
                   <article
                     key={appareil.id}
-                    className={`appareil-card ${
-                      selectedAppareil?.id === appareil.id ? "selected" : ""
-                    }`}
-                    onClick={() => handleSelectAppareil(appareil)}
+                    className={`appareil-card ${isSelected ? "selected" : ""}`}
+                    onClick={() => onSelectAppareil(appareil)}
                   >
-                    {/* Image de couverture */}
-                    {coverImage ? (
-                      <div className="appareil-image-wrapper">
-                        <img
-                          src={coverImage}
-                          alt={appareil.nom}
-                          className="appareil-cover-image"
-                          onError={(e) => {
-                            e.target.style.display = "none";
-                            e.target.nextElementSibling.style.display = "flex";
-                          }}
-                        />
-                        <div
-                          className="appareil-no-image"
-                          style={{ display: "none" }}
-                        >
-                          <ImageIcon size={40} />
-                          <span>Pas d'image</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="appareil-image-wrapper">
+                    <div className="appareil-image-wrapper">
+                      {cover ? (
+                        <>
+                          <img
+                            src={cover}
+                            alt={appareil.nom}
+                            className="appareil-cover-image"
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                              e.target.nextElementSibling.style.display =
+                                "flex";
+                            }}
+                          />
+                          <div
+                            className="appareil-no-image"
+                            style={{ display: "none" }}
+                          >
+                            <ImageIcon size={40} />
+                            <span>Pas d'image</span>
+                          </div>
+                        </>
+                      ) : (
                         <div className="appareil-no-image">
                           <ImageIcon size={40} />
                           <span>Pas d'image</span>
                         </div>
-                      </div>
-                    )}
-
+                      )}
+                    </div>
                     <div className="appareil-card-content">
                       <h3>{appareil.nom}</h3>
                       <dl>
                         <dt>Catégorie:</dt>
                         <dd>
                           {CATEGORIES.find(
-                            (c) => c.value === appareil.categorie
+                            (c) => c.value === appareil.categorie,
                           )?.label || appareil.categorie}
                         </dd>
                         <dt>Option:</dt>
@@ -249,7 +213,7 @@ const AppareilCatalogue = ({ selectedAppareil, onSelectAppareil }) => {
                         className="select-btn"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleSelectAppareil(appareil);
+                          onSelectAppareil(appareil);
                         }}
                       >
                         <ShoppingCart size={16} />

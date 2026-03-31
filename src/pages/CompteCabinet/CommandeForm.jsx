@@ -26,6 +26,7 @@ import "./CommandeForm.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// Appareil optionnel — seul le commentaire est requis si pas d'appareil
 const validationSchema = Yup.object({
   refPatient: Yup.string()
     .required("La référence patient est requise")
@@ -50,113 +51,105 @@ const CommandeForm = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentUploadFile, setCurrentUploadFile] = useState("");
 
+  const formatFileSize = useCallback((bytes) => {
+    if (!bytes) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  }, []);
+
+  const formatDateForInput = useCallback((date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }, []);
+
+  const getMinDate = useCallback(() => {
+    const t = new Date();
+    t.setDate(t.getDate() + 1);
+    return formatDateForInput(t);
+  }, [formatDateForInput]);
+
   const compressFilesToZip = useCallback(async (files) => {
     const zip = new JSZip();
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const zipFileName = `commande_${timestamp}_${Math.random()
-      .toString(36)
-      .substring(2, 9)}.zip`;
-
+    const zipFileName = `commande_${new Date().toISOString().replace(/[:.]/g, "-")}_${Math.random().toString(36).substring(2, 9)}.zip`;
     files.forEach((file) => {
-      const uniqueFileName = `${Date.now()}_${Math.random()
-        .toString(36)
-        .substring(2, 9)}_${file.name}`;
-      zip.file(uniqueFileName, file);
+      zip.file(
+        `${Date.now()}_${Math.random().toString(36).substring(2, 9)}_${file.name}`,
+        file,
+      );
     });
-
-    const zipContent = await zip.generateAsync({
+    const blob = await zip.generateAsync({
       type: "blob",
       compression: "DEFLATE",
-      compressionOptions: {
-        level: 6,
-      },
+      compressionOptions: { level: 6 },
     });
-
-    return new File([zipContent], zipFileName, {
+    return new File([blob], zipFileName, {
       type: "application/zip",
-      lastModified: new Date().getTime(),
+      lastModified: Date.now(),
     });
   }, []);
 
   const handleFileSelect = useCallback((e) => {
     const files = Array.from(e.target.files);
-    const validFiles = files.filter((file) => {
-      const extension = file.name.split(".").pop().toLowerCase();
-      const isValidExtension = ["stl", "zip", "obj", "3mf", "ply"].includes(
-        extension
-      );
-      const isValidSize = file.size <= 1024 * 1024 * 1024;
-
-      if (!isValidSize) {
-        toast.error(`Fichier ${file.name} trop volumineux (max 1GB)`);
-      }
-
-      return isValidExtension && isValidSize;
+    const valid = files.filter((f) => {
+      const ext = f.name.split(".").pop().toLowerCase();
+      const ok =
+        ["stl", "zip", "obj", "3mf", "ply"].includes(ext) &&
+        f.size <= 1024 * 1024 * 1024;
+      if (!ok && f.size > 1024 * 1024 * 1024)
+        toast.error(`Fichier ${f.name} trop volumineux (max 1GB)`);
+      return ok;
     });
-
-    if (validFiles.length !== files.length) {
+    if (valid.length !== files.length)
       toast.warning(
-        "Seuls les fichiers .stl, .zip, .obj, .3mf, .ply (max 1GB par fichier) sont acceptés"
+        "Seuls les fichiers .stl, .zip, .obj, .3mf, .ply (max 1GB) sont acceptés",
       );
-    }
-
-    setSelectedFiles((prev) => [...prev, ...validFiles]);
+    setSelectedFiles((p) => [...p, ...valid]);
   }, []);
 
-  const uploadFileWithProgress = useCallback(
-    (file, formData, token, index, totalFiles) => {
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-
-        xhr.upload.addEventListener("progress", (e) => {
-          if (e.lengthComputable) {
-            const progress = (e.loaded / e.total) * 100;
-            const globalProgress = 10 + (progress * 90) / totalFiles;
-            setUploadProgress(Math.min(globalProgress, 99));
-          }
-        });
-
-        xhr.onreadystatechange = function () {
-          if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-              try {
-                const result = JSON.parse(xhr.responseText);
-                resolve(result);
-              } catch (error) {
-                reject(new Error("Erreur lors du parsing de la réponse"));
-              }
-            } else {
-              try {
-                const errorData = JSON.parse(xhr.responseText);
-                reject(
-                  new Error(errorData.error || `Erreur HTTP ${xhr.status}`)
-                );
-              } catch {
-                reject(new Error(`Erreur HTTP ${xhr.status}`));
-              }
+  const uploadFileWithProgress = useCallback((file, formData, token) => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.upload.addEventListener("progress", (e) => {
+        if (e.lengthComputable)
+          setUploadProgress(10 + (e.loaded / e.total) * 90);
+      });
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            try {
+              resolve(JSON.parse(xhr.responseText));
+            } catch {
+              reject(new Error("Erreur parsing réponse"));
+            }
+          } else {
+            try {
+              const err = JSON.parse(xhr.responseText);
+              reject(new Error(err.error || `Erreur HTTP ${xhr.status}`));
+            } catch {
+              reject(new Error(`Erreur HTTP ${xhr.status}`));
             }
           }
-        };
-
-        xhr.onerror = function () {
-          reject(new Error("Erreur réseau lors de l'upload"));
-        };
-
-        xhr.open("POST", `${API_BASE_URL}/files/upload-command`);
-        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-        xhr.timeout = 300000;
-        xhr.send(formData);
-      });
-    },
-    []
-  );
+        }
+      };
+      xhr.onerror = () => reject(new Error("Erreur réseau lors de l'upload"));
+      xhr.open("POST", `${API_BASE_URL}/files/upload-command`);
+      xhr.setRequestHeader(
+        "Authorization",
+        `Bearer ${localStorage.getItem("token")}`,
+      );
+      xhr.timeout = 300000;
+      xhr.send(formData);
+    });
+  }, []);
 
   const handleUploadFiles = useCallback(async () => {
     if (selectedFiles.length === 0) {
-      toast.warning("Veuillez sélectionner au moins un fichier");
+      toast.warning("Sélectionnez au moins un fichier");
       return;
     }
-
     if (!userData?.nom) {
       toast.error("Informations du cabinet manquantes");
       return;
@@ -165,67 +158,46 @@ const CommandeForm = ({
     setIsUploading(true);
     setIsCompressing(true);
     setUploadProgress(0);
-
     try {
-      let filesToUpload = selectedFiles;
+      const token = localStorage.getItem("token");
       const stlFiles = selectedFiles.filter(
-        (file) =>
-          file.name.toLowerCase().endsWith(".stl") ||
-          file.name.toLowerCase().endsWith(".obj") ||
-          file.name.toLowerCase().endsWith(".3mf") ||
-          file.name.toLowerCase().endsWith(".ply")
+        (f) => !f.name.toLowerCase().endsWith(".zip"),
       );
-
-      const zipFiles = selectedFiles.filter((file) =>
-        file.name.toLowerCase().endsWith(".zip")
+      const zipFiles = selectedFiles.filter((f) =>
+        f.name.toLowerCase().endsWith(".zip"),
       );
+      let filesToUpload = selectedFiles;
 
-      if (stlFiles.length > 1 || (stlFiles.length > 0 && zipFiles.length > 0)) {
-        const zipFile = await compressFilesToZip(selectedFiles);
-        filesToUpload = [zipFile];
+      if (stlFiles.length > 0) {
+        filesToUpload = [await compressFilesToZip(selectedFiles)];
         toast.info("Compression des fichiers en cours...");
-      } else if (stlFiles.length === 1 && zipFiles.length === 0) {
-        const zipFile = await compressFilesToZip(selectedFiles);
-        filesToUpload = [zipFile];
-        toast.info("Compression du fichier en cours...");
       }
 
       setIsCompressing(false);
       setUploadProgress(10);
-
-      const token = localStorage.getItem("token");
       const newFiles = [];
 
-      for (let i = 0; i < filesToUpload.length; i++) {
-        const file = filesToUpload[i];
+      for (const file of filesToUpload) {
         setCurrentUploadFile(file.name);
-
         const formData = new FormData();
         formData.append("file", file);
         formData.append("cabinetName", userData.nom);
         formData.append(
           "commandeRef",
-          `cmd_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+          `cmd_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         );
 
-        let retries = 3;
-        let result;
-
+        let retries = 3,
+          result;
         while (retries > 0) {
           try {
-            result = await uploadFileWithProgress(
-              file,
-              formData,
-              token,
-              i,
-              filesToUpload.length
-            );
+            result = await uploadFileWithProgress(file, formData, token);
             break;
-          } catch (error) {
+          } catch (err) {
             retries--;
-            if (retries === 0) throw error;
-            toast.warning(`Nouvelle tentative d'upload... (${3 - retries}/3)`);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            if (retries === 0) throw err;
+            toast.warning(`Nouvelle tentative...`);
+            await new Promise((r) => setTimeout(r, 1000));
           }
         }
 
@@ -238,43 +210,21 @@ const CommandeForm = ({
           mimeType: result.mimeType,
           isCompressed: filesToUpload.length < selectedFiles.length,
         });
-
-        setUploadProgress(10 + ((i + 1) * 90) / filesToUpload.length);
       }
 
-      setUploadedFiles((prev) => [...prev, ...newFiles]);
+      setUploadedFiles((p) => [...p, ...newFiles]);
       setSelectedFiles([]);
       setUploadProgress(100);
       setCurrentUploadFile("");
-
-      if (filesToUpload.length < selectedFiles.length) {
-        toast.success(
-          `${selectedFiles.length} fichier(s) compressés et uploadés avec succès sur le Drive`
-        );
-      } else {
-        toast.success(
-          `${newFiles.length} fichier(s) uploadé(s) avec succès sur le Drive`
-        );
-      }
-
+      toast.success(`${newFiles.length} fichier(s) uploadé(s) avec succès`);
       setTimeout(() => setUploadProgress(0), 2000);
-    } catch (error) {
-      console.error("Erreur upload:", error);
-      let errorMessage =
-        error.message || "Erreur lors de l'upload des fichiers";
-
-      if (errorMessage.includes("413")) {
-        errorMessage =
-          "Le fichier est trop volumineux pour le serveur. Veuillez contacter l'administrateur.";
-      } else if (
-        errorMessage.includes("network") ||
-        errorMessage.includes("Network")
-      ) {
-        errorMessage = "Erreur réseau. Vérifiez votre connexion internet.";
-      }
-
-      toast.error(errorMessage);
-      if (onError) onError(errorMessage);
+    } catch (err) {
+      let msg = err.message || "Erreur lors de l'upload";
+      if (msg.includes("413")) msg = "Fichier trop volumineux pour le serveur.";
+      else if (msg.toLowerCase().includes("network"))
+        msg = "Erreur réseau. Vérifiez votre connexion.";
+      toast.error(msg);
+      if (onError) onError(msg);
       setUploadProgress(0);
       setCurrentUploadFile("");
     } finally {
@@ -292,50 +242,30 @@ const CommandeForm = ({
   const handleRemoveFile = useCallback(async (index, fileId) => {
     try {
       const token = localStorage.getItem("token");
-
-      const response = await fetch(`${API_BASE_URL}/files/${fileId}`, {
+      const res = await fetch(`${API_BASE_URL}/files/${fileId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la suppression");
-      }
-
-      setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
-      toast.success("Fichier supprimé avec succès du Drive");
-    } catch (error) {
-      console.error("Erreur suppression:", error);
+      if (!res.ok) throw new Error("Erreur suppression");
+      setUploadedFiles((p) => p.filter((_, i) => i !== index));
+      toast.success("Fichier supprimé avec succès");
+    } catch {
       toast.error("Erreur lors de la suppression du fichier");
     }
   }, []);
 
   const handleViewFile = useCallback((fileViewUrl, fileId) => {
-    if (fileViewUrl) {
-      window.open(fileViewUrl, "_blank");
-    } else if (fileId) {
-      window.open(`https://drive.google.com/file/d/${fileId}/view`, "_blank");
-    }
+    const url =
+      fileViewUrl ||
+      (fileId ? `https://drive.google.com/file/d/${fileId}/view` : null);
+    if (url) window.open(url, "_blank");
   }, []);
 
   const sendEmailNotification = useCallback(
     async (commande, cabinet) => {
       try {
         const token = localStorage.getItem("token");
-
-        const emailData = {
-          commande_id: commande.externalId || commande.id,
-          patient_ref: commande.refPatient,
-          plateforme: "MYSMILELAB",
-          cabinet: cabinet.nom,
-          date_reception: new Date().toLocaleDateString("fr-FR"),
-          commentaire: commande.commentaire || "Aucun commentaire",
-          type_appareil: commande.typeAppareil,
-          date_echeance: commande.dateEcheance,
-          nombre_fichiers: uploadedFiles.length,
-        };
-
-        const response = await fetch(
+        const res = await fetch(
           `${API_BASE_URL}/email/send-commande-notification`,
           {
             method: "POST",
@@ -343,28 +273,36 @@ const CommandeForm = ({
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify(emailData),
-          }
+            body: JSON.stringify({
+              commande_id: commande.externalId || commande.id,
+              patient_ref: commande.refPatient,
+              plateforme: "MYSMILELAB",
+              cabinet: cabinet.nom,
+              date_reception: new Date().toLocaleDateString("fr-FR"),
+              commentaire: commande.commentaire || "Aucun commentaire",
+              type_appareil: commande.typeAppareil || "Non spécifié",
+              date_echeance: commande.dateEcheance,
+              nombre_fichiers: uploadedFiles.length,
+            }),
+          },
         );
-
-        if (response.ok) {
+        if (res.ok)
           toast.success("Email de notification envoyé au laboratoire");
-        } else {
-          console.warn("Échec de l'envoi de l'email");
-          toast.warning("Commande créée mais email non envoyé");
-        }
-      } catch (error) {
-        console.error("Erreur lors de l'envoi de l'email:", error);
+        else toast.warning("Commande créée mais email non envoyé");
+      } catch {
         toast.warning("Commande créée mais email non envoyé");
       }
     },
-    [uploadedFiles.length]
+    [uploadedFiles.length],
   );
 
   const handleSubmit = useCallback(
     async (values, { setSubmitting, resetForm }) => {
-      if (uploadedFiles.length === 0) {
-        toast.error("Veuillez uploader au moins un fichier");
+      // Si pas d'appareil, le commentaire devient obligatoire
+      if (!selectedAppareil && !values.commentaire?.trim()) {
+        toast.error(
+          "Sans appareil sélectionné, veuillez indiquer un commentaire décrivant votre demande",
+        );
         setSubmitting(false);
         return;
       }
@@ -375,20 +313,13 @@ const CommandeForm = ({
         return;
       }
 
-      if (!selectedAppareil) {
-        toast.error("Veuillez sélectionner un appareil");
-        setSubmitting(false);
-        return;
-      }
-
       try {
         const token = localStorage.getItem("token");
-
         const commandeData = {
           cabinetId: userData.id,
           cabinetName: userData.nom,
           refPatient: values.refPatient.trim(),
-          typeAppareil: selectedAppareil.nom,
+          typeAppareil: selectedAppareil?.nom || null,
           commentaire: values.commentaire?.trim() || "",
           details: selectedAppareil?.description || "",
           fichierUrls: uploadedFiles.map((f) => f.fileUrl),
@@ -398,46 +329,36 @@ const CommandeForm = ({
           dateEcheance: values.dateEcheance,
         };
 
-        const response = await fetch(
-          `${API_BASE_URL}/public/commandes/create`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(commandeData),
-          }
-        );
+        const res = await fetch(`${API_BASE_URL}/public/commandes/create`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(commandeData),
+        });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(
-            errorData.error || "Erreur lors de la création de la commande"
-          );
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Erreur création commande");
         }
-
-        const result = await response.json();
+        const result = await res.json();
 
         if (result.success) {
           await sendEmailNotification(result.commande, userData);
-
           toast.success("Commande créée avec succès !");
           if (onSuccess) onSuccess("Commande créée avec succès");
           if (onCommandeCreated) onCommandeCreated(result.commande);
-
           resetForm();
           setUploadedFiles([]);
           setSelectedFiles([]);
         } else {
           throw new Error(result.error || "Erreur lors de la création");
         }
-      } catch (error) {
-        console.error("Erreur création commande:", error);
-        const errorMessage =
-          error.message || "Erreur lors de la création de la commande";
-        toast.error(errorMessage);
-        if (onError) onError(errorMessage);
+      } catch (err) {
+        const msg = err.message || "Erreur lors de la création de la commande";
+        toast.error(msg);
+        if (onError) onError(msg);
       } finally {
         setSubmitting(false);
       }
@@ -450,44 +371,13 @@ const CommandeForm = ({
       onCommandeCreated,
       onError,
       sendEmailNotification,
-    ]
+    ],
   );
-
-  const handleResetSelection = useCallback(() => {
-    setSelectedFiles([]);
-  }, []);
-
-  const handleRemoveSelectedFile = useCallback((index) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-  }, []);
-
-  const formatFileSize = useCallback((bytes) => {
-    if (!bytes) return "0 B";
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  }, []);
-
-  const formatDateForInput = useCallback((date) => {
-    if (!date) return "";
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  }, []);
-
-  const getMinDate = useCallback(() => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return formatDateForInput(tomorrow);
-  }, [formatDateForInput]);
 
   if (!userData) {
     return (
       <div className="loading-container">
-        <div className="spinner"></div>
+        <div className="spinner" />
         <p>Chargement des informations du cabinet...</p>
       </div>
     );
@@ -506,19 +396,15 @@ const CommandeForm = ({
             <span>{selectedAppareil.nom}</span>
           </div>
         ) : (
-          <div className="selected-badge warning">
+          <div className="selected-badge neutral">
             <AlertCircle size={14} />
-            <span>Sélectionnez un appareil</span>
+            <span>Sans appareil (commentaire requis)</span>
           </div>
         )}
       </div>
 
       <Formik
-        initialValues={{
-          refPatient: "",
-          commentaire: "",
-          dateEcheance: "",
-        }}
+        initialValues={{ refPatient: "", commentaire: "", dateEcheance: "" }}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
@@ -544,7 +430,6 @@ const CommandeForm = ({
                     className="error"
                   />
                 </div>
-
                 <div className="field">
                   <label htmlFor="dateEcheance">
                     <Calendar size={14} />
@@ -557,7 +442,7 @@ const CommandeForm = ({
                     min={getMinDate()}
                   />
                   <small>
-                    Date minimum: {getMinDate().split("-").reverse().join("/")}
+                    Date minimum : {getMinDate().split("-").reverse().join("/")}
                   </small>
                   <ErrorMessage
                     name="dateEcheance"
@@ -573,7 +458,6 @@ const CommandeForm = ({
                 <UploadCloud size={18} />
                 Fichiers 3D
               </h3>
-
               <div className="upload-zone">
                 <input
                   type="file"
@@ -603,7 +487,7 @@ const CommandeForm = ({
                     <div
                       className="progress-fill"
                       style={{ width: `${uploadProgress}%` }}
-                    ></div>
+                    />
                   </div>
                 </div>
               )}
@@ -611,8 +495,8 @@ const CommandeForm = ({
               {selectedFiles.length > 0 && (
                 <div className="files-list pending">
                   <h4>Fichiers à uploader ({selectedFiles.length})</h4>
-                  {selectedFiles.map((file, index) => (
-                    <div key={`selected-${index}`} className="file-item">
+                  {selectedFiles.map((file, i) => (
+                    <div key={`sel-${i}`} className="file-item">
                       <FileText size={16} />
                       <span className="file-name">{file.name}</span>
                       <span className="file-size">
@@ -620,9 +504,10 @@ const CommandeForm = ({
                       </span>
                       <button
                         type="button"
-                        onClick={() => handleRemoveSelectedFile(index)}
+                        onClick={() =>
+                          setSelectedFiles((p) => p.filter((_, j) => j !== i))
+                        }
                         className="icon-btn danger"
-                        title="Retirer"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -637,19 +522,19 @@ const CommandeForm = ({
                     >
                       {isCompressing || isUploading ? (
                         <>
-                          <div className="spinner tiny"></div>
+                          <div className="spinner tiny" />
                           {isCompressing ? "Compression..." : "Upload..."}
                         </>
                       ) : (
                         <>
                           <Archive size={16} />
-                          Télécharger sur dans le Drive
+                          Télécharger sur le Drive
                         </>
                       )}
                     </button>
                     <button
                       type="button"
-                      onClick={handleResetSelection}
+                      onClick={() => setSelectedFiles([])}
                       className="btn secondary"
                     >
                       Tout retirer
@@ -664,8 +549,8 @@ const CommandeForm = ({
                     <CheckCircle size={16} />
                     Fichiers téléchargés ({uploadedFiles.length})
                   </h4>
-                  {uploadedFiles.map((file, index) => (
-                    <div key={`uploaded-${index}`} className="file-item">
+                  {uploadedFiles.map((file, i) => (
+                    <div key={`up-${i}`} className="file-item">
                       <Archive size={16} />
                       <div className="file-info">
                         <strong>{file.fileName}</strong>
@@ -680,15 +565,13 @@ const CommandeForm = ({
                           handleViewFile(file.fileViewUrl, file.fileId)
                         }
                         className="icon-btn"
-                        title="Voir"
                       >
                         <ExternalLink size={16} />
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleRemoveFile(index, file.fileId)}
+                        onClick={() => handleRemoveFile(i, file.fileId)}
                         className="icon-btn danger"
-                        title="Supprimer"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -702,12 +585,22 @@ const CommandeForm = ({
               <h3>
                 <MessageSquare size={18} />
                 Instructions supplémentaires
+                {!selectedAppareil && (
+                  <span className="required-note">
+                    {" "}
+                    — requis si pas d'appareil
+                  </span>
+                )}
               </h3>
               <div className="field">
                 <Field
                   as="textarea"
                   name="commentaire"
-                  placeholder="Ajoutez des instructions ou remarques pour le laboratoire..."
+                  placeholder={
+                    selectedAppareil
+                      ? "Ajoutez des instructions ou remarques..."
+                      : "Décrivez votre demande (obligatoire sans appareil sélectionné)..."
+                  }
                   rows={4}
                 />
                 <div className="char-count">
@@ -736,16 +629,12 @@ const CommandeForm = ({
               </button>
               <button
                 type="submit"
-                disabled={
-                  isSubmitting ||
-                  uploadedFiles.length === 0 ||
-                  !selectedAppareil
-                }
+                disabled={isSubmitting || uploadedFiles.length === 0}
                 className="btn primary large"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="spinner tiny"></div>
+                    <div className="spinner tiny" />
                     Création...
                   </>
                 ) : (
