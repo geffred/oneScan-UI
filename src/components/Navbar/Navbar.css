@@ -93,7 +93,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+
   border-radius: 12px;
   padding: 0.75rem 1rem;
   cursor: pointer;
@@ -102,7 +102,7 @@
 }
 
 .navbar-component-account-profile-section:hover {
-  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  background: #e2e8f046 ;
  border: 1px solid #cbd5e1;
 }
 

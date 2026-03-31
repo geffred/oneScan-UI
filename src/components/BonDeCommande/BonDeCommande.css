@@ -76,14 +76,6 @@
   box-sizing: border-box;
 }
 
-/* En-tête */
-.bon-de-commande-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid #007AFF;
-}
 
 .bon-de-commande-logo h1 {
   font-size: 4rem;
@@ -283,11 +275,6 @@
   .bon-de-commande-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
-  }
-
-  .bon-de-commande-header {
-    flex-direction: column;
-    gap: 1.5rem;
   }
 
   .bon-de-commande-title {

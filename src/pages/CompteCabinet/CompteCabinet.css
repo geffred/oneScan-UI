@@ -32,7 +32,6 @@
 
 /* Main Wrapper */
 .compte-cabinet-main-wrapper {
-  min-height: 100vh;
   padding: 2rem;
   position: relative;
 }

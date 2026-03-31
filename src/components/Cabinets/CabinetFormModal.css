@@ -1,5 +1,5 @@
 /* ==========================================================================
-   CabinetFormModal.css - Styles spécifiques au formulaire et à la modale
+   CabinetFormModal.css
    ========================================================================== */
 
 /* --- Overlay & Modal Container --- */
@@ -11,8 +11,6 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
-  /* Animation supprimée ici */
 }
 
 .cabinet-modal {
@@ -23,8 +21,7 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-lg);
-  /* Animation supprimée ici */
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 }
 
 /* --- Modal Header --- */
@@ -34,7 +31,6 @@
   align-items: center;
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--cabinet-gray-200);
-  background: white;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
@@ -52,7 +48,6 @@
   cursor: pointer;
   padding: 0.5rem;
   border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -63,7 +58,7 @@
   color: var(--cabinet-gray-900);
 }
 
-/* --- Modal Body & Scroll --- */
+/* --- Modal Body --- */
 .cabinet-modal-body {
   padding: 0;
   overflow-y: auto;
@@ -81,7 +76,6 @@
   gap: 1.25rem;
 }
 
-/* Grille pour 2 champs côte à côte */
 .form-row-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -94,7 +88,7 @@
   }
 }
 
-/* --- Inputs Styles --- */
+/* --- Inputs --- */
 .cabinet-input-group {
   display: flex;
   flex-direction: column;
@@ -130,7 +124,6 @@
   border: 1px solid var(--cabinet-gray-200);
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   background: white;
   color: var(--cabinet-gray-900);
 }
@@ -148,7 +141,7 @@
   margin-top: 2px;
 }
 
-/* --- Checkbox Group --- */
+/* --- Checkbox --- */
 .cabinet-checkbox-group {
   margin-top: 0.5rem;
   padding: 1rem;
@@ -180,7 +173,7 @@
   color: var(--cabinet-gray-900);
 }
 
-/* --- Modal Actions (Footer) --- */
+/* --- Modal Actions --- */
 .cabinet-modal-actions {
   display: flex;
   gap: 1rem;
@@ -198,7 +191,6 @@
   border-radius: var(--radius-md);
   font-weight: 500;
   cursor: pointer;
-  transition: all var(--transition-fast);
 }
 
 .cabinet-cancel-btn:hover {
@@ -214,16 +206,13 @@
   border-radius: var(--radius-md);
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-fast);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .cabinet-save-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
   background: var(--cabinet-primary-dark);
-  box-shadow: var(--shadow-sm);
 }
 
 .cabinet-save-btn:disabled {
@@ -231,7 +220,7 @@
   cursor: not-allowed;
 }
 
-/* --- Alert Error Internal --- */
+/* --- Error Alert --- */
 .cabinet-modal-error-alert {
   margin: 1.5rem 1.5rem 0;
   padding: 0.875rem;
@@ -244,17 +233,13 @@
   gap: 0.75rem;
   font-size: 0.9rem;
   font-weight: 500;
-  /* Garde l'animation douce pour l'erreur, mais supprime celle du modal */
-  animation: slideDown 0.3s ease-out;
 }
 
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* --- Loader Animation --- */
+/* --- Loader --- */
 .animate-spin {
   animation: spin 1s linear infinite;
 }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

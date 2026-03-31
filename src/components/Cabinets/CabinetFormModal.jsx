@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import {
@@ -11,18 +11,15 @@ import {
   FileText,
   Phone,
   Building2,
-  Lock,
   CheckCircle2,
   AlertCircle,
   Loader2,
-  Eye,
-  EyeOff,
 } from "lucide-react";
-import "./CabinetFormModal.css"; // Assure-toi que les styles sont accessibles
+import "./CabinetFormModal.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// --- Schéma de validation ---
+// Hors du composant → pas de recréation à chaque render
 const validationSchema = Yup.object({
   nom: Yup.string().required("Requis").max(100, "Max 100 caractères"),
   email: Yup.string().email("Email invalide").required("Requis"),
@@ -33,7 +30,6 @@ const validationSchema = Yup.object({
   adresseDeFacturation: Yup.string().max(255, "Max 255 caractères"),
 });
 
-// --- Sous-composant Champ (Interne) ---
 const CabinetField = ({
   name,
   label,
@@ -63,18 +59,6 @@ const CabinetField = ({
 const CabinetFormModal = ({ isOpen, onClose, cabinetToEdit, onSuccess }) => {
   const [modalError, setModalError] = useState(null);
 
-  const initialValues = useMemo(
-    () => ({
-      nom: cabinetToEdit?.nom || "",
-      email: cabinetToEdit?.email || "",
-      numeroDeTelephone: cabinetToEdit?.numeroDeTelephone || "",
-      adresseDeLivraison: cabinetToEdit?.adresseDeLivraison || "",
-      adresseDeFacturation: cabinetToEdit?.adresseDeFacturation || "",
-      skipEmailVerification: false,
-    }),
-    [cabinetToEdit]
-  );
-
   const handleSubmit = async (values, { setSubmitting }) => {
     setModalError(null);
     try {
@@ -94,12 +78,9 @@ const CabinetFormModal = ({ isOpen, onClose, cabinetToEdit, onSuccess }) => {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
+      if (!res.ok)
         throw new Error(data.message || "Erreur lors de l'enregistrement");
-      }
 
-      // Notifier le parent que c'est réussi
       onSuccess(data, cabinetToEdit ? "modification" : "creation");
       onClose();
     } catch (err) {
@@ -122,7 +103,6 @@ const CabinetFormModal = ({ isOpen, onClose, cabinetToEdit, onSuccess }) => {
         </div>
 
         <div className="cabinet-modal-body">
-          {/* Message d'erreur local à la modale */}
           {modalError && (
             <div className="cabinet-modal-error-alert">
               <AlertCircle size={20} />
@@ -131,7 +111,14 @@ const CabinetFormModal = ({ isOpen, onClose, cabinetToEdit, onSuccess }) => {
           )}
 
           <Formik
-            initialValues={initialValues}
+            initialValues={{
+              nom: cabinetToEdit?.nom || "",
+              email: cabinetToEdit?.email || "",
+              numeroDeTelephone: cabinetToEdit?.numeroDeTelephone || "",
+              adresseDeLivraison: cabinetToEdit?.adresseDeLivraison || "",
+              adresseDeFacturation: cabinetToEdit?.adresseDeFacturation || "",
+              skipEmailVerification: false,
+            }}
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
             enableReinitialize
@@ -187,7 +174,7 @@ const CabinetFormModal = ({ isOpen, onClose, cabinetToEdit, onSuccess }) => {
                           <CheckCircle2
                             size={16}
                             color="var(--cabinet-primary)"
-                          />{" "}
+                          />
                           Accès immédiat (sans validation email)
                         </span>
                       </label>

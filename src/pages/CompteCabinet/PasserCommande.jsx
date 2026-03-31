@@ -23,22 +23,11 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
       setSelectedAppareil(null);
       if (onCommandeCreated) onCommandeCreated(commande);
     },
-    [onCommandeCreated]
+    [onCommandeCreated],
   );
 
   return (
     <div className="commande-container">
-      <header className="commande-header">
-        <h1>
-          <ShoppingCart size={28} />
-          Nouvelle Commande
-        </h1>
-        <p>
-          Sélectionnez un appareil, téléchargez vos fichiers 3D et finalisez
-          votre commande
-        </p>
-      </header>
-
       <div className="commande-layout">
         <AppareilCatalogue
           selectedAppareil={selectedAppareil}

@@ -42,10 +42,10 @@ const Commandes = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const userId = getUserIdFromToken();
 
-  // ✅ Charger l'état sauvegardé (s'il existe)
+  //  Charger l'état sauvegardé (s'il existe)
   const savedState = JSON.parse(localStorage.getItem("commandesState") || "{}");
 
-  // ✅ États des filtres avec sauvegarde
+  //  États des filtres avec sauvegarde
   const [searchTerm, setSearchTerm] = useState(savedState.searchTerm || "");
   const [selectedPlateforme, setSelectedPlateforme] = useState(
     savedState.selectedPlateforme || "",
@@ -129,7 +129,7 @@ const Commandes = () => {
     backblazeStatus,
   });
 
-  // ✅ Sauvegarder automatiquement l'état des filtres
+  //  Sauvegarder automatiquement l'état des filtres
   useEffect(() => {
     const stateToSave = {
       searchTerm,
@@ -161,10 +161,10 @@ const Commandes = () => {
     currentPage,
   ]);
 
-  // ✅ Chargement batch des certificats (optimisé)
+  //  Chargement batch des certificats (optimisé)
   const loadCertificatsStatus = useCallback(async () => {
     if (!commandes || commandes.length === 0) {
-      console.log("⚠️ Aucune commande à charger");
+      console.log(" Aucune commande à charger");
       return;
     }
 
@@ -189,11 +189,11 @@ const Commandes = () => {
 
       const statusMap = await res.json();
 
-      console.log("✅ Certificats chargés:", statusMap);
+      console.log(" Certificats chargés:", statusMap);
 
       setCertificatsMap(statusMap);
     } catch (e) {
-      console.error("❌ Erreur chargement certificats:", e);
+      console.error("Erreur chargement certificats:", e);
       setCertificatsMap({});
     }
   }, [commandes]);
@@ -202,7 +202,7 @@ const Commandes = () => {
     loadCertificatsStatus();
   }, [loadCertificatsStatus]);
 
-  // ✅ SOLUTION 2 : Fonction de rechargement forcé depuis l'API
+  //  SOLUTION 2 : Fonction de rechargement forcé depuis l'API
   const forceReloadCertificats = useCallback(async () => {
     console.log("🔄 Début du rechargement forcé des certificats");
 
@@ -220,10 +220,10 @@ const Commandes = () => {
       }
 
       const freshCommandes = await commandesRes.json();
-      console.log("✅ Commandes récupérées:", freshCommandes.length);
+      console.log(" Commandes récupérées:", freshCommandes.length);
 
       if (!freshCommandes || freshCommandes.length === 0) {
-        console.log("⚠️ Aucune commande fraîche");
+        console.log(" Aucune commande fraîche");
         setCertificatsMap({});
         return;
       }
@@ -245,16 +245,16 @@ const Commandes = () => {
 
       const statusMap = await certRes.json();
 
-      console.log("✅ Certificats rechargés avec succès:", statusMap);
+      console.log(" Certificats rechargés avec succès:", statusMap);
       console.log(
-        "📊 Nombre de certificats trouvés:",
+        " Nombre de certificats trouvés:",
         Object.keys(statusMap).filter((k) => statusMap[k]).length,
       );
 
       // 3. Mettre à jour l'état
       setCertificatsMap(statusMap);
     } catch (e) {
-      console.error("❌ Erreur lors du rechargement forcé:", e);
+      console.error("Erreur lors du rechargement forcé:", e);
       toast.error("Erreur lors du rechargement des certificats");
     }
   }, []);
@@ -368,10 +368,10 @@ const Commandes = () => {
 
   const handleClearSelection = () => setSelectedIds([]);
 
-  // ✅ SOLUTION 2 : Handler avec rechargement forcé
+  //  SOLUTION 2 : Handler avec rechargement forcé
   const handleBulkCertSuccess = async (keepSelection = false) => {
-    console.log("🎯 Début handleBulkCertSuccess");
-    console.log("📝 IDs sélectionnés:", selectedIds);
+    console.log(" Début handleBulkCertSuccess");
+    console.log(" IDs sélectionnés:", selectedIds);
 
     setShowBulkCertModal(false);
 
@@ -380,10 +380,10 @@ const Commandes = () => {
     await mutateCommandes();
 
     // 2. Forcer le rechargement des certificats depuis l'API
-    console.log("🔄 Rechargement forcé des certificats...");
+    console.log(" Rechargement forcé des certificats...");
     await forceReloadCertificats();
 
-    console.log("✅ handleBulkCertSuccess terminé");
+    console.log(" handleBulkCertSuccess terminé");
 
     toast.success("Certificats créés avec succès !");
 
@@ -393,7 +393,7 @@ const Commandes = () => {
     }
   };
 
-  // ✅ Fonction de réinitialisation des filtres
+  //  Fonction de réinitialisation des filtres
   const handleResetFilters = () => {
     setSearchTerm("");
     setSelectedPlateforme("");

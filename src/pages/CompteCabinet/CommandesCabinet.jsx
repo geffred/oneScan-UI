@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+/* eslint-disable react/prop-types */
+import React, { useState, useMemo, useCallback } from "react";
 import {
   Package,
   Calendar,
@@ -14,19 +15,29 @@ import {
 } from "lucide-react";
 import "./CommandesCabinet.css";
 
-const CommandesCabinet = ({ commandes, loading, error }) => {
-  // États pour les filtres et la pagination
+/**
+ * Composant d'affichage et de gestion des commandes cabinet
+ * Features: Filtres, pagination, états de chargement
+ */
+const CommandesCabinet = ({
+  commandes = [],
+  loading = false,
+  error = null,
+}) => {
+  // ==================== ÉTAT ====================
   const [currentPage, setCurrentPage] = useState(1);
   const [filtreDate, setFiltreDate] = useState("TOUS");
   const [filtreReference, setFiltreReference] = useState("");
-  const commandesParPage = 5;
 
-  // Fonction pour filtrer les commandes par date
-  const filtrerParDate = (commandes, filtre) => {
+  // Configuration
+  const COMMANDES_PAR_PAGE = 5;
+
+  // ==================== FONCTIONS DE FILTRAGE ====================
+  const filtrerParDate = useCallback((commandes, filtre) => {
     const maintenant = new Date();
 
     switch (filtre) {
-      case "AUJOURD_HUI":
+      case "AUJOURD_HUI": {
         const aujourdHui = new Date();
         aujourdHui.setHours(0, 0, 0, 0);
         return commandes.filter((commande) => {
@@ -34,8 +45,9 @@ const CommandesCabinet = ({ commandes, loading, error }) => {
           dateReception.setHours(0, 0, 0, 0);
           return dateReception.getTime() === aujourdHui.getTime();
         });
+      }
 
-      case "CETTE_SEMAINE":
+      case "CETTE_SEMAINE": {
         const debutSemaine = new Date(maintenant);
         debutSemaine.setDate(maintenant.getDate() - maintenant.getDay());
         debutSemaine.setHours(0, 0, 0, 0);
@@ -43,95 +55,98 @@ const CommandesCabinet = ({ commandes, loading, error }) => {
           const dateReception = new Date(commande.dateReception);
           return dateReception >= debutSemaine;
         });
+      }
 
-      case "CE_MOIS":
+      case "CE_MOIS": {
         const debutMois = new Date(
           maintenant.getFullYear(),
           maintenant.getMonth(),
-          1
+          1,
         );
         return commandes.filter((commande) => {
           const dateReception = new Date(commande.dateReception);
           return dateReception >= debutMois;
         });
+      }
 
-      case "CETTE_ANNEE":
+      case "CETTE_ANNEE": {
         const debutAnnee = new Date(maintenant.getFullYear(), 0, 1);
         return commandes.filter((commande) => {
           const dateReception = new Date(commande.dateReception);
           return dateReception >= debutAnnee;
         });
+      }
 
       default:
         return commandes;
     }
-  };
+  }, []);
 
-  // Fonction pour filtrer par référence patient
-  const filtrerParReference = (commandes, recherche) => {
+  const filtrerParReference = useCallback((commandes, recherche) => {
     if (!recherche.trim()) return commandes;
     return commandes.filter((commande) =>
-      commande.refPatient.toLowerCase().includes(recherche.toLowerCase())
+      commande.refPatient.toLowerCase().includes(recherche.toLowerCase()),
     );
-  };
+  }, []);
 
-  // Application des filtres
+  // ==================== FILTRES COMBINÉS ====================
   const commandesFiltrees = useMemo(() => {
     let resultat = [...commandes];
-
-    // Appliquer le filtre de date
     resultat = filtrerParDate(resultat, filtreDate);
-
-    // Appliquer le filtre de référence
     resultat = filtrerParReference(resultat, filtreReference);
-
     return resultat;
-  }, [commandes, filtreDate, filtreReference]);
+  }, [
+    commandes,
+    filtreDate,
+    filtreReference,
+    filtrerParDate,
+    filtrerParReference,
+  ]);
 
-  // Calcul de la pagination
-  const indexDerniereCommande = currentPage * commandesParPage;
-  const indexPremiereCommande = indexDerniereCommande - commandesParPage;
+  // ==================== PAGINATION ====================
+  const indexDerniereCommande = currentPage * COMMANDES_PAR_PAGE;
+  const indexPremiereCommande = indexDerniereCommande - COMMANDES_PAR_PAGE;
   const commandesCourantes = commandesFiltrees.slice(
     indexPremiereCommande,
-    indexDerniereCommande
+    indexDerniereCommande,
   );
-  const totalPages = Math.ceil(commandesFiltrees.length / commandesParPage);
+  const totalPages = Math.ceil(commandesFiltrees.length / COMMANDES_PAR_PAGE);
 
-  // Gestion du changement de page
-  const allerPageSuivante = () => {
+  // Handlers de pagination
+  const allerPageSuivante = useCallback(() => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+      setCurrentPage((prev) => prev + 1);
     }
-  };
+  }, [currentPage, totalPages]);
 
-  const allerPagePrecedente = () => {
+  const allerPagePrecedente = useCallback(() => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+      setCurrentPage((prev) => prev - 1);
     }
-  };
+  }, [currentPage]);
 
-  const allerPage = (page) => {
+  const allerPage = useCallback((page) => {
     setCurrentPage(page);
-  };
+  }, []);
 
-  // Réinitialiser la pagination quand les filtres changent
+  // Réinitialiser pagination lors du changement de filtres
   React.useEffect(() => {
     setCurrentPage(1);
   }, [filtreDate, filtreReference]);
 
-  // Fonctions utilitaires pour les statuts
-  const getStatutIcon = (statut) => {
+  // ==================== UTILITAIRES DE STATUT ====================
+  const getStatutIcon = useCallback((statut) => {
     const iconMap = {
-      EN_ATTENTE: <Clock size={16} />,
-      EN_COURS: <AlertCircle size={16} />,
-      TERMINEE: <CheckCircle size={16} />,
-      EXPEDIEE: <Truck size={16} />,
-      ANNULEE: <XCircle size={16} />,
+      EN_ATTENTE: <Clock size={12} />,
+      EN_COURS: <AlertCircle size={12} />,
+      TERMINEE: <CheckCircle size={12} />,
+      EXPEDIEE: <Truck size={12} />,
+      ANNULEE: <XCircle size={12} />,
     };
-    return iconMap[statut] || <Clock size={16} />;
-  };
+    return iconMap[statut] || <Clock size={12} />;
+  }, []);
 
-  const getStatutText = (statut) => {
+  const getStatutText = useCallback((statut) => {
     const textMap = {
       EN_ATTENTE: "En attente",
       EN_COURS: "En cours",
@@ -140,9 +155,9 @@ const CommandesCabinet = ({ commandes, loading, error }) => {
       ANNULEE: "Annulée",
     };
     return textMap[statut] || statut;
-  };
+  }, []);
 
-  const getStatutClass = (statut) => {
+  const getStatutClass = useCallback((statut) => {
     const classMap = {
       EN_ATTENTE: "en-attente",
       EN_COURS: "en-cours",
@@ -151,92 +166,102 @@ const CommandesCabinet = ({ commandes, loading, error }) => {
       ANNULEE: "annule",
     };
     return classMap[statut] || "en-attente";
-  };
+  }, []);
 
-  // Composant pour l'affichage d'une commande
-  const CommandeCard = ({ commande }) => (
-    <div className="commandes-cabinet-card">
-      <div className="commandes-cabinet-header">
-        <div className="commandes-cabinet-info">
-          <h3 className="commandes-cabinet-ref">{commande.refPatient}</h3>
-          <p className="commandes-cabinet-plateforme">{commande.plateforme}</p>
+  // ==================== COMPOSANT CARTE ====================
+  const CommandeCard = useCallback(
+    ({ commande }) => (
+      <div className="commandes-cabinet-card">
+        {/* En-tête */}
+        <div className="commandes-cabinet-header">
+          <div className="commandes-cabinet-info">
+            <h3 className="commandes-cabinet-ref" title={commande.refPatient}>
+              {commande.refPatient}
+            </h3>
+            <p className="commandes-cabinet-plateforme">
+              {commande.plateforme}
+            </p>
+          </div>
+          <div
+            className={`commandes-cabinet-statut ${getStatutClass(commande.statut)}`}
+          >
+            {getStatutIcon(commande.statut)}
+            {getStatutText(commande.statut)}
+          </div>
         </div>
-        <div
-          className={`commandes-cabinet-statut ${getStatutClass(
-            commande.statut
-          )}`}
-        >
-          {getStatutIcon(commande.statut)}
-          {getStatutText(commande.statut)}
-        </div>
-      </div>
 
-      <div className="commandes-cabinet-details">
-        <div className="commandes-cabinet-detail">
-          <Calendar size={14} />
-          <span>
-            Réception:{" "}
-            {new Date(commande.dateReception).toLocaleDateString("fr-FR")}
-          </span>
-        </div>
-        {commande.dateEcheance && (
-          <div className="commandes-cabinet-detail">
-            <Clock size={14} />
+        {/* Détails */}
+        <div className="commandes-cabinet-details">
+          <div className="commandes-cabinet-detail" title="Date de réception">
+            <Calendar size={12} />
             <span>
-              Échéance:{" "}
-              {new Date(commande.dateEcheance).toLocaleDateString("fr-FR")}
+              {new Date(commande.dateReception).toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })}
             </span>
           </div>
-        )}
-        {commande.typeAppareil && (
-          <div className="commandes-cabinet-detail">
-            <Package size={14} />
-            <span>Type: {commande.typeAppareil}</span>
+          {commande.dateEcheance && (
+            <div className="commandes-cabinet-detail" title="Date d'échéance">
+              <Clock size={12} />
+              <span>
+                {new Date(commande.dateEcheance).toLocaleDateString("fr-FR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+          )}
+          {commande.typeAppareil && (
+            <div className="commandes-cabinet-detail" title="Type d'appareil">
+              <Package size={12} />
+              <span>{commande.typeAppareil}</span>
+            </div>
+          )}
+          {commande.numeroSuivi && (
+            <div className="commandes-cabinet-detail" title="Numéro de suivi">
+              <Truck size={12} />
+              <span>{commande.numeroSuivi}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Description */}
+        {commande.details && (
+          <div className="commandes-cabinet-description">
+            <p>{commande.details}</p>
           </div>
         )}
-        {commande.numeroSuivi && (
-          <div className="commandes-cabinet-detail">
-            <Truck size={14} />
-            <span>Suivi: {commande.numeroSuivi}</span>
+
+        {/* Commentaire */}
+        {commande.commentaire && (
+          <div className="commandes-cabinet-commentaire">
+            <p>
+              <strong>Note:</strong> {commande.commentaire}
+            </p>
           </div>
         )}
       </div>
-
-      {commande.details && (
-        <div className="commandes-cabinet-description">
-          <p>{commande.details}</p>
-        </div>
-      )}
-
-      {commande.commentaire && (
-        <div className="commandes-cabinet-commentaire">
-          <p>
-            <strong>Commentaire:</strong> {commande.commentaire}
-          </p>
-        </div>
-      )}
-    </div>
+    ),
+    [getStatutClass, getStatutIcon, getStatutText],
   );
 
+  // ==================== RENDER ====================
   return (
     <div className="commandes-cabinet-section">
-      <div className="commandes-cabinet-header-section">
-        <h2 className="commandes-cabinet-title">
-          <Package size={20} />
-          Mes Commandes
-        </h2>
-        <p className="commandes-cabinet-subtitle">
-          Suivez l'état de vos commandes en temps réel
-        </p>
-      </div>
-
-      {/* Filtres */}
+      {/* Section Filtres */}
       <div className="commandes-cabinet-filtres">
         <div className="commandes-cabinet-filtre-groupe">
+          {/* Filtre par date */}
           <div className="commandes-cabinet-filtre-item">
-            <Filter size={16} />
-            <label>Filtrer par date:</label>
+            <label htmlFor="filtre-date">
+              <Filter size={14} />
+              Période
+            </label>
             <select
+              id="filtre-date"
               value={filtreDate}
               onChange={(e) => setFiltreDate(e.target.value)}
               className="commandes-cabinet-select"
@@ -249,12 +274,16 @@ const CommandesCabinet = ({ commandes, loading, error }) => {
             </select>
           </div>
 
+          {/* Filtre par référence */}
           <div className="commandes-cabinet-filtre-item">
-            <Search size={16} />
-            <label>Rechercher par référence:</label>
+            <label htmlFor="filtre-reference">
+              <Search size={14} />
+              Recherche
+            </label>
             <input
+              id="filtre-reference"
               type="text"
-              placeholder="Référence patient..."
+              placeholder="Ref. patient..."
               value={filtreReference}
               onChange={(e) => setFiltreReference(e.target.value)}
               className="commandes-cabinet-search"
@@ -262,36 +291,34 @@ const CommandesCabinet = ({ commandes, loading, error }) => {
           </div>
         </div>
 
-        {/* Résultats du filtre */}
+        {/* Résultats */}
         <div className="commandes-cabinet-resultats">
-          <span>
-            {commandesFiltrees.length} commande
-            {commandesFiltrees.length > 1 ? "s" : ""} trouvée
-            {commandesFiltrees.length > 1 ? "s" : ""}
-          </span>
+          {commandesFiltrees.length} commande
+          {commandesFiltrees.length > 1 ? "s" : ""}
         </div>
       </div>
 
-      {/* Gestion des états de chargement et d'erreur */}
+      {/* Gestion des états */}
       {loading ? (
         <div className="commandes-cabinet-loading">
           <div className="commandes-cabinet-spinner"></div>
-          <p>Chargement de vos commandes...</p>
+          <p>Chargement des commandes...</p>
         </div>
       ) : error ? (
         <div className="commandes-cabinet-empty">
-          <Package size={48} className="text-gray-400" />
+          <Package size={40} />
           <h3>Erreur de chargement</h3>
           <p>Une erreur est survenue lors du chargement des commandes.</p>
         </div>
       ) : commandesFiltrees.length === 0 ? (
         <div className="commandes-cabinet-empty">
-          <Package size={48} className="text-gray-400" />
-          <h3>Aucune commande trouvée</h3>
-          <p>Aucune commande ne correspond à vos critères de recherche.</p>
+          <Package size={40} />
+          <h3>Aucune commande</h3>
+          <p>Aucune commande ne correspond à vos critères.</p>
         </div>
       ) : (
         <>
+          {/* Grille des commandes */}
           <div className="commandes-cabinet-grid">
             {commandesCourantes.map((commande) => (
               <CommandeCard key={commande.id} commande={commande} />
@@ -305,9 +332,10 @@ const CommandesCabinet = ({ commandes, loading, error }) => {
                 onClick={allerPagePrecedente}
                 disabled={currentPage === 1}
                 className="commandes-cabinet-pagination-btn"
+                aria-label="Page précédente"
               >
-                <ChevronLeft size={16} />
-                Précédent
+                <ChevronLeft size={14} />
+                Préc.
               </button>
 
               <div className="commandes-cabinet-pagination-pages">
@@ -319,10 +347,12 @@ const CommandesCabinet = ({ commandes, loading, error }) => {
                       className={`commandes-cabinet-pagination-page ${
                         currentPage === page ? "active" : ""
                       }`}
+                      aria-label={`Page ${page}`}
+                      aria-current={currentPage === page ? "page" : undefined}
                     >
                       {page}
                     </button>
-                  )
+                  ),
                 )}
               </div>
 
@@ -330,9 +360,10 @@ const CommandesCabinet = ({ commandes, loading, error }) => {
                 onClick={allerPageSuivante}
                 disabled={currentPage === totalPages}
                 className="commandes-cabinet-pagination-btn"
+                aria-label="Page suivante"
               >
-                Suivant
-                <ChevronRight size={16} />
+                Suiv.
+                <ChevronRight size={14} />
               </button>
             </div>
           )}
