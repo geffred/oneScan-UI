@@ -1,17 +1,10 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
-import React, {
-  useState,
-  useContext,
-  useMemo,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+import React, { useState, useContext, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import { toast, ToastContainer } from "react-toastify";
-import { Shield, Printer, X, CheckSquare, Square } from "lucide-react";
+import { Shield, Printer, X, CheckSquare } from "lucide-react";
 
 import { AuthContext } from "../../components/Config/AuthContext";
 import useMeditLinkAuth from "../Config/useMeditLinkAuth";
@@ -42,10 +35,9 @@ const Commandes = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const userId = getUserIdFromToken();
 
-  //  Charger l'état sauvegardé (s'il existe)
   const savedState = JSON.parse(localStorage.getItem("commandesState") || "{}");
 
-  //  États des filtres avec sauvegarde
+  // ── Filtres ────────────────────────────────────────────────────────────────
   const [searchTerm, setSearchTerm] = useState(savedState.searchTerm || "");
   const [selectedPlateforme, setSelectedPlateforme] = useState(
     savedState.selectedPlateforme || "",
@@ -78,17 +70,108 @@ const Commandes = () => {
   const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1);
   const itemsPerPage = 25;
 
+  // ── UI ─────────────────────────────────────────────────────────────────────
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState({});
   const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false); // ← FIX
   const [showBulkCertModal, setShowBulkCertModal] = useState(false);
   const [certificatsMap, setCertificatsMap] = useState({});
 
+  // ── FIX : états Itero et CS Connect — absents de l'original ───────────────
+  const [iteroStatus, setIteroStatus] = useState({
+    authenticated: false,
+    loading: false,
+    error: null,
+  });
+  const [csConnectStatus, setCsConnectStatus] = useState({
+    authenticated: false,
+    loading: false,
+    error: null,
+  });
+
+  // ── Auth hooks ─────────────────────────────────────────────────────────────
   const backblazeStatus = useBackblazeStatus(isAuthenticated);
   const meditlinkAuth = useMeditLinkAuth({ fetchOnMount: true });
   const threeshapeAuth = useThreeShapeAuth();
   const dexisAuth = useDexisAuth({ refreshInterval: 10000 });
 
+  // ── FIX : vérification Itero au montage (copie de Platform.jsx) ───────────
+  const checkIteroStatus = useCallback(async () => {
+    try {
+      setIteroStatus((prev) => ({ ...prev, loading: true, error: null }));
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await fetch(`${API_BASE_URL}/itero/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIteroStatus({
+          authenticated: data.apiStatus === "Connecté",
+          loading: false,
+          error: null,
+        });
+      } else {
+        setIteroStatus({
+          authenticated: false,
+          loading: false,
+          error: "Erreur check",
+        });
+      }
+    } catch (err) {
+      setIteroStatus({
+        authenticated: false,
+        loading: false,
+        error: err.message,
+      });
+    }
+  }, []);
+
+  // ── FIX : vérification CS Connect au montage (copie de Platform.jsx) ──────
+  const checkCsConnectStatus = useCallback(async () => {
+    try {
+      setCsConnectStatus((prev) => ({ ...prev, loading: true }));
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await fetch(`${API_BASE_URL}/csconnect/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCsConnectStatus({
+          authenticated: data.connected || false,
+          loading: false,
+          error: null,
+        });
+      } else {
+        setCsConnectStatus({
+          authenticated: false,
+          loading: false,
+          error: null,
+        });
+      }
+    } catch (err) {
+      setCsConnectStatus({
+        authenticated: false,
+        loading: false,
+        error: err.message,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkIteroStatus();
+      checkCsConnectStatus();
+    }
+  }, [isAuthenticated, checkIteroStatus, checkCsConnectStatus]);
+
+  // ── SWR data ───────────────────────────────────────────────────────────────
   const { data: userData } = useSWR(
     isAuthenticated ? "user-data" : null,
     getUserData,
@@ -108,12 +191,8 @@ const Commandes = () => {
     { refreshInterval: 60000 },
   );
 
-  const { syncAllPlatforms } = useSyncPlatforms({
-    mutateCommandes,
-    setSyncStatus,
-    setIsSyncing,
-  });
-
+  // ── useCommandesData AVANT useSyncPlatforms ────────────────────────────────
+  // FIX : iteroStatus et csconnectStatus maintenant passés correctement
   const { stats, filteredCommandes, connectionStatus } = useCommandesData({
     commandes,
     userPlatforms,
@@ -123,29 +202,51 @@ const Commandes = () => {
     commentFilter,
     showOnlyUnread,
     dateFilter,
+    customDateFrom,
+    customDateTo,
+    deadlineFilter,
+    customDeadlineFrom,
+    customDeadlineTo,
     meditlinkAuth,
     threeshapeAuth,
     dexisStatus: dexisAuth,
     backblazeStatus,
+    iteroStatus, // ← FIX : était absent
+    csconnectStatus: csConnectStatus, // ← FIX : était absent
   });
 
-  //  Sauvegarder automatiquement l'état des filtres
+  // ── useSyncPlatforms avec getConnectionStatus injecté ─────────────────────
+  const { syncPlatformCommandes, syncAllPlatforms } = useSyncPlatforms({
+    mutateCommandes,
+    setSyncStatus,
+    setIsSyncing,
+    getConnectionStatus: connectionStatus.get,
+  });
+
+  const handleSyncPlatform = useCallback(
+    (platformName) => syncPlatformCommandes(platformName),
+    [syncPlatformCommandes],
+  );
+
+  // ── Sauvegarde état filtres ────────────────────────────────────────────────
   useEffect(() => {
-    const stateToSave = {
-      searchTerm,
-      selectedPlateforme,
-      selectedStatut,
-      commentFilter,
-      showOnlyUnread,
-      dateFilter,
-      deadlineFilter,
-      customDateFrom,
-      customDateTo,
-      customDeadlineFrom,
-      customDeadlineTo,
-      currentPage,
-    };
-    localStorage.setItem("commandesState", JSON.stringify(stateToSave));
+    localStorage.setItem(
+      "commandesState",
+      JSON.stringify({
+        searchTerm,
+        selectedPlateforme,
+        selectedStatut,
+        commentFilter,
+        showOnlyUnread,
+        dateFilter,
+        deadlineFilter,
+        customDateFrom,
+        customDateTo,
+        customDeadlineFrom,
+        customDeadlineTo,
+        currentPage,
+      }),
+    );
   }, [
     searchTerm,
     selectedPlateforme,
@@ -161,39 +262,19 @@ const Commandes = () => {
     currentPage,
   ]);
 
-  //  Chargement batch des certificats (optimisé)
+  // ── Certificats ───────────────────────────────────────────────────────────
   const loadCertificatsStatus = useCallback(async () => {
-    if (!commandes || commandes.length === 0) {
-      console.log(" Aucune commande à charger");
-      return;
-    }
-
+    if (!commandes?.length) return;
     try {
       const token = localStorage.getItem("token");
-      const commandeIds = commandes.map((cmd) => cmd.id);
-
-      console.log(
-        "📡 Chargement certificats pour",
-        commandeIds.length,
-        "commandes",
-      );
-
+      const ids = commandes.map((c) => c.id).join(",");
       const res = await fetch(
-        `${API_BASE_URL}/certificats/batch/exists?commandeIds=${commandeIds.join(",")}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        `${API_BASE_URL}/certificats/batch/exists?commandeIds=${ids}`,
+        { headers: { Authorization: `Bearer ${token}` } },
       );
-
-      if (!res.ok) throw new Error("Erreur chargement certificats");
-
-      const statusMap = await res.json();
-
-      console.log(" Certificats chargés:", statusMap);
-
-      setCertificatsMap(statusMap);
-    } catch (e) {
-      console.error("Erreur chargement certificats:", e);
+      if (!res.ok) throw new Error();
+      setCertificatsMap(await res.json());
+    } catch {
       setCertificatsMap({});
     }
   }, [commandes]);
@@ -202,71 +283,39 @@ const Commandes = () => {
     loadCertificatsStatus();
   }, [loadCertificatsStatus]);
 
-  //  SOLUTION 2 : Fonction de rechargement forcé depuis l'API
   const forceReloadCertificats = useCallback(async () => {
-    console.log("🔄 Début du rechargement forcé des certificats");
-
     try {
       const token = localStorage.getItem("token");
-
-      // 1. Récupérer les commandes fraîches depuis l'API
-      console.log("📥 Récupération des commandes fraîches...");
-      const commandesRes = await fetch(`${API_BASE_URL}/public/commandes`, {
+      const cmdRes = await fetch(`${API_BASE_URL}/public/commandes`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!commandesRes.ok) {
-        throw new Error(`Erreur commandes: ${commandesRes.status}`);
-      }
-
-      const freshCommandes = await commandesRes.json();
-      console.log(" Commandes récupérées:", freshCommandes.length);
-
-      if (!freshCommandes || freshCommandes.length === 0) {
-        console.log(" Aucune commande fraîche");
+      if (!cmdRes.ok) return;
+      const fresh = await cmdRes.json();
+      if (!fresh?.length) {
         setCertificatsMap({});
         return;
       }
 
-      // 2. Récupérer l'état des certificats pour ces commandes
-      const commandeIds = freshCommandes.map((cmd) => cmd.id);
-      console.log("📡 Chargement certificats pour IDs:", commandeIds);
-
+      const ids = fresh.map((c) => c.id).join(",");
       const certRes = await fetch(
-        `${API_BASE_URL}/certificats/batch/exists?commandeIds=${commandeIds.join(",")}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        `${API_BASE_URL}/certificats/batch/exists?commandeIds=${ids}`,
+        { headers: { Authorization: `Bearer ${token}` } },
       );
-
-      if (!certRes.ok) {
-        throw new Error(`Erreur certificats: ${certRes.status}`);
-      }
-
-      const statusMap = await certRes.json();
-
-      console.log(" Certificats rechargés avec succès:", statusMap);
-      console.log(
-        " Nombre de certificats trouvés:",
-        Object.keys(statusMap).filter((k) => statusMap[k]).length,
-      );
-
-      // 3. Mettre à jour l'état
-      setCertificatsMap(statusMap);
-    } catch (e) {
-      console.error("Erreur lors du rechargement forcé:", e);
-      toast.error("Erreur lors du rechargement des certificats");
+      if (certRes.ok) setCertificatsMap(await certRes.json());
+    } catch {
+      toast.error("Erreur rechargement certificats");
     }
   }, []);
 
+  // ── Pagination ─────────────────────────────────────────────────────────────
   const totalPages = Math.ceil(filteredCommandes.length / itemsPerPage);
 
+  // ── Handlers commandes ────────────────────────────────────────────────────
   const handleViewDetails = useCallback(
-    (commande) => {
+    (commande) =>
       navigate(`/dashboard/commande/${commande.externalId}`, {
         state: { commande },
-      });
-    },
+      }),
     [navigate],
   );
 
@@ -280,16 +329,14 @@ const Commandes = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
       );
-
-      // Mise à jour optimiste locale
       mutateCommandes(
-        (currentData) =>
-          currentData.map((cmd) =>
-            cmd.id === commande.id ? { ...cmd, vu: !commande.vu } : cmd,
+        (data) =>
+          data.map((c) =>
+            c.id === commande.id ? { ...c, vu: !commande.vu } : c,
           ),
         false,
       );
-    } catch (e) {
+    } catch {
       toast.error("Erreur mise à jour statut lecture");
     }
   };
@@ -297,10 +344,8 @@ const Commandes = () => {
   const handlePrintCertificat = async (commande) => {
     try {
       const token = localStorage.getItem("token");
-      const baseUrl = API_BASE_URL;
-
       const res = await fetch(
-        `${baseUrl}/certificats/commande/${commande.id}`,
+        `${API_BASE_URL}/certificats/commande/${commande.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -308,14 +353,13 @@ const Commandes = () => {
           },
         },
       );
-
-      if (!res.ok) throw new Error("Certificat inexistant");
-
+      if (!res.ok) throw new Error();
       const cert = await res.json();
-      const printUrl = `${baseUrl}/certificats/print/${cert.id}?token=${token}`;
-      window.open(printUrl, "_blank");
-    } catch (e) {
-      console.error("Erreur d'impression:", e);
+      window.open(
+        `${API_BASE_URL}/certificats/print/${cert.id}?token=${token}`,
+        "_blank",
+      );
+    } catch {
       toast.error(
         `Impossible d'imprimer : aucun certificat pour ${commande.refPatient}`,
       );
@@ -323,77 +367,148 @@ const Commandes = () => {
   };
 
   const handleBulkPrint = async () => {
-    if (selectedIds.length === 0) return;
-
+    if (!selectedIds.length) return;
     try {
       const token = localStorage.getItem("token");
-      const baseUrl = import.meta.env.VITE_API_BASE_URL;
-
-      toast.info("Préparation de l'impression groupée...");
-
+      toast.info("Préparation impression groupée...");
       const certIds = [];
       for (const cmdId of selectedIds) {
-        const res = await fetch(`${baseUrl}/certificats/commande/${cmdId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const cert = await res.json();
-          certIds.push(cert.id);
-        }
+        const res = await fetch(
+          `${API_BASE_URL}/certificats/commande/${cmdId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        if (res.ok) certIds.push((await res.json()).id);
       }
-
-      if (certIds.length === 0) {
-        toast.error("Aucun certificat trouvé pour la sélection.");
+      if (!certIds.length) {
+        toast.error("Aucun certificat trouvé.");
         return;
       }
-
-      const idsParam = certIds.join(",");
-      const printUrl = `${baseUrl}/certificats/print-bulk?ids=${idsParam}&token=${token}`;
-
-      console.log("URL d'impression appelée : ", printUrl);
-      window.open(printUrl, "_blank");
-    } catch (e) {
-      console.error(e);
-      toast.error("Erreur lors de la préparation de l'impression.");
+      window.open(
+        `${API_BASE_URL}/certificats/print-bulk?ids=${certIds.join(",")}&token=${token}`,
+        "_blank",
+      );
+    } catch {
+      toast.error("Erreur impression groupée.");
     }
   };
 
-  const handleSelectOne = (id) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+  // ── Sélection ──────────────────────────────────────────────────────────────
+  const handleSelectOne = (id) =>
+    setSelectedIds((p) =>
+      p.includes(id) ? p.filter((i) => i !== id) : [...p, id],
     );
-  };
-
   const handleSelectAll = (ids) => setSelectedIds(ids);
-
   const handleClearSelection = () => setSelectedIds([]);
 
-  //  SOLUTION 2 : Handler avec rechargement forcé
   const handleBulkCertSuccess = async (keepSelection = false) => {
-    console.log(" Début handleBulkCertSuccess");
-    console.log(" IDs sélectionnés:", selectedIds);
-
     setShowBulkCertModal(false);
-
-    // 1. Recharger les commandes depuis l'API
-    console.log("🔄 Rechargement des commandes...");
     await mutateCommandes();
-
-    // 2. Forcer le rechargement des certificats depuis l'API
-    console.log(" Rechargement forcé des certificats...");
     await forceReloadCertificats();
-
-    console.log(" handleBulkCertSuccess terminé");
-
     toast.success("Certificats créés avec succès !");
+    if (!keepSelection) handleClearSelection();
+  };
 
-    // 3. Gérer la sélection
-    if (!keepSelection) {
-      handleClearSelection();
+  // ── Bulk actions ──────────────────────────────────────────────────────────
+  const handleBulkStatusChange = async (newStatut) => {
+    if (!selectedIds.length) return;
+    setIsBulkProcessing(true);
+    try {
+      const token = localStorage.getItem("token");
+      await Promise.all(
+        selectedIds.map((id) =>
+          fetch(`${API_BASE_URL}/public/commandes/statut/${id}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ statut: newStatut }),
+          }),
+        ),
+      );
+      mutateCommandes(
+        (data) =>
+          data.map((c) =>
+            selectedIds.includes(c.id) ? { ...c, statut: newStatut } : c,
+          ),
+        false,
+      );
+      toast.success(`${selectedIds.length} commande(s) → ${newStatut}`);
+    } catch {
+      toast.error("Erreur changement statut");
+    } finally {
+      setIsBulkProcessing(false);
     }
   };
 
-  //  Fonction de réinitialisation des filtres
+  const handleBulkReadToggle = async (markAsRead) => {
+    if (!selectedIds.length) return;
+    setIsBulkProcessing(true);
+    try {
+      const token = localStorage.getItem("token");
+      await Promise.all(
+        selectedIds.map((id) =>
+          fetch(
+            `${API_BASE_URL}/public/commandes/${id}/${markAsRead ? "vu" : "non-vu"}`,
+            {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          ),
+        ),
+      );
+      mutateCommandes(
+        (data) =>
+          data.map((c) =>
+            selectedIds.includes(c.id) ? { ...c, vu: markAsRead } : c,
+          ),
+        false,
+      );
+      toast.success(
+        `${selectedIds.length} commande(s) marquée(s) ${markAsRead ? "vues" : "non vues"}`,
+      );
+    } catch {
+      toast.error("Erreur mise à jour visibilité");
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedIds.length) return;
+    if (
+      !window.confirm(
+        `Supprimer ${selectedIds.length} commande(s) ? Cette action est irréversible.`,
+      )
+    )
+      return;
+    setIsBulkProcessing(true);
+    try {
+      const token = localStorage.getItem("token");
+      await Promise.all(
+        selectedIds.map((id) =>
+          fetch(`${API_BASE_URL}/public/commandes/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ),
+      );
+      mutateCommandes(
+        (data) => data.filter((c) => !selectedIds.includes(c.id)),
+        false,
+      );
+      handleClearSelection();
+      toast.success(`${selectedIds.length} commande(s) supprimée(s)`);
+    } catch {
+      toast.error("Erreur suppression");
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  // ── Reset filtres ──────────────────────────────────────────────────────────
   const handleResetFilters = () => {
     setSearchTerm("");
     setSelectedPlateforme("");
@@ -411,6 +526,7 @@ const Commandes = () => {
     toast.info("Filtres réinitialisés");
   };
 
+  // ── Guards ─────────────────────────────────────────────────────────────────
   if (commandesError) return <ErrorState onRetry={() => mutateCommandes()} />;
   if (commandesLoading) return <LoadingState />;
 
@@ -422,7 +538,7 @@ const Commandes = () => {
         stats={stats}
         userPlatforms={userPlatforms}
         isSyncing={isSyncing}
-        onSyncAll={() => syncAllPlatforms(userPlatforms, connectionStatus.get)}
+        onSyncAll={() => syncAllPlatforms(userPlatforms)}
       />
 
       {selectedIds.length > 0 && (
@@ -454,7 +570,10 @@ const Commandes = () => {
       <PlatformsSection
         userPlatforms={userPlatforms}
         syncStatus={syncStatus}
+        onSyncPlatform={handleSyncPlatform}
         getConnectionStatus={connectionStatus.get}
+        connectedPlatformsCount={stats.connectedPlatformsCount}
+        totalPlatformsCount={stats.totalPlatformsCount}
       />
 
       <CommandesFilters
@@ -508,6 +627,7 @@ const Commandes = () => {
 
       <CommandesList
         commandes={filteredCommandes}
+        totalCommandes={commandes.length}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
@@ -516,8 +636,15 @@ const Commandes = () => {
         selectedIds={selectedIds}
         onSelectOne={handleSelectOne}
         onSelectAll={handleSelectAll}
+        onClearSelection={handleClearSelection}
+        onBulkStatusChange={handleBulkStatusChange}
+        onBulkReadToggle={handleBulkReadToggle}
+        onBulkDelete={handleBulkDelete}
+        isBulkProcessing={isBulkProcessing}
         onPrintCertificat={handlePrintCertificat}
         certificatsMap={certificatsMap}
+        connectedPlatformsCount={stats.connectedPlatformsCount}
+        onSyncAll={() => syncAllPlatforms(userPlatforms)}
       />
 
       {showBulkCertModal && (

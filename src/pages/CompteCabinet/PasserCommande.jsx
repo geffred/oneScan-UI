@@ -62,11 +62,32 @@ const OPTIONS = [
   { value: "AUCUN", label: "Aucune option" },
 ];
 
+// ── FIX : date min = J + 5 jours ouvrés (sans samedi ni dimanche) ─────────
+// J+5 jours ouvrés minimum.
+// Le jour résultant est accepté même s'il tombe un samedi ou dimanche
+// (le calendrier bloque samedi/dimanche, mais le 6e jour ouvré suivant reste sélectionnable).
+// Si après 5 jours ouvrés la date atterrit un weekend, on avance au lundi.
+const getMinDate = () => {
+  let date = new Date();
+  let added = 0;
+  while (added < 5) {
+    date.setDate(date.getDate() + 1);
+    const day = date.getDay(); // 0 = dimanche, 6 = samedi
+    if (day !== 0 && day !== 6) added++;
+  }
+  // Si la date min tombe un samedi (6) → avancer à lundi (+2)
+  // Si la date min tombe un dimanche (0) → avancer à lundi (+1)
+  const finalDay = date.getDay();
+  if (finalDay === 6) date.setDate(date.getDate() + 2);
+  else if (finalDay === 0) date.setDate(date.getDate() + 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
+
 const validationSchema = Yup.object({
   refPatient: Yup.string().required("Référence patient requise").max(100),
   commentaire: Yup.string().max(1000, "Maximum 1000 caractères"),
   dateEcheance: Yup.date()
-    .min(new Date(), "Doit être dans le futur")
+    .min(new Date(getMinDate()), `Délai minimum : 5 jours ouvrés`)
     .required("Date d'échéance requise"),
 });
 
@@ -360,11 +381,7 @@ const OrderModal = React.memo(({ appareil, onClose, onSuccess }) => {
       i = Math.floor(Math.log(b) / Math.log(k));
     return (b / Math.pow(k, i)).toFixed(1) + s[i];
   };
-  const getMinDate = () => {
-    const t = new Date();
-    t.setDate(t.getDate() + 1);
-    return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
-  };
+  const minDate = getMinDate();
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files).filter((f) => {
@@ -486,7 +503,7 @@ const OrderModal = React.memo(({ appareil, onClose, onSuccess }) => {
           cabinetId: userData.id,
           cabinetName: userData.nom,
           refPatient: values.refPatient.trim(),
-          typeAppareil: appareil?.nom || null,
+          typeAppareil: appareil?.nom || null, // ← null si pas d'appareil, le DTO l'accepte maintenant
           commentaire: values.commentaire?.trim() || "",
           details: appareil?.description || "",
           fichierUrls: uploadedFiles.map((f) => f.fileUrl),
@@ -507,9 +524,10 @@ const OrderModal = React.memo(({ appareil, onClose, onSuccess }) => {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            commande_id: result.commande.externalId,
+            commande_id: result.commande.id, // ← id interne
             patient_ref: values.refPatient,
             cabinet: userData.nom,
+            cabinet_email: userData.email || "", // ← permet au backend d'envoyer la confirmation au cabinet
             date_reception: new Date().toLocaleDateString("fr-FR"),
             commentaire: values.commentaire || "",
             type_appareil: appareil?.nom || "Non spécifié",
@@ -544,6 +562,7 @@ const OrderModal = React.memo(({ appareil, onClose, onSuccess }) => {
 
   return (
     <div className="pc-overlay" onClick={onClose}>
+      {/* FIX : overflow: hidden retiré du pc-modal → le footer "Envoyer" ne disparaît plus */}
       <div className="pc-modal" onClick={(e) => e.stopPropagation()}>
         <div className="pc-modal-head">
           <div className="pc-modal-title">
@@ -591,7 +610,7 @@ const OrderModal = React.memo(({ appareil, onClose, onSuccess }) => {
           onSubmit={handleSubmit}
         >
           {({ isSubmitting, values }) => (
-            <Form>
+            <Form className="pc-modal-form-wrapper">
               <div className="pc-modal-scroll">
                 <section className="pc-msec">
                   <h3>
@@ -617,11 +636,12 @@ const OrderModal = React.memo(({ appareil, onClose, onSuccess }) => {
                         <Calendar size={11} />
                         Date d'échéance *
                       </label>
-                      <Field
-                        name="dateEcheance"
-                        type="date"
-                        min={getMinDate()}
-                      />
+                      {/* FIX : min = J+5 jours ouvrés */}
+                      <Field name="dateEcheance" type="date" min={minDate} />
+                      <p className="pc-date-hint">
+                        Délai minimum : 5 jours ouvrés (à partir du{" "}
+                        {minDate.split("-").reverse().join("/")})
+                      </p>
                       <ErrorMessage
                         name="dateEcheance"
                         component="p"
@@ -780,6 +800,7 @@ const OrderModal = React.memo(({ appareil, onClose, onSuccess }) => {
                 </section>
               </div>
 
+              {/* FIX : footer toujours visible car il est en dehors du scroll */}
               <div className="pc-modal-foot">
                 <button type="button" className="pc-mcancel" onClick={onClose}>
                   Annuler
@@ -963,20 +984,32 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
               <h1>Catalogue</h1>
               <p>Sélectionnez un appareil pour commander</p>
             </div>
-            {selected && (
-              <div className="pc-chip">
-                <CheckCircle size={13} />
-                {selected.nom}
-                <button
-                  onClick={() => {
-                    setSelected(null);
-                    setPreviewed(null);
-                  }}
-                >
-                  <X size={11} />
-                </button>
-              </div>
-            )}
+            <div className="pc-main-actions">
+              {selected && (
+                <div className="pc-chip">
+                  <CheckCircle size={13} />
+                  {selected.nom}
+                  <button
+                    onClick={() => {
+                      setSelected(null);
+                      setPreviewed(null);
+                    }}
+                  >
+                    <X size={11} />
+                  </button>
+                </div>
+              )}
+              <button
+                className="pc-freeorder-btn"
+                onClick={() => {
+                  setSelected(null);
+                  setOrderOpen(true);
+                }}
+              >
+                <ShoppingCart size={14} />
+                Commander sans appareil
+              </button>
+            </div>
           </div>
 
           {isLoading ? (
@@ -987,12 +1020,22 @@ const PasserCommande = ({ onCommandeCreated, onError, onSuccess }) => {
           ) : filtered.length === 0 ? (
             <div className="pc-empty">
               <Package size={48} />
-              <h3>Aucun appareil</h3>
+              <h3>Aucun appareil trouvé</h3>
               <p>
                 {hasFilters
-                  ? "Modifiez les filtres."
+                  ? "Aucun résultat pour ces filtres."
                   : "Aucun appareil disponible."}
               </p>
+              <button
+                className="pc-freeorder-btn"
+                onClick={() => {
+                  setSelected(null);
+                  setOrderOpen(true);
+                }}
+              >
+                <ShoppingCart size={14} />
+                Commander sans appareil
+              </button>
             </div>
           ) : (
             <div className="pc-grid">

@@ -176,12 +176,9 @@ const CommandeCard = React.memo(({ commande }) => {
             {commande.typeAppareil}
           </span>
         )}
-        {commande.numeroSuivi && (
-          <span className="cc-chip mono">
-            <Hash size={11} />
-            {commande.numeroSuivi.slice(0, 16)}…
-          </span>
-        )}
+        <span className="cc-chip mono">
+          <Hash size={11} />#{commande.id}
+        </span>
       </div>
 
       {commande.details && (

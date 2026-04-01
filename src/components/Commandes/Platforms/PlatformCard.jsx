@@ -9,103 +9,56 @@ import {
   WifiOff,
 } from "lucide-react";
 
+const PLATFORM_DISPLAY_NAMES = {
+  THREESHAPE: "3Shape",
+  MEDITLINK: "MeditLink",
+  ITERO: "Itero",
+  DEXIS: "Dexis",
+  CSCONNECT: "CS Connect",
+  MYSMILELAB: "MySmileLab",
+};
+
+const CONNECTION_LABELS = {
+  MEDITLINK: { yes: "Connecté OAuth", no: "Non connecté" },
+  THREESHAPE: { yes: "Connecté OAuth", no: "Non connecté" },
+  ITERO: { yes: "Connecté à l'API", no: "Non connecté" },
+  DEXIS: { yes: "Connecté Dexis OAuth", no: "Non connecté" },
+  CSCONNECT: { yes: "Connecté à l'API", no: "Non connecté" },
+};
+
 const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
-  const getSyncStatusIcon = () => {
-    if (!syncStatus) return null;
-
-    switch (syncStatus.status) {
-      case "loading":
-        return <Loader2 size={14} className="commandes-sync-loading-spinner" />;
-      case "success":
-        return <CheckCircle size={14} className="commandes-sync-success" />;
-      case "error":
-        return <AlertCircle size={14} className="commandes-sync-error" />;
-      default:
-        return null;
-    }
-  };
-
-  const getConnectionStatusIcon = () => {
-    if (!connectionStatus)
-      return <WifiOff size={16} className="commandes-connection-unknown" />;
-
-    const isConnected = connectionStatus.authenticated;
-    return (
-      <Link2
-        size={16}
-        className={
-          isConnected
-            ? "commandes-connection-success"
-            : "commandes-connection-error"
-        }
-      />
-    );
-  };
-
-  const getConnectionStatusText = () => {
-    if (!connectionStatus) return "Statut inconnu";
-
-    switch (platform.name) {
-      case "MEDITLINK":
-        return connectionStatus.authenticated
-          ? "Connecté OAuth"
-          : "Non connecté";
-      case "THREESHAPE":
-        return connectionStatus.authenticated
-          ? "Connecté OAuth"
-          : "Non connecté";
-      case "ITERO":
-        return connectionStatus.authenticated
-          ? "Connecté à l'API"
-          : "Non connecté";
-      case "DEXIS":
-        return connectionStatus.authenticated
-          ? "Connecté Dexis OAuth"
-          : "Non connecté";
-      case "CSCONNECT":
-        return connectionStatus.authenticated
-          ? "Connecté à l'API"
-          : "Non connecté";
-      default:
-        return connectionStatus.authenticated ? "Connecté" : "Non connecté";
-    }
-  };
-
-  const getPlatformDisplayName = (name) => {
-    switch (name) {
-      case "THREESHAPE":
-        return "3Shape";
-      case "ITERO":
-        return "Itero";
-      case "DEXIS":
-        return "Dexis";
-      case "CSCONNECT":
-        return "CS Connect";
-      case "MYSMILELAB":
-        return "MySmileLab";
-      default:
-        return name;
-    }
-  };
-
   const isConnected = connectionStatus?.authenticated === true;
+  const displayName = PLATFORM_DISPLAY_NAMES[platform.name] || platform.name;
+  const connLabel = (CONNECTION_LABELS[platform.name] || {
+    yes: "Connecté",
+    no: "Non connecté",
+  })[isConnected ? "yes" : "no"];
+
+  const getSyncIcon = () => {
+    if (!syncStatus) return null;
+    if (syncStatus.status === "loading")
+      return <Loader2 size={14} className="commandes-sync-loading-spinner" />;
+    if (syncStatus.status === "success")
+      return <CheckCircle size={14} className="commandes-sync-success" />;
+    if (syncStatus.status === "error")
+      return <AlertCircle size={14} className="commandes-sync-error" />;
+    return null;
+  };
 
   return (
     <div className="commandes-platform-card">
       <div className="commandes-platform-info">
         <div className="commandes-platform-header">
-          <h4 className="commandes-platform-name">
-            {getPlatformDisplayName(platform.name)}
-          </h4>
+          <h4 className="commandes-platform-name">{displayName}</h4>
           <div
-            className={`commandes-connection-status ${
-              isConnected ? "connected" : "disconnected"
-            }`}
+            className={`commandes-connection-status ${isConnected ? "connected" : "disconnected"}`}
           >
-            {getConnectionStatusIcon()}
-            <span className="commandes-connection-text">
-              {getConnectionStatusText()}
-            </span>
+            {isConnected ? (
+              <Link2 size={16} className="commandes-connection-success" />
+            ) : (
+              <WifiOff size={16} className="commandes-connection-error" />
+            )}
+            <span className="commandes-connection-text">{connLabel}</span>
           </div>
         </div>
         <p className="commandes-platform-email">{platform.email}</p>
@@ -116,7 +69,7 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
           <div
             className={`commandes-sync-status commandes-sync-${syncStatus.status}`}
           >
-            {getSyncStatusIcon()}
+            {getSyncIcon()}
             <div className="commandes-sync-details">
               <span className="commandes-sync-message">
                 {syncStatus.message}
@@ -131,10 +84,9 @@ const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {
           </div>
         )}
 
+        {/* onSync reçoit platform.name — useSyncPlatforms.syncPlatformCommandes gère le reste */}
         <button
-          className={`commandes-btn ${
-            isConnected ? "commandes-btn-primary" : "commandes-btn-disabled"
-          }`}
+          className={`commandes-btn ${isConnected ? "commandes-btn-primary" : "commandes-btn-disabled"}`}
           onClick={() => onSync(platform.name)}
           disabled={syncStatus?.status === "loading" || !isConnected}
           title={!isConnected ? "Connexion requise" : "Récupérer les données"}

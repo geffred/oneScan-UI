@@ -8,7 +8,7 @@ import "./PlatformsSection.css";
 const PlatformsSection = ({
   userPlatforms,
   syncStatus,
-  onSyncPlatform,
+  onSyncPlatform, // ← reçu du parent (Commandes.jsx)
   getConnectionStatus,
   connectedPlatformsCount,
   totalPlatformsCount,
@@ -22,13 +22,14 @@ const PlatformsSection = ({
         Vos Plateformes ({connectedPlatformsCount}/{totalPlatformsCount}{" "}
         connectées)
       </h3>
+
       <div className="commandes-platforms-grid">
         {userPlatforms.map((platform) => (
           <PlatformCard
             key={platform.id}
             platform={platform}
             syncStatus={syncStatus[platform.name]}
-            onSync={onSyncPlatform}
+            onSync={onSyncPlatform} // ← FIX : passé correctement
             connectionStatus={getConnectionStatus(platform.name)}
           />
         ))}
