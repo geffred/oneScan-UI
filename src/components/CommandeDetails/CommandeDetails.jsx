@@ -34,47 +34,32 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const fetchWithAuth = async (url, options = {}) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
-
   const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...options.headers,
-    },
+    headers: { Authorization: `Bearer ${token}`, ...options.headers },
     ...options,
   });
-
-  if (!response.ok) {
+  if (!response.ok)
     throw new Error(`Erreur ${response.status}: ${response.statusText}`);
-  }
-
   return response.json();
 };
 
 const fetchWithAuthBlob = async (url) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
-
   const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
-
-  if (!response.ok) {
+  if (!response.ok)
     throw new Error(`Erreur téléchargement: ${response.status}`);
-  }
-
   return response.blob();
 };
 
 const getCommandes = async () =>
   fetchWithAuth(`${API_BASE_URL}/public/commandes`);
-
 const getCommandeByExternalId = async (externalId) => {
   if (!externalId) throw new Error("ExternalId manquant");
   return fetchWithAuth(`${API_BASE_URL}/public/commandes/${externalId}`);
 };
-
 const getCabinets = async () => fetchWithAuth(`${API_BASE_URL}/cabinet`);
 
 const markAsRead = async (commandeId) => {
@@ -103,7 +88,7 @@ const updateCabinetId = async (commandeId, cabinetId) => {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ cabinetId: cabinetId }),
+      body: JSON.stringify({ cabinetId }),
     },
   );
   if (!response.ok) throw new Error("Erreur mise à jour cabinet");
@@ -157,7 +142,7 @@ const checkCertificatExists = async (commandeId) => {
     if (!response.ok) return false;
     const data = await response.json();
     return data.exists || false;
-  } catch (error) {
+  } catch {
     return false;
   }
 };
@@ -175,8 +160,7 @@ const ErrorState = React.memo(({ error, onBack }) => (
     <h3 className="commandes-error-title">Erreur</h3>
     <p className="commandes-error-message">{error || "Commande non trouvée"}</p>
     <button className="commandes-btn commandes-btn-primary" onClick={onBack}>
-      <ArrowLeft size={16} />
-      Retour
+      <ArrowLeft size={16} /> Retour
     </button>
   </div>
 ));
@@ -205,7 +189,6 @@ const CommandeDetails = () => {
   const hasMarkedAsRead = useRef(false);
   const hasFetchedCertificat = useRef(false);
 
-  // ✅ OPTIMISATION 1: Utilisez directement fallbackData si disponible
   const initialCommande = location.state?.commande;
 
   const {
@@ -218,10 +201,10 @@ const CommandeDetails = () => {
     () => getCommandeByExternalId(externalId),
     {
       revalidateOnFocus: false,
-      revalidateOnReconnect: false, // ✅ Désactivé pour éviter revalidation inutile
+      revalidateOnReconnect: false,
       errorRetryCount: 3,
       fallbackData: initialCommande,
-      dedupingInterval: 10000, // ✅ Cache pendant 10s
+      dedupingInterval: 10000,
     },
   );
 
@@ -234,56 +217,39 @@ const CommandeDetails = () => {
   const { data: cabinets = [], isLoading: cabinetsLoading } = useSWR(
     isAuthenticated ? "cabinets" : null,
     getCabinets,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 60000, // ✅ Cache 1 minute
-    },
+    { revalidateOnFocus: false, dedupingInterval: 60000 },
   );
 
-  // ✅ OPTIMISATION 2: Vérification certificat APRÈS le rendu (non bloquant)
   useEffect(() => {
     if (commande?.id && !hasFetchedCertificat.current) {
       hasFetchedCertificat.current = true;
-
-      // ✅ Délai pour ne pas bloquer le rendu initial
       const timer = setTimeout(() => {
         checkCertificatExists(commande.id)
           .then(setHasCertificat)
           .catch(() => setHasCertificat(false));
       }, 100);
-
       return () => clearTimeout(timer);
     }
   }, [commande?.id]);
 
-  // ✅ OPTIMISATION 3: Marquage "lu" APRÈS le rendu (non bloquant)
   useEffect(() => {
     if (commande?.id && !commande.vu && !hasMarkedAsRead.current) {
       hasMarkedAsRead.current = true;
-
-      // ✅ Mise à jour optimiste immédiate
       mutateCommande({ ...commande, vu: true }, false);
-
-      // ✅ Puis appel serveur en arrière-plan (non bloquant)
       markAsRead(commande.id)
         .then(() => mutateCommandes())
-        .catch(() => {
-          // En cas d'erreur, on revient à l'état précédent
-          mutateCommande({ ...commande, vu: false }, false);
-        });
+        .catch(() => mutateCommande({ ...commande, vu: false }, false));
     }
   }, [commande?.id]);
 
-  const toggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
-
+  const toggleSidebar = useCallback(() => setSidebarOpen((p) => !p), []);
   const handleComponentChange = useCallback(
-    (newComponent) => {
-      setActiveComponent(newComponent);
-      navigate(`/dashboard/${newComponent}`);
+    (c) => {
+      setActiveComponent(c);
+      navigate(`/dashboard/${c}`);
     },
     [navigate],
   );
-
   const handleBack = useCallback(
     () => navigate("/dashboard/commandes"),
     [navigate],
@@ -311,176 +277,109 @@ const CommandeDetails = () => {
 
   const handleDownload = useCallback(async () => {
     if (!commande) return;
-
-    setActionStates((prev) => ({ ...prev, download: true }));
+    setActionStates((p) => ({ ...p, download: true }));
 
     try {
       const token = localStorage.getItem("token");
 
       if (commande.plateforme === "MEDITLINK") {
         toast.info("Récupération des fichiers MeditLink...");
-
         const orderResponse = await fetch(
           `${API_BASE_URL}/meditlink/orders/${commande.externalId}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           },
         );
-
-        if (!orderResponse.ok) {
+        if (!orderResponse.ok)
           throw new Error(
             `Erreur ${orderResponse.status}: ${orderResponse.statusText}`,
           );
-        }
-
         const orderData = await orderResponse.json();
-        console.log("Données commande MeditLink:", orderData);
-
-        if (
-          !orderData.order?.case?.files ||
-          orderData.order.case.files.length === 0
-        ) {
+        if (!orderData.order?.case?.files?.length) {
           toast.warning("Aucun fichier trouvé pour ce cas MeditLink");
           return;
         }
 
-        const files = orderData.order.case.files;
-        console.log(`${files.length} fichier(s) trouvé(s)`);
-
-        const relevantFiles = files.filter(
-          (file) =>
-            file.fileType === "SCAN_DATA" &&
-            file.name &&
-            !file.name.toLowerCase().endsWith(".meditgroupinfo"),
+        const relevantFiles = orderData.order.case.files.filter(
+          (f) =>
+            f.fileType === "SCAN_DATA" &&
+            f.name &&
+            !f.name.toLowerCase().endsWith(".meditgroupinfo"),
         );
-
-        console.log(
-          `${relevantFiles.length} fichier(s) de scan après filtrage`,
-        );
-
-        if (relevantFiles.length === 0) {
+        if (!relevantFiles.length) {
           toast.warning("Aucun fichier de scan disponible");
           return;
         }
 
         const finalZip = new JSZip();
-        let filesAdded = 0;
-        let processingCount = 0;
-        let errorCount = 0;
+        let filesAdded = 0,
+          processingCount = 0,
+          errorCount = 0;
 
         for (const file of relevantFiles) {
           try {
-            console.log(
-              `\n=== Traitement: ${file.name} (UUID: ${file.uuid}) ===`,
-            );
-
             const fileInfoResponse = await fetch(
               `${API_BASE_URL}/meditlink/files/${file.uuid}?type=stl`,
               {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
               },
             );
-
             if (fileInfoResponse.status === 202) {
-              console.warn(`Conversion en cours pour: ${file.name}`);
               processingCount++;
               continue;
             }
-
             if (!fileInfoResponse.ok) {
-              console.error(
-                `Erreur ${fileInfoResponse.status} pour: ${file.name}`,
-              );
               errorCount++;
               continue;
             }
-
             const fileInfo = await fileInfoResponse.json();
-            console.log("Infos fichier:", fileInfo);
-
             const downloadUrl = fileInfo.url || fileInfo.downloadUrl;
-
             if (!downloadUrl) {
-              console.error(`Pas d'URL de téléchargement pour: ${file.name}`);
               errorCount++;
               continue;
             }
-
-            console.log(`URL de téléchargement: ${downloadUrl}`);
-
             const archiveResponse = await fetch(downloadUrl);
-
             if (!archiveResponse.ok) {
-              console.error(`Erreur téléchargement: ${archiveResponse.status}`);
               errorCount++;
               continue;
             }
-
             const archiveBlob = await archiveResponse.blob();
-
             if (archiveBlob.size === 0) {
-              console.warn(`Fichier vide pour: ${file.name}`);
               errorCount++;
               continue;
             }
-
-            console.log(`Fichier téléchargé: ${archiveBlob.size} bytes`);
-
-            const fileName = fileInfo.downloadFileName || `${file.name}.7z`;
-
-            finalZip.file(fileName, archiveBlob);
+            finalZip.file(
+              fileInfo.downloadFileName || `${file.name}.7z`,
+              archiveBlob,
+            );
             filesAdded++;
-
-            console.log(`✓ Fichier ajouté au ZIP: ${fileName}`);
-          } catch (fileError) {
-            console.error(`Erreur traitement ${file.name}:`, fileError);
+          } catch {
             errorCount++;
           }
         }
 
-        console.log(`\n=== RÉSULTAT FINAL ===`);
-        console.log(`Fichiers ajoutés: ${filesAdded}`);
-        console.log(`En conversion: ${processingCount}`);
-        console.log(`Erreurs: ${errorCount}`);
-
         if (filesAdded === 0) {
-          if (processingCount > 0) {
-            toast.warning(
-              `${processingCount} fichier(s) en cours de conversion. Réessayez plus tard.`,
-            );
-          } else {
-            toast.error("Aucun fichier n'a pu être téléchargé");
-          }
+          processingCount > 0
+            ? toast.warning(
+                `${processingCount} fichier(s) en cours de conversion. Réessayez plus tard.`,
+              )
+            : toast.error("Aucun fichier n'a pu être téléchargé");
           return;
         }
 
-        console.log("Génération du ZIP final...");
         const finalZipBlob = await finalZip.generateAsync({
           type: "blob",
           compression: "DEFLATE",
           compressionOptions: { level: 6 },
         });
-
-        console.log(`ZIP final généré: ${finalZipBlob.size} bytes`);
-
         downloadBlobInBrowser(
           finalZipBlob,
           `MeditLink_${commande.externalId}.zip`,
         );
-
-        let message = `${filesAdded} fichier(s) téléchargé(s)`;
-        if (processingCount > 0) {
-          message += ` (${processingCount} en conversion)`;
-        }
-        if (errorCount > 0) {
-          message += ` (${errorCount} en erreur)`;
-        }
-
-        toast.success(message);
+        let msg = `${filesAdded} fichier(s) téléchargé(s)`;
+        if (processingCount > 0) msg += ` (${processingCount} en conversion)`;
+        if (errorCount > 0) msg += ` (${errorCount} en erreur)`;
+        toast.success(msg);
       } else if (commande.plateforme === "DEXIS") {
         const response = await fetch(
           `${API_BASE_URL}/dexis/cases/${commande.externalId}/download`,
@@ -488,143 +387,162 @@ const CommandeDetails = () => {
             headers: { Authorization: `Bearer ${token}` },
           },
         );
-
-        if (!response.ok) {
-          throw new Error(`Erreur backend: ${response.status}`);
-        }
-
-        const azureUrl = await response.text();
-        const cleanUrl = azureUrl.replace(/"/g, "").trim();
-
-        if (!cleanUrl.startsWith("http")) {
+        if (!response.ok) throw new Error(`Erreur backend: ${response.status}`);
+        const azureUrl = (await response.text()).replace(/"/g, "").trim();
+        if (!azureUrl.startsWith("http"))
           throw new Error("URL de téléchargement invalide");
-        }
-
         const link = document.createElement("a");
-        link.href = cleanUrl;
+        link.href = azureUrl;
         link.style.display = "none";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
         toast.success("Téléchargement Dexis lancé");
       } else if (commande.plateforme === "THREESHAPE") {
         const zip = new JSZip();
         let filesAdded = 0;
-
         if (commande.hash_upper) {
           try {
-            console.log(
-              `Téléchargement Upper Jaw (${commande.hash_upper.substring(0, 8)}...)`,
-            );
             const blob = await fetchWithAuthBlob(
               `${API_BASE_URL}/threeshape/files/${commande.externalId}/${commande.hash_upper}`,
             );
             zip.file("Upper_Jaw.stl", blob);
             filesAdded++;
-            console.log("✓ Upper Jaw téléchargé");
           } catch (e) {
             console.error("Erreur Upper 3Shape:", e.message);
           }
         }
-
         if (commande.hash_lower) {
           try {
-            console.log(
-              `Téléchargement Lower Jaw (${commande.hash_lower.substring(0, 8)}...)`,
-            );
             const blob = await fetchWithAuthBlob(
               `${API_BASE_URL}/threeshape/files/${commande.externalId}/${commande.hash_lower}`,
             );
             zip.file("Lower_Jaw.stl", blob);
             filesAdded++;
-            console.log("✓ Lower Jaw téléchargé");
           } catch (e) {
             console.error("Erreur Lower 3Shape:", e.message);
           }
         }
-
         try {
           const details = await fetchWithAuth(
             `${API_BASE_URL}/threeshape/orders/${commande.externalId}`,
           );
-
-          if (details.files && Array.isArray(details.files)) {
-            console.log(
-              `${details.files.length} fichier(s) trouvé(s) dans les détails 3Shape`,
-            );
-
+          if (details.files?.length) {
             for (const file of details.files) {
               if (
                 file.hash === commande.hash_upper ||
                 file.hash === commande.hash_lower
-              ) {
-                console.log(
-                  `Skip fichier déjà téléchargé: ${file.name || file.jawType}`,
-                );
+              )
                 continue;
-              }
-
               const jawType = file.jawType || file.name || "";
               if (
                 !file.hash ||
                 jawType.toLowerCase().includes("none") ||
                 jawType.toLowerCase() === "unknown"
-              ) {
-                console.log(
-                  `Skip fichier non-scan: ${file.name || file.jawType}`,
-                );
+              )
                 continue;
-              }
-
               try {
-                console.log(
-                  `Téléchargement fichier additionnel: ${file.name || file.jawType} (${file.hash.substring(0, 8)}...)`,
-                );
-
                 const blob = await fetchWithAuthBlob(
                   `${API_BASE_URL}/threeshape/files/${commande.externalId}/${file.hash}`,
                 );
-
                 let fileName = file.name || `${file.jawType}_scan.stl`;
-                if (!fileName.toLowerCase().endsWith(".stl")) {
+                if (!fileName.toLowerCase().endsWith(".stl"))
                   fileName += ".stl";
-                }
-
                 zip.file(fileName, blob);
                 filesAdded++;
-                console.log(`✓ Fichier additionnel téléchargé: ${fileName}`);
               } catch (e) {
-                console.error(
-                  `Erreur fichier 3Shape ${file.name || file.jawType}:`,
-                  e.message,
-                );
+                console.error(`Erreur fichier 3Shape:`, e.message);
               }
             }
           }
         } catch (e) {
-          console.log(
-            "Pas de détails supplémentaires 3Shape ou erreur:",
-            e.message,
-          );
+          console.log("Pas de détails 3Shape:", e.message);
         }
 
         if (filesAdded > 0) {
-          const content = await zip.generateAsync({ type: "blob" });
           downloadBlobInBrowser(
-            content,
+            await zip.generateAsync({ type: "blob" }),
             `3Shape_Scan_${commande.externalId}.zip`,
           );
           toast.success(`${filesAdded} fichier(s) STL 3Shape téléchargé(s)`);
         } else {
           toast.warning("Aucun fichier STL 3Shape valide trouvé");
         }
-      } else {
-        let endpoint = `${API_BASE_URL}/${commande.plateforme.toLowerCase()}/download/${commande.externalId}`;
-        if (commande.plateforme === "MYSMILELAB") {
-          endpoint = `${API_BASE_URL}/files/download?fileKey=${encodeURIComponent(commande.externalId)}`;
+      } else if (commande.plateforme === "MYSMILELAB") {
+        // ── FIX : utiliser fichierPublicIds (clés B2) ou fichierUrls
+        // L'externalId est l'UUID de la commande, PAS une clé Backblaze B2
+        const fichierPublicIds = commande.fichierPublicIds || [];
+        const fichierUrls = commande.fichierUrls || [];
+
+        // Priorité 1 : fichierPublicIds = clés B2 directes (ex: commandes/cabinet/cmd_xxx.zip)
+        // Priorité 2 : extraire la clé depuis l'URL publique Backblaze
+        const keysToDownload =
+          fichierPublicIds.length > 0
+            ? fichierPublicIds
+            : fichierUrls
+                .map((url) => {
+                  try {
+                    // URL format: https://f005.backblazeb2.com/file/<bucket>/<key>
+                    const urlObj = new URL(url);
+                    const parts = urlObj.pathname.split("/file/");
+                    if (parts.length > 1) {
+                      // Enlève le nom du bucket, garde seulement la clé
+                      return parts[1].split("/").slice(1).join("/") || null;
+                    }
+                    return null;
+                  } catch {
+                    return null;
+                  }
+                })
+                .filter(Boolean);
+
+        if (keysToDownload.length === 0) {
+          toast.warning("Aucun fichier associé à cette commande MySmileLab");
+          return;
         }
 
+        if (keysToDownload.length === 1) {
+          // Un seul fichier — téléchargement direct
+          const endpoint = `${API_BASE_URL}/files/download?fileKey=${encodeURIComponent(keysToDownload[0])}`;
+          const blob = await fetchWithAuthBlob(endpoint);
+          const fileName =
+            keysToDownload[0].split("/").pop() ||
+            `MySmileLab_${commande.id}.zip`;
+          downloadBlobInBrowser(blob, fileName);
+          toast.success("Fichier téléchargé");
+        } else {
+          // Plusieurs fichiers — regroupement dans un ZIP
+          toast.info(
+            `Téléchargement de ${keysToDownload.length} fichier(s)...`,
+          );
+          const zip = new JSZip();
+          let added = 0;
+          for (const key of keysToDownload) {
+            try {
+              const endpoint = `${API_BASE_URL}/files/download?fileKey=${encodeURIComponent(key)}`;
+              const blob = await fetchWithAuthBlob(endpoint);
+              const fileName = key.split("/").pop() || `file_${added + 1}.zip`;
+              zip.file(fileName, blob);
+              added++;
+            } catch (e) {
+              console.error(`Erreur fichier B2 ${key}:`, e.message);
+            }
+          }
+          if (added === 0) {
+            toast.error("Aucun fichier n'a pu être téléchargé");
+            return;
+          }
+          const zipBlob = await zip.generateAsync({
+            type: "blob",
+            compression: "DEFLATE",
+            compressionOptions: { level: 6 },
+          });
+          downloadBlobInBrowser(zipBlob, `MySmileLab_${commande.id}.zip`);
+          toast.success(`${added} fichier(s) téléchargé(s)`);
+        }
+      } else {
+        // Autres plateformes génériques
+        const endpoint = `${API_BASE_URL}/${commande.plateforme.toLowerCase()}/download/${commande.externalId}`;
         const blob = await fetchWithAuthBlob(endpoint);
         downloadBlobInBrowser(blob, `scan-${commande.externalId}.zip`);
         toast.success("Fichier téléchargé");
@@ -633,25 +551,25 @@ const CommandeDetails = () => {
       console.error(error);
       toast.error("Erreur lors du téléchargement : " + error.message);
     } finally {
-      setActionStates((prev) => ({ ...prev, download: false }));
+      setActionStates((p) => ({ ...p, download: false }));
     }
   }, [commande]);
 
   const handleGenerateOrder = useCallback(async () => {
     if (!commande) return;
-    setActionStates((prev) => ({ ...prev, generate: true }));
+    setActionStates((p) => ({ ...p, generate: true }));
     toast.info("Analyse IA en cours...");
     try {
       if (!commande.commentaire?.trim()) throw new Error("Commentaire vide");
       await analyseCommentaireDeepSeek(commande.commentaire, commande.id);
       await mutateCommande();
       await mutateCommandes();
-      setActionStates((prev) => ({ ...prev, reloadFiles: Date.now() }));
+      setActionStates((p) => ({ ...p, reloadFiles: Date.now() }));
       toast.success("Bon de commande généré");
     } catch (error) {
       toast.error(error.message || "Erreur génération");
     } finally {
-      setActionStates((prev) => ({ ...prev, generate: false }));
+      setActionStates((p) => ({ ...p, generate: false }));
     }
   }, [commande, mutateCommande, mutateCommandes]);
 
@@ -659,8 +577,7 @@ const CommandeDetails = () => {
     if (!commande?.cabinetId) return toast.warning("Aucun cabinet associé");
     const cabinet = cabinets.find((c) => c.id === commande.cabinetId);
     if (!cabinet?.email) return toast.warning("Email cabinet introuvable");
-
-    setActionStates((prev) => ({ ...prev, sendEmail: true }));
+    setActionStates((p) => ({ ...p, sendEmail: true }));
     try {
       await EmailService.sendEmailNotification(
         commande,
@@ -670,16 +587,16 @@ const CommandeDetails = () => {
       await EmailService.markNotificationAsSent(commande.id);
       mutateCommande({ ...commande, notification: true }, false);
       toast.success("Email envoyé");
-    } catch (error) {
+    } catch {
       toast.error("Erreur envoi email");
     } finally {
-      setActionStates((prev) => ({ ...prev, sendEmail: false }));
+      setActionStates((p) => ({ ...p, sendEmail: false }));
     }
   }, [commande, cabinets, mutateCommande]);
 
   const handleStatusChange = useCallback(
     async (newStatus) => {
-      setActionStates((prev) => ({ ...prev, updateStatus: true }));
+      setActionStates((p) => ({ ...p, updateStatus: true }));
       try {
         await updateCommandeStatus(commande.id, newStatus);
         await mutateCommande();
@@ -688,7 +605,7 @@ const CommandeDetails = () => {
       } catch {
         toast.error("Erreur mise à jour statut");
       } finally {
-        setActionStates((prev) => ({ ...prev, updateStatus: false }));
+        setActionStates((p) => ({ ...p, updateStatus: false }));
       }
     },
     [commande, mutateCommande, mutateCommandes],
@@ -733,7 +650,6 @@ const CommandeDetails = () => {
     () => getEcheanceStatus(commande?.dateEcheance),
     [commande],
   );
-
   const plateformeColor = useMemo(
     () => getPlateformeColor(commande?.plateforme),
     [commande],
@@ -767,14 +683,12 @@ const CommandeDetails = () => {
     </div>
   );
 
-  // ✅ OPTIMISATION 4: Affichage immédiat avec fallbackData
   if (!commande && commandeLoading)
     return (
       <LayoutWrapper>
         <LoadingState />
       </LayoutWrapper>
     );
-
   if (commandeError || !commande)
     return (
       <LayoutWrapper>

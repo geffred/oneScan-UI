@@ -59,9 +59,7 @@ const CommandeHeader = ({
       )}
 
       <div className="details-title-wrapper">
-        <h2 className="details-card-title">
-          Commande [ {commande.externalId} ]
-        </h2>
+        <h2 className="details-card-title">Commande [ {commande.id} ]</h2>
       </div>
     </>
   );

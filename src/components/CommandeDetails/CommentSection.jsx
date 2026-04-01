@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { FileText, Edit3, Save, X } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const CommentSection = ({
   commentaire,
   isLoading,
@@ -21,14 +22,13 @@ const CommentSection = ({
   useEffect(() => {
     if (isEditing && textareaRef.current) {
       textareaRef.current.focus();
-      const length = textareaRef.current.value.length;
-      textareaRef.current.setSelectionRange(length, length);
+      const len = textareaRef.current.value.length;
+      textareaRef.current.setSelectionRange(len, len);
     }
   }, [isEditing]);
 
   const handleEdit = () => {
-    const currentComment = commentaire || "";
-    setEditValue(currentComment);
+    setEditValue(commentaire || "");
     setIsEditing(true);
   };
 
@@ -39,7 +39,6 @@ const CommentSection = ({
 
   const handleSave = async () => {
     if (!commande) return;
-
     setIsSaving(true);
     try {
       const response = await fetch(
@@ -51,61 +50,47 @@ const CommentSection = ({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ commentaire: editValue.trim() }),
-        }
+        },
       );
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la mise à jour du commentaire");
-      }
-
-      const updatedCommande = await response.json();
-
-      // Utiliser directement mutateCommande et mutateCommandes
-      if (mutateCommande) {
-        await mutateCommande(updatedCommande, false);
-      }
-      if (mutateCommandes) {
-        await mutateCommandes();
-      }
-
+      if (!response.ok) throw new Error("Erreur mise à jour");
+      const updated = await response.json();
+      if (mutateCommande) await mutateCommande(updated, false);
+      if (mutateCommandes) await mutateCommandes();
       setIsEditing(false);
-      showNotification("Commentaire mis à jour avec succès", "success");
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du commentaire:", error);
-      showNotification("Erreur lors de la mise à jour du commentaire", "error");
+      showNotification("Commentaire mis à jour", "success");
+    } catch {
+      showNotification("Erreur mise à jour du commentaire", "error");
     } finally {
       setIsSaving(false);
     }
   };
+
   const handleKeyDown = (e) => {
-    if (e.key === "Escape") {
-      handleCancel();
-    }
+    if (e.key === "Escape") handleCancel();
   };
 
   return (
     <div className="details-info-card">
       <div className="details-card-header">
-        <FileText size={20} />
+        <FileText size={15} />
         <h3>Commentaire</h3>
         {!isLoading && !isEditing && (
           <button
             className="details-comment-edit-btn"
             onClick={handleEdit}
-            title="Modifier le commentaire"
+            title="Modifier"
           >
-            <Edit3 size={16} />
+            <Edit3 size={13} />
           </button>
         )}
       </div>
+
       <div className="details-card-content">
-        <div className="details-comment-item">
+        <div className="details-item">
           {isLoading ? (
             <div className="comment-loading-state">
-              <div className="comment-loading-spinner"></div>
-              <span className="comment-loading-text">
-                Chargement du commentaire...
-              </span>
+              <div className="comment-loading-spinner" />
+              <span className="comment-loading-text">Chargement…</span>
             </div>
           ) : isEditing ? (
             <div className="comment-edit-container">
@@ -115,10 +100,11 @@ const CommentSection = ({
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Saisissez votre commentaire..."
+                placeholder="Saisissez votre commentaire…"
                 rows={4}
                 maxLength={1000}
               />
+              <div className="comment-char-count">{editValue.length}/1000</div>
               <div className="comment-edit-actions">
                 <button
                   className="details-btn details-btn-primary details-btn-sm"
@@ -127,12 +113,12 @@ const CommentSection = ({
                 >
                   {isSaving ? (
                     <>
-                      <div className="details-btn-spinner"></div>
-                      Sauvegarde...
+                      <div className="details-btn-spinner" />
+                      Sauvegarde…
                     </>
                   ) : (
                     <>
-                      <Save size={14} />
+                      <Save size={13} />
                       Sauvegarder
                     </>
                   )}
@@ -142,16 +128,13 @@ const CommentSection = ({
                   onClick={handleCancel}
                   disabled={isSaving}
                 >
-                  <X size={14} />
+                  <X size={13} />
                   Annuler
                 </button>
               </div>
-              <div className="comment-char-count">
-                {editValue.length}/1000 caractères
-              </div>
             </div>
           ) : (
-            <span className="details-comment-value">
+            <span className="details-item-value">
               {!commentaire ? (
                 <span className="comment-empty-state">Aucun commentaire</span>
               ) : (
