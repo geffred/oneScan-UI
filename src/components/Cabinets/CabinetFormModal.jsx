@@ -14,12 +14,13 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  Info,
 } from "lucide-react";
 import "./CabinetFormModal.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Hors du composant → pas de recréation à chaque render
+// Schéma de validation identique pour création et édition
 const validationSchema = Yup.object({
   nom: Yup.string().required("Requis").max(100, "Max 100 caractères"),
   email: Yup.string().email("Email invalide").required("Requis"),
@@ -30,24 +31,29 @@ const validationSchema = Yup.object({
   adresseDeFacturation: Yup.string().max(255, "Max 255 caractères"),
 });
 
+// ── Champ générique ───────────────────────────────────────────────────────────
 const CabinetField = ({
   name,
   label,
   icon: Icon,
   placeholder,
   type = "text",
+  disabled = false,
+  hint,
 }) => (
   <div className="cabinet-input-group">
     <label className="cabinet-field-label">{label}</label>
-    <div className="cabinet-input-wrapper">
+    <div className={`cabinet-input-wrapper${disabled ? " disabled" : ""}`}>
       {Icon && <Icon className="cabinet-input-icon" size={18} />}
       <Field
         name={name}
         type={type}
-        className="cabinet-text-input"
+        className={`cabinet-text-input${disabled ? " cabinet-input-disabled" : ""}`}
         placeholder={placeholder}
+        disabled={disabled}
       />
     </div>
+    {hint && <p className="cabinet-field-hint">{hint}</p>}
     <ErrorMessage
       name={name}
       component="div"
@@ -56,17 +62,19 @@ const CabinetField = ({
   </div>
 );
 
+// ── Modal principal ───────────────────────────────────────────────────────────
 const CabinetFormModal = ({ isOpen, onClose, cabinetToEdit, onSuccess }) => {
   const [modalError, setModalError] = useState(null);
+  const isEdit = Boolean(cabinetToEdit);
 
   const handleSubmit = async (values, { setSubmitting }) => {
     setModalError(null);
     try {
       const token = localStorage.getItem("token");
-      const url = cabinetToEdit
+      const url = isEdit
         ? `${API_BASE_URL}/cabinet/${cabinetToEdit.id}`
         : `${API_BASE_URL}/cabinet`;
-      const method = cabinetToEdit ? "PUT" : "POST";
+      const method = isEdit ? "PUT" : "POST";
 
       const res = await fetch(url, {
         method,
@@ -81,7 +89,7 @@ const CabinetFormModal = ({ isOpen, onClose, cabinetToEdit, onSuccess }) => {
       if (!res.ok)
         throw new Error(data.message || "Erreur lors de l'enregistrement");
 
-      onSuccess(data, cabinetToEdit ? "modification" : "creation");
+      onSuccess(data, isEdit ? "modification" : "creation");
       onClose();
     } catch (err) {
       setModalError(err.message);
@@ -92,11 +100,14 @@ const CabinetFormModal = ({ isOpen, onClose, cabinetToEdit, onSuccess }) => {
 
   if (!isOpen) return null;
 
+  // Détecter si l'email a changé (pour afficher le warning)
+  const originalEmail = cabinetToEdit?.email || "";
+
   return (
     <div className="cabinet-modal-overlay">
       <div className="cabinet-modal">
         <div className="cabinet-modal-header">
-          <h2>{cabinetToEdit ? "Modifier" : "Créer"} un cabinet</h2>
+          <h2>{isEdit ? "Modifier" : "Créer"} un cabinet</h2>
           <button onClick={onClose} className="cabinet-modal-close">
             <X size={24} />
           </button>
@@ -123,88 +134,112 @@ const CabinetFormModal = ({ isOpen, onClose, cabinetToEdit, onSuccess }) => {
             onSubmit={handleSubmit}
             enableReinitialize
           >
-            {({ isSubmitting }) => (
-              <Form className="cabinet-modal-form">
-                <div className="cabinet-form-fields">
-                  <CabinetField
-                    name="nom"
-                    label="Nom *"
-                    icon={Building2}
-                    placeholder="Nom du cabinet"
-                  />
-                  <CabinetField
-                    name="email"
-                    label="Email *"
-                    icon={Mail}
-                    type="email"
-                    placeholder="contact@..."
-                  />
+            {({ isSubmitting, values }) => {
+              const emailChanged = isEdit && values.email !== originalEmail;
 
-                  <div className="form-row-2">
+              return (
+                <Form className="cabinet-modal-form">
+                  <div className="cabinet-form-fields">
                     <CabinetField
-                      name="numeroDeTelephone"
-                      label="Téléphone *"
-                      icon={Phone}
-                      placeholder="+32..."
+                      name="nom"
+                      label="Nom *"
+                      icon={Building2}
+                      placeholder="Nom du cabinet"
                     />
+
+                    {/* Email — modifiable en édition avec avertissement */}
                     <CabinetField
-                      name="adresseDeLivraison"
-                      label="Livraison"
-                      icon={MapPin}
+                      name="email"
+                      label="Email *"
+                      icon={Mail}
+                      type="email"
+                      placeholder="contact@..."
+                      hint={
+                        isEdit
+                          ? "Modifier l'email réinitialisera le statut de vérification et d'envoi du mot de passe."
+                          : undefined
+                      }
+                    />
+
+                    {/* Avertissement si l'email a changé en édition */}
+                    {emailChanged && (
+                      <div className="cabinet-email-change-warning">
+                        <Info size={15} />
+                        <span>
+                          L'email sera mis à jour. Le cabinet devra recevoir un
+                          nouveau mot de passe via le bouton{" "}
+                          <strong>🔑 Clé</strong> après enregistrement.
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="form-row-2">
+                      <CabinetField
+                        name="numeroDeTelephone"
+                        label="Téléphone *"
+                        icon={Phone}
+                        placeholder="+32..."
+                      />
+                      <CabinetField
+                        name="adresseDeLivraison"
+                        label="Livraison"
+                        icon={MapPin}
+                        placeholder="Adresse..."
+                      />
+                    </div>
+
+                    <CabinetField
+                      name="adresseDeFacturation"
+                      label="Facturation (Optionnel)"
+                      icon={FileText}
                       placeholder="Adresse..."
                     />
+
+                    {/* Option accès immédiat — uniquement à la création */}
+                    {!isEdit && (
+                      <div className="cabinet-checkbox-group">
+                        <label className="cabinet-checkbox-label">
+                          <Field
+                            type="checkbox"
+                            name="skipEmailVerification"
+                            className="cabinet-checkbox-input"
+                          />
+                          <span className="cabinet-checkbox-text">
+                            <CheckCircle2
+                              size={16}
+                              color="var(--cabinet-primary)"
+                            />
+                            Accès immédiat (sans validation email)
+                          </span>
+                        </label>
+                      </div>
+                    )}
                   </div>
 
-                  <CabinetField
-                    name="adresseDeFacturation"
-                    label="Facturation (Optionnel)"
-                    icon={FileText}
-                    placeholder="Adresse..."
-                  />
-
-                  {!cabinetToEdit && (
-                    <div className="cabinet-checkbox-group">
-                      <label className="cabinet-checkbox-label">
-                        <Field
-                          type="checkbox"
-                          name="skipEmailVerification"
-                          className="cabinet-checkbox-input"
-                        />
-                        <span className="cabinet-checkbox-text">
-                          <CheckCircle2
-                            size={16}
-                            color="var(--cabinet-primary)"
-                          />
-                          Accès immédiat (sans validation email)
-                        </span>
-                      </label>
-                    </div>
-                  )}
-                </div>
-
-                <div className="cabinet-modal-actions">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="cabinet-cancel-btn"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="cabinet-save-btn"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="animate-spin" size={18} />
-                    ) : (
-                      <Save size={18} />
-                    )}
-                    {cabinetToEdit ? "Enregistrer" : "Créer"}
-                  </button>
-                </div>
-              </Form>
-            )}
+                  <div className="cabinet-modal-actions">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="cabinet-cancel-btn"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="cabinet-save-btn"
+                    >
+                      {isSubmitting ? (
+                        <Loader2 className="animate-spin" size={18} />
+                      ) : (
+                        <Save size={18} />
+                      )}
+                      {isEdit ? "Enregistrer" : "Créer"}
+                    </button>
+                  </div>
+                </Form>
+              );
+            }}
           </Formik>
         </div>
       </div>

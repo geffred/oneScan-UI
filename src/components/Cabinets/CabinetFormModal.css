@@ -243,3 +243,35 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* --- Field hint (sous le champ email en édition) --- */
+.cabinet-field-hint {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin: 0.2rem 0 0;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* --- Input désactivé --- */
+.cabinet-input-wrapper.disabled { background: #f8fafc; }
+.cabinet-input-disabled {
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed;
+}
+
+/* --- Warning changement d'email --- */
+.cabinet-email-change-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  color: #92400e;
+  line-height: 1.5;
+}
+.cabinet-email-change-warning svg { color: #f59e0b; flex-shrink: 0; margin-top: 1px; }

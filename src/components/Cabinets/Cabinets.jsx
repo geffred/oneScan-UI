@@ -2,7 +2,6 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useContext, useMemo } from "react";
 import useSWR from "swr";
-import emailjs from "@emailjs/browser";
 import {
   Building2,
   Plus,
@@ -23,11 +22,8 @@ import CabinetFormModal from "./CabinetFormModal";
 import "./Cabinets.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const EMAILJS_PUBLIC_KEY = "rfexuIcDBNIIdOsf2";
-const EMAILJS_SERVICE_ID = "service_ag5llz9";
-const EMAILJS_TEMPLATE_ID = "template_7846xp8";
 
-emailjs.init(EMAILJS_PUBLIC_KEY);
+// ── EmailJS supprimé — le backend envoie les mots de passe via Brevo ─────────
 
 const fetchWithAuth = async (url) => {
   const token = localStorage.getItem("token");
@@ -43,7 +39,7 @@ const fetchWithAuth = async (url) => {
   return res.json();
 };
 
-// --- Modal de confirmation ---
+// ── Modal de confirmation ─────────────────────────────────────────────────────
 const ConfirmModal = ({ config, onConfirm, onCancel }) => {
   if (!config) return null;
   return (
@@ -60,7 +56,7 @@ const ConfirmModal = ({ config, onConfirm, onCancel }) => {
           </button>
           <button
             onClick={onConfirm}
-            className={`cabinet-confirm-btn ${config.danger ? "danger" : ""}`}
+            className={`cabinet-confirm-btn${config.danger ? " danger" : ""}`}
           >
             {config.confirmLabel || "Confirmer"}
           </button>
@@ -70,7 +66,7 @@ const ConfirmModal = ({ config, onConfirm, onCancel }) => {
   );
 };
 
-// --- Ligne tableau ---
+// ── Ligne tableau ─────────────────────────────────────────────────────────────
 const CabinetRow = React.memo(
   ({ cabinet, onEdit, onDelete, onSendPassword, sendingPasswords }) => (
     <div className="cabinet-table-row">
@@ -114,13 +110,18 @@ const CabinetRow = React.memo(
       </div>
       <div className="cabinet-table-cell actions">
         <div className="cabinet-actions">
+          {/* Bouton envoi mot de passe — désactivé si déjà envoyé ou en cours */}
           <button
             onClick={() => onSendPassword(cabinet)}
-            className={`cabinet-send-btn ${cabinet.passwordSend ? "sent" : ""}`}
+            className={`cabinet-send-btn${cabinet.passwordSend ? " sent" : ""}`}
             disabled={
               cabinet.passwordSend || sendingPasswords.includes(cabinet.id)
             }
-            title="Envoyer mot de passe"
+            title={
+              cabinet.passwordSend
+                ? "Mot de passe déjà envoyé"
+                : "Envoyer mot de passe par email"
+            }
           >
             {sendingPasswords.includes(cabinet.id) ? (
               <Loader2 className="animate-spin" size={16} />
@@ -147,9 +148,9 @@ const CabinetRow = React.memo(
     </div>
   ),
 );
-
 CabinetRow.displayName = "CabinetRow";
 
+// ── Composant principal ───────────────────────────────────────────────────────
 const Cabinet = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -158,7 +159,7 @@ const Cabinet = () => {
   const [success, setSuccess] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sendingPasswords, setSendingPasswords] = useState([]);
-  const [confirmConfig, setConfirmConfig] = useState(null); // { title, message, confirmLabel, danger, onConfirm }
+  const [confirmConfig, setConfirmConfig] = useState(null);
 
   const {
     data: cabinets = [],
@@ -181,7 +182,7 @@ const Cabinet = () => {
     setTimeout(() => {
       setSuccess(null);
       setGlobalError(null);
-    }, 3000);
+    }, 4000);
   };
 
   const handleModalSuccess = (data, type) => {
@@ -193,15 +194,24 @@ const Cabinet = () => {
       showNotif("success", "Cabinet modifié avec succès");
     } else {
       mutateCabinets([...cabinets, data.cabinet], false);
-      showNotif("success", "Cabinet créé avec succès");
+      // Le mot de passe a déjà été envoyé par le backend si skipEmailVerification = false
+      const note =
+        data.emailSent === false
+          ? "Cabinet créé — l'envoi du mot de passe a échoué, utilisez le bouton clé."
+          : "Cabinet créé — mot de passe envoyé par email au cabinet.";
+      showNotif("success", note);
     }
     mutateCabinets();
   };
 
+  // ── Envoi / régénération mot de passe ──────────────────────────────────────
+  // Le backend génère un mot de passe lisible (ex: SmileLab-2026-KR47)
+  // et l'envoie directement par email via Brevo.
+  // Le frontend ne voit jamais le mot de passe en clair.
   const handleSendPassword = (cabinet) => {
     setConfirmConfig({
       title: "Envoyer le mot de passe",
-      message: `Un nouveau mot de passe sera généré et envoyé par email à ${cabinet.nom} (${cabinet.email}). Cette action est irréversible.`,
+      message: `Un nouveau mot de passe sera généré et envoyé par email à ${cabinet.nom} (${cabinet.email}).`,
       confirmLabel: "Envoyer",
       danger: false,
       onConfirm: () => executeSendPassword(cabinet),
@@ -210,39 +220,41 @@ const Cabinet = () => {
 
   const executeSendPassword = async (cabinet) => {
     setConfirmConfig(null);
-    setSendingPasswords((prev) => [...prev, cabinet.id]);
+    setSendingPasswords((p) => [...p, cabinet.id]);
     try {
       const token = localStorage.getItem("token");
-      const resGen = await fetch(
+
+      // ── FIX : un seul appel backend — génère + envoie via Brevo ──────────
+      const res = await fetch(
         `${API_BASE_URL}/cabinet/${cabinet.id}/regenerate-password`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      if (!resGen.ok) throw new Error("Erreur génération mot de passe");
-      const { newPassword } = await resGen.json();
 
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-        to_email: cabinet.email,
-        cabinet_name: cabinet.nom,
-        password: newPassword,
-      });
+      const data = await res.json();
 
-      await fetch(`${API_BASE_URL}/cabinet/${cabinet.id}/mark-password-sent`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (!res.ok) throw new Error(data.message || "Erreur serveur");
 
-      mutateCabinets();
-      showNotif("success", `Mot de passe envoyé à ${cabinet.nom}`);
+      if (data.success) {
+        mutateCabinets();
+        showNotif("success", `Mot de passe envoyé à ${cabinet.nom}`);
+      } else {
+        // Mot de passe changé en BDD mais email échoué
+        showNotif(
+          "error",
+          data.message || "Mot de passe mis à jour mais email non envoyé",
+        );
+      }
     } catch (err) {
       showNotif("error", err.message);
     } finally {
-      setSendingPasswords((prev) => prev.filter((id) => id !== cabinet.id));
+      setSendingPasswords((p) => p.filter((id) => id !== cabinet.id));
     }
   };
 
+  // ── Suppression ────────────────────────────────────────────────────────────
   const handleDelete = (cabinet) => {
     setConfirmConfig({
       title: "Supprimer le cabinet",
