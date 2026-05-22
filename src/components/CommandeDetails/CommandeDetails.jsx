@@ -540,6 +540,20 @@ const CommandeDetails = () => {
           downloadBlobInBrowser(zipBlob, `MySmileLab_${commande.id}.zip`);
           toast.success(`${added} fichier(s) téléchargé(s)`);
         }
+      } else if (commande.plateforme === "ITERO") {
+        // ── iTero : le fichier scan est généré et renvoyé par l'API
+        // principale, qui le récupère auprès du scraper iTero (export depuis
+        // la visionneuse 3D). La génération peut prendre quelques minutes.
+        toast.info(
+          "Récupération du scan iTero — cela peut prendre quelques minutes...",
+        );
+        const blob = await fetchWithAuthBlob(
+          `${API_BASE_URL}/itero/download/${commande.externalId}`,
+        );
+        if (!blob || blob.size === 0)
+          throw new Error("Fichier scan iTero vide ou indisponible");
+        downloadBlobInBrowser(blob, `iTero_Scan_${commande.externalId}.zip`);
+        toast.success("Scan iTero téléchargé");
       } else {
         // Autres plateformes génériques
         const endpoint = `${API_BASE_URL}/${commande.plateforme.toLowerCase()}/download/${commande.externalId}`;
