@@ -1,22 +1,65 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Fonction fetcher pour SWR
-export const fetchWithAuth = async (url) => {
+// Statuts HTTP transitoires (passerelle / serveur en redémarrage) → on réessaie.
+const RETRYABLE_STATUS = new Set([502, 503, 504]);
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Fetcher authentifié pour SWR, avec réessais automatiques.
+ *
+ * Absorbe les coupures de connexion transitoires (net::ERR_CONNECTION_RESET,
+ * connexion keep-alive obsolète, brève indisponibilité du serveur) : au lieu
+ * d'échouer dès le premier essai, la requête est retentée sur une connexion
+ * neuve. L'utilisateur n'a donc plus besoin de rafraîchir la page à la main.
+ *
+ * Ne réessaie PAS sur les erreurs applicatives (401, 404, 500...) : celles-ci
+ * sont de vraies erreurs et sont remontées immédiatement.
+ */
+export const fetchWithAuth = async (
+  url,
+  { retries = 3, retryDelay = 900 } = {},
+) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token manquant");
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    credentials: "include",
-  });
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
+      });
 
-  if (!response.ok) {
-    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+      // Serveur momentanément indisponible → on patiente puis on réessaie.
+      if (RETRYABLE_STATUS.has(response.status) && attempt < retries) {
+        await sleep(retryDelay * (attempt + 1));
+        continue;
+      }
+
+      if (!response.ok) {
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+      }
+
+      return response.json();
+    } catch (err) {
+      lastError = err;
+      // Une coupure réseau (connexion réinitialisée, hors-ligne bref) fait
+      // rejeter fetch() avec un TypeError → on réessaie sur une connexion neuve.
+      const isNetworkError = err instanceof TypeError;
+      if (isNetworkError && attempt < retries) {
+        console.warn(
+          `[fetchWithAuth] Échec réseau (tentative ${attempt + 1}/${
+            retries + 1
+          }) — nouvel essai...`,
+        );
+        await sleep(retryDelay * (attempt + 1));
+        continue;
+      }
+      throw err;
+    }
   }
-
-  return response.json();
+  throw lastError;
 };
 
 // Fonction pour récupérer les données utilisateur
