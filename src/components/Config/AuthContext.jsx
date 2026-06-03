@@ -27,6 +27,16 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const decoded = jwtDecode(token);
+
+      // Si le token est expiré, on nettoie la session au lieu de marquer
+      // l'utilisateur comme authentifié (ce qui provoquait un état "connecté"
+      // suivi d'un 401 et d'une page d'erreur au premier appel API).
+      if (decoded.exp && decoded.exp * 1000 <= Date.now()) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userType");
+        return false;
+      }
+
       setIsAuthenticated(true);
       setUserType(storedUserType);
 
