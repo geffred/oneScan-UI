@@ -171,6 +171,58 @@ const Commandes = () => {
     }
   }, [isAuthenticated, checkIteroStatus, checkCsConnectStatus]);
 
+  // ── Sync à la demande : déclenche une synchronisation immédiate de toutes
+  // les plateformes au chargement du dashboard. L'utilisateur voit les
+  // commandes fraîches en quelques secondes au lieu d'attendre la sync
+  // programmée. Un anti-spam côté API évite les déclenchements répétés.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch(`${API_BASE_URL}/sync/refresh`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.triggered) {
+          console.info("[OnDemand] Sync à la demande déclenchée");
+        }
+      })
+      .catch((e) =>
+        console.warn("[OnDemand] Échec sync à la demande:", e.message),
+      );
+  }, [isAuthenticated]);
+
+  // ── SWR sync freshness (fraîcheur des données) ───────────────────────────
+  // Récupère le timestamp de la dernière sync réussie de chaque plateforme
+  // pour afficher "Dernière sync : il y a Xmin" dans le header. Auto-refresh
+  // toutes les 30s pour que l'indicateur reste précis sans appel manuel.
+  // Renommé `syncFreshness` pour éviter la collision avec le useState
+  // `syncStatus` déjà déclaré plus haut (qui sert au tracking d'isSyncing).
+  const { data: syncFreshness } = useSWR(
+    isAuthenticated ? `${API_BASE_URL}/sync/status` : null,
+    async (url) => {
+      const token = localStorage.getItem("token");
+      const r = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    },
+    { refreshInterval: 30_000, revalidateOnFocus: true },
+  );
+
+  // Dérive le timestamp de sync le plus récent toutes plateformes confondues.
+  // Sert à afficher la fraîcheur globale dans le header.
+  const mostRecentSyncMs = React.useMemo(() => {
+    if (!syncFreshness?.lastSyncMs) return null;
+    const values = Object.values(syncFreshness.lastSyncMs).filter(
+      (v) => typeof v === "number" && v > 0,
+    );
+    return values.length > 0 ? Math.max(...values) : null;
+  }, [syncFreshness]);
+
   // ── SWR data ───────────────────────────────────────────────────────────────
   const { data: userData } = useSWR(
     isAuthenticated ? "user-data" : null,
@@ -539,6 +591,7 @@ const Commandes = () => {
         userPlatforms={userPlatforms}
         isSyncing={isSyncing}
         onSyncAll={() => syncAllPlatforms(userPlatforms)}
+        lastSyncMs={mostRecentSyncMs}
       />
 
       {selectedIds.length > 0 && (

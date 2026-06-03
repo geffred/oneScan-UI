@@ -1,9 +1,53 @@
 /* eslint-disable react/prop-types */
-import React from "react";
-import { RefreshCw, Loader2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { RefreshCw, Loader2, Clock } from "lucide-react";
 import "./CommandesHeader.css";
 
-const CommandesHeader = ({ stats, userPlatforms, isSyncing, onSyncAll }) => {
+/**
+ * Formate "il y a Xmin" à partir d'un timestamp epoch ms.
+ * Retourne "à l'instant" si < 1 min, "il y a Xh Ymin" si > 60 min.
+ * Renvoie null si le timestamp est invalide / absent.
+ */
+function formatRelativeTime(epochMs) {
+  if (!epochMs || typeof epochMs !== "number") return null;
+  const diffMs = Date.now() - epochMs;
+  if (diffMs < 0) return "à l'instant";
+  const min = Math.floor(diffMs / 60_000);
+  if (min < 1) return "à l'instant";
+  if (min < 60) return `il y a ${min} min`;
+  const h = Math.floor(min / 60);
+  const rem = min % 60;
+  return rem === 0 ? `il y a ${h} h` : `il y a ${h} h ${rem} min`;
+}
+
+const CommandesHeader = ({
+  stats,
+  userPlatforms,
+  isSyncing,
+  onSyncAll,
+  lastSyncMs,
+}) => {
+  // Re-render chaque 20 s pour que le "il y a Xmin" reste à jour entre les
+  // refreshs SWR (qui sont à 30 s).
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => tick((n) => n + 1), 20_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const freshnessLabel = formatRelativeTime(lastSyncMs);
+  // Code couleur :
+  // - < 15 min  : frais (vert)
+  // - < 60 min  : modéré (gris)
+  // - > 60 min  : ancien (orange, peut-être une sync ratée)
+  let freshnessClass = "commandes-freshness";
+  if (lastSyncMs) {
+    const ageMin = (Date.now() - lastSyncMs) / 60_000;
+    if (ageMin < 15) freshnessClass += " commandes-freshness--fresh";
+    else if (ageMin < 60) freshnessClass += " commandes-freshness--moderate";
+    else freshnessClass += " commandes-freshness--stale";
+  }
+
   return (
     <div className="commandes-header">
       <div className="commandes-header-content">
@@ -30,6 +74,12 @@ const CommandesHeader = ({ stats, userPlatforms, isSyncing, onSyncAll }) => {
         </div>
       </div>
       <div className="commandes-header-actions">
+        {freshnessLabel && (
+          <span className={freshnessClass} title="Fraîcheur des commandes">
+            <Clock size={14} />
+            Dernière sync : {freshnessLabel}
+          </span>
+        )}
         {userPlatforms.length > 0 && (
           <button
             className="commandes-btn commandes-btn-primary"

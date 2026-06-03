@@ -63,6 +63,40 @@
   align-items: center;
 }
 
+/* ── Indicateur de fraîcheur des commandes ─────────────────────────────── */
+/* Affiche "Dernière sync : il y a Xmin" avec un code couleur selon l'âge. */
+.commandes-freshness {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--commandes-radius, 8px);
+  font-size: var(--commandes-font-sm, 0.85rem);
+  font-weight: 500;
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.commandes-freshness--fresh {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.commandes-freshness--moderate {
+  background: #f3f4f6;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
+.commandes-freshness--stale {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
 .commandes-btn-spinner {
   width: 16px;
   height: 16px;
