@@ -18,7 +18,10 @@ const isTokenExpired = (token) => {
 const handleUnauthorized = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("userType");
-  window.location.href = "/login";
+  // Évite une boucle de rechargement si on est déjà sur la page de connexion.
+  if (!window.location.pathname.startsWith("/login")) {
+    window.location.href = "/login";
+  }
 };
 
 // Requête API générique avec JWT

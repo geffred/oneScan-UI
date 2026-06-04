@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useState, useContext, useMemo } from "react";
+import React, { useState, useContext, useMemo, useRef } from "react";
 import useSWR from "swr";
 import {
   Building2,
@@ -16,6 +16,8 @@ import {
   AlertCircle,
   Loader2,
   TriangleAlert,
+  Download,
+  Upload,
 } from "lucide-react";
 import { AuthContext } from "../../components/Config/AuthContext";
 import CabinetFormModal from "./CabinetFormModal";
@@ -160,6 +162,8 @@ const Cabinet = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sendingPasswords, setSendingPasswords] = useState([]);
   const [confirmConfig, setConfirmConfig] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef(null);
 
   const {
     data: cabinets = [],
@@ -283,6 +287,68 @@ const Cabinet = () => {
     }
   };
 
+  // ── Export CSV ───────────────────────────────────────────────────────────
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE_URL}/cabinet/export`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Erreur lors de l'export");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "cabinets.csv";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 100);
+      showNotif("success", `${cabinets.length} cabinet(s) exporté(s) en CSV`);
+    } catch (err) {
+      showNotif("error", err.message || "Erreur lors de l'export");
+    }
+  };
+
+  // ── Import CSV ───────────────────────────────────────────────────────────
+  const handleImportClick = () => fileInputRef.current?.click();
+
+  const handleImportFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // permet de re-sélectionner le même fichier
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(`${API_BASE_URL}/cabinet/import`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Erreur lors de l'import");
+
+      mutateCabinets();
+      if (data.failed > 0 || data.skipped > 0) {
+        showNotif("error", data.message);
+        if (Array.isArray(data.errors) && data.errors.length) {
+          console.warn("Détails import CSV:", data.errors);
+        }
+      } else {
+        showNotif("success", data.message);
+      }
+    } catch (err) {
+      showNotif("error", err.message);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const openCreateModal = () => {
     setEditingCabinet(null);
     setIsModalOpen(true);
@@ -309,9 +375,38 @@ const Cabinet = () => {
               </div>
               Gestion des Cabinets
             </h1>
-            <button onClick={openCreateModal} className="cabinet-create-btn">
-              <Plus size={18} /> Nouveau Cabinet
-            </button>
+            <div className="cabinet-header-actions">
+              <button
+                onClick={handleExport}
+                className="cabinet-secondary-btn"
+                title="Exporter tous les cabinets au format CSV"
+              >
+                <Download size={18} /> Exporter
+              </button>
+              <button
+                onClick={handleImportClick}
+                className="cabinet-secondary-btn"
+                disabled={importing}
+                title="Importer des cabinets depuis un fichier CSV"
+              >
+                {importing ? (
+                  <Loader2 className="animate-spin" size={18} />
+                ) : (
+                  <Upload size={18} />
+                )}
+                Importer
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                style={{ display: "none" }}
+                onChange={handleImportFile}
+              />
+              <button onClick={openCreateModal} className="cabinet-create-btn">
+                <Plus size={18} /> Nouveau Cabinet
+              </button>
+            </div>
           </div>
 
           {globalError && (

@@ -1,7 +1,7 @@
 /* --- Variables Scope (sts-) --- */
 .sts-section {
   --sts-bg: #007AFF;
-  --sts-bg-gradient: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  --sts-bg-gradient: #007AFF;
   --sts-text-light: rgba(255, 255, 255, 0.85);
   --sts-icon-bg: rgba(255, 255, 255, 0.15);
   

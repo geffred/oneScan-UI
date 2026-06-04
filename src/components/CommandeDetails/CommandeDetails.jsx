@@ -282,6 +282,14 @@ const CommandeDetails = () => {
     try {
       const token = localStorage.getItem("token");
 
+      // Nom de fichier basé sur la référence patient associée à la commande.
+      // C'est ce nom qui est appliqué au fichier (ZIP) téléchargé.
+      const patientFileBase = (
+        commande.refPatient ||
+        commande.externalId ||
+        "scan"
+      ).replace(/[^a-zA-Z0-9-_]/g, "_");
+
       if (commande.plateforme === "MEDITLINK") {
         toast.info("Récupération des fichiers MeditLink...");
         const orderResponse = await fetch(
@@ -372,15 +380,14 @@ const CommandeDetails = () => {
           compression: "DEFLATE",
           compressionOptions: { level: 6 },
         });
-        downloadBlobInBrowser(
-          finalZipBlob,
-          `MeditLink_${commande.externalId}.zip`,
-        );
+        downloadBlobInBrowser(finalZipBlob, `${patientFileBase}.zip`);
         let msg = `${filesAdded} fichier(s) téléchargé(s)`;
         if (processingCount > 0) msg += ` (${processingCount} en conversion)`;
         if (errorCount > 0) msg += ` (${errorCount} en erreur)`;
         toast.success(msg);
       } else if (commande.plateforme === "DEXIS") {
+        // Le backend relaie (proxy) le fichier et le renomme avec la référence
+        // patient : on télécharge donc directement le contenu binaire.
         const response = await fetch(
           `${API_BASE_URL}/dexis/cases/${commande.externalId}/download`,
           {
@@ -388,16 +395,11 @@ const CommandeDetails = () => {
           },
         );
         if (!response.ok) throw new Error(`Erreur backend: ${response.status}`);
-        const azureUrl = (await response.text()).replace(/"/g, "").trim();
-        if (!azureUrl.startsWith("http"))
-          throw new Error("URL de téléchargement invalide");
-        const link = document.createElement("a");
-        link.href = azureUrl;
-        link.style.display = "none";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success("Téléchargement Dexis lancé");
+        const blob = await response.blob();
+        if (!blob || blob.size === 0)
+          throw new Error("Fichier Dexis vide ou indisponible");
+        downloadBlobInBrowser(blob, `${patientFileBase}.zip`);
+        toast.success("Téléchargement Dexis terminé");
       } else if (commande.plateforme === "THREESHAPE") {
         const zip = new JSZip();
         let filesAdded = 0;
@@ -462,7 +464,7 @@ const CommandeDetails = () => {
         if (filesAdded > 0) {
           downloadBlobInBrowser(
             await zip.generateAsync({ type: "blob" }),
-            `3Shape_Scan_${commande.externalId}.zip`,
+            `${patientFileBase}.zip`,
           );
           toast.success(`${filesAdded} fichier(s) STL 3Shape téléchargé(s)`);
         } else {

@@ -15,7 +15,9 @@ export const getUserIdFromToken = () => {
     const decoded = jwtDecode(token);
 
     // Essayer différentes propriétés possibles dans le token
-    const userId = 1;
+    // (laboratoire => userId, cabinet => cabinetId)
+    const userId =
+      decoded.userId ?? decoded.id ?? decoded.cabinetId ?? null;
 
     if (!userId) {
       console.error("Aucun userId trouvé dans le token:", decoded);

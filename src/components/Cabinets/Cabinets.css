@@ -111,6 +111,36 @@
   background: var(--cabinet-primary-dark);
 }
 
+.cabinet-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.cabinet-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  color: var(--cabinet-primary);
+  border: 1px solid var(--cabinet-primary);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cabinet-secondary-btn:hover:not(:disabled) {
+  background: var(--cabinet-primary-alpha-10);
+}
+
+.cabinet-secondary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* --- Search --- */
 .cabinet-search-section {
   margin-bottom: 1.5rem;
