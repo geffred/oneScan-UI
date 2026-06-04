@@ -54,7 +54,7 @@
 .features-item-icon {
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF;
   border-radius: 16px;
   display: flex;
   align-items: center;

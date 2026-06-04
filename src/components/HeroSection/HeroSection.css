@@ -1,6 +1,6 @@
 /* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF;
   color: white;
   padding: 6rem 0 6rem 0;
   position: relative;
@@ -38,10 +38,7 @@
   font-weight: 800;
   line-height: 1.1;
   margin-bottom: 1.5rem;
-  background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffffff;
 }
 
 .hero-text p {
@@ -58,7 +55,7 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  background: #ffffff;
   color: #007AFF;
   padding: 1rem 2rem;
   border-radius: 12px;
@@ -129,7 +126,7 @@
 .dashboard-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  background: #007AFF;
   border-radius: 10px;
   display: flex;
   align-items: center;

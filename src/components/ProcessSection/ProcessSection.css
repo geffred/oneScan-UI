@@ -38,9 +38,6 @@
   font-weight: 800;
   color: var(--ps-text);
   margin-bottom: 1rem;
-  background: -webkit-linear-gradient(45deg, var(--ps-primary), #60a5fa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .ps-subtitle {
@@ -104,7 +101,7 @@
   top: 20px;
   bottom: 20px;
   width: 2px;
-  background: linear-gradient(to bottom, var(--ps-primary) 0%, #cbd5e1 100%);
+  background: var(--ps-primary);
   z-index: 0;
 }
 
