@@ -20,8 +20,20 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const restoreSession = useCallback(() => {
-    const token = localStorage.getItem("token");
+    let token = localStorage.getItem("token");
     const storedUserType = localStorage.getItem("userType");
+
+    // Filet de sécurité : après une redirection OAuth plateforme (3Shape,
+    // Dexis, MeditLink) qui recharge entièrement l'app, on restaure le JWT
+    // applicatif éventuellement sauvegardé avant la redirection. L'auth des
+    // plateformes ne doit jamais déconnecter de l'application web.
+    if (!token) {
+      const preserved = sessionStorage.getItem("preserve_jwt");
+      if (preserved) {
+        localStorage.setItem("token", preserved);
+        token = preserved;
+      }
+    }
 
     if (!token || !storedUserType) return false;
 

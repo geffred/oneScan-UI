@@ -124,6 +124,10 @@ const DexisCallback = () => {
 
     if (code) {
       console.log("Code DEXIS détecté:", code.substring(0, 10) + "...");
+      // Retirer le code de l'URL : un code OAuth est à usage unique. Sans cela,
+      // un rechargement de la page rejouerait le même code déjà consommé et
+      // provoquerait une erreur invalid_grant (AADB2C90085).
+      window.history.replaceState({}, document.title, window.location.pathname);
       handleCallback(code, state);
     } else {
       setStatus("error");
