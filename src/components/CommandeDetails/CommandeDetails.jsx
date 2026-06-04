@@ -20,6 +20,7 @@ import CertificatConformite from "./CertificatConformite";
 import { useReactToPrint } from "react-to-print";
 import { AlertCircle, ArrowLeft, Shield } from "lucide-react";
 import JSZip from "jszip";
+import { extractArchive } from "../../utils/archiveExtractor";
 import { ToastContainer } from "react-toastify";
 
 import CommandeHeader from "./CommandeHeader";
@@ -324,6 +325,22 @@ const CommandeDetails = () => {
           processingCount = 0,
           errorCount = 0;
 
+        const usedNames = new Set();
+        const uniqueName = (name) => {
+          let candidate = name;
+          let i = 1;
+          while (usedNames.has(candidate)) {
+            const dot = name.lastIndexOf(".");
+            candidate =
+              dot > 0
+                ? `${name.slice(0, dot)}_${i}${name.slice(dot)}`
+                : `${name}_${i}`;
+            i++;
+          }
+          usedNames.add(candidate);
+          return candidate;
+        };
+
         for (const file of relevantFiles) {
           try {
             const fileInfoResponse = await fetch(
@@ -356,11 +373,30 @@ const CommandeDetails = () => {
               errorCount++;
               continue;
             }
-            finalZip.file(
-              fileInfo.downloadFileName || `${file.name}.7z`,
-              archiveBlob,
-            );
-            filesAdded++;
+
+            // MeditLink renvoie chaque fichier sous forme d'archive (.stl.7z).
+            // On la décompresse pour n'ajouter que les fichiers bruts (STL) au
+            // ZIP final, sinon le ZIP contiendrait des archives imbriquées.
+            const archiveBytes = new Uint8Array(await archiveBlob.arrayBuffer());
+            let extracted = [];
+            try {
+              extracted = await extractArchive(archiveBytes);
+            } catch (e) {
+              console.error("Échec extraction archive MeditLink:", e);
+            }
+
+            if (extracted.length > 0) {
+              for (const inner of extracted) {
+                finalZip.file(uniqueName(inner.name), inner.data);
+              }
+              filesAdded++;
+            } else {
+              // Repli : si l'extraction échoue, on conserve l'archive d'origine
+              const fallbackName =
+                fileInfo.downloadFileName || `${file.name}.7z`;
+              finalZip.file(uniqueName(fallbackName), archiveBlob);
+              filesAdded++;
+            }
           } catch {
             errorCount++;
           }
