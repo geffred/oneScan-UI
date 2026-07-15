@@ -45,9 +45,16 @@ export const useCommandesData = ({
             error: iteroStatus?.error || null,
           };
         case "DEXIS":
+          // dexisStatus est le hook useDexisAuth : le statut est exposé via
+          // isAuthenticated/isLoading (pas authenticated/loading comme les
+          // objets d'état Itero/CSConnect). Sans ça, la carte Dexis de la
+          // page Commandes restait "Non connecté" en permanence.
           return {
-            authenticated: dexisStatus?.authenticated || false,
-            loading: dexisStatus?.loading || false,
+            authenticated:
+              dexisStatus?.isAuthenticated ??
+              dexisStatus?.authenticated ??
+              false,
+            loading: dexisStatus?.isLoading ?? dexisStatus?.loading ?? false,
             error: dexisStatus?.error || null,
           };
         case "CSCONNECT":
