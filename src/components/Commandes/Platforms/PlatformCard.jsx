@@ -22,7 +22,7 @@ const CONNECTION_LABELS = {
   MEDITLINK: { yes: "Connecté OAuth", no: "Non connecté" },
   THREESHAPE: { yes: "Connecté OAuth", no: "Non connecté" },
   ITERO: { yes: "Connecté à l'API", no: "Non connecté" },
-  DEXIS: { yes: "Connecté Dexis OAuth", no: "Non connecté" },
+  DEXIS: { yes: "Connecté à l'API", no: "Non connecté" },
   CSCONNECT: { yes: "Connecté à l'API", no: "Non connecté" },
 };
 
