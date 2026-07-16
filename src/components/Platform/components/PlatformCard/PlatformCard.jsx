@@ -45,6 +45,7 @@ const PlatformCard = React.memo(
     const isDexis = platform.name === "DEXIS";
     const isCsConnect = platform.name === "CSCONNECT";
     const isMyScan = platform.name === "MYSCAN";
+    const isDental3D = platform.name === "DENTAL3D";
     const isMySmileLab = platform.name === "MYSMILELAB";
 
     const getPlatformDisplayName = () => {
@@ -55,6 +56,8 @@ const PlatformCard = React.memo(
           return "CS Connect";
         case "MYSCAN":
           return "MyScan";
+        case "DENTAL3D":
+          return "Dental3D";
         case "MYSMILELAB":
           return "MySmileLab";
         default:
@@ -71,6 +74,8 @@ const PlatformCard = React.memo(
       // MyScan : connexion geree cote serveur (identifiants dans le scraper) →
       // toujours consideree comme disponible.
       if (isMyScan) return { authenticated: true, loading: false };
+      // Dental3D : connexion geree cote serveur (cookie injecte)
+      if (isDental3D) return { authenticated: true, loading: false };
       // MySmileLab n'a pas besoin de statut de connexion API
       if (isMySmileLab) return { authenticated: true, loading: false };
       return null;
@@ -360,6 +365,14 @@ const PlatformCard = React.memo(
               <div className="platform-card-component__status-badge">
                 <Link2 size={16} />
                 Connecté à l'API MyScan
+              </div>
+            )}
+
+            {/* 7. Dental3D Actions : connexion geree cote serveur (cookie injecte). */}
+            {isDental3D && (
+              <div className="platform-card-component__status-badge">
+                <Link2 size={16} />
+                Connecté à l'API Dental3D
               </div>
             )}
           </div>

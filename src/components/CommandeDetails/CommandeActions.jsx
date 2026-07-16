@@ -48,6 +48,7 @@ const CommandeActions = ({
   const getDownloadLabel = () => {
     if (commande.plateforme === "DEXIS") return "Télécharger (Dexis)";
     if (commande.plateforme === "MYSCAN") return "Télécharger (MyScan STL)";
+    if (commande.plateforme === "DENTAL3D") return "Télécharger (Dental3D STL)";
     if (
       commande.plateforme === "THREESHAPE" ||
       commande.plateforme === "MEDITLINK"

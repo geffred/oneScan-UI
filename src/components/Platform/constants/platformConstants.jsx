@@ -5,6 +5,7 @@ export const platformTypes = [
   { value: "DEXIS", label: "Dexis" },
   { value: "CSCONNECT", label: "CS Connect" },
   { value: "MYSCAN", label: "MyScan" },
+  { value: "DENTAL3D", label: "Dental3D" },
   { value: "MYSMILELAB", label: "MySmileLab" },
 ];
 
@@ -24,6 +25,7 @@ export const PLATFORM_NAMES = {
   DEXIS: "DEXIS",
   CSCONNECT: "CSCONNECT",
   MYSCAN: "MYSCAN",
+  DENTAL3D: "DENTAL3D",
   MYSMILELAB: "MYSMILELAB",
 };
 
@@ -34,5 +36,6 @@ export const PLATFORM_DISPLAY_NAMES = {
   [PLATFORM_NAMES.DEXIS]: "Dexis",
   [PLATFORM_NAMES.CSCONNECT]: "CS Connect",
   [PLATFORM_NAMES.MYSCAN]: "MyScan",
+  [PLATFORM_NAMES.DENTAL3D]: "Dental3D",
   [PLATFORM_NAMES.MYSMILELAB]: "MySmileLab",
 };

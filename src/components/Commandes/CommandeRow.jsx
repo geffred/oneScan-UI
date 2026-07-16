@@ -52,6 +52,7 @@ const CommandeRow = ({
       DEXIS: "cmd-row-plat-orange",
       CSCONNECT: "cmd-row-plat-red",
       MYSCAN: "cmd-row-plat-cyan",
+      DENTAL3D: "cmd-row-plat-indigo",
     };
     return configs[p] || "cmd-row-plat-gray";
   };

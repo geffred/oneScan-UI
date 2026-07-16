@@ -606,6 +606,17 @@ const CommandeDetails = () => {
           throw new Error("Fichier scan MyScan vide ou indisponible");
         downloadBlobInBrowser(blob, `MyScan_${patientFileBase}.zip`);
         toast.success("Scan MyScan téléchargé");
+      } else if (commande.plateforme === "DENTAL3D") {
+        // ── Dental3D (SHINING 3D) : le fichier est genere par l'API externe
+        // (dentalDownload -> URL S3 signee). Peut prendre quelques secondes.
+        toast.info("Récupération du scan Dental3D...");
+        const blob = await fetchWithAuthBlob(
+          `${API_BASE_URL}/dental3d/download/${commande.externalId}`,
+        );
+        if (!blob || blob.size === 0)
+          throw new Error("Fichier scan Dental3D vide ou indisponible");
+        downloadBlobInBrowser(blob, `Dental3D_${patientFileBase}.zip`);
+        toast.success("Scan Dental3D téléchargé");
       } else {
         // Autres plateformes génériques
         const endpoint = `${API_BASE_URL}/${commande.plateforme.toLowerCase()}/download/${commande.externalId}`;

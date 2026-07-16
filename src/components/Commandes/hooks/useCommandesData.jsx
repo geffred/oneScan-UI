@@ -76,6 +76,10 @@ export const useCommandesData = ({
           // considere la plateforme comme toujours disponible pour permettre
           // la synchronisation a la demande depuis l'UI.
           return { authenticated: true, loading: false, error: null };
+        case "DENTAL3D":
+          // Dental3D : connexion geree cote serveur (cookie injecte dans l'API
+          // externe). Toujours disponible pour la synchronisation a la demande.
+          return { authenticated: true, loading: false, error: null };
         default:
           return { authenticated: false };
       }

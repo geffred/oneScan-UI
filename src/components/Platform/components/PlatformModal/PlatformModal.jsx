@@ -25,6 +25,7 @@ const platformTypes = [
   { value: "ITERO", label: "Itero" },
   { value: "DEXIS", label: "Dexis" },
   { value: "MYSCAN", label: "MyScan" },
+  { value: "DENTAL3D", label: "Dental3D" },
   { value: "MYSMILELAB", label: "MySmileLab" },
 ];
 
@@ -168,6 +169,21 @@ const PlatformModal = ({
                         identifiants (email / mot de passe) sont configurés côté
                         serveur dans le scraper. Les commandes, commentaires et
                         fichiers STL sont récupérés automatiquement.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {values.name === "DENTAL3D" && (
+                  <div className="platform-info-banner">
+                    <Link2 size={16} />
+                    <div>
+                      <strong>Plateforme Dental3D (SHINING 3D) :</strong>
+                      <p>
+                        Connexion à ff.dental3dcloud.com via l'API externe
+                        (authentification par cookie de session, configurée côté
+                        serveur). Commandes, commentaires et fichiers STL récupérés
+                        automatiquement.
                       </p>
                     </div>
                   </div>

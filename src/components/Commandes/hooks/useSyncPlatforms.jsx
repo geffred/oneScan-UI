@@ -10,6 +10,7 @@ const platformEndpoints = {
   THREESHAPE: `${API_BASE_URL}/threeshape/cases/save`,
   CSCONNECT: `${API_BASE_URL}/csconnect/commandes`,
   MYSCAN: `${API_BASE_URL}/myscan/commandes/save`,
+  DENTAL3D: `${API_BASE_URL}/dental3d/commandes/save`,
 };
 
 export const useSyncPlatforms = ({
@@ -161,6 +162,12 @@ export const useSyncPlatforms = ({
     [syncPlatform],
   );
 
+  const syncDental3DCommandes = useCallback(
+    () =>
+      syncPlatform("DENTAL3D", `${API_BASE_URL}/dental3d/commandes/save`, "POST"),
+    [syncPlatform],
+  );
+
   const syncOtherPlatform = useCallback(
     (platformName) => {
       const endpoint = platformEndpoints[platformName];
@@ -205,6 +212,8 @@ export const useSyncPlatforms = ({
           return syncCsConnectCommandes();
         case "MYSCAN":
           return syncMyScanCommandes();
+        case "DENTAL3D":
+          return syncDental3DCommandes();
         default:
           return syncOtherPlatform(platformName);
       }
@@ -216,6 +225,7 @@ export const useSyncPlatforms = ({
       syncDexisCommandes,
       syncCsConnectCommandes,
       syncMyScanCommandes,
+      syncDental3DCommandes,
       syncOtherPlatform,
     ],
   );
@@ -256,6 +266,8 @@ export const useSyncPlatforms = ({
             return syncCsConnectCommandes();
           case "MYSCAN":
             return syncMyScanCommandes();
+          case "DENTAL3D":
+            return syncDental3DCommandes();
           default:
             return syncOtherPlatform(p.name);
         }

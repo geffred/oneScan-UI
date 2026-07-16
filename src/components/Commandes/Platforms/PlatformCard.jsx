@@ -16,6 +16,7 @@ const PLATFORM_DISPLAY_NAMES = {
   DEXIS: "Dexis",
   CSCONNECT: "CS Connect",
   MYSCAN: "MyScan",
+  DENTAL3D: "Dental3D",
   MYSMILELAB: "MySmileLab",
 };
 
@@ -26,6 +27,7 @@ const CONNECTION_LABELS = {
   DEXIS: { yes: "Connecté à l'API", no: "Non connecté" },
   CSCONNECT: { yes: "Connecté à l'API", no: "Non connecté" },
   MYSCAN: { yes: "Connecté à l'API", no: "Non connecté" },
+  DENTAL3D: { yes: "Connecté à l'API", no: "Non connecté" },
 };
 
 const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {

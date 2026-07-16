@@ -76,6 +76,7 @@ const CommandesFilters = ({
             <option value="DEXIS">Dexis</option>
             <option value="CSCONNECT">CS Connect</option>
             <option value="MYSCAN">MyScan</option>
+            <option value="DENTAL3D">Dental3D</option>
             <option value="MYSMILELAB">MySmileLab</option>
           </select>
         </div>

@@ -45,6 +45,7 @@ export const checkPlatformStatus = async (platformType) => {
       THREESHAPE: `${API_BASE_URL}/auth/status`,
       CSCONNECT: `${API_BASE_URL}/csconnect/status`,
       MYSCAN: `${API_BASE_URL}/myscan/status`,
+      DENTAL3D: `${API_BASE_URL}/dental3d/status`,
       MYSMILELAB: `${API_BASE_URL}/drive/status`,
     };
     const endpoint = endpoints[platformType];
