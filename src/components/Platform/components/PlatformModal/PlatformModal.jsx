@@ -24,6 +24,7 @@ const platformTypes = [
   { value: "MEDITLINK", label: "MeditLink" },
   { value: "ITERO", label: "Itero" },
   { value: "DEXIS", label: "Dexis" },
+  { value: "MYSCAN", label: "MyScan" },
   { value: "MYSMILELAB", label: "MySmileLab" },
 ];
 
@@ -152,6 +153,21 @@ const PlatformModal = ({
                       <p>
                         Après création, utilisez le bouton "Connecter" pour vous
                         connecter à l'API CS Connect.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {values.name === "MYSCAN" && (
+                  <div className="platform-info-banner">
+                    <Link2 size={16} />
+                    <div>
+                      <strong>Plateforme MyScan :</strong>
+                      <p>
+                        Connexion à MyScan (ios-connect) via l'API externe. Les
+                        identifiants (email / mot de passe) sont configurés côté
+                        serveur dans le scraper. Les commandes, commentaires et
+                        fichiers STL sont récupérés automatiquement.
                       </p>
                     </div>
                   </div>

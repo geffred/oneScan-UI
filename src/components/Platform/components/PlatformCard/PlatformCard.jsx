@@ -44,6 +44,7 @@ const PlatformCard = React.memo(
     const isItero = platform.name === "ITERO";
     const isDexis = platform.name === "DEXIS";
     const isCsConnect = platform.name === "CSCONNECT";
+    const isMyScan = platform.name === "MYSCAN";
     const isMySmileLab = platform.name === "MYSMILELAB";
 
     const getPlatformDisplayName = () => {
@@ -52,6 +53,8 @@ const PlatformCard = React.memo(
           return "3Shape";
         case "CSCONNECT":
           return "CS Connect";
+        case "MYSCAN":
+          return "MyScan";
         case "MYSMILELAB":
           return "MySmileLab";
         default:
@@ -65,6 +68,9 @@ const PlatformCard = React.memo(
       if (isItero) return iteroStatus;
       if (isDexis) return dexisStatus;
       if (isCsConnect) return csconnectStatus;
+      // MyScan : connexion geree cote serveur (identifiants dans le scraper) →
+      // toujours consideree comme disponible.
+      if (isMyScan) return { authenticated: true, loading: false };
       // MySmileLab n'a pas besoin de statut de connexion API
       if (isMySmileLab) return { authenticated: true, loading: false };
       return null;
@@ -346,6 +352,15 @@ const PlatformCard = React.memo(
                   </button>
                 )}
               </>
+            )}
+
+            {/* 6. MyScan Actions : connexion geree cote serveur (identifiants
+                dans le scraper), aucune action de connexion utilisateur requise. */}
+            {isMyScan && (
+              <div className="platform-card-component__status-badge">
+                <Link2 size={16} />
+                Connecté à l'API MyScan
+              </div>
             )}
           </div>
 

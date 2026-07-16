@@ -592,6 +592,20 @@ const CommandeDetails = () => {
           throw new Error("Fichier scan iTero vide ou indisponible");
         downloadBlobInBrowser(blob, `iTero_Scan_${commande.externalId}.zip`);
         toast.success("Scan iTero téléchargé");
+      } else if (commande.plateforme === "MYSCAN") {
+        // ── MyScan : le fichier STL est généré par l'API externe qui rejoue le
+        // bouton "Export" du navigateur (tâche d'export asynchrone). La
+        // génération peut prendre plusieurs dizaines de secondes.
+        toast.info(
+          "Récupération du scan MyScan — cela peut prendre un moment...",
+        );
+        const blob = await fetchWithAuthBlob(
+          `${API_BASE_URL}/myscan/download/${commande.externalId}`,
+        );
+        if (!blob || blob.size === 0)
+          throw new Error("Fichier scan MyScan vide ou indisponible");
+        downloadBlobInBrowser(blob, `MyScan_${patientFileBase}.zip`);
+        toast.success("Scan MyScan téléchargé");
       } else {
         // Autres plateformes génériques
         const endpoint = `${API_BASE_URL}/${commande.plateforme.toLowerCase()}/download/${commande.externalId}`;

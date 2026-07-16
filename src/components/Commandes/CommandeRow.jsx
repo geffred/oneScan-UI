@@ -50,6 +50,8 @@ const CommandeRow = ({
       ITERO: "cmd-row-plat-green",
       THREESHAPE: "cmd-row-plat-purple",
       DEXIS: "cmd-row-plat-orange",
+      CSCONNECT: "cmd-row-plat-red",
+      MYSCAN: "cmd-row-plat-cyan",
     };
     return configs[p] || "cmd-row-plat-gray";
   };

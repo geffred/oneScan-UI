@@ -15,6 +15,7 @@ const PLATFORM_DISPLAY_NAMES = {
   ITERO: "Itero",
   DEXIS: "Dexis",
   CSCONNECT: "CS Connect",
+  MYSCAN: "MyScan",
   MYSMILELAB: "MySmileLab",
 };
 
@@ -24,6 +25,7 @@ const CONNECTION_LABELS = {
   ITERO: { yes: "Connecté à l'API", no: "Non connecté" },
   DEXIS: { yes: "Connecté à l'API", no: "Non connecté" },
   CSCONNECT: { yes: "Connecté à l'API", no: "Non connecté" },
+  MYSCAN: { yes: "Connecté à l'API", no: "Non connecté" },
 };
 
 const PlatformCard = ({ platform, syncStatus, onSync, connectionStatus }) => {

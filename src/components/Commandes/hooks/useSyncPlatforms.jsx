@@ -9,6 +9,7 @@ const platformEndpoints = {
   DEXIS: `${API_BASE_URL}/dexis/cases/sync`,
   THREESHAPE: `${API_BASE_URL}/threeshape/cases/save`,
   CSCONNECT: `${API_BASE_URL}/csconnect/commandes`,
+  MYSCAN: `${API_BASE_URL}/myscan/commandes/save`,
 };
 
 export const useSyncPlatforms = ({
@@ -154,6 +155,12 @@ export const useSyncPlatforms = ({
     [syncPlatform],
   );
 
+  const syncMyScanCommandes = useCallback(
+    () =>
+      syncPlatform("MYSCAN", `${API_BASE_URL}/myscan/commandes/save`, "POST"),
+    [syncPlatform],
+  );
+
   const syncOtherPlatform = useCallback(
     (platformName) => {
       const endpoint = platformEndpoints[platformName];
@@ -196,6 +203,8 @@ export const useSyncPlatforms = ({
           return syncDexisCommandes();
         case "CSCONNECT":
           return syncCsConnectCommandes();
+        case "MYSCAN":
+          return syncMyScanCommandes();
         default:
           return syncOtherPlatform(platformName);
       }
@@ -206,6 +215,7 @@ export const useSyncPlatforms = ({
       syncIteroCommandes,
       syncDexisCommandes,
       syncCsConnectCommandes,
+      syncMyScanCommandes,
       syncOtherPlatform,
     ],
   );
@@ -244,6 +254,8 @@ export const useSyncPlatforms = ({
             return syncDexisCommandes();
           case "CSCONNECT":
             return syncCsConnectCommandes();
+          case "MYSCAN":
+            return syncMyScanCommandes();
           default:
             return syncOtherPlatform(p.name);
         }

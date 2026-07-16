@@ -98,4 +98,5 @@ export const platformEndpoints = {
   THREESHAPE: `${API_BASE_URL}/threeshape/cases/save`,
   DEXIS: `${API_BASE_URL}/dexis/cases/sync`, // Endpoint corrigé pour la synchro Dexis
   CSCONNECT: `${API_BASE_URL}/csconnect/commandes`,
+  MYSCAN: `${API_BASE_URL}/myscan/commandes/save`,
 };

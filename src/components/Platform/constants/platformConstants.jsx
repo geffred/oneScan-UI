@@ -4,6 +4,7 @@ export const platformTypes = [
   { value: "ITERO", label: "Itero" },
   { value: "DEXIS", label: "Dexis" },
   { value: "CSCONNECT", label: "CS Connect" },
+  { value: "MYSCAN", label: "MyScan" },
   { value: "MYSMILELAB", label: "MySmileLab" },
 ];
 
@@ -22,6 +23,7 @@ export const PLATFORM_NAMES = {
   ITERO: "ITERO",
   DEXIS: "DEXIS",
   CSCONNECT: "CSCONNECT",
+  MYSCAN: "MYSCAN",
   MYSMILELAB: "MYSMILELAB",
 };
 
@@ -31,5 +33,6 @@ export const PLATFORM_DISPLAY_NAMES = {
   [PLATFORM_NAMES.ITERO]: "Itero",
   [PLATFORM_NAMES.DEXIS]: "Dexis",
   [PLATFORM_NAMES.CSCONNECT]: "CS Connect",
+  [PLATFORM_NAMES.MYSCAN]: "MyScan",
   [PLATFORM_NAMES.MYSMILELAB]: "MySmileLab",
 };

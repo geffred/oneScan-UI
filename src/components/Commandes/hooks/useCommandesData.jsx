@@ -70,6 +70,12 @@ export const useCommandesData = ({
             error: backblazeStatus.error,
             provider: backblazeStatus.provider,
           };
+        case "MYSCAN":
+          // MyScan : connexion geree cote serveur par l'API externe
+          // (identifiants email/mot de passe dans le code du scraper). On
+          // considere la plateforme comme toujours disponible pour permettre
+          // la synchronisation a la demande depuis l'UI.
+          return { authenticated: true, loading: false, error: null };
         default:
           return { authenticated: false };
       }
