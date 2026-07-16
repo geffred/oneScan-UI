@@ -319,11 +319,18 @@ const Commandes = () => {
     if (!commandes?.length) return;
     try {
       const token = localStorage.getItem("token");
-      const ids = commandes.map((c) => c.id).join(",");
-      const res = await fetch(
-        `${API_BASE_URL}/certificats/batch/exists?commandeIds=${ids}`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      const ids = commandes.map((c) => c.id);
+      // POST (IDs dans le corps) et non GET : avec des centaines/milliers de
+      // commandes, la query string dépassait la taille max d'URL de Tomcat →
+      // requête rejetée avant CORS → fausse erreur CORS.
+      const res = await fetch(`${API_BASE_URL}/certificats/batch/exists`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(ids),
+      });
       if (!res.ok) throw new Error();
       setCertificatsMap(await res.json());
     } catch {
@@ -348,11 +355,15 @@ const Commandes = () => {
         return;
       }
 
-      const ids = fresh.map((c) => c.id).join(",");
-      const certRes = await fetch(
-        `${API_BASE_URL}/certificats/batch/exists?commandeIds=${ids}`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      const ids = fresh.map((c) => c.id);
+      const certRes = await fetch(`${API_BASE_URL}/certificats/batch/exists`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(ids),
+      });
       if (certRes.ok) setCertificatsMap(await certRes.json());
     } catch {
       toast.error("Erreur rechargement certificats");
